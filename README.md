@@ -4,5 +4,5 @@
 <h1>Onsight Editor</h1>
 Powerful, easy-to-use JavaScript video game and application creation engine.<br>
 <br><br>
-<h2>Work in progress, more to come...</h1>
+**Coming soon**
 <br><br>

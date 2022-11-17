@@ -3,7 +3,7 @@
 export default [
 
 	{
-		input: './Onsight.js',
+		input: './src/Onsight.js',
 		treeshake: true,
 
 		output: {
@@ -19,7 +19,7 @@ export default [
 	},
 
 	{
-		input: './Onsight.js',
+		input: './src/Onsight.js',
 		treeshake: false,
 
 		output: {

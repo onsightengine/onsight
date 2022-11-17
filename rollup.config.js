@@ -5,6 +5,7 @@ export default [
 	{
 		input: './src/Onsight.js',
 		treeshake: true,
+		external: p => /^three/.test( p ),
 
 		output: {
 
@@ -14,6 +15,8 @@ export default [
 			file: './build/onsight.umd.cjs',
 			sourcemap: true,
 
+			globals: p => /^three/.test( p ) ? 'THREE' : null,
+
 		},
 
 	},
@@ -21,6 +24,7 @@ export default [
 	{
 		input: './src/Onsight.js',
 		treeshake: false,
+		external: p => /^three/.test( p ),
 
 		output: {
 

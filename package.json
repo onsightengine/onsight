@@ -1,0 +1,38 @@
+{
+  "name": "onsight",
+  "version": "3.0.0",
+  "description": "Powerful, easy-to-use JavaScript video game and application creation engine.",
+  "module": "src/Onsight.js",
+  "main": "build/onsight.umd.cjs",
+  "type": "module",
+  "scripts": {
+    "build": "rollup -c",
+    "prepublishOnly": "npm run build"
+  },
+  "files": [
+    "src/*",
+    "build/*"
+  ],
+  "keywords": [
+    "onsight",
+    "game",
+    "engine",
+    "webgl",
+    "javascript",
+    "graphics"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/onsightengine/onsight.git"
+  },
+  "author": "Stephens Nunnally <stephens@scidian.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/onsightengine/issues"
+  },
+  "homepage": "https://github.com/onsightengine#readme",
+  "devDependencies": {
+    "rollup": "^2.58.0"
+  },
+  "private": false
+}

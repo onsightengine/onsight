@@ -40,11 +40,12 @@ class RenderUtils {
     static renderGeometryToCanvas(canvas, geometry, geometryColor = 0xffffff) {
         const scene = new THREE.Scene();
         scene.add(new THREE.HemisphereLight(0xffffff, 0x202020, 1.5));
+
         const camera = new THREE.PerspectiveCamera(50, canvas.width / canvas.height);
         camera.position.set(0, 0, 1);
 
         // Mesh
-        const material = new THREE.MeshLambertMaterial({ color: geometryColor });
+        const material = new THREE.MeshStandardMaterial({ color: geometryColor });
         const mesh = new THREE.Mesh(geometry, material);
         scene.add(mesh);
 

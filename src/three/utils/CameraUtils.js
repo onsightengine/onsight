@@ -220,7 +220,7 @@ class CameraUtils {
         // // #OPTION 0
         const fitDepthDistance = size.z / (2.0 * Math.atan(Math.PI * camera.fov / 360));
         const fitHeightDistance = Math.max(fitDepthDistance, size.y / (2.0 * Math.atan(Math.PI * camera.fov / 360)));
-        const fitWidthDistance = (size.x / (2.7 * Math.atan(Math.PI * camera.fov / 360))) / camera.aspect;
+        const fitWidthDistance = (size.x / (2.5 * Math.atan(Math.PI * camera.fov / 360))) / camera.aspect;
         const distance = offset * Math.max(fitHeightDistance, fitWidthDistance);
 
         // // #OPTION 1
@@ -238,7 +238,8 @@ class CameraUtils {
         camera.updateProjectionMatrix();
 
         camera.position.copy(center);
-        // camera.position.y += distance / 2;
+        // camera.position.x += distance / 3;
+        // camera.position.y += distance / 3;
         camera.position.z += distance;
         camera.lookAt(center);
 

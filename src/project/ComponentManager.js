@@ -7,6 +7,62 @@
 // @source      https://github.com/onsightengine/onsight
 //
 ///////////////////////////////////////////////////////////////////////////////////*/
+//
+//              Component Property Types
+//              ------------------------
+//
+//  Type            Description                     Default             Options (Default)
+//  ----            -----------                     -------             -----------------
+//
+//  ///// DATA TYPES /////
+//
+//  select          Dropdown                        null
+//  number          Number Box                      0                   min (-inf), max (inf), step (1), unit (''), precision (3)
+//  int             Whole Number                    0                   min (-inf), max (inf), step (1), unit ('')
+//  angle           Degrees, converted to Radians   0                   min (-inf), max (inf), step (10), unit ('°'), precision (3)
+//  slider          Number Slider                   0                   min (-inf), max (inf), step ('any'), precision (2)
+//
+//  boolean         Option / Checkbox               false
+//  color           Color Selector                  0xffffff
+//
+//  asset           Asset (asset.uuid)              null
+//  map             Texture Map (texture.uuid)      null
+//
+//  ///// FORMATTING /////
+//
+//  divider         Inserts horizontal rule
+//
+//  ///// TO IMPLEMENT /////
+//
+//  !! scroller     Number Scroller Box             0
+//  !! variable     Number with +/- Number          [ 0, 0 ]
+//
+//  !! array        Array                           []
+//  !! vector2      2 Numbers w/ Options            [ 0, 0 ]
+//  !! vector3      3 Numbers w/ Options            [ 0, 0, 0 ]
+//  !! vector4      4 Numbers w/ Options            [ 0, 0, 0, 0 ]
+//
+//  !! string       String, Single, Multiline       ''
+//  !! shape        Vector Path (THREE.Shape)       null
+//
+//  !! script       Script                          ''
+//
+//  !! === Not Implemented Yet
+//
+/////////////////////////////////////////////////////////////////////////////////////
+//
+//  ADD-ON OPTIONS
+//  --------------
+//  alias           Override a variable name to have custom string shown in Inspector
+//  promode         Only Show when 'promode' is enabled
+//  hide            Hides in Editor if any of the conditions are met
+//
+//  SPECIAL STEP VALUES (Number / Int / Angle / Slider)
+//  -------------------
+//  'any'           Applies to Slider only. Totally smooth, slider can be any value
+//  'grid'          Align step to current editor 'grid' setting
+//
+/////////////////////////////////////////////////////////////////////////////////////
 
 import * as THREE from 'three';
 
@@ -65,7 +121,7 @@ class ComponentManager {
                         case 'boolean':     property.default = false;           break;
                         case 'color':       property.default = 0xffffff;        break;
                         case 'asset':       property.default = null;            break;
-                        case 'image':       property.default = null;            break;
+                        case 'map':         property.default = null;            break;
                         // ------ !!!!! TODO: Below Needs Incorporate Inspector ------
                         case 'scroller':    property.default = 0;               break;
                         case 'variable':    property.default = [ 0, 0 ];        break;

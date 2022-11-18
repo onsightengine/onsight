@@ -11,7 +11,7 @@
 ///// General
 
 export const NAME = 'Onsight';
-export const REVISION = '0.0.2';
+export const REVISION = '0.0.3';
 export const BACKEND3D = 'THREE';
 
 ///// Project Types

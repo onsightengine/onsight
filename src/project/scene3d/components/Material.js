@@ -74,7 +74,7 @@ class Material {
                 // Check if wants map (texture)
                 let checkType = Material.config.schema[key];
                 if (System.isIterable(checkType) && checkType.length > 0) checkType = checkType[0];
-                if (value && checkType && checkType.type === 'image') {
+                if (value && checkType && checkType.type === 'map') {
 
                     // Make sure texture is in AssetManager
                     if (value.isTexture) {
@@ -429,7 +429,7 @@ Material.config = {
 
         edgeSize: { type: 'slider', default: 6, min: 0, max: 10, step: 1, precision: 0, if: { style: [ 'toon' ] } },
         gradientSize: { type: 'slider', default: 4, min: 1, max: 16, step: 1, precision: 0, if: { style: [ 'toon' ] } },
-        // gradientMap: { type: 'image', if: { style: [ 'toon' ] } },
+        // gradientMap: { type: 'map', if: { style: [ 'toon' ] } },
 
         metalness: { type: 'slider', default: 0.1, min: 0.0, max: 1.0, if: { style: [ 'physical', 'standard' ] } },
         roughness: { type: 'slider', default: 1.0, min: 0.0, max: 1.0, if: { style: [ 'physical', 'standard' ] } },
@@ -452,35 +452,35 @@ Material.config = {
 
         ///// Standard Maps
         map: [
-            { type: 'image', if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'physical', 'standard', 'toon' ] } },
-            { type: 'image', if: { style: [ 'points' ] } },
+            { type: 'map', if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'physical', 'standard', 'toon' ] } },
+            { type: 'map', if: { style: [ 'points' ] } },
         ],
 
-        matcap: { type: 'image', if: { style: [ 'matcap' ] } },
+        matcap: { type: 'map', if: { style: [ 'matcap' ] } },
 
         ///// Surface Maps (see: https://market.pmnd.rs/material/stylized-crystal)
-        alphaMap: { type: 'image', promode: true, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'physical', 'points', 'standard', 'toon' ] } },
-        bumpMap: { type: 'image', promode: true, if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
+        alphaMap: { type: 'map', promode: true, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'physical', 'points', 'standard', 'toon' ] } },
+        bumpMap: { type: 'map', promode: true, if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
         bumpScale: { type: 'slider', default: 1, min: 0, max: 2, promode: true, if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
-        clearcoatNormalMap: { type: 'image', promode: true, if: { style: [ 'physical' ] } },
+        clearcoatNormalMap: { type: 'map', promode: true, if: { style: [ 'physical' ] } },
         clearcoatNormalScale: { type: 'vector2', default: [ 1, 1 ], promode: true, if: { style: [ 'physical' ] } },
-        displacementMap: { type: 'image', promode: true, if: { style: [ 'depth', 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
+        displacementMap: { type: 'map', promode: true, if: { style: [ 'depth', 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
         displacementScale: { type: 'slider', default: 1, min: 0, max: 2, promode: true, if: { style: [ 'depth', 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
-        emissiveMap: { type: 'image', promode: true, if: { style: [ 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
-        metalnessMap: { type: 'image', promode: true, if: { style: [ 'physical', 'standard' ] } },
-        roughnessMap: { type: 'image', promode: true, if: { style: [ 'physical', 'standard' ] } },
-        specularMap: { type: 'image', promode: true, if: { style: [ 'basic', 'lambert', 'phong' ] } },
-        thicknessMap: { type: 'image', promode: true, if: { style: [ 'physical' ] } },
-        transmissionMap: { type: 'image', promode: true, if: { style: [ 'physical' ] } },
+        emissiveMap: { type: 'map', promode: true, if: { style: [ 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
+        metalnessMap: { type: 'map', promode: true, if: { style: [ 'physical', 'standard' ] } },
+        roughnessMap: { type: 'map', promode: true, if: { style: [ 'physical', 'standard' ] } },
+        specularMap: { type: 'map', promode: true, if: { style: [ 'basic', 'lambert', 'phong' ] } },
+        thicknessMap: { type: 'map', promode: true, if: { style: [ 'physical' ] } },
+        transmissionMap: { type: 'map', promode: true, if: { style: [ 'physical' ] } },
 
         ///// Light Maps
-        aoMap: { type: 'image', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
+        aoMap: { type: 'map', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
         // aoMapIntensity: { type: 'slider', promode: true, default: 1, min: 0, max: 100, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
-        envMap: { type: 'image', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard' ] } },
+        envMap: { type: 'map', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard' ] } },
         // envMapIntensity: { type: 'slider', default: 1, min: 0, max: 2, promode: true, if: { style: [ 'physical', 'standard' ] } },
-        lightMap: { type: 'image', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
+        lightMap: { type: 'map', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
         // lightMapIntensity: { type: 'number', default: 1, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
-        normalMap: { type: 'image', if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
+        normalMap: { type: 'map', if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
         // normalScale: { type: 'vector2', default: [ 1, 1 ], promode: true, if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
 
         ///// Front / Back / Double

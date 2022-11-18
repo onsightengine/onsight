@@ -1,6 +1,6 @@
 {
   "name": "onsight",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Powerful, easy-to-use JavaScript video game and application creation engine.",
   "module": "src/Onsight.js",
   "main": "build/onsight.module.js",

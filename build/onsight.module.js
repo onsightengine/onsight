@@ -2,7 +2,7 @@
  * @description Onsight Engine
  * @about       Powerful, easy-to-use JavaScript video game and application creation engine.
  * @author      Stephens Nunnally <@stevinz>
- * @version     v0.0.2
+ * @version     v0.0.3
  * @license     MIT - Copyright (c) 2021-2022 Stephens Nunnally and Scidian Software
  * @source      https://github.com/onsightengine/onsight
  */
@@ -22,7 +22,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { LoopSubdivision } from 'three-subdivide';
 
 const NAME = 'Onsight';
-const REVISION = '0.0.2';
+const REVISION = '0.0.3';
 const BACKEND3D = 'THREE';
 const ENTITY_TYPES = {
     Entity3D:       'Entity3D',
@@ -148,7 +148,7 @@ class CameraUtils {
         const size = boundingBox.getSize(new THREE$1.Vector3());
         const fitDepthDistance = size.z / (2.0 * Math.atan(Math.PI * camera.fov / 360));
         const fitHeightDistance = Math.max(fitDepthDistance, size.y / (2.0 * Math.atan(Math.PI * camera.fov / 360)));
-        const fitWidthDistance = (size.x / (2.7 * Math.atan(Math.PI * camera.fov / 360))) / camera.aspect;
+        const fitWidthDistance = (size.x / (2.5 * Math.atan(Math.PI * camera.fov / 360))) / camera.aspect;
         const distance = offset * Math.max(fitHeightDistance, fitWidthDistance);
         camera.near = distance / 100;
         camera.far = distance * 100;
@@ -732,7 +732,7 @@ class ComponentManager {
                         case 'boolean':     property.default = false;           break;
                         case 'color':       property.default = 0xffffff;        break;
                         case 'asset':       property.default = null;            break;
-                        case 'image':       property.default = null;            break;
+                        case 'map':         property.default = null;            break;
                         case 'scroller':    property.default = 0;               break;
                         case 'variable':    property.default = [ 0, 0 ];        break;
                         case 'array':       property.default = [];              break;
@@ -4333,7 +4333,7 @@ class RenderUtils {
         scene.add(new THREE$1.HemisphereLight(0xffffff, 0x202020, 1.5));
         const camera = new THREE$1.PerspectiveCamera(50, canvas.width / canvas.height);
         camera.position.set(0, 0, 1);
-        const material = new THREE$1.MeshLambertMaterial({ color: geometryColor });
+        const material = new THREE$1.MeshStandardMaterial({ color: geometryColor });
         const mesh = new THREE$1.Mesh(geometry, material);
         scene.add(mesh);
         CameraUtils.fitCameraToObject(camera, mesh);
@@ -4927,7 +4927,7 @@ class Material {
                 parameters[key] = value;
                 let checkType = Material.config.schema[key];
                 if (System.isIterable(checkType) && checkType.length > 0) checkType = checkType[0];
-                if (value && checkType && checkType.type === 'image') {
+                if (value && checkType && checkType.type === 'map') {
                     if (value.isTexture) {
                         AssetManager.addTexture(value);
                     } else {
@@ -5194,27 +5194,27 @@ Material.config = {
         transmission: { type: 'slider', default: 0.0, min: 0.0, max: 1.0, if: { style: [ 'physical' ] } },
         depthPacking: { type: 'select', default: 'BasicDepthPacking', select: depthPacking, if: { style: [ 'depth' ] } },
         map: [
-            { type: 'image', if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'physical', 'standard', 'toon' ] } },
-            { type: 'image', if: { style: [ 'points' ] } },
+            { type: 'map', if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'physical', 'standard', 'toon' ] } },
+            { type: 'map', if: { style: [ 'points' ] } },
         ],
-        matcap: { type: 'image', if: { style: [ 'matcap' ] } },
-        alphaMap: { type: 'image', promode: true, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'physical', 'points', 'standard', 'toon' ] } },
-        bumpMap: { type: 'image', promode: true, if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
+        matcap: { type: 'map', if: { style: [ 'matcap' ] } },
+        alphaMap: { type: 'map', promode: true, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'physical', 'points', 'standard', 'toon' ] } },
+        bumpMap: { type: 'map', promode: true, if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
         bumpScale: { type: 'slider', default: 1, min: 0, max: 2, promode: true, if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
-        clearcoatNormalMap: { type: 'image', promode: true, if: { style: [ 'physical' ] } },
+        clearcoatNormalMap: { type: 'map', promode: true, if: { style: [ 'physical' ] } },
         clearcoatNormalScale: { type: 'vector2', default: [ 1, 1 ], promode: true, if: { style: [ 'physical' ] } },
-        displacementMap: { type: 'image', promode: true, if: { style: [ 'depth', 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
+        displacementMap: { type: 'map', promode: true, if: { style: [ 'depth', 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
         displacementScale: { type: 'slider', default: 1, min: 0, max: 2, promode: true, if: { style: [ 'depth', 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
-        emissiveMap: { type: 'image', promode: true, if: { style: [ 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
-        metalnessMap: { type: 'image', promode: true, if: { style: [ 'physical', 'standard' ] } },
-        roughnessMap: { type: 'image', promode: true, if: { style: [ 'physical', 'standard' ] } },
-        specularMap: { type: 'image', promode: true, if: { style: [ 'basic', 'lambert', 'phong' ] } },
-        thicknessMap: { type: 'image', promode: true, if: { style: [ 'physical' ] } },
-        transmissionMap: { type: 'image', promode: true, if: { style: [ 'physical' ] } },
-        aoMap: { type: 'image', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
-        envMap: { type: 'image', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard' ] } },
-        lightMap: { type: 'image', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
-        normalMap: { type: 'image', if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
+        emissiveMap: { type: 'map', promode: true, if: { style: [ 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
+        metalnessMap: { type: 'map', promode: true, if: { style: [ 'physical', 'standard' ] } },
+        roughnessMap: { type: 'map', promode: true, if: { style: [ 'physical', 'standard' ] } },
+        specularMap: { type: 'map', promode: true, if: { style: [ 'basic', 'lambert', 'phong' ] } },
+        thicknessMap: { type: 'map', promode: true, if: { style: [ 'physical' ] } },
+        transmissionMap: { type: 'map', promode: true, if: { style: [ 'physical' ] } },
+        aoMap: { type: 'map', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
+        envMap: { type: 'map', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard' ] } },
+        lightMap: { type: 'map', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
+        normalMap: { type: 'map', if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
         side: { type: 'select', default: 'FrontSide', select: sides, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
     },
     icon: ``,

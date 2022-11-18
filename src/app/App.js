@@ -16,12 +16,12 @@
 
 import * as THREE from 'three';
 
+import { APP_STATES } from '../constants.js';
+
 import { CameraUtils } from '../three/utils/CameraUtils.js';
 import { ObjectUtils } from '../three/utils/ObjectUtils.js';
 import { Project } from '../project/Project.js';
 import { System } from '../core/System.js';
-
-import { APP_STATES } from '../Onsight.js';
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////   App

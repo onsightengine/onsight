@@ -1,39 +1,88 @@
+import { REVISION } from './src/constants.js';
+import { terser } from 'rollup-plugin-terser';
+import cleanup from "rollup-plugin-cleanup";
+// import obfuscator from 'rollup-plugin-obfuscator';
 
+function header() {
+	return {
+		renderChunk(code) {
+			return `/**
+ * @description Onsight Engine
+ * @about       Powerful, easy-to-use JavaScript video game and application creation engine.
+ * @author      Stephens Nunnally <@stevinz>
+ * @version     v${REVISION}
+ * @license     MIT - Copyright (c) 2021-2022 Stephens Nunnally and Scidian Software
+ * @source      https://github.com/onsightengine/onsight
+ */
+${code}`;
+        }
+    };
+}
 
-export default [
+const builds = [
 
-	{
-		input: './src/Onsight.js',
-		treeshake: true,
-		external: p => /^three/.test( p ),
+    { // Standard Build
+        input: './src/Onsight.js',
+        treeshake: false,
+        external: p => /^three/.test(p),
 
-		output: {
+        plugins: [
+            cleanup({
+                comments: "none",
+                extensions: [ "js", "ts" ],
+                sourcemap: false,
+            }),
+            header(),
+        ],
 
-			name: 'onsight',
-			extend: true,
-			format: 'umd',
-			file: './build/onsight.umd.cjs',
-			sourcemap: true,
+        output: [{
+            format: 'esm',
+            file: './build/onsight.module.js',
+            sourcemap: false,
+        }],
+    },
 
-			globals: p => /^three/.test( p ) ? 'THREE' : null,
+    { // Minified
+        input: './src/Onsight.js',
+        treeshake: false,
+        external: p => /^three/.test(p),
 
-		},
+        plugins: [
+            header(),
+        ],
 
-	},
+        output: [{
+            format: 'esm',
+            file: './build/onsight.min.js',
+            sourcemap: false,
+            plugins: [
+                terser({ format: { comments: false } }),
+            ],
+        }],
+    },
 
-	{
-		input: './src/Onsight.js',
-		treeshake: false,
-		external: p => /^three/.test( p ),
+    /**
+    { // Obfuscated
+        input: './src/Onsight.js',
+        treeshake: false,
+        external: p => /^three/.test(p),
 
-		output: {
+        plugins: [
+            obfuscator({ fileOptions: {}, globalOptions: {} }),
+            header(),
+        ],
 
-			format: 'esm',
-			file: './build/onsight.module.js',
-			sourcemap: true,
-
-		},
-
-	}
+        output: [{
+            format: 'esm',
+            file: './build/onsight.compile.js',
+            sourcemap: false,
+            plugins: [
+                terser({ format: { comments: false } }),
+            ],
+        }],
+    },
+    **/
 
 ];
+
+export default builds;

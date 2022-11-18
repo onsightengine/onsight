@@ -20,11 +20,11 @@
 
 import * as THREE from 'three';
 
+import { ENTITY_FLAGS } from '../../constants.js';
+
 import { ComponentManager } from '../ComponentManager.js'
 import { Object3D } from './Object3D.js';
 import { Strings } from '../../core/Strings.js'
-
-import { ENTITY_FLAGS } from '../../Onsight.js';
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////   Entity3D

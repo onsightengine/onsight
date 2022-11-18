@@ -8,40 +8,13 @@
 //
 ///////////////////////////////////////////////////////////////////////////////////*/
 
-///// General
+///// General Constants
 
-export const NAME = 'Onsight';
-export const REVISION = '0.0.1';
-export const BACKEND3D = 'THREE';
+import { REVISION } from './constants.js';
 
-///// Project Types
-
-export const ENTITY_TYPES = {
-    Entity3D:       'Entity3D',
-};
-
-export const SCENE_TYPES = {
-    Scene3D:        'Scene3D',
-};
-
-export const WORLD_TYPES = {
-    World3D:        'World3D',
-};
-
-///// Flags
-
-export const ENTITY_FLAGS = {
-    LOCKED:         'flagLocked',
-    TEMP:           'flagTemp',
-}
-
-///// App States
-
-export const APP_STATES = {
-    PLAYING:        'playing',
-    PAUSED:         'paused',
-    STOPPED:        'stopped',
-}
+export { NAME, REVISION, BACKEND3D } from './constants.js';
+export { ENTITY_TYPES, SCENE_TYPES, WORLD_TYPES, ENTITY_FLAGS } from './constants.js';
+export { APP_STATES } from './constants.js';
 
 ///// Camera Constants
 

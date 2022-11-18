@@ -16,7 +16,7 @@
 import * as THREE from 'three';
 
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
-import { SimplifyModifier } from 'three/addons/modifiers/SimplifyModifier.js';
+// import { SimplifyModifier } from 'three/addons/modifiers/SimplifyModifier.js';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 
 import { LoopSubdivision } from 'three-subdivide';

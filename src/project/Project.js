@@ -10,9 +10,7 @@
 
 import * as THREE from 'three';
 
-import { REVISION } from '../Onsight.js';
-import { SCENE_TYPES } from '../Onsight.js';
-import { WORLD_TYPES } from '../Onsight.js';
+import { REVISION, SCENE_TYPES, WORLD_TYPES } from '../constants.js';
 
 import { Scene3D } from './scene3d/Scene3D.js';
 import { World3D } from './scene3d/World3D.js';

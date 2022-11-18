@@ -10,11 +10,9 @@
 
 ///// General Constants
 
-import { REVISION } from './constants.js';
+import { VERSION } from './constants.js';
 
-export { NAME, REVISION, BACKEND3D } from './constants.js';
-export { ENTITY_TYPES, SCENE_TYPES, WORLD_TYPES, ENTITY_FLAGS } from './constants.js';
-export { APP_STATES } from './constants.js';
+export * from './constants.js';
 
 ///// Camera Constants
 
@@ -33,6 +31,8 @@ export { EntityPool } from './app/EntityPool.js';
 ///// Core
 
 export { Iris } from './core/Iris.js';
+
+
 export { Maths } from './core/Maths.js';
 export { Strings } from './core/Strings.js';
 export { System } from './core/System.js';
@@ -67,16 +67,7 @@ export { SkyObject } from './three/objects/SkyObject.js';
 
 ///// Three - Passes
 
-export { DepthPass } from './three/passes/DepthPass.js';
 export { GpuPickerPass } from './three/passes/GpuPickerPass.js';
-export { OutlinePass } from './three/passes/OutlinePass.js';
-export { WireframePass } from './three/passes/WireframePass.js';
-
-///// Three - Shaders
-
-export { DepthShader } from './three/shaders/DepthShader.js';
-export { TexturedShader } from './three/shaders/TexturedShader.js';
-export { XRayShader } from './three/shaders/XRayShader.js';
 
 ///// Three - Utils
 
@@ -100,6 +91,6 @@ if (typeof window !== 'undefined') {
     if (window.__ONSIGHT__) {
         console.warn('Multiple instances of Onsight being imported');
     } else {
-        window.__ONSIGHT__ = REVISION;
+        window.__ONSIGHT__ = VERSION;
     }
 }

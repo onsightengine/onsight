@@ -10,7 +10,7 @@
 
 import * as THREE from 'three';
 
-import { REVISION, SCENE_TYPES, WORLD_TYPES } from '../constants.js';
+import { VERSION, SCENE_TYPES, WORLD_TYPES } from '../constants.js';
 
 import { Scene3D } from './scene3d/Scene3D.js';
 import { World3D } from './scene3d/World3D.js';
@@ -271,8 +271,8 @@ class Project {
 
         // Check project saved with version
         const metaVersion = json.metadata.version;
-        if (metaVersion !== REVISION) {
-            console.warn(`Project.fromJSON: Project saved in 'v${metaVersion}', attempting to load with 'v${REVISION}'`);
+        if (metaVersion !== VERSION) {
+            console.warn(`Project.fromJSON: Project saved in 'v${metaVersion}', attempting to load with 'v${VERSION}'`);
         }
 
         // Check object type
@@ -323,7 +323,7 @@ class Project {
 
         json.metadata = {
             type: 'Onsight',
-            version: REVISION,
+            version: VERSION,
             generator: 'Onsight.Project.toJSON',
         };
         json.object = {

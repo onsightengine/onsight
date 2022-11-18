@@ -6,14 +6,11 @@
 !.vscode/extensions.json
 *.code-workspace
 
-# Node Modules
-node_modules/
-
-# JS Docs
-out/
-
-# Local History for Visual Studio Code
+# Hidden Files
+.DS_Store
 .history/
 
-# Mac Hidden Files
-.DS_Store
+# Build Files
+node_modules/
+out/
+stats.html

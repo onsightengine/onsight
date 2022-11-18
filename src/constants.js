@@ -8,13 +8,22 @@
 //
 ///////////////////////////////////////////////////////////////////////////////////*/
 
-///// General
+export const VERSION = '0.0.3';
 
-export const NAME = 'Onsight';
-export const REVISION = '0.0.3';
-export const BACKEND3D = 'THREE';
+// Backends
 
-///// Project Types
+export const BACKENDS = {
+    RENDERER_3D: {
+        ONSIGHT:    'ONE',
+        THREE:      'THREE',
+    },
+    PHYSICS_3D: {
+        CANNON:     'CANNON',
+        RAPIER:     'RAPIER',
+    }
+}
+
+// Types
 
 export const ENTITY_TYPES = {
     Entity3D:       'Entity3D',
@@ -35,7 +44,7 @@ export const ENTITY_FLAGS = {
     TEMP:           'flagTemp',
 }
 
-///// App States
+///// States
 
 export const APP_STATES = {
     PLAYING:        'playing',

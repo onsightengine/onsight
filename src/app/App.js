@@ -16,7 +16,7 @@
 
 import * as THREE from 'three';
 
-import { APP_STATES } from '../constants.js';
+import { APP_STATES, BACKENDS } from '../constants.js';
 
 import { CameraUtils } from '../three/utils/CameraUtils.js';
 import { ObjectUtils } from '../three/utils/ObjectUtils.js';
@@ -33,6 +33,11 @@ class App {
 
     constructor() {
         const self = this;
+
+        // Backend
+        this.backend = {};
+        this.backend.renderer = BACKENDS.RENDERER_3D.THREE;
+        this.backend.physics = BACKENDS.PHYSICS_3D.RAPIER;
 
         // Private Members
         let player = this;

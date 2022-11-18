@@ -1,7 +1,23 @@
-import { REVISION } from './src/constants.js';
-import { terser } from 'rollup-plugin-terser';
-import cleanup from "rollup-plugin-cleanup";
-// import obfuscator from 'rollup-plugin-obfuscator';
+/** /////////////////////////////////////////////////////////////////////////////////
+//
+// @description Onsight Engine
+// @about       Powerful, easy-to-use JavaScript video game and application creation engine.
+// @author      Stephens Nunnally <@stevinz>
+// @license     MIT - Copyright (c) 2021-2022 Stephens Nunnally and Scidian Software
+// @source      https://github.com/onsightengine/onsight
+//
+///////////////////////////////////////////////////////////////////////////////////*/
+
+import { VERSION } from './src/constants.js';              // Pull in version
+
+///// Plugins
+
+import { terser } from 'rollup-plugin-terser';              // Remove comments, minify
+import { visualizer } from "rollup-plugin-visualizer";      // Visualize
+import cleanup from "rollup-plugin-cleanup";                // Remove comments, supports sourcemap
+// import obfuscator from 'rollup-plugin-obfuscator';       // Obfuscate
+
+///// Post Build Header
 
 function header() {
 	return {
@@ -10,7 +26,7 @@ function header() {
  * @description Onsight Engine
  * @about       Powerful, easy-to-use JavaScript video game and application creation engine.
  * @author      Stephens Nunnally <@stevinz>
- * @version     v${REVISION}
+ * @version     v${VERSION}
  * @license     MIT - Copyright (c) 2021-2022 Stephens Nunnally and Scidian Software
  * @source      https://github.com/onsightengine/onsight
  */
@@ -18,6 +34,8 @@ ${code}`;
         }
     };
 }
+
+///// Builds
 
 const builds = [
 
@@ -49,6 +67,7 @@ const builds = [
 
         plugins: [
             header(),
+            visualizer(),
         ],
 
         output: [{

@@ -88,13 +88,15 @@ class Iris {
 
     //////////////////// Ctor
 
-    constructor(r = 0xffffff, g, b, type = '') {
+    constructor(r = 0xffffff, g, b, format = '') {
         this.isColor = true;
         this.isIris = true;
+        this.type = 'Color';
+
         this.r = 1;                             // 0.0 to 1.0
         this.g = 1;                             // 0.0 to 1.0
         this.b = 1;                             // 0.0 to 1.0
-        this.set(r, g, b, type);
+        this.set(r, g, b, format);
     }
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -105,7 +107,7 @@ class Iris {
         return this.set(colorObject);
     }
 
-    set(r = 0, g, b, type = '') {
+    set(r = 0, g, b, format = '') {
         // No arguments passed
         if (arguments.length === 0) {
             return this.set(0);
@@ -128,7 +130,7 @@ class Iris {
             }
         // Three arguments were passed
         } else {
-            switch (type) {
+            switch (format) {
                 case 'rgb': return this.setRGB(r, g, b);
                 case 'hsl': return this.setHSL(r, g, b);
                 case 'ryb': return this.setRYB(r, g, b);
@@ -432,10 +434,10 @@ class Iris {
     }
 
     /** Converts color to grayscale */
-    greyscale(percent = 1.0, type = 'luminosity') { return this.grayscale(percent, type) }
-    grayscale(percent = 1.0, type = 'luminosity') {
+    greyscale(percent = 1.0, format = 'luminosity') { return this.grayscale(percent, format) }
+    grayscale(percent = 1.0, format = 'luminosity') {
         let gray = 0;
-        switch (type) {
+        switch (format) {
             case 'luminosity':
                 gray = (this.r * 0.21) + (this.g * 0.72) + (this.b * 0.07);
             case 'average':

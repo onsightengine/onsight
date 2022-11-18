@@ -28,19 +28,7 @@ const fileLoader = new THREE.FileLoader();
 class Rigidbody {
 
     init(data) {
-        data.style = indexedTypes.indexOf(data.style);
 
-        this.backend = new Body(data);
-        this.cachedScale = this.entity.getWorldScale(new THREE.Vector3());
-
-        this.style = data.style = indexedTypes[data.style];
-
-        if (data.material.length > 0) {
-            this.backend.material = this.app.assets.get(data.material);
-            if (this.backend.material === undefined) {
-                fileLoader.load(data.material, json => this.onMaterialLoad(data.material, json), p => this.onProgress(p), e => this.onError(e));
-            }
-        }
     }
 
     dispose() {
@@ -48,19 +36,17 @@ class Rigidbody {
     }
 
     enable() {
-        this.app.physics.addBody(this.backend);
+
     }
 
     disable() {
-        this.app.physics.removeBody(this.backend);
+
     }
 
     /////
 
     onMaterialLoad(key, json) {
-        const material = new Material(json);
-        this.backend.material = material;
-        this.app.assets.add(key, material);
+
         // // NOTE: Currently, 'extends THREE.EventDispatcher' is removed from 'Component' in ComponentManager.js
         // this.dispatchEvent({ type: 'load', material });
     }
@@ -71,7 +57,7 @@ class Rigidbody {
     }
 
     onError(event) {
-        console.error('Rigidbody: failed retrieving asset');
+
         // // NOTE: Currently, 'extends THREE.EventDispatcher' is removed from 'Component' in ComponentManager.js
         // this.dispatchEvent({ type: 'error', event });
     }

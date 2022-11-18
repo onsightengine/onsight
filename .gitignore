@@ -9,6 +9,9 @@
 # Node Modules
 node_modules/
 
+# JS Docs
+out/
+
 # Local History for Visual Studio Code
 .history/
 

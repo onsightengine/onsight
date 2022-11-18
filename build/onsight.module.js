@@ -2,7 +2,7 @@
  * @description Onsight Engine
  * @about       Powerful, easy-to-use JavaScript video game and application creation engine.
  * @author      Stephens Nunnally <@stevinz>
- * @version     v0.0.1
+ * @version     v0.0.2
  * @license     MIT - Copyright (c) 2021-2022 Stephens Nunnally and Scidian Software
  * @source      https://github.com/onsightengine/onsight
  */
@@ -22,7 +22,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { LoopSubdivision } from 'three-subdivide';
 
 const NAME = 'Onsight';
-const REVISION = '0.0.1';
+const REVISION = '0.0.2';
 const BACKEND3D = 'THREE';
 const ENTITY_TYPES = {
     Entity3D:       'Entity3D',

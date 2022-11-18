@@ -1797,10 +1797,11 @@ class EntityPool {
     }
 }
 
-class ColorEye {
+class Iris {
     static get NAMES() { return COLOR_KEYWORDS; }
     constructor(r = 0xffffff, g, b, type = '') {
         this.isColor = true;
+        this.isIris = true;
         this.r = 1;
         this.g = 1;
         this.b = 1;
@@ -1813,7 +1814,7 @@ class ColorEye {
         if (arguments.length === 0) {
             return this.set(0);
         } else if (r === undefined || r === null || Number.isNaN(r)) {
-            if (g || b) console.warn(`ColorEye: Passed some valid arguments, however 'r' was ${r}`);
+            if (g || b) console.warn(`Iris: Passed some valid arguments, however 'r' was ${r}`);
         } else if (g === undefined && b === undefined) {
             let value = r;
             if (typeof value === 'number' || value === 0) { return this.setHex(value);
@@ -1839,13 +1840,13 @@ class ColorEye {
     setColorName(style) {
         const hex = COLOR_KEYWORDS[ style.toLowerCase() ];
         if (hex) return this.setHex(hex);
-        console.warn(`ColorEye: Unknown color ${style}`);
+        console.warn(`Iris: Unknown color ${style}`);
         return this;
     }
     setHex(hexColor) {
         hexColor = Math.floor(hexColor);
         if (hexColor > 0xffffff || hexColor < 0) {
-            console.warn(`ColorEye: Given decimal outside of range, value was ${hexColor}`);
+            console.warn(`Iris: Given decimal outside of range, value was ${hexColor}`);
             hexColor = clamp(hexColor, 0, 0xffffff);
         }
         let r = (hexColor & 0xff0000) >> 16;
@@ -1952,7 +1953,7 @@ class ColorEye {
     }
     hexString(hexColor ){
         if (hexColor === undefined || typeof value !== 'number') hexColor = this.hex();
-        return ColorEye.hexString(hexColor);
+        return Iris.hexString(hexColor);
     }
     static hexString(hexColor = 0){
         return '#' + ('000000' + ((hexColor) >>> 0).toString(16)).slice(-6);
@@ -2021,7 +2022,7 @@ class ColorEye {
         }
     }
     add(color) {
-        if (! color.isColor) console.warn(`ColorEye: add() was not called with a 'Color' object`);
+        if (! color.isColor) console.warn(`Iris: add() was not called with a 'Color' object`);
         return this.setRGBF(this.r + color.r, this.g + color.g, this.b + color.b);
     }
     addScalar(scalar) {
@@ -2064,7 +2065,7 @@ class ColorEye {
         return this.setHSL(this.hue() + h, this.saturation() + s, this.lightness() + l);
     }
     mix(color, percent = 0.5) {
-        if (! color.isColor) console.warn(`ColorEye: mix() was not called with a 'Color' object`);
+        if (! color.isColor) console.warn(`Iris: mix() was not called with a 'Color' object`);
         percent = clamp(percent, 0, 1);
         let r = (this.r * (1.0 - percent)) + (percent * color.r);
         let g = (this.g * (1.0 - percent)) + (percent * color.g);
@@ -2072,7 +2073,7 @@ class ColorEye {
         return this.setRGBF(r, g, b);
     }
     multiply(color) {
-        if (! color.isColor) console.warn(`ColorEye: multiply() was not called with a 'Color' object`);
+        if (! color.isColor) console.warn(`Iris: multiply() was not called with a 'Color' object`);
         return this.setRGBF(this.r * color.r, this.g * color.g, this.b * color.b);
     }
     multiplyScalar(scalar) {
@@ -2096,11 +2097,11 @@ class ColorEye {
         return this.setHSL(hue(matchSpectrum(newHue, SPECTRUM.RYB)), this.saturation(), this.lightness());
     }
     subtract(color) {
-        if (! color.isColor) console.warn(`ColorEye: subtract() was not called with a 'Color' object`);
+        if (! color.isColor) console.warn(`Iris: subtract() was not called with a 'Color' object`);
         return this.setRGBF(this.r - color.r, this.g - color.g, this.b - color.b);
     }
     equals(color) {
-        if (! color.isColor) console.warn(`ColorEye: equals() was not called with a 'Color' object`);
+        if (! color.isColor) console.warn(`Iris: equals() was not called with a 'Color' object`);
         return (fuzzy(this.r, color.r) && fuzzy(this.g, color.g) && fuzzy(this.b, color.b));
     }
     isEqual(color) {
@@ -2164,13 +2165,13 @@ function hsl(hexColor, channel = 'h') {
         case 'h': return _hslH;
         case 's': return _hslS;
         case 'l': return _hslL;
-        default: console.warn(`ColorEye: Unknown channel (${channel}) requested in hsl()`);
+        default: console.warn(`Iris: Unknown channel (${channel}) requested in hsl()`);
     }
     return 0;
 }
-const _mix1 = new ColorEye();
-const _mix2 = new ColorEye();
-const _random = new ColorEye();
+const _mix1 = new Iris();
+const _mix2 = new Iris();
+const _random = new Iris();
 function matchSpectrum(matchHue, spectrum = SPECTRUM.RYB) {
     let colorDegrees = 360 / spectrum.length;
     let degreeCount = colorDegrees;
@@ -2186,7 +2187,7 @@ function matchSpectrum(matchHue, spectrum = SPECTRUM.RYB) {
         }
     }
 }
-const _interpolate = new ColorEye();
+const _interpolate = new Iris();
 function cubicInterpolation(v1, v2, v3, scale = 255, table = CUBE.RYB_TO_RGB) {
     v1 = clamp(v1 / scale, 0, 1);
     v2 = clamp(v2 / scale, 0, 1);
@@ -5255,4 +5256,4 @@ if (typeof window !== 'undefined') {
     }
 }
 
-export { APP_STATES, App, AssetManager, BACKEND3D, BasicLine, BasicWireBox, BasicWireframe, CAMERA_SCALE, CAMERA_START_DISTANCE$1 as CAMERA_START_DISTANCE, CAMERA_START_HEIGHT$1 as CAMERA_START_HEIGHT, CameraUtils, CapsuleGeometry, ColorEye, ComponentManager, CylinderGeometry, DepthPass, DepthShader, ENTITY_FLAGS, ENTITY_TYPES, Entity3D, EntityPool, EntityUtils, FatLine, FatWireBox, FatWireframe, GeometryUtils, GpuPickerPass, HelperObject, Maths, NAME, Object3D, ObjectUtils, OutlinePass, PrismGeometry, Project, REVISION, RenderUtils, SCENE_TYPES, SVGBuilder, Scene3D, SkyObject, Strings, System, TexturedShader, Vectors, WORLD_TYPES, WireframePass, World3D, XRayShader };
+export { APP_STATES, App, AssetManager, BACKEND3D, BasicLine, BasicWireBox, BasicWireframe, CAMERA_SCALE, CAMERA_START_DISTANCE$1 as CAMERA_START_DISTANCE, CAMERA_START_HEIGHT$1 as CAMERA_START_HEIGHT, CameraUtils, CapsuleGeometry, ComponentManager, CylinderGeometry, DepthPass, DepthShader, ENTITY_FLAGS, ENTITY_TYPES, Entity3D, EntityPool, EntityUtils, FatLine, FatWireBox, FatWireframe, GeometryUtils, GpuPickerPass, HelperObject, Iris, Maths, NAME, Object3D, ObjectUtils, OutlinePass, PrismGeometry, Project, REVISION, RenderUtils, SCENE_TYPES, SVGBuilder, Scene3D, SkyObject, Strings, System, TexturedShader, Vectors, WORLD_TYPES, WireframePass, World3D, XRayShader };

@@ -32,7 +32,7 @@ export { EntityPool } from './app/EntityPool.js';
 
 ///// Core
 
-export { ColorEye } from './core/ColorEye.js';
+export { Iris } from './core/Iris.js';
 export { Maths } from './core/Maths.js';
 export { Strings } from './core/Strings.js';
 export { System } from './core/System.js';

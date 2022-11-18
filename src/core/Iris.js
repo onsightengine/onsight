@@ -1,42 +1,42 @@
 /** /////////////////////////////////////////////////////////////////////////////////
 //
-// @description ColorEye
+// @description Iris
 // @about       Color library with support for RGB, RYB, HSL color models and RYB hue shifting
 // @author      Stephens Nunnally <@stevinz>
 // @license     MIT - Copyright (c) 2021-2022 Stephens Nunnally and Scidian Software
-// @source      https://github.com/stevinz/coloreye
+// @source      https://github.com/scidian/iris
 //
 //      See end of file for license details and acknowledgements
 //
 ///////////////////////////////////////////////////////////////////////////////////*/
 //
-//  ColorEye
+//  Iris
 //      Color library with support for RGB, RYB, HSL color models and RYB hue shifting
 //
 //  Initialization
-//      let color = new ColorEye();
+//      let color = new Iris();
 //      ...
-//      new ColorEye();                             // Defaults to white, 0xffffff
-//      new ColorEye(0xff0000);                     // Hexadecimal (0xff0000, i.e. 16711680)
+//      new Iris();                                 // Defaults to white, 0xffffff
+//      new Iris(0xff0000);                         // Hexadecimal (0xff0000, i.e. 16711680)
 //
-//      new ColorEye(1.0, 0.0, 0.0);                // RGB Values (0.0 to 1.0)
+//      new Iris(1.0, 0.0, 0.0);                    // RGB Values (0.0 to 1.0)
 //
-//      new ColorEye(255,   0,   0, 'rgb');         // RGB Values (0 to 255)
-//      new ColorEye(255,   0,   0, 'ryb');         // RYB Values (0 to 255)
-//      new ColorEye(360, 1.0, 0.5, 'hsl');         // HSL Values (H: 0 to 360, SL: 0.0 to 1.0)
+//      new Iris(255,   0,   0, 'rgb');             // RGB Values (0 to 255)
+//      new Iris(255,   0,   0, 'ryb');             // RYB Values (0 to 255)
+//      new Iris(360, 1.0, 0.5, 'hsl');             // HSL Values (H: 0 to 360, SL: 0.0 to 1.0)
 //
-//      new ColorEye({ r: 1.0, g: 0.0, b: 0.0 });   // Object with RGB Properties (0.0 to 1.0)
-//      new ColorEye({ r: 1.0, y: 0.0, b: 0.0 });   // Object with RYB Properties (0.0 to 1.0)
-//      new ColorEye({ h: 1.0, s: 1.0, l: 0.5 });   // Object with HSL Properties (0.0 to 1.0)
+//      new Iris({ r: 1.0, g: 0.0, b: 0.0 });       // Object with RGB Properties (0.0 to 1.0)
+//      new Iris({ r: 1.0, y: 0.0, b: 0.0 });       // Object with RYB Properties (0.0 to 1.0)
+//      new Iris({ h: 1.0, s: 1.0, l: 0.5 });       // Object with HSL Properties (0.0 to 1.0)
 //
-//      new ColorEye([ 1.0, 0.0, 0.0 ], offset);    // RGB Array (0.0 to 1.0), optional array offset
+//      new Iris([ 1.0, 0.0, 0.0 ], offset);        // RGB Array (0.0 to 1.0), optional array offset
 //
-//      new ColorEye('#ff0000');                    // Hex String (also 3 digits: #f00)
-//      new ColorEye('rgb(255, 0, 0)');             // CSS Color String
-//      new ColorEye('red');                        // X11 Color Name
+//      new Iris('#ff0000');                        // Hex String (also 3 digits: #f00)
+//      new Iris('rgb(255, 0, 0)');                 // CSS Color String
+//      new Iris('red');                            // X11 Color Name
 //
-//      new ColorEye(fromColorEye);                 // Copy from ColorEye Object
-//      new ColorEye(fromThreeColor);               // Copy from Three.js Color Object
+//      new Iris(fromIris);                         // Copy from Iris Object
+//      new Iris(fromThreeColor);                   // Copy from Three.js Color Object
 //
 //  Properties
 //      color.r                                     // 0.0 to 1.0
@@ -44,8 +44,8 @@
 //      color.b                                     // 0.0 to 1.0
 //
 //  Static
-//      ColorEye.hexString(hexColor);               // Converts hex color (i.e. 16711680) into hex string, ex: '#ff0000'
-//      ColorEye.randomHex();                       // Returns number (i.e. 16711680) of a random color
+//      Iris.hexString(hexColor);                   // Converts hex color (i.e. 16711680) into hex string, ex: '#ff0000'
+//      Iris.randomHex();                           // Returns number (i.e. 16711680) of a random color
 //
 //  Output
 //      color.cssString();                          // Returns string, ex: 'rgb(255, 0, 0)'
@@ -76,11 +76,11 @@
 /////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////
-/////   Color Eye
+/////   Iris
 /////////////////////////////////////////////////////////////////////////////////////
 
 /** Color library with support for RGB, RYB, HSL color models and RYB hue shifting */
-class ColorEye {
+class Iris {
 
     //////////////////// Static
 
@@ -90,6 +90,7 @@ class ColorEye {
 
     constructor(r = 0xffffff, g, b, type = '') {
         this.isColor = true;
+        this.isIris = true;
         this.r = 1;                             // 0.0 to 1.0
         this.g = 1;                             // 0.0 to 1.0
         this.b = 1;                             // 0.0 to 1.0
@@ -110,7 +111,7 @@ class ColorEye {
             return this.set(0);
         // No valid arguments passed
         } else if (r === undefined || r === null || Number.isNaN(r)) {
-            if (g || b) console.warn(`ColorEye: Passed some valid arguments, however 'r' was ${r}`);
+            if (g || b) console.warn(`Iris: Passed some valid arguments, however 'r' was ${r}`);
             // nothing to do
         // r is Object, Hexidecimal, or String
         } else if (g === undefined && b === undefined) {
@@ -140,14 +141,14 @@ class ColorEye {
     setColorName(style) {
         const hex = COLOR_KEYWORDS[ style.toLowerCase() ];
         if (hex) return this.setHex(hex);
-        console.warn(`ColorEye: Unknown color ${style}`);
+        console.warn(`Iris: Unknown color ${style}`);
         return this;
     }
 
     setHex(hexColor) {
         hexColor = Math.floor(hexColor);
         if (hexColor > 0xffffff || hexColor < 0) {
-            console.warn(`ColorEye: Given decimal outside of range, value was ${hexColor}`);
+            console.warn(`Iris: Given decimal outside of range, value was ${hexColor}`);
             hexColor = clamp(hexColor, 0, 0xffffff);
         }
         let r = (hexColor & 0xff0000) >> 16;
@@ -285,7 +286,7 @@ class ColorEye {
     /** Example output: '#ff0000' */
     hexString(hexColor /* optional */){
         if (hexColor === undefined || typeof value !== 'number') hexColor = this.hex();
-        return ColorEye.hexString(hexColor);
+        return Iris.hexString(hexColor);
     }
 
     /** Example output: '#ff0000' */
@@ -391,7 +392,7 @@ class ColorEye {
 
     /** Adds RGB values from color to this color */
     add(color) {
-        if (! color.isColor) console.warn(`ColorEye: add() was not called with a 'Color' object`);
+        if (! color.isColor) console.warn(`Iris: add() was not called with a 'Color' object`);
         return this.setRGBF(this.r + color.r, this.g + color.g, this.b + color.b);
     }
 
@@ -454,7 +455,7 @@ class ColorEye {
 
     /** Mixes in 'color' by percent to this color */
     mix(color, percent = 0.5) {
-        if (! color.isColor) console.warn(`ColorEye: mix() was not called with a 'Color' object`);
+        if (! color.isColor) console.warn(`Iris: mix() was not called with a 'Color' object`);
         percent = clamp(percent, 0, 1);
         let r = (this.r * (1.0 - percent)) + (percent * color.r);
         let g = (this.g * (1.0 - percent)) + (percent * color.g);
@@ -463,7 +464,7 @@ class ColorEye {
     }
 
     multiply(color) {
-        if (! color.isColor) console.warn(`ColorEye: multiply() was not called with a 'Color' object`);
+        if (! color.isColor) console.warn(`Iris: multiply() was not called with a 'Color' object`);
         return this.setRGBF(this.r * color.r, this.g * color.g, this.b * color.b);
     }
 
@@ -499,7 +500,7 @@ class ColorEye {
 
     /** Subtract RGB values from color to this color */
     subtract(color) {
-        if (! color.isColor) console.warn(`ColorEye: subtract() was not called with a 'Color' object`);
+        if (! color.isColor) console.warn(`Iris: subtract() was not called with a 'Color' object`);
         return this.setRGBF(this.r - color.r, this.g - color.g, this.b - color.b);
     }
 
@@ -509,7 +510,7 @@ class ColorEye {
 
     /** Returns true if the RGB values of 'color' are the same as those of this object. */
     equals(color) {
-        if (! color.isColor) console.warn(`ColorEye: equals() was not called with a 'Color' object`);
+        if (! color.isColor) console.warn(`Iris: equals() was not called with a 'Color' object`);
         return (fuzzy(this.r, color.r) && fuzzy(this.g, color.g) && fuzzy(this.b, color.b));
     }
 
@@ -600,7 +601,7 @@ function hsl(hexColor, channel = 'h') {
         case 'h': return _hslH;
         case 's': return _hslS;
         case 'l': return _hslL;
-        default: console.warn(`ColorEye: Unknown channel (${channel}) requested in hsl()`);
+        default: console.warn(`Iris: Unknown channel (${channel}) requested in hsl()`);
     }
 
     return 0;
@@ -610,9 +611,9 @@ function hsl(hexColor, channel = 'h') {
 /////   Match to 'matchHue' into 'spectrum'
 ////////////////////
 
-const _mix1 = new ColorEye();
-const _mix2 = new ColorEye();
-const _random = new ColorEye();
+const _mix1 = new Iris();
+const _mix2 = new Iris();
+const _random = new Iris();
 
 function matchSpectrum(matchHue, spectrum = SPECTRUM.RYB) {
     let colorDegrees = 360 / spectrum.length;
@@ -635,7 +636,7 @@ function matchSpectrum(matchHue, spectrum = SPECTRUM.RYB) {
 /////   Cubic Interpolation
 ////////////////////
 
-const _interpolate = new ColorEye();
+const _interpolate = new Iris();
 
 /**
  * cubicInterpolation
@@ -779,7 +780,7 @@ const COLOR_KEYWORDS = {
 /////   Exports
 /////////////////////////////////////////////////////////////////////////////////////
 
-export { ColorEye };
+export { Iris };
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////   Acknowledgements
@@ -816,7 +817,7 @@ export { ColorEye };
 //
 // MIT License
 //
-// ColorEye
+// Iris
 //      Copyright (c) 2021-2022 Stephens Nunnally <@stevinz>
 //
 // Some Portions

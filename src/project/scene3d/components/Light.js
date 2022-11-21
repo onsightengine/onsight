@@ -119,7 +119,7 @@ class Light {
     }
 
     toJSON() {
-        let data = this.defaultData('style', this.style);
+        const data = this.defaultData('style', this.style);
 
         // Copy Existing 'data' Properties
         for (let key in data) {
@@ -133,8 +133,11 @@ class Light {
             for (let key in data) {
                 let value = this.backend[key];
                 if (value !== undefined) {
-                    if (value && value.isColor) data[key] = value.getHex();
-                    else data[key] = value;
+                    if (value && value.isColor) {
+                        data[key] = value.getHex();
+                    } else {
+                        data[key] = value;
+                    }
                 }
             }
 

@@ -342,7 +342,7 @@ class Geometry {
     }
 
     toJSON() {
-        let data = this.defaultData('style', this.style);
+        const data = this.defaultData('style', this.style);
 
         // Copy Existing 'data' Properties
         for (let key in data) {

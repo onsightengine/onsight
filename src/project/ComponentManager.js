@@ -178,11 +178,13 @@ class ComponentManager {
 
             // Returns stored default schema (saved when Component was registered). Pass in starting data by key, value pair
             defaultData(/* key, value, key, value, etc. */) {
-                let data = {};
+                const data = {};
 
-                // Set Schema Defaults
-                for (let i = 0, l = arguments.length; i < l; i += 2) data[arguments[i]] = arguments[i+1];
-                ComponentManager.sanitizeData(data, ComponentClass.config.schema);
+                // Set Schema Defaults (keep new data)
+                for (let i = 0, l = arguments.length; i < l; i += 2) {
+                    data[arguments[i]] = arguments[i+1];
+                }
+                ComponentManager.sanitizeData(this.type, data);
 
                 // Base Properties
                 data.base = {
@@ -198,7 +200,14 @@ class ComponentManager {
         _registered[type] = Component;
     }
 
-    static sanitizeData(data, schema) {
+    static processIf() {
+
+    }
+
+    static sanitizeData(type, data) {
+
+        const ComponentClass = ComponentManager.registered(type);
+        const schema = (ComponentClass && ComponentClass.config) ? ComponentClass.config.schema : {};
 
         ///// PARSE KEYS
         for (let schemaKey in schema) {

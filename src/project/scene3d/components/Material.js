@@ -224,19 +224,21 @@ class Material {
     }
 
     toJSON() {
-        let data = this.defaultData('style', this.style);
+        const data = this.defaultData('style', this.style);
 
         // Copy Existing 'data' Properties
         for (let key in data) {
             if (this.data[key] !== undefined) {
+
                 // Save 'map' types (textures) as uuid only
                 if (this.data[key] && this.data[key].isTexture) {
                     data[key] = this.data[key].uuid;
 
-                // Normal Data
+                // All other data
                 } else {
                     data[key] = this.data[key];
                 }
+
             }
         }
 

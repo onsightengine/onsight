@@ -111,7 +111,7 @@ class Entity3D extends Object3D {
 
         // Initialize Component
         component.entity = this;
-        ComponentManager.sanitizeData(data, config.schema);
+        ComponentManager.sanitizeData(type, data);
         if (component.init) component.init(data);
         if (this.enabled) component.enable();
 
@@ -325,7 +325,7 @@ class Entity3D extends Object3D {
         ///// Components
 
         for (let i = 0; i < json.object.components.length; i++) {
-            let componentData = json.object.components[i];
+            const componentData = json.object.components[i];
 
             // Add Component
             if (componentData && componentData.base && componentData.base.type) {
@@ -397,7 +397,7 @@ class Entity3D extends Object3D {
 
         ///// Child Entities
 
-        let children = this.getEntities();
+        const children = this.getEntities();
         if (children.length > 0) {
             json.object.entities = [];
             for (let i = 0; i < children.length; i++) {

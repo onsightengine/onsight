@@ -193,7 +193,7 @@ class Geometry {
                 const californiaShape = new THREE.Shape(californiaPts);
 
                 const circleShape = new THREE.Shape();
-                circleShape.absarc(0, 0, 1 /* radius */);
+                circleShape.absarc(0, 0, 0.5 /* radius */);
 
                 // Set Options
                 let options = {
@@ -449,8 +449,8 @@ Geometry.config = {
         // Shape (Extrude)
         steps: { type: 'int', alias: 'Depth Segments', default: 8, min: 1, max: 128, promode: true, if: { style: [ 'shape' ] } },
         bevelEnabled: { type: 'boolean', alias: 'bevel', default: true, if: { style: [ 'shape' ] } },
-        bevelThickness: { type: 'number', default: 0.2, min: 0, step: 0.01, if: { style: [ 'shape' ], bevelEnabled: [ true ] } },
-        bevelSize: { type: 'number', default: 0.2, min: 0, step: 0.01, if: { style: [ 'shape' ], bevelEnabled: [ true ] } },
+        bevelThickness: { type: 'number', default: 0.1, min: 0, step: 0.01, if: { style: [ 'shape' ], bevelEnabled: [ true ] } },
+        bevelSize: { type: 'number', default: 0.1, min: 0, step: 0.01, if: { style: [ 'shape' ], bevelEnabled: [ true ] } },
         bevelSegments: { type: 'int', default: 4, min: 0, max: 64, promode: true, if: { style: [ 'shape' ], bevelEnabled: [ true ] } },
         curveSegments: { type: 'int', default: 16, min: 1, max: 128, promode: true, if: { style: [ 'shape' ] } },
         // ... more
@@ -496,7 +496,7 @@ Geometry.config = {
         // Texture Mapping
         textureMapping: [
             { type: 'select', default: 'cube', select: [ 'none', 'cube', 'sphere' ], if: { style: [ 'shape' ] } },
-            { type: 'select', default: 'none', select: [ 'none', 'cube', 'sphere' ], if: { style: [ 'asset', 'box', 'capsule', 'circle', 'cone', 'cylinder', 'lathe', 'plane', 'platonicSolid', 'ring', 'roundedBox', 'sphere', 'torus', 'torusKnot', 'tube' ] } },
+            { type: 'select', default: 'none', select: [ 'none', 'cube', 'sphere' ], not: { style: [ 'shape' ] } },
         ],
 
         // Texture Wrapping

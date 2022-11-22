@@ -45,18 +45,48 @@ const _textureLoader = new THREE.TextureLoader();
 
 class AssetManager {
 
-    static getLibrary(name) {
-        switch (name) {
-            case 'scripts': return scripts;
-            case 'shapes': return shapes;
-            case 'geometries': return geometries;
-            case 'images': return images;
-            case 'textures': return textures;
-            case 'materials': return materials;
-            case 'animations': return animations;
-            case 'skeletons': return skeletons;
+    static getLibrary(type) {
+        switch (type) {
+            case 'script': return scripts;
+            case 'shape': return shapes;
+            case 'geometry': return geometries;
+            case 'image': return images;
+            case 'texture': return textures;
+            case 'material': return materials;
+            case 'animation': return animations;
+            case 'skeleton': return skeletons;
         }
+        console.warn(`AssetManager.getLibrary: Unknown asset ${type} type`);
         return null;
+    }
+
+    //////////////////// Generic
+
+    static addAsset(type, asset) {
+        switch (type) {
+            case 'geometry': return AssetManager.addGeometry(asset);
+            case 'material': return AssetManager.addMaterial(asset);
+            case 'texture': return AssetManager.addTexture(asset);
+            default: console.warn(`AssetManager.addAsset: Type ${type} not implemented`);
+        }
+    }
+
+    static getAsset(type, uuid) {
+        switch (type) {
+            case 'geometry': return AssetManager.getGeometry(uuid);
+            case 'material': return AssetManager.getMaterial(uuid);
+            case 'texture': return AssetManager.getTexture(uuid);
+            default: console.warn(`AssetManager.getAsset: Type ${type} not implemented`);
+        }
+    }
+
+    static removeAsset(type, asset, dispose = true) {
+        switch (type) {
+            case 'geometry': return AssetManager.removeGeometry(asset, dispose);
+            case 'material': return AssetManager.removeMaterial(asset, dispose);
+            case 'texture': return AssetManager.removeTexture(asset, dispose);
+            default: console.warn(`AssetManager.removeAsset: Type ${type} not implemented`);
+        }
     }
 
     //////////////////// Geometry

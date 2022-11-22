@@ -454,8 +454,7 @@ Material.config = {
 
         ///// Standard Maps
         map: [
-            { type: 'map', if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'physical', 'standard', 'toon' ] } },
-            { type: 'map', if: { style: [ 'points' ] } },
+            { type: 'map', if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'points', 'physical', 'standard', 'toon' ] } },
         ],
 
         matcap: { type: 'map', if: { style: [ 'matcap' ] } },

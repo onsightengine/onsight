@@ -12,148 +12,106 @@ import * as THREE from 'three';
 
 import { mergeBufferGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
-import { Maths } from '../core/Maths.js';
 import { Strings } from '../core/Strings.js';
-import { System } from '../core/System.js';
 
-/////////////////////////////////////////////////////////////////////////////////////
-/////	Assets
-/////////////////////////////////////////////////////////////////////////////////////
+///// Local Variables
 
-// Assets, Scripts
-let scripts = {};
+const _assets = {};
 
-// Assets, Geometry
-let shapes = {};
-let geometries = {};
-
-// Assets, Material
-let images = {};
-let textures = {};
-let materials = {};
-
-// Assets, Other
-let animations = {};
-let skeletons = {};
+const _textureCache = {};
+const _textureLoader = new THREE.TextureLoader();
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////	Asset Manager
 /////////////////////////////////////////////////////////////////////////////////////
 
-const _textureCache = {};
-const _textureLoader = new THREE.TextureLoader();
-
 class AssetManager {
 
+    static assetType(asset) {
+        if (asset.isBufferGeometry) return 'geometry';
+        if (asset.isMaterial) return 'material';
+        if (asset.isTexture) return 'texture';
+        return 'asset';
+    }
+
     static getLibrary(type) {
-        switch (type) {
-            case 'script': return scripts;
-            case 'shape': return shapes;
-            case 'geometry': return geometries;
-            case 'image': return images;
-            case 'texture': return textures;
-            case 'material': return materials;
-            case 'animation': return animations;
-            case 'skeleton': return skeletons;
+        const library = [];
+        for (const [uuid, asset] of Object.entries(_assets)) {
+            if (AssetManager.assetType(asset) === type) library.push(asset);
         }
-        console.warn(`AssetManager.getLibrary: Unknown asset ${type} type`);
-        return null;
+        return library;
     }
 
-    //////////////////// Generic
+    //////////////////// Add / Get / Remove
 
-    static addAsset(type, asset) {
-        switch (type) {
-            case 'geometry': return AssetManager.addGeometry(asset);
-            case 'material': return AssetManager.addMaterial(asset);
-            case 'texture': return AssetManager.addTexture(asset);
-            default: console.warn(`AssetManager.addAsset: Type ${type} not implemented`);
-        }
-    }
+    static addAsset(assetOrArray) {
+        if (! assetOrArray) return;
 
-    static getAsset(type, uuid) {
-        switch (type) {
-            case 'geometry': return AssetManager.getGeometry(uuid);
-            case 'material': return AssetManager.getMaterial(uuid);
-            case 'texture': return AssetManager.getTexture(uuid);
-            default: console.warn(`AssetManager.getAsset: Type ${type} not implemented`);
-        }
-    }
+        const assetArray = (Array.isArray(assetOrArray)) ? assetOrArray : [ assetOrArray ];
+        for (let i = 0; i < assetArray.length; i++) {
+            let asset = assetArray[i];
 
-    static removeAsset(type, asset, dispose = true) {
-        switch (type) {
-            case 'geometry': return AssetManager.removeGeometry(asset, dispose);
-            case 'material': return AssetManager.removeMaterial(asset, dispose);
-            case 'texture': return AssetManager.removeTexture(asset, dispose);
-            default: console.warn(`AssetManager.removeAsset: Type ${type} not implemented`);
-        }
-    }
+            // Process Geometry
+            if (asset.isBufferGeometry) {
+                // Ensure geometry has a name
+                if (! asset.name || asset.name === '') asset.name = asset.constructor.name;
 
-    //////////////////// Geometry
+                // Force 'BufferGeometry' type (strip ExtrudeGeometry, TextGeometry, etc...)
+                if (asset.constructor.name !== 'BufferGeometry') {
+                    // // DEBUG: Show fancy geometry type
+                    // console.log(`Trimming ${asset.constructor.name}`);
 
-    static addGeometry(geometry) {
-		if (geometry && geometry.isBufferGeometry) {
-            // Ensure geometry has a name
-            if (! geometry.name || geometry.name === '') {
-                geometry.name = geometry.constructor.name;
+                    // Covert to BufferGeometry
+                    const bufferGeometry = mergeBufferGeometries([ asset ]);
+                    bufferGeometry.name = asset.name;
+                    bufferGeometry.uuid = asset.uuid;
+                    asset.dispose();
+                    asset = bufferGeometry;
+                }
             }
 
-            // Force 'BufferGeometry' type (strip ExtrudeGeometry, TextGeometry, etc...)
-            const bufferGeometry = mergeBufferGeometries([ geometry ]);
-            bufferGeometry.name = geometry.name;
-            bufferGeometry.uuid = geometry.uuid;
-            geometry.dispose();
-            geometry = bufferGeometry;
-
-            // Add to 'geometries'
-            geometries[geometry.uuid] = geometry;
+            // Add Asset
+            _assets[asset.uuid] = asset;
         }
-		return geometry;
-	}
 
-	static getGeometry(uuid) {
-        if (uuid && uuid.isBufferGeometry) uuid = uuid.uuid;
-		return geometries[uuid];
-	}
+        return assetOrArray;
+    }
 
-	static removeGeometry(geometry, dispose = true) {
-		if (geometries[geometry.uuid]) {
-			if (dispose) geometries[geometry.uuid].dispose();
-			delete geometries[geometry.uuid];
-		}
-	}
+    static getAsset(uuid) {
+        if (uuid && uuid.uuid) uuid = uuid.uuid;
+        return _assets[uuid];
+    }
 
-    //////////////////// Material
+    static removeAsset(assetOrArray, dispose = true) {
+        if (! assetOrArray) return;
 
-	static addMaterial(material) {
-		if (material && material.isMaterial) {
-		    let materialArray = (Array.isArray(material)) ? material : [ material ];
-            for (let i = 0; i < materialArray.length; i++) {
-                materials[material.uuid] = materialArray[i];
+        const assetArray = (Array.isArray(assetOrArray)) ? assetOrArray : [ assetOrArray ];
+        for (let i = 0; i < assetArray.length; i++) {
+            const asset = assetArray[i];
+
+            // Check if 'assets' has asset
+            if (_assets[asset.uuid]) {
+                // Remove textures from cache
+                if (asset.isTexture) {
+                    for (let url in _textureCache) {
+                        if (_textureCache[url].uuid === asset.uuid) delete _textureCache[url];
+                    }
+                }
+
+                // Dispose, Remove
+                if (dispose && asset.dispose === 'function') asset.dispose();
+                delete _assets[asset.uuid];
             }
         }
-		return material;
-	}
+    }
 
-	static getMaterial(uuid) {
-        if (uuid && uuid.isMaterial) uuid = uuid.uuid;
-		return materials[uuid];
-	}
-
-	static removeMaterial(material, dispose = true) {
-		if (materials[material.uuid]) {
-			if (dispose) materials[material.uuid].dispose();
-			delete materials[material.uuid];
-		}
-	}
-
-    //////////////////// Texture
+    //////////////////// Texture Loader
 
     static loadTexture(url, onLoad = undefined) {
         if (! url || url === '') return null;
 
         // Check if trying to add an Image already in AssetManager
-        let resolvedUrl = THREE.DefaultLoadingManager.resolveURL(url);
+        const resolvedUrl = THREE.DefaultLoadingManager.resolveURL(url);
         if (_textureCache[resolvedUrl]) {
             console.log(`AssetManager.loadTexture: Duplicate image!`);
             return _textureCache[resolvedUrl];
@@ -206,49 +164,12 @@ class AssetManager {
 		return texture;
     }
 
-	static addTexture(texture) {
-        if (texture && texture.isTexture) {
-            textures[texture.uuid] = texture;
-        }
-		return texture;
-	}
-
-	static getTexture(uuid) {
-        if (uuid && uuid.isTexture) uuid = uuid.uuid;
-		return textures[uuid];
-	}
-
-	static removeTexture(texture, dispose = true) {
-		if (textures[texture.uuid]) {
-            for (let url in _textureCache) {
-                if (_textureCache[url] && _textureCache[url].isTexture && _textureCache[url].uuid === texture.uuid) {
-                    delete _textureCache[url];
-                }
-            }
-			if (dispose) textures[texture.uuid].dispose();
-			delete textures[texture.uuid];
-		}
-	}
-
     //////////////////// JSON
 
     static clear() {
-
-        function clearLibrary(library) {
-            for (let uuid in library) {
-                const element = library[uuid];
-                if (element && element.dispose && typeof element.dispose === 'function') element.dispose();
-                delete library[uuid];
-            }
+        for (let uuid in _assets) {
+            AssetManager.removeAsset(_assets[uuid], true);
         }
-
-        clearLibrary(materials);
-        clearLibrary(textures);
-        clearLibrary(images);
-        clearLibrary(geometries);
-        clearLibrary(shapes);
-        clearLibrary(animations);
-
     }
 
     static fromJSON(json) {
@@ -256,14 +177,28 @@ class AssetManager {
         // Clear Assets
         AssetManager.clear()
 
+        // Add to Assets
+        function addLibraryToAssets(library) {
+            for (const [uuid, asset] of Object.entries(library)) {
+                AssetManager.addAsset(asset);
+            }
+        }
+
         // Load Assets
 		const objectLoader = new THREE.ObjectLoader();
-		animations = objectLoader.parseAnimations(json.animations);
-		shapes = objectLoader.parseShapes(json.shapes);
-		geometries = objectLoader.parseGeometries(json.geometries, shapes);
-		images = objectLoader.parseImages(json.images);
-		textures = objectLoader.parseTextures(json.textures, images);
-		materials = objectLoader.parseMaterials(json.materials, textures);
+		const animations = objectLoader.parseAnimations(json.animations);
+		const shapes = objectLoader.parseShapes(json.shapes);
+		const geometries = objectLoader.parseGeometries(json.geometries, shapes);
+		const images = objectLoader.parseImages(json.images);
+		const textures = objectLoader.parseTextures(json.textures, images);
+		const materials = objectLoader.parseMaterials(json.materials, textures);
+
+        addLibraryToAssets(animations);
+        addLibraryToAssets(shapes);
+        addLibraryToAssets(geometries);
+        addLibraryToAssets(images);
+        addLibraryToAssets(textures);
+        addLibraryToAssets(materials);
 
     }
 
@@ -287,13 +222,14 @@ class AssetManager {
         };
 
         // Geometries
-        for (let uuid in geometries) {
-            const geometry = geometries[uuid];
+        const geometries = AssetManager.getLibrary('geometry');
+        for (let i = 0; i < geometries.length; i++) {
+            const geometry = geometries[i];
             if (! meta.geometries[geometry.uuid]) meta.geometries[geometry.uuid] = geometry.toJSON(meta);
 
             // Shapes
             if (geometry.parameters && geometry.parameters.shapes) {
-                let shapes = geometry.parameters.shapes;
+                const shapes = geometry.parameters.shapes;
                 if (Array.isArray(shapes) !== true) shapes = [ shapes ];
                 for (let i = 0, l = shapes.length; i < l; i++) {
                     const shape = shapes[i];
@@ -303,14 +239,16 @@ class AssetManager {
         }
 
         // Materials
-        for (let uuid in materials) {
-            const material = materials[uuid];
+        const materials = AssetManager.getLibrary('material');
+        for (let i = 0; i < materials.length; i++) {
+            const material = materials[i];
             if (! meta.materials[material.uuid]) meta.materials[material.uuid] = material.toJSON(stopRoot);
         }
 
         // Textures
-        for (let uuid in textures) {
-            const texture = textures[uuid];
+        const textures = AssetManager.getLibrary('texture');
+        for (let i = 0; i < textures.length; i++) {
+            const texture = textures[i];
             if (! meta.textures[texture.uuid]) meta.textures[texture.uuid] = texture.toJSON(meta);
         }
 

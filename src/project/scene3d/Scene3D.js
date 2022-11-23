@@ -62,10 +62,14 @@ class Scene3D extends Entity3D {
             if (Number.isInteger(data.background)) {
                 this.background = new THREE.Color(data.background);
             } else {
-                this.background = AssetManager.getTexture(data.background);
+                const backgroundTexture = AssetManager.getAsset(data.background);
+                if (backgroundTexture && backgroundTexture.isTexture) this.background = backgroundTexture;
             }
         }
-        if (data.environment !== undefined) this.environment = AssetManager.getTexture(data.environment);
+        if (data.environment !== undefined) {
+            const environmentTexture = AssetManager.getAsset(data.background);
+            if (environmentTexture && environmentTexture.isTexture) this.environment = environmentTexture;
+        }
         if (data.fog !== undefined) {
             if (data.fog.type === 'Fog') {
                 this.fog = new THREE.Fog(data.fog.color, data.fog.near, data.fog.far);

@@ -90,7 +90,7 @@ class Project {
     }
 
     getFirstScene() {
-        let sceneList = Object.keys(this.scenes);
+        const sceneList = Object.keys(this.scenes);
         return (sceneList.length > 0) ? this.scenes[sceneList[0]] : null;
     }
 
@@ -113,7 +113,7 @@ class Project {
         if (scene.isScene !== true) return;
 
         // Clear Entities
-        let entities = scene.getEntities();
+        const entities = scene.getEntities();
         for (let i = entities.length - 1; i >= 0; i--) {
             this.removeEntity(entities[i], true);
             entities[i].destroy();
@@ -304,7 +304,7 @@ class Project {
         // Scenes
         for (let i = 0; i < json.scenes.length; i++) {
             switch (json.scenes[i].object.type) {
-                case 'Scene3D': this.addScene(new Scene3D().fromJSON(json.scenes[i], this)); break;
+                case 'Scene3D': this.addScene(new Scene3D().fromJSON(json.scenes[i])); break;
             }
         }
 

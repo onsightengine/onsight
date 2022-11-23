@@ -48,7 +48,7 @@ class Geometry {
         // Passed in Geometry
         if (data.isBufferGeometry) {
             const assetUUID = data.uuid;
-            AssetManager.addGeometry(data);
+            AssetManager.addAsset(data);
 
             // Build 'data'
             data = this.defaultData('style', 'asset');
@@ -61,7 +61,7 @@ class Geometry {
 
         switch (data.style) {
             case 'asset':
-                let assetGeometry = AssetManager.getGeometry(data.asset);
+                const assetGeometry = AssetManager.getAsset(data.asset);
                 if (assetGeometry && assetGeometry.isBufferGeometry) {
                     geometry = assetGeometry.clone();
                 }

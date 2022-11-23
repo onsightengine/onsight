@@ -59,9 +59,7 @@ class SVGBuilder {
                     const depth = 0.256;
                     const scaleDown = 0.001; /* 1 unit === 1000 pixels */
 
-                    // Scale Down Curves
-                    for (let c = 0; c < shape.curves.length; c++) {
-                        const curve = shape.curves[c];
+                    function scaleCurve(curve) {
                         if (curve.v0) curve.v0.multiplyScalar(scaleDown);
                         if (curve.v1) curve.v1.multiplyScalar(scaleDown);
                         if (curve.v2) curve.v2.multiplyScalar(scaleDown);
@@ -70,8 +68,19 @@ class SVGBuilder {
                         if (curve.aY) curve.aY *= scaleDown;
                         if (curve.xRadius) curve.xRadius *= scaleDown;
                         if (curve.yRadius) curve.yRadius *= scaleDown;
-
+                        //
                         // TODO: Scale down CatmullRomCurve3 points?
+                        //
+                    }
+
+                    // Scale Down Curves
+                    for (let c = 0; c < shape.curves.length; c++) scaleCurve(shape.curves[c]);
+
+                    // Scale Down Holes
+                    for (let h = 0; h < shape.holes.length; h++) {
+                        for (let c = 0; c < shape.holes[h].curves.length; c++) {
+                            scaleCurve(shape.holes[h].curves[c]);
+                        }
                     }
 
                     // // OPTION: Shape
@@ -92,12 +101,12 @@ class SVGBuilder {
 
                     // Adjust Depth
                     geometry.translate(0, 0, depth / -2);
+                    geometry.scale(1, -1, -1);
 
                     // Center Geometry
                     geometry.computeBoundingBox();
                     geometry.boundingBox.getCenter(_position);
                     geometry.center();
-                    geometry.scale(1, -1, -1);
                     entity.position.copy(_position);
 
                     // Flip UVs
@@ -169,9 +178,11 @@ class SVGBuilder {
             }
         }
 
+        // Name
+        target.name = name;
+
         // Call 'onLoad'
         if (onLoad && typeof onLoad === 'function') onLoad();
-
     }
 
     static fromFile(url, onLoad) {

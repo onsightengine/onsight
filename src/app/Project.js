@@ -12,10 +12,10 @@ import * as THREE from 'three';
 
 import { VERSION, SCENE_TYPES, WORLD_TYPES } from '../constants.js';
 
-import { Scene3D } from './scene3d/Scene3D.js';
-import { World3D } from './scene3d/World3D.js';
+import { Scene3D } from '../project/scene3d/Scene3D.js';
+import { World3D } from '../project/scene3d/World3D.js';
 
-import { AssetManager } from '../app/AssetManager.js';
+import { AssetManager } from './AssetManager.js';
 import { EntityUtils } from '../three/utils/EntityUtils.js';
 
 /////////////////////////////////////////////////////////////////////////////////////

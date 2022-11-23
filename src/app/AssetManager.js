@@ -17,6 +17,7 @@ import { Strings } from '../core/Strings.js';
 ///// Local Variables
 
 const _assets = {};
+const _scripts = {};
 
 const _textureCache = {};
 const _textureLoader = new THREE.TextureLoader();

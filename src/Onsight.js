@@ -26,33 +26,30 @@ export { CAMERA_SCALE, CAMERA_START_DISTANCE, CAMERA_START_HEIGHT } from './thre
 
 export { App } from './app/App.js';
 export { AssetManager } from './app/AssetManager.js';
+export { ComponentManager } from './app/ComponentManager.js';
 export { EntityPool } from './app/EntityPool.js';
+export { Project } from './app/Project.js';
+
+///// App, Project, Scene3D
+
+export { Entity3D } from './app/scene3d/Entity3D.js';
+export { Object3D } from './app/scene3d/Object3D.js';
+export { Scene3D } from './app/scene3d/Scene3D.js';
+export { World3D } from './app/scene3d/World3D.js';
+
+///// App, Project, Scene3D, Builders
+
+export { SVGBuilder } from './app/scene3d/builders/SVGBuilder.js';
 
 ///// Core
 
 export { Iris } from './core/Iris.js';
-
-
 export { Maths } from './core/Maths.js';
 export { Strings } from './core/Strings.js';
 export { System } from './core/System.js';
 export { Vectors } from './core/Vectors.js';
 
-///// Project
-
-export { ComponentManager } from './project/ComponentManager.js';
-export { Project } from './project/Project.js';
-
-///// Project - Scene3D
-
-export { Entity3D } from './project/scene3d/Entity3D.js';
-export { Object3D } from './project/scene3d/Object3D.js';
-export { Scene3D } from './project/scene3d/Scene3D.js';
-export { World3D } from './project/scene3d/World3D.js';
-
-export { SVGBuilder } from './project/scene3d/builders/SVGBuilder.js';
-
-///// Three - Geometry
+///// Three, Geometry
 
 export { CapsuleGeometry } from './three/geometry/CapsuleGeometry.js';
 export { CylinderGeometry } from './three/geometry/CylinderGeometry.js';
@@ -60,16 +57,16 @@ export { PrismGeometry } from './three/geometry/PrismGeometry.js';
 export { BasicLine, BasicWireBox, BasicWireframe } from './three/geometry/Wireframe.js';
 export { FatLine, FatWireBox, FatWireframe } from './three/geometry/Wireframe.js';
 
-///// Three - Objects
+///// Three, Objects
 
 export { HelperObject } from './three/objects/HelperObject.js';
 export { SkyObject } from './three/objects/SkyObject.js';
 
-///// Three - Passes
+///// Three, Passes
 
 export { GpuPickerPass } from './three/passes/GpuPickerPass.js';
 
-///// Three - Utils
+///// Three, Utils
 
 export { CameraUtils } from './three/utils/CameraUtils.js';
 export { EntityUtils } from './three/utils/EntityUtils.js';

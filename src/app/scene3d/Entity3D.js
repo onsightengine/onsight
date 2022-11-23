@@ -22,7 +22,7 @@ import * as THREE from 'three';
 
 import { ENTITY_FLAGS } from '../../constants.js';
 
-import { ComponentManager } from '../ComponentManager.js'
+import { ComponentManager } from '../../app/ComponentManager.js'
 import { Object3D } from './Object3D.js';
 import { Strings } from '../../core/Strings.js'
 

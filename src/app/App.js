@@ -20,7 +20,7 @@ import { APP_STATES, BACKENDS } from '../constants.js';
 
 import { CameraUtils } from '../three/utils/CameraUtils.js';
 import { ObjectUtils } from '../three/utils/ObjectUtils.js';
-import { Project } from '../project/Project.js';
+import { Project } from './Project.js';
 import { System } from '../core/System.js';
 
 /////////////////////////////////////////////////////////////////////////////////////

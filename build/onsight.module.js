@@ -521,6 +521,7 @@ class Strings {
 }
 
 const _assets = {};
+const _scripts = {};
 const _textureCache = {};
 const _textureLoader = new THREE$1.TextureLoader();
 class AssetManager {
@@ -1504,15 +1505,15 @@ class Project {
         if (entity.parent) entity.parent.remove(entity);
     }
     addScript(entity, script) {
-        let key = entity.uuid;
+        const key = entity.uuid;
         if (! this.scripts[key]) this.scripts[key] = [];
         this.scripts[key].push(script);
         return this;
     }
     removeScript(entity, script) {
-        let key = entity.uuid;
+        const key = entity.uuid;
         if (! this.scripts[key]) return;
-        let index = this.scripts[key].indexOf(script);
+        const index = this.scripts[key].indexOf(script);
         if (index !== -1) this.scripts[key].splice(index, 1);
     }
     clear() {
@@ -1780,6 +1781,356 @@ class EntityPool {
         for(let i = 0; i < n; i++) {
             this.entities.push(new Entity3D());
         }
+    }
+}
+
+class Vectors {
+    static absolute(vec3) {
+        vec3.x = Math.abs(vec3.x);
+        vec3.y = Math.abs(vec3.y);
+        vec3.z = Math.abs(vec3.z);
+    }
+    static noZero(vec3, min = 0.001) {
+        if (Maths.fuzzyFloat(vec3.x, 0, min)) vec3.x = (vec3.x < 0) ? (min * -1) : min;
+		if (Maths.fuzzyFloat(vec3.y, 0, min)) vec3.y = (vec3.y < 0) ? (min * -1) : min;
+		if (Maths.fuzzyFloat(vec3.z, 0, min)) vec3.z = (vec3.z < 0) ? (min * -1) : min;
+    }
+    static printOut(vec3, name = '') {
+        if (name !== '') name += ' - ';
+        console.info(`${name}X: ${vec3.x}, Y: ${vec3.y}, Z: ${vec3.z}`);
+    }
+    static round(vec3, decimalPlaces = 0) {
+        const shift = Math.pow(10, decimalPlaces);
+        vec3.x = Math.round(vec3.x * shift) / shift;
+        vec3.y = Math.round(vec3.y * shift) / shift;
+        vec3.z = Math.round(vec3.z * shift) / shift;
+    }
+    static sanity(vec3) {
+        if (isNaN(vec3.x)) vec3.x = 0;
+        if (isNaN(vec3.y)) vec3.y = 0;
+        if (isNaN(vec3.z)) vec3.z = 0;
+    }
+}
+
+const _uv = [ new THREE$1.Vector2(), new THREE$1.Vector2(), new THREE$1.Vector2() ];
+const _vertex = [ new THREE$1.Vector3(), new THREE$1.Vector3(), new THREE$1.Vector3() ];
+const _temp = new THREE$1.Vector3();
+class GeometryUtils {
+    static addAttribute(geometry, attributeName = 'color', stride = 3, fill = 0) {
+        if (! geometry.getAttribute(attributeName)) {
+            let array = new Float32Array(geometry.attributes.position.count * stride).fill(fill);
+	        const attribute = new THREE$1.BufferAttribute(array, stride, true).setUsage(THREE$1.DynamicDrawUsage);
+	        geometry.setAttribute(attributeName, attribute);
+        }
+        return geometry;
+    }
+    static coloredMesh(mesh) {
+        if (! mesh.geometry) return mesh;
+        if (! mesh.material) return mesh;
+        let material = mesh.material;
+        if (Array.isArray(material) !== true) material = [ mesh.material ];
+        for (let i = 0; i < material.length; i++) {
+            if (material[i].vertexColors !== true) {
+                material[i].vertexColors = true;
+                material[i].needsUpdate = true;
+            }
+        }
+        GeometryUtils.addAttribute(mesh.geometry, 'color', 3, 1.0);
+        return mesh;
+    }
+    static modelSize(geometry, type = 'max') {
+        let boxSize = new THREE$1.Vector3();
+        geometry.computeBoundingBox();
+        geometry.boundingBox.getSize(boxSize);
+        if (type === 'max') {
+            return Math.max(boxSize.x, boxSize.y, boxSize.z);
+        } else  {
+            return Math.min(boxSize.x, boxSize.y, boxSize.z);
+        }
+    }
+    static repeatTexture(geometry, s, t) {
+        if (! geometry) return;
+        if (geometry.attributes && geometry.attributes.uv && geometry.attributes.uv.array) {
+            for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+                geometry.attributes.uv.array[i + 0] *= s;
+                geometry.attributes.uv.array[i + 1] *= t;
+            }
+            geometry.attributes.uv.needsUpdate = true;
+        }
+    }
+    static uvFlip(geometry, x = true, y = true) {
+        if (! geometry || ! geometry.isBufferGeometry) return;
+        if (geometry.attributes.uv === undefined) return;
+        for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+            let u = geometry.attributes.uv.array[i + 0];
+            let v = geometry.attributes.uv.array[i + 1];
+            if (x) u = 1.0 - u;
+            if (y) v = 1.0 - v;
+            geometry.attributes.uv.array[i + 0] = u;
+            geometry.attributes.uv.array[i + 1] = v;
+        }
+    }
+    static uvMapCube(geometry, transformMatrix, frontFaceOnly = false) {
+        if (frontFaceOnly) {
+            if (geometry.index !== null) {
+                const nonIndexed = geometry.toNonIndexed();
+                geometry.dispose();
+                geometry = nonIndexed;
+            }
+        }
+        if (transformMatrix === undefined) transformMatrix = new THREE$1.Matrix4();
+        let geometrySize = GeometryUtils.modelSize(geometry);
+        let size = (geometrySize / 2);
+        let bbox = new THREE$1.Box3(new THREE$1.Vector3(-size, -size, -size), new THREE$1.Vector3(size, size, size));
+        let boxCenter = new THREE$1.Vector3();
+        geometry.boundingBox.getCenter(boxCenter);
+        const centerMatrix = new THREE$1.Matrix4().makeTranslation(-boxCenter.x, -boxCenter.y, -boxCenter.z);
+        const coords = [];
+        coords.length = 2 * geometry.attributes.position.array.length / 3;
+        const pos = geometry.attributes.position.array;
+        if (geometry.index) {
+            for (let vi = 0; vi < geometry.index.array.length; vi += 3) {
+                const idx0 = geometry.index.array[vi + 0];
+                const idx1 = geometry.index.array[vi + 1];
+                const idx2 = geometry.index.array[vi + 2];
+                const v0 = new THREE$1.Vector3(pos[(3 * idx0) + 0], pos[(3 * idx0) + 1], pos[(3 * idx0) + 2]);
+                const v1 = new THREE$1.Vector3(pos[(3 * idx1) + 0], pos[(3 * idx1) + 1], pos[(3 * idx1) + 2]);
+                const v2 = new THREE$1.Vector3(pos[(3 * idx2) + 0], pos[(3 * idx2) + 1], pos[(3 * idx2) + 2]);
+                calculateUVs(v0, v1, v2);
+                coords[2 * idx0 + 0] = _uv[0].x;
+                coords[2 * idx0 + 1] = _uv[0].y;
+                coords[2 * idx1 + 0] = _uv[1].x;
+                coords[2 * idx1 + 1] = _uv[1].y;
+                coords[2 * idx2 + 0] = _uv[2].x;
+                coords[2 * idx2 + 1] = _uv[2].y;
+            }
+        } else {
+            for (let vi = 0; vi < geometry.attributes.position.array.length; vi += 9) {
+                const v0 = new THREE$1.Vector3(pos[vi + 0], pos[vi + 1], pos[vi + 2]);
+                const v1 = new THREE$1.Vector3(pos[vi + 3], pos[vi + 4], pos[vi + 5]);
+                const v2 = new THREE$1.Vector3(pos[vi + 6], pos[vi + 7], pos[vi + 8]);
+                calculateUVs(v0, v1, v2);
+                const idx0 = vi / 3;
+                const idx1 = idx0 + 1;
+                const idx2 = idx0 + 2;
+                coords[2 * idx0 + 0] = _uv[0].x;
+                coords[2 * idx0 + 1] = _uv[0].y;
+                coords[2 * idx1 + 0] = _uv[1].x;
+                coords[2 * idx1 + 1] = _uv[1].y;
+                coords[2 * idx2 + 0] = _uv[2].x;
+                coords[2 * idx2 + 1] = _uv[2].y;
+            }
+        }
+        if (geometry.attributes.uv === undefined) {
+            geometry.addAttribute('uv', new THREE$1.Float32BufferAttribute(coords, 2));
+        }
+        geometry.attributes.uv.array = new Float32Array(coords);
+        geometry.attributes.uv.needsUpdate = true;
+        return geometry;
+        function calcNormal(target, vec1, vec2, vec3) {
+            _temp.subVectors(vec1, vec2);
+            target.subVectors(vec2, vec3);
+            target.cross(_temp).normalize();
+            Vectors.round(target, 5);
+        }
+        function calculateUVs(v0, v1, v2) {
+            v0.applyMatrix4(centerMatrix).applyMatrix4(transformMatrix);
+            v1.applyMatrix4(centerMatrix).applyMatrix4(transformMatrix);
+            v2.applyMatrix4(centerMatrix).applyMatrix4(transformMatrix);
+            const n = new THREE$1.Vector3();
+            calcNormal(n, v0, v1, v2);
+            _uv[0].set(0, 0, 0);
+            _uv[1].set(0, 0, 0);
+            _uv[2].set(0, 0, 0);
+            if (frontFaceOnly) {
+                let frontFace = (n.z < 0);
+                frontFace = frontFace && (Math.abs(n.y) < 0.866);
+                frontFace = frontFace && (Math.abs(n.x) < 0.866);
+                if (frontFace) {
+                    _uv[0].x = (v0.x - bbox.min.x) / geometrySize; _uv[0].y = (v0.y - bbox.min.y) / geometrySize;
+                    _uv[1].x = (v1.x - bbox.min.x) / geometrySize; _uv[1].y = (v1.y - bbox.min.y) / geometrySize;
+                    _uv[2].x = (v2.x - bbox.min.x) / geometrySize; _uv[2].y = (v2.y - bbox.min.y) / geometrySize;
+                }
+            } else {
+                n.x = Math.abs(n.x);
+                n.y = Math.abs(n.y);
+                n.z = Math.abs(n.z);
+                if (n.y > n.x && n.y > n.z) {
+                    _uv[0].x = (v0.x - bbox.min.x) / geometrySize; _uv[0].y = (bbox.max.z - v0.z) / geometrySize;
+                    _uv[1].x = (v1.x - bbox.min.x) / geometrySize; _uv[1].y = (bbox.max.z - v1.z) / geometrySize;
+                    _uv[2].x = (v2.x - bbox.min.x) / geometrySize; _uv[2].y = (bbox.max.z - v2.z) / geometrySize;
+                } else if (n.x > n.y && n.x > n.z) {
+                    _uv[0].x = (v0.z - bbox.min.z) / geometrySize; _uv[0].y = (v0.y - bbox.min.y) / geometrySize;
+                    _uv[1].x = (v1.z - bbox.min.z) / geometrySize; _uv[1].y = (v1.y - bbox.min.y) / geometrySize;
+                    _uv[2].x = (v2.z - bbox.min.z) / geometrySize; _uv[2].y = (v2.y - bbox.min.y) / geometrySize;
+                } else if (n.z > n.y && n.z > n.x) {
+                    _uv[0].x = (v0.x - bbox.min.x) / geometrySize; _uv[0].y = (v0.y - bbox.min.y) / geometrySize;
+                    _uv[1].x = (v1.x - bbox.min.x) / geometrySize; _uv[1].y = (v1.y - bbox.min.y) / geometrySize;
+                    _uv[2].x = (v2.x - bbox.min.x) / geometrySize; _uv[2].y = (v2.y - bbox.min.y) / geometrySize;
+                }
+            }
+        }
+    }
+    static uvMapSphere(geometry, setCoords = 'uv') {
+        if (geometry.index !== null) {
+            const nonIndexed = geometry.toNonIndexed();
+            nonIndexed.uuid = geometry.uuid;
+            nonIndexed.name = geometry.name;
+            geometry.dispose();
+            geometry = nonIndexed;
+        }
+        const coords = [];
+        coords.length = 2 * geometry.attributes.position.array.length / 3;
+        const hasUV = ! (geometry.attributes.uv === undefined);
+        if (! hasUV) geometry.addAttribute('uv', new THREE$1.Float32BufferAttribute(coords, 2));
+        const setU = (! hasUV || setCoords === 'u' || setCoords === 'uv');
+        const setV = (! hasUV || setCoords === 'v' || setCoords === 'uv');
+        const pos = geometry.attributes.position.array;
+        for (let vi = 0; vi < geometry.attributes.position.array.length; vi += 9) {
+            _vertex[0].set(pos[vi + 0], pos[vi + 1], pos[vi + 2]);
+            _vertex[1].set(pos[vi + 3], pos[vi + 4], pos[vi + 5]);
+            _vertex[2].set(pos[vi + 6], pos[vi + 7], pos[vi + 8]);
+            let index = vi / 3;
+            for (let i = 0; i < 3; i++) {
+                const polar = cartesian2polar(_vertex[i]);
+                if (polar.theta === 0 && (polar.phi === 0 || polar.phi === Math.PI)) {
+                    const alignedVertex = (polar.phi === 0) ? '1' : '0';
+                    polar.theta = cartesian2polar(_vertex[alignedVertex]).theta;
+                }
+                setUV(polar, index, i);
+                index++;
+            }
+            let overwrap = false;
+            if (Math.abs(_uv[0].x - _uv[1].x) > 0.75) overwrap = true;
+            if (Math.abs(_uv[0].x - _uv[2].x) > 0.75) overwrap = true;
+            if (Math.abs(_uv[1].x - _uv[0].x) > 0.75) overwrap = true;
+            if (Math.abs(_uv[1].x - _uv[2].x) > 0.75) overwrap = true;
+            if (Math.abs(_uv[2].x - _uv[0].x) > 0.75) overwrap = true;
+            if (Math.abs(_uv[2].x - _uv[1].x) > 0.75) overwrap = true;
+            if (overwrap) {
+                let index = vi / 3;
+                for (let i = 0; i < 3; i++) {
+                    const x = coords[2 * index];
+                    if (x > 0.75) coords[2 * index] = 0;
+                    index++;
+                }
+            }
+        }
+        geometry.attributes.uv.array = new Float32Array(coords);
+        geometry.attributes.uv.needsUpdate = true;
+        return geometry;
+        function setUV(polarVertex, index, i) {
+            const canvasPoint = polar2canvas(polarVertex);
+            const uv = new THREE$1.Vector2(1 - canvasPoint.x, 1 - canvasPoint.y);
+            const indexU = 2 * index + 0;
+            const indexV = 2 * index + 1;
+            coords[indexU] = (setU) ? uv.x : geometry.attributes.uv.array[indexU];
+            coords[indexV] = (setV) ? uv.y : geometry.attributes.uv.array[indexV];
+            _uv[i].x = coords[indexU];
+            _uv[i].y = coords[indexV];
+        }
+        function cartesian2polar(position) {
+            let sqrd = (position.x * position.x) + (position.y * position.y) + (position.z * position.z);
+            let radius = Math.sqrt(sqrd);
+            return({
+                r: radius,
+                theta: Math.atan2(position.z, position.x),
+                phi: Math.acos(position.y / radius)
+            });
+        }
+        function polar2canvas(polarPoint) {
+            return({
+                x: (polarPoint.theta + Math.PI) / (2 * Math.PI),
+                y: (polarPoint.phi / Math.PI)
+            });
+        }
+    }
+}
+
+const _color = new THREE$1.Color();
+const _position = new THREE$1.Vector3();
+class SVGBuilder {
+    static createFromPaths(target, paths, onLoad, name = '') {
+        const drawFills = true;
+        const drawStrokes = true;
+        let startZ = 0, zStep = 0.001;
+        let fillNumber = 0, strokeNumber = 0;
+        paths.forEach((path) => {
+            let fillColor = path.userData.style.fill;
+            let fillOpacity = path.userData.style.fillOpacity;
+            if (! fillOpacity && fillOpacity !== 0) fillOpacity = 1;
+            if (drawFills && fillColor !== undefined && fillColor !== 'none') {
+                const shapes = SVGLoader.createShapes(path);
+                shapes.forEach((shape) => {
+                    let entityName = `Fill ${fillNumber}`;
+                    if (name !== '') entityName = name + ' ' + entityName;
+                    const entity = new Entity3D(entityName);
+                    const depth = 0.256;
+                    const scaleDown = 0.001;
+                    function scaleCurve(curve) {
+                        if (curve.v0) curve.v0.multiplyScalar(scaleDown);
+                        if (curve.v1) curve.v1.multiplyScalar(scaleDown);
+                        if (curve.v2) curve.v2.multiplyScalar(scaleDown);
+                        if (curve.v3) curve.v3.multiplyScalar(scaleDown);
+                        if (curve.aX) curve.aX *= scaleDown;
+                        if (curve.aY) curve.aY *= scaleDown;
+                        if (curve.xRadius) curve.xRadius *= scaleDown;
+                        if (curve.yRadius) curve.yRadius *= scaleDown;
+                    }
+                    for (let c = 0; c < shape.curves.length; c++) scaleCurve(shape.curves[c]);
+                    for (let h = 0; h < shape.holes.length; h++) {
+                        for (let c = 0; c < shape.holes[h].curves.length; c++) {
+                            scaleCurve(shape.holes[h].curves[c]);
+                        }
+                    }
+                    const geometry = new THREE$1.ExtrudeGeometry(shape, {
+                        depth: depth,
+                        bevelEnabled: false,
+                        bevelThickness: 0.25,
+                        bevelSegments: 8,
+                        curveSegments: 16,
+                        steps: 4,
+                    });
+                    geometry.name = entityName;
+                    geometry.translate(0, 0, depth / -2);
+                    geometry.scale(1, -1, -1);
+                    geometry.computeBoundingBox();
+                    geometry.boundingBox.getCenter(_position);
+                    geometry.center();
+                    entity.position.copy(_position);
+                    GeometryUtils.uvFlip(geometry, false , true );
+                    entity.addComponent('geometry', geometry);
+	                entity.addComponent('material', {
+                        style: 'standard',
+                        side: 'FrontSide',
+                        color: _color.setStyle(fillColor).getHex(),
+                        opacity: fillOpacity,
+                    });
+                    entity.position.z = startZ;
+                    target.add(entity);
+                    startZ += zStep;
+                    fillNumber++;
+                });
+            }
+        });
+        if (target.children && target.children.length > 0) {
+            const center = new THREE$1.Vector3();
+            ObjectUtils.computeCenter(target.children, center);
+            for (let child of target.children) {
+                child.position.x -= center.x;
+                child.position.y -= center.y;
+            }
+        }
+        target.name = name;
+        if (onLoad && typeof onLoad === 'function') onLoad();
+    }
+    static createFromFile(url, onLoad) {
+        const svgGroup = new Entity3D();
+        const loader = new SVGLoader();
+        loader.load(url, function(data) {
+            SVGBuilder.createFromPaths(svgGroup, data.paths, onLoad, Strings.nameFromUrl(url));
+        });
+        return svgGroup;
     }
 }
 
@@ -2284,356 +2635,6 @@ const COLOR_KEYWORDS = {
     'tomato': 0xFF6347, 'turquoise': 0x40E0D0, 'transparent': 0x000000, 'violet': 0xEE82EE, 'wheat': 0xF5DEB3,
     'white': 0xFFFFFF, 'whitesmoke': 0xF5F5F5, 'yellow': 0xFFFF00, 'yellowgreen': 0x9ACD32
 };
-
-class Vectors {
-    static absolute(vec3) {
-        vec3.x = Math.abs(vec3.x);
-        vec3.y = Math.abs(vec3.y);
-        vec3.z = Math.abs(vec3.z);
-    }
-    static noZero(vec3, min = 0.001) {
-        if (Maths.fuzzyFloat(vec3.x, 0, min)) vec3.x = (vec3.x < 0) ? (min * -1) : min;
-		if (Maths.fuzzyFloat(vec3.y, 0, min)) vec3.y = (vec3.y < 0) ? (min * -1) : min;
-		if (Maths.fuzzyFloat(vec3.z, 0, min)) vec3.z = (vec3.z < 0) ? (min * -1) : min;
-    }
-    static printOut(vec3, name = '') {
-        if (name !== '') name += ' - ';
-        console.info(`${name}X: ${vec3.x}, Y: ${vec3.y}, Z: ${vec3.z}`);
-    }
-    static round(vec3, decimalPlaces = 0) {
-        const shift = Math.pow(10, decimalPlaces);
-        vec3.x = Math.round(vec3.x * shift) / shift;
-        vec3.y = Math.round(vec3.y * shift) / shift;
-        vec3.z = Math.round(vec3.z * shift) / shift;
-    }
-    static sanity(vec3) {
-        if (isNaN(vec3.x)) vec3.x = 0;
-        if (isNaN(vec3.y)) vec3.y = 0;
-        if (isNaN(vec3.z)) vec3.z = 0;
-    }
-}
-
-const _uv = [ new THREE$1.Vector2(), new THREE$1.Vector2(), new THREE$1.Vector2() ];
-const _vertex = [ new THREE$1.Vector3(), new THREE$1.Vector3(), new THREE$1.Vector3() ];
-const _temp = new THREE$1.Vector3();
-class GeometryUtils {
-    static addAttribute(geometry, attributeName = 'color', stride = 3, fill = 0) {
-        if (! geometry.getAttribute(attributeName)) {
-            let array = new Float32Array(geometry.attributes.position.count * stride).fill(fill);
-	        const attribute = new THREE$1.BufferAttribute(array, stride, true).setUsage(THREE$1.DynamicDrawUsage);
-	        geometry.setAttribute(attributeName, attribute);
-        }
-        return geometry;
-    }
-    static coloredMesh(mesh) {
-        if (! mesh.geometry) return mesh;
-        if (! mesh.material) return mesh;
-        let material = mesh.material;
-        if (Array.isArray(material) !== true) material = [ mesh.material ];
-        for (let i = 0; i < material.length; i++) {
-            if (material[i].vertexColors !== true) {
-                material[i].vertexColors = true;
-                material[i].needsUpdate = true;
-            }
-        }
-        GeometryUtils.addAttribute(mesh.geometry, 'color', 3, 1.0);
-        return mesh;
-    }
-    static modelSize(geometry, type = 'max') {
-        let boxSize = new THREE$1.Vector3();
-        geometry.computeBoundingBox();
-        geometry.boundingBox.getSize(boxSize);
-        if (type === 'max') {
-            return Math.max(boxSize.x, boxSize.y, boxSize.z);
-        } else  {
-            return Math.min(boxSize.x, boxSize.y, boxSize.z);
-        }
-    }
-    static repeatTexture(geometry, s, t) {
-        if (! geometry) return;
-        if (geometry.attributes && geometry.attributes.uv && geometry.attributes.uv.array) {
-            for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-                geometry.attributes.uv.array[i + 0] *= s;
-                geometry.attributes.uv.array[i + 1] *= t;
-            }
-            geometry.attributes.uv.needsUpdate = true;
-        }
-    }
-    static uvFlip(geometry, x = true, y = true) {
-        if (! geometry || ! geometry.isBufferGeometry) return;
-        if (geometry.attributes.uv === undefined) return;
-        for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-            let u = geometry.attributes.uv.array[i + 0];
-            let v = geometry.attributes.uv.array[i + 1];
-            if (x) u = 1.0 - u;
-            if (y) v = 1.0 - v;
-            geometry.attributes.uv.array[i + 0] = u;
-            geometry.attributes.uv.array[i + 1] = v;
-        }
-    }
-    static uvMapCube(geometry, transformMatrix, frontFaceOnly = false) {
-        if (frontFaceOnly) {
-            if (geometry.index !== null) {
-                const nonIndexed = geometry.toNonIndexed();
-                geometry.dispose();
-                geometry = nonIndexed;
-            }
-        }
-        if (transformMatrix === undefined) transformMatrix = new THREE$1.Matrix4();
-        let geometrySize = GeometryUtils.modelSize(geometry);
-        let size = (geometrySize / 2);
-        let bbox = new THREE$1.Box3(new THREE$1.Vector3(-size, -size, -size), new THREE$1.Vector3(size, size, size));
-        let boxCenter = new THREE$1.Vector3();
-        geometry.boundingBox.getCenter(boxCenter);
-        const centerMatrix = new THREE$1.Matrix4().makeTranslation(-boxCenter.x, -boxCenter.y, -boxCenter.z);
-        const coords = [];
-        coords.length = 2 * geometry.attributes.position.array.length / 3;
-        const pos = geometry.attributes.position.array;
-        if (geometry.index) {
-            for (let vi = 0; vi < geometry.index.array.length; vi += 3) {
-                const idx0 = geometry.index.array[vi + 0];
-                const idx1 = geometry.index.array[vi + 1];
-                const idx2 = geometry.index.array[vi + 2];
-                const v0 = new THREE$1.Vector3(pos[(3 * idx0) + 0], pos[(3 * idx0) + 1], pos[(3 * idx0) + 2]);
-                const v1 = new THREE$1.Vector3(pos[(3 * idx1) + 0], pos[(3 * idx1) + 1], pos[(3 * idx1) + 2]);
-                const v2 = new THREE$1.Vector3(pos[(3 * idx2) + 0], pos[(3 * idx2) + 1], pos[(3 * idx2) + 2]);
-                calculateUVs(v0, v1, v2);
-                coords[2 * idx0 + 0] = _uv[0].x;
-                coords[2 * idx0 + 1] = _uv[0].y;
-                coords[2 * idx1 + 0] = _uv[1].x;
-                coords[2 * idx1 + 1] = _uv[1].y;
-                coords[2 * idx2 + 0] = _uv[2].x;
-                coords[2 * idx2 + 1] = _uv[2].y;
-            }
-        } else {
-            for (let vi = 0; vi < geometry.attributes.position.array.length; vi += 9) {
-                const v0 = new THREE$1.Vector3(pos[vi + 0], pos[vi + 1], pos[vi + 2]);
-                const v1 = new THREE$1.Vector3(pos[vi + 3], pos[vi + 4], pos[vi + 5]);
-                const v2 = new THREE$1.Vector3(pos[vi + 6], pos[vi + 7], pos[vi + 8]);
-                calculateUVs(v0, v1, v2);
-                const idx0 = vi / 3;
-                const idx1 = idx0 + 1;
-                const idx2 = idx0 + 2;
-                coords[2 * idx0 + 0] = _uv[0].x;
-                coords[2 * idx0 + 1] = _uv[0].y;
-                coords[2 * idx1 + 0] = _uv[1].x;
-                coords[2 * idx1 + 1] = _uv[1].y;
-                coords[2 * idx2 + 0] = _uv[2].x;
-                coords[2 * idx2 + 1] = _uv[2].y;
-            }
-        }
-        if (geometry.attributes.uv === undefined) {
-            geometry.addAttribute('uv', new THREE$1.Float32BufferAttribute(coords, 2));
-        }
-        geometry.attributes.uv.array = new Float32Array(coords);
-        geometry.attributes.uv.needsUpdate = true;
-        return geometry;
-        function calcNormal(target, vec1, vec2, vec3) {
-            _temp.subVectors(vec1, vec2);
-            target.subVectors(vec2, vec3);
-            target.cross(_temp).normalize();
-            Vectors.round(target, 5);
-        }
-        function calculateUVs(v0, v1, v2) {
-            v0.applyMatrix4(centerMatrix).applyMatrix4(transformMatrix);
-            v1.applyMatrix4(centerMatrix).applyMatrix4(transformMatrix);
-            v2.applyMatrix4(centerMatrix).applyMatrix4(transformMatrix);
-            const n = new THREE$1.Vector3();
-            calcNormal(n, v0, v1, v2);
-            _uv[0].set(0, 0, 0);
-            _uv[1].set(0, 0, 0);
-            _uv[2].set(0, 0, 0);
-            if (frontFaceOnly) {
-                let frontFace = (n.z < 0);
-                frontFace = frontFace && (Math.abs(n.y) < 0.866);
-                frontFace = frontFace && (Math.abs(n.x) < 0.866);
-                if (frontFace) {
-                    _uv[0].x = (v0.x - bbox.min.x) / geometrySize; _uv[0].y = (v0.y - bbox.min.y) / geometrySize;
-                    _uv[1].x = (v1.x - bbox.min.x) / geometrySize; _uv[1].y = (v1.y - bbox.min.y) / geometrySize;
-                    _uv[2].x = (v2.x - bbox.min.x) / geometrySize; _uv[2].y = (v2.y - bbox.min.y) / geometrySize;
-                }
-            } else {
-                n.x = Math.abs(n.x);
-                n.y = Math.abs(n.y);
-                n.z = Math.abs(n.z);
-                if (n.y > n.x && n.y > n.z) {
-                    _uv[0].x = (v0.x - bbox.min.x) / geometrySize; _uv[0].y = (bbox.max.z - v0.z) / geometrySize;
-                    _uv[1].x = (v1.x - bbox.min.x) / geometrySize; _uv[1].y = (bbox.max.z - v1.z) / geometrySize;
-                    _uv[2].x = (v2.x - bbox.min.x) / geometrySize; _uv[2].y = (bbox.max.z - v2.z) / geometrySize;
-                } else if (n.x > n.y && n.x > n.z) {
-                    _uv[0].x = (v0.z - bbox.min.z) / geometrySize; _uv[0].y = (v0.y - bbox.min.y) / geometrySize;
-                    _uv[1].x = (v1.z - bbox.min.z) / geometrySize; _uv[1].y = (v1.y - bbox.min.y) / geometrySize;
-                    _uv[2].x = (v2.z - bbox.min.z) / geometrySize; _uv[2].y = (v2.y - bbox.min.y) / geometrySize;
-                } else if (n.z > n.y && n.z > n.x) {
-                    _uv[0].x = (v0.x - bbox.min.x) / geometrySize; _uv[0].y = (v0.y - bbox.min.y) / geometrySize;
-                    _uv[1].x = (v1.x - bbox.min.x) / geometrySize; _uv[1].y = (v1.y - bbox.min.y) / geometrySize;
-                    _uv[2].x = (v2.x - bbox.min.x) / geometrySize; _uv[2].y = (v2.y - bbox.min.y) / geometrySize;
-                }
-            }
-        }
-    }
-    static uvMapSphere(geometry, setCoords = 'uv') {
-        if (geometry.index !== null) {
-            const nonIndexed = geometry.toNonIndexed();
-            nonIndexed.uuid = geometry.uuid;
-            nonIndexed.name = geometry.name;
-            geometry.dispose();
-            geometry = nonIndexed;
-        }
-        const coords = [];
-        coords.length = 2 * geometry.attributes.position.array.length / 3;
-        const hasUV = ! (geometry.attributes.uv === undefined);
-        if (! hasUV) geometry.addAttribute('uv', new THREE$1.Float32BufferAttribute(coords, 2));
-        const setU = (! hasUV || setCoords === 'u' || setCoords === 'uv');
-        const setV = (! hasUV || setCoords === 'v' || setCoords === 'uv');
-        const pos = geometry.attributes.position.array;
-        for (let vi = 0; vi < geometry.attributes.position.array.length; vi += 9) {
-            _vertex[0].set(pos[vi + 0], pos[vi + 1], pos[vi + 2]);
-            _vertex[1].set(pos[vi + 3], pos[vi + 4], pos[vi + 5]);
-            _vertex[2].set(pos[vi + 6], pos[vi + 7], pos[vi + 8]);
-            let index = vi / 3;
-            for (let i = 0; i < 3; i++) {
-                const polar = cartesian2polar(_vertex[i]);
-                if (polar.theta === 0 && (polar.phi === 0 || polar.phi === Math.PI)) {
-                    const alignedVertex = (polar.phi === 0) ? '1' : '0';
-                    polar.theta = cartesian2polar(_vertex[alignedVertex]).theta;
-                }
-                setUV(polar, index, i);
-                index++;
-            }
-            let overwrap = false;
-            if (Math.abs(_uv[0].x - _uv[1].x) > 0.75) overwrap = true;
-            if (Math.abs(_uv[0].x - _uv[2].x) > 0.75) overwrap = true;
-            if (Math.abs(_uv[1].x - _uv[0].x) > 0.75) overwrap = true;
-            if (Math.abs(_uv[1].x - _uv[2].x) > 0.75) overwrap = true;
-            if (Math.abs(_uv[2].x - _uv[0].x) > 0.75) overwrap = true;
-            if (Math.abs(_uv[2].x - _uv[1].x) > 0.75) overwrap = true;
-            if (overwrap) {
-                let index = vi / 3;
-                for (let i = 0; i < 3; i++) {
-                    const x = coords[2 * index];
-                    if (x > 0.75) coords[2 * index] = 0;
-                    index++;
-                }
-            }
-        }
-        geometry.attributes.uv.array = new Float32Array(coords);
-        geometry.attributes.uv.needsUpdate = true;
-        return geometry;
-        function setUV(polarVertex, index, i) {
-            const canvasPoint = polar2canvas(polarVertex);
-            const uv = new THREE$1.Vector2(1 - canvasPoint.x, 1 - canvasPoint.y);
-            const indexU = 2 * index + 0;
-            const indexV = 2 * index + 1;
-            coords[indexU] = (setU) ? uv.x : geometry.attributes.uv.array[indexU];
-            coords[indexV] = (setV) ? uv.y : geometry.attributes.uv.array[indexV];
-            _uv[i].x = coords[indexU];
-            _uv[i].y = coords[indexV];
-        }
-        function cartesian2polar(position) {
-            let sqrd = (position.x * position.x) + (position.y * position.y) + (position.z * position.z);
-            let radius = Math.sqrt(sqrd);
-            return({
-                r: radius,
-                theta: Math.atan2(position.z, position.x),
-                phi: Math.acos(position.y / radius)
-            });
-        }
-        function polar2canvas(polarPoint) {
-            return({
-                x: (polarPoint.theta + Math.PI) / (2 * Math.PI),
-                y: (polarPoint.phi / Math.PI)
-            });
-        }
-    }
-}
-
-const _color = new THREE$1.Color();
-const _position = new THREE$1.Vector3();
-class SVGBuilder {
-    static createFromPaths(target, paths, onLoad, name = '') {
-        const drawFills = true;
-        const drawStrokes = true;
-        let startZ = 0, zStep = 0.001;
-        let fillNumber = 0, strokeNumber = 0;
-        paths.forEach((path) => {
-            let fillColor = path.userData.style.fill;
-            let fillOpacity = path.userData.style.fillOpacity;
-            if (! fillOpacity && fillOpacity !== 0) fillOpacity = 1;
-            if (drawFills && fillColor !== undefined && fillColor !== 'none') {
-                const shapes = SVGLoader.createShapes(path);
-                shapes.forEach((shape) => {
-                    let entityName = `Fill ${fillNumber}`;
-                    if (name !== '') entityName = name + ' ' + entityName;
-                    const entity = new Entity3D(entityName);
-                    const depth = 0.256;
-                    const scaleDown = 0.001;
-                    function scaleCurve(curve) {
-                        if (curve.v0) curve.v0.multiplyScalar(scaleDown);
-                        if (curve.v1) curve.v1.multiplyScalar(scaleDown);
-                        if (curve.v2) curve.v2.multiplyScalar(scaleDown);
-                        if (curve.v3) curve.v3.multiplyScalar(scaleDown);
-                        if (curve.aX) curve.aX *= scaleDown;
-                        if (curve.aY) curve.aY *= scaleDown;
-                        if (curve.xRadius) curve.xRadius *= scaleDown;
-                        if (curve.yRadius) curve.yRadius *= scaleDown;
-                    }
-                    for (let c = 0; c < shape.curves.length; c++) scaleCurve(shape.curves[c]);
-                    for (let h = 0; h < shape.holes.length; h++) {
-                        for (let c = 0; c < shape.holes[h].curves.length; c++) {
-                            scaleCurve(shape.holes[h].curves[c]);
-                        }
-                    }
-                    const geometry = new THREE$1.ExtrudeGeometry(shape, {
-                        depth: depth,
-                        bevelEnabled: false,
-                        bevelThickness: 0.25,
-                        bevelSegments: 8,
-                        curveSegments: 16,
-                        steps: 4,
-                    });
-                    geometry.name = entityName;
-                    geometry.translate(0, 0, depth / -2);
-                    geometry.scale(1, -1, -1);
-                    geometry.computeBoundingBox();
-                    geometry.boundingBox.getCenter(_position);
-                    geometry.center();
-                    entity.position.copy(_position);
-                    GeometryUtils.uvFlip(geometry, false , true );
-                    entity.addComponent('geometry', geometry);
-	                entity.addComponent('material', {
-                        style: 'standard',
-                        side: 'FrontSide',
-                        color: _color.setStyle(fillColor).getHex(),
-                        opacity: fillOpacity,
-                    });
-                    entity.position.z = startZ;
-                    target.add(entity);
-                    startZ += zStep;
-                    fillNumber++;
-                });
-            }
-        });
-        if (target.children && target.children.length > 0) {
-            const center = new THREE$1.Vector3();
-            ObjectUtils.computeCenter(target.children, center);
-            for (let child of target.children) {
-                child.position.x -= center.x;
-                child.position.y -= center.y;
-            }
-        }
-        target.name = name;
-        if (onLoad && typeof onLoad === 'function') onLoad();
-    }
-    static createFromFile(url, onLoad) {
-        const svgGroup = new Entity3D();
-        const loader = new SVGLoader();
-        loader.load(url, function(data) {
-            SVGBuilder.createFromPaths(svgGroup, data.paths, onLoad, Strings.nameFromUrl(url));
-        });
-        return svgGroup;
-    }
-}
 
 class CapsuleGeometry extends THREE$1.BufferGeometry {
     constructor(radiusTop = 1, radiusBottom = 1, height = 2, radialSegments = 12, heightSegments = 1,

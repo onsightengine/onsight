@@ -76,11 +76,11 @@ export { RenderUtils } from './three/utils/RenderUtils.js';
 
 ///// Register Components (files self register w/Component Manager on import)
 
-import './project/scene3d/components/Camera.js';
-import './project/scene3d/components/Geometry.js';
-import './project/scene3d/components/Light.js';
-import './project/scene3d/components/Material.js';
-import './project/scene3d/components/Mesh.js';
+import './app/scene3d/components/Camera.js';
+import './app/scene3d/components/Geometry.js';
+import './app/scene3d/components/Light.js';
+import './app/scene3d/components/Material.js';
+import './app/scene3d/components/Mesh.js';
 
 ///// Single Import
 

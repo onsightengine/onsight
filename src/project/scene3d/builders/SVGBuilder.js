@@ -18,6 +18,7 @@ import * as THREE from 'three';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 
 import { Entity3D } from '../Entity3D.js';
+import { GeometryUtils } from '../../../three/utils/GeometryUtils.js';
 import { ObjectUtils } from '../../../three/utils/ObjectUtils.js';
 import { Strings } from '../../../core/Strings.js';
 import { Vectors } from '../../../core/Vectors.js';
@@ -98,6 +99,9 @@ class SVGBuilder {
                     geometry.center();
                     geometry.scale(1, -1, -1);
                     entity.position.copy(_position);
+
+                    // Flip UVs
+                    GeometryUtils.uvFlip(geometry, false /* x */, true /* y */);
 
                     // Geometry Component
                     entity.addComponent('geometry', geometry);

@@ -21,7 +21,9 @@
 //      coloredMesh                 Converts mesh to be able to used custom colored triangles (painting)
 //      modelSize                   Finds max / min geometry Size
 //      repeatTexture               Multiplies uv coordinates in geometry to repeat texture
-//      uvMapCube                   Maps UV coordinates onto an object that fits inside a cube
+//      uvFlip                      Flip uv coordinates
+//      uvMapCube                   Maps uv coordinates onto an object that fits inside a cube
+//      uvMapSphere                 Maps uv coordinates onto an object that fits inside a sphere
 //
 /////////////////////////////////////////////////////////////////////////////////////
 
@@ -99,7 +101,22 @@ class GeometryUtils {
         }
     }
 
-    /** Maps UV coordinates onto an object that fits inside a cube */
+    /** Flip uv coordinates */
+    static uvFlip(geometry, x = true, y = true) {
+        if (! geometry || ! geometry.isBufferGeometry) return;
+        if (geometry.attributes.uv === undefined) return;
+
+        for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+            let u = geometry.attributes.uv.array[i + 0];
+            let v = geometry.attributes.uv.array[i + 1];
+            if (x) u = 1.0 - u;
+            if (y) v = 1.0 - v;
+            geometry.attributes.uv.array[i + 0] = u;
+            geometry.attributes.uv.array[i + 1] = v;
+        }
+    }
+
+    /** Maps uv coordinates onto an object that fits inside a cube */
     static uvMapCube(geometry, transformMatrix, frontFaceOnly = false) {
 
         // Ensure non-indexed geometry for front face only
@@ -119,12 +136,12 @@ class GeometryUtils {
 
         // Create Cube based on Geometry Size
         let size = (geometrySize / 2);
-        let bbox = new THREE.Box3(new THREE.Vector3(- size, - size, - size), new THREE.Vector3(size, size, size));
+        let bbox = new THREE.Box3(new THREE.Vector3(-size, -size, -size), new THREE.Vector3(size, size, size));
         let boxCenter = new THREE.Vector3();
         geometry.boundingBox.getCenter(boxCenter);
 
         // Align cube center with geometry center
-        const centerMatrix = new THREE.Matrix4().makeTranslation(- boxCenter.x, - boxCenter.y, - boxCenter.z);
+        const centerMatrix = new THREE.Matrix4().makeTranslation(-boxCenter.x, -boxCenter.y, -boxCenter.z);
 
         // Prepare UV Coordinates
         const coords = [];
@@ -244,7 +261,7 @@ class GeometryUtils {
 
     } // end uvMapCube
 
-    /** Maps UV coordinates onto an object that fits inside a sphere */
+    /** Maps uv coordinates onto an object that fits inside a sphere */
     static uvMapSphere(geometry, setCoords = 'uv') {
 
         // Convert to Non-Indexed

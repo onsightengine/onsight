@@ -73,14 +73,14 @@ class Geometry {
 
             case 'capsule':
                 // // THREE.CapsuleGeometry
-                // let capHeight = data.height / 2;
-                // let capRadius = data.radius / 1.5;
+                // const capHeight = data.height / 2;
+                // const capRadius = data.radius / 1.5;
                 // geometry = new THREE.CapsuleGeometry(capRadius, capHeight, data.capSegments, data.radialSegments);
 
                 // Custom CapsuleGeometry
-                let capRadiusTop = Maths.clamp(data.radiusTop, 0.1, data.height) / 1.5;
-                let capRadiusBottom = Maths.clamp(data.radiusBottom, 0.1, data.height) / 1.5;
-                let capHeight = data.height / 1.5;
+                const capRadiusTop = Maths.clamp(data.radiusTop, 0.1, data.height) / 1.5;
+                const capRadiusBottom = Maths.clamp(data.radiusBottom, 0.1, data.height) / 1.5;
+                const capHeight = data.height / 1.5;
                 geometry = new CapsuleGeometry(
                     capRadiusTop, capRadiusBottom, capHeight,
                     data.radialSegments, data.heightSegments,
@@ -110,17 +110,17 @@ class Geometry {
                 //const points = data.points;
 
                 /// SVG
-                let svgLoader = new SVGLoader();
+                const svgLoader = new SVGLoader();
                 // Create Paths
-                let svgData = svgLoader.parse(`
+                const svgData = svgLoader.parse(`
                     <g transform="matrix(1,0,0,1,-62,77.5)">
                         <path d="M125,59C151.284,141.301 106.947,164.354 84,158L83,263C100.017,285.361 110.282,295.752 143,298" style="fill:none;stroke:black;stroke-width:1px;"/>
                     </g>
                 `);
                 // Create Shapes
-                let path = svgData.paths[Object.keys(svgData.paths)[0]];
-                let svgShapes = SVGLoader.createShapes(path);
-                let svgPoints = svgShapes[0].extractPoints(30);
+                const path = svgData.paths[Object.keys(svgData.paths)[0]];
+                const svgShapes = SVGLoader.createShapes(path);
+                const svgPoints = svgShapes[0].extractPoints(30);
 
                 // Flip Y from SVG (and reverse point CW --> CCW)
                 const points = [];
@@ -157,7 +157,7 @@ class Geometry {
 
             case 'shape':
                 // PENTAGON
-                let shape = data.shapes ?? new THREE.Shape([
+                const shape = data.shapes ?? new THREE.Shape([
                     new THREE.Vector2( 64,   8),
                     new THREE.Vector2(  0,  64),
                     new THREE.Vector2(-64,   8),
@@ -196,7 +196,7 @@ class Geometry {
                 circleShape.absarc(0, 0, 0.5 /* radius */);
 
                 // Set Options
-                let options = {
+                const options = {
                     depth: data.depth,
                     curveSegments: data.curveSegments,
                     steps: data.steps,
@@ -286,7 +286,7 @@ class Geometry {
                 uvSmooth: data.uvSmooth ?? false,
                 flatOnly: data.flatOnly ?? false,
                 preserveEdges: false,
-                maxTriangles: 50000,
+                maxTriangles: 25000,
             };
 
             if (subdivideParams.split || data.subdivide > 0) {

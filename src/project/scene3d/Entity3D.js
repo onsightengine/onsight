@@ -174,6 +174,15 @@ class Entity3D extends Object3D {
         return component;
     }
 
+    rebuildComponents() {
+        for (let i = 0; i < this.components.length; i++) {
+            const component = this.components[i];
+            component.disable();
+            component.init(component.toJSON());
+            component.enable();
+        }
+    }
+
     /////////////////////////////////////////////////////////////////////////////////////
     /////   Children
     ////////////////////

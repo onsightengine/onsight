@@ -125,8 +125,8 @@ class Project {
 
     traverseScenes(callback) {
         for (let uuid in this.scenes) {
-            let scene = this.scenes[uuid];
-            scene.traverse(callback);
+            const scene = this.scenes[uuid];
+            scene.traverseEntities(callback);
         }
     }
 

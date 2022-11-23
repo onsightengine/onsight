@@ -192,6 +192,9 @@ class ComponentManager {
 
                 // Owner
                 this.entity = null;
+
+                // Data
+                this.data = {};
             }
 
             init(data) {

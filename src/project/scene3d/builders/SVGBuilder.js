@@ -9,8 +9,8 @@
 ///////////////////////////////////////////////////////////////////////////////////*/
 //
 //  SVGBuilder
-//      buildFromPaths              Builds Object3D from SVG paths
-//      fromFile                    Builds Object3D from SVG file
+//      createFromPaths             Builds Object3D from SVG paths
+//      createFromFile              Builds Object3D from SVG file
 //
 /////////////////////////////////////////////////////////////////////////////////////
 
@@ -34,7 +34,7 @@ const _position = new THREE.Vector3();
 
 class SVGBuilder {
 
-    static buildFromPaths(target, paths, onLoad, name = '') {
+    static createFromPaths(target, paths, onLoad, name = '') {
         const drawFills = true;
         const drawStrokes = true;
 
@@ -185,11 +185,11 @@ class SVGBuilder {
         if (onLoad && typeof onLoad === 'function') onLoad();
     }
 
-    static fromFile(url, onLoad) {
+    static createFromFile(url, onLoad) {
         const svgGroup = new Entity3D();
         const loader = new SVGLoader();
         loader.load(url, function(data) {
-            SVGBuilder.buildFromPaths(svgGroup, data.paths, onLoad, Strings.nameFromUrl(url));
+            SVGBuilder.createFromPaths(svgGroup, data.paths, onLoad, Strings.nameFromUrl(url));
         });
         return svgGroup;
     }

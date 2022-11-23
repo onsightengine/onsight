@@ -224,16 +224,16 @@ class Project {
     //////////////////// Scripts
 
     addScript(entity, script) {
-        let key = entity.uuid;
+        const key = entity.uuid;
         if (! this.scripts[key]) this.scripts[key] = [];
         this.scripts[key].push(script);
         return this;
     }
 
     removeScript(entity, script) {
-        let key = entity.uuid;
+        const key = entity.uuid;
         if (! this.scripts[key]) return;
-        let index = this.scripts[key].indexOf(script);
+        const index = this.scripts[key].indexOf(script);
         if (index !== -1) this.scripts[key].splice(index, 1);
     }
 

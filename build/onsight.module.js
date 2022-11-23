@@ -520,76 +520,65 @@ class Strings {
     }
 }
 
-let scripts = {};
-let shapes = {};
-let geometries = {};
-let images = {};
-let textures = {};
-let materials = {};
-let animations = {};
-let skeletons = {};
+const _assets = {};
 const _textureCache = {};
 const _textureLoader = new THREE$1.TextureLoader();
 class AssetManager {
-    static getLibrary(name) {
-        switch (name) {
-            case 'scripts': return scripts;
-            case 'shapes': return shapes;
-            case 'geometries': return geometries;
-            case 'images': return images;
-            case 'textures': return textures;
-            case 'materials': return materials;
-            case 'animations': return animations;
-            case 'skeletons': return skeletons;
-        }
-        return null;
+    static assetType(asset) {
+        if (asset.isBufferGeometry) return 'geometry';
+        if (asset.isMaterial) return 'material';
+        if (asset.isTexture) return 'texture';
+        return 'asset';
     }
-    static addGeometry(geometry) {
-		if (geometry && geometry.isBufferGeometry) {
-            if (! geometry.name || geometry.name === '') {
-                geometry.name = geometry.constructor.name;
-            }
-            const bufferGeometry = mergeBufferGeometries([ geometry ]);
-            bufferGeometry.name = geometry.name;
-            bufferGeometry.uuid = geometry.uuid;
-            geometry.dispose();
-            geometry = bufferGeometry;
-            geometries[geometry.uuid] = geometry;
+    static getLibrary(type) {
+        const library = [];
+        for (const [uuid, asset] of Object.entries(_assets)) {
+            if (AssetManager.assetType(asset) === type) library.push(asset);
         }
-		return geometry;
-	}
-	static getGeometry(uuid) {
-        if (uuid && uuid.isBufferGeometry) uuid = uuid.uuid;
-		return geometries[uuid];
-	}
-	static removeGeometry(geometry, dispose = true) {
-		if (geometries[geometry.uuid]) {
-			if (dispose) geometries[geometry.uuid].dispose();
-			delete geometries[geometry.uuid];
-		}
-	}
-	static addMaterial(material) {
-		if (material && material.isMaterial) {
-		    let materialArray = (Array.isArray(material)) ? material : [ material ];
-            for (let i = 0; i < materialArray.length; i++) {
-                materials[material.uuid] = materialArray[i];
+        return library;
+    }
+    static addAsset(assetOrArray) {
+        if (! assetOrArray) return;
+        const assetArray = (Array.isArray(assetOrArray)) ? assetOrArray : [ assetOrArray ];
+        for (let i = 0; i < assetArray.length; i++) {
+            let asset = assetArray[i];
+            if (asset.isBufferGeometry) {
+                if (! asset.name || asset.name === '') asset.name = asset.constructor.name;
+                if (asset.constructor.name !== 'BufferGeometry') {
+                    const bufferGeometry = mergeBufferGeometries([ asset ]);
+                    bufferGeometry.name = asset.name;
+                    bufferGeometry.uuid = asset.uuid;
+                    asset.dispose();
+                    asset = bufferGeometry;
+                }
+            }
+            _assets[asset.uuid] = asset;
+        }
+        return assetOrArray;
+    }
+    static getAsset(uuid) {
+        if (uuid && uuid.uuid) uuid = uuid.uuid;
+        return _assets[uuid];
+    }
+    static removeAsset(assetOrArray, dispose = true) {
+        if (! assetOrArray) return;
+        const assetArray = (Array.isArray(assetOrArray)) ? assetOrArray : [ assetOrArray ];
+        for (let i = 0; i < assetArray.length; i++) {
+            const asset = assetArray[i];
+            if (_assets[asset.uuid]) {
+                if (asset.isTexture) {
+                    for (let url in _textureCache) {
+                        if (_textureCache[url].uuid === asset.uuid) delete _textureCache[url];
+                    }
+                }
+                if (dispose && asset.dispose === 'function') asset.dispose();
+                delete _assets[asset.uuid];
             }
         }
-		return material;
-	}
-	static getMaterial(uuid) {
-        if (uuid && uuid.isMaterial) uuid = uuid.uuid;
-		return materials[uuid];
-	}
-	static removeMaterial(material, dispose = true) {
-		if (materials[material.uuid]) {
-			if (dispose) materials[material.uuid].dispose();
-			delete materials[material.uuid];
-		}
-	}
+    }
     static loadTexture(url, onLoad = undefined) {
         if (! url || url === '') return null;
-        let resolvedUrl = THREE$1.DefaultLoadingManager.resolveURL(url);
+        const resolvedUrl = THREE$1.DefaultLoadingManager.resolveURL(url);
         if (_textureCache[resolvedUrl]) {
             console.log(`AssetManager.loadTexture: Duplicate image!`);
             return _textureCache[resolvedUrl];
@@ -611,51 +600,31 @@ class AssetManager {
         }
 		return texture;
     }
-	static addTexture(texture) {
-        if (texture && texture.isTexture) {
-            textures[texture.uuid] = texture;
-        }
-		return texture;
-	}
-	static getTexture(uuid) {
-        if (uuid && uuid.isTexture) uuid = uuid.uuid;
-		return textures[uuid];
-	}
-	static removeTexture(texture, dispose = true) {
-		if (textures[texture.uuid]) {
-            for (let url in _textureCache) {
-                if (_textureCache[url] && _textureCache[url].isTexture && _textureCache[url].uuid === texture.uuid) {
-                    delete _textureCache[url];
-                }
-            }
-			if (dispose) textures[texture.uuid].dispose();
-			delete textures[texture.uuid];
-		}
-	}
     static clear() {
-        function clearLibrary(library) {
-            for (let uuid in library) {
-                const element = library[uuid];
-                if (element && element.dispose && typeof element.dispose === 'function') element.dispose();
-                delete library[uuid];
-            }
+        for (let uuid in _assets) {
+            AssetManager.removeAsset(_assets[uuid], true);
         }
-        clearLibrary(materials);
-        clearLibrary(textures);
-        clearLibrary(images);
-        clearLibrary(geometries);
-        clearLibrary(shapes);
-        clearLibrary(animations);
     }
     static fromJSON(json) {
         AssetManager.clear();
+        function addLibraryToAssets(library) {
+            for (const [uuid, asset] of Object.entries(library)) {
+                AssetManager.addAsset(asset);
+            }
+        }
 		const objectLoader = new THREE$1.ObjectLoader();
-		animations = objectLoader.parseAnimations(json.animations);
-		shapes = objectLoader.parseShapes(json.shapes);
-		geometries = objectLoader.parseGeometries(json.geometries, shapes);
-		images = objectLoader.parseImages(json.images);
-		textures = objectLoader.parseTextures(json.textures, images);
-		materials = objectLoader.parseMaterials(json.materials, textures);
+		const animations = objectLoader.parseAnimations(json.animations);
+		const shapes = objectLoader.parseShapes(json.shapes);
+		const geometries = objectLoader.parseGeometries(json.geometries, shapes);
+		const images = objectLoader.parseImages(json.images);
+		const textures = objectLoader.parseTextures(json.textures, images);
+		const materials = objectLoader.parseMaterials(json.materials, textures);
+        addLibraryToAssets(animations);
+        addLibraryToAssets(shapes);
+        addLibraryToAssets(geometries);
+        addLibraryToAssets(images);
+        addLibraryToAssets(textures);
+        addLibraryToAssets(materials);
     }
     static toJSON(meta) {
         const json = {};
@@ -672,11 +641,12 @@ class AssetManager {
             textures: {},
             materials: {},
         };
-        for (let uuid in geometries) {
-            const geometry = geometries[uuid];
+        const geometries = AssetManager.getLibrary('geometry');
+        for (let i = 0; i < geometries.length; i++) {
+            const geometry = geometries[i];
             if (! meta.geometries[geometry.uuid]) meta.geometries[geometry.uuid] = geometry.toJSON(meta);
             if (geometry.parameters && geometry.parameters.shapes) {
-                let shapes = geometry.parameters.shapes;
+                const shapes = geometry.parameters.shapes;
                 if (Array.isArray(shapes) !== true) shapes = [ shapes ];
                 for (let i = 0, l = shapes.length; i < l; i++) {
                     const shape = shapes[i];
@@ -684,12 +654,14 @@ class AssetManager {
                 }
             }
         }
-        for (let uuid in materials) {
-            const material = materials[uuid];
+        const materials = AssetManager.getLibrary('material');
+        for (let i = 0; i < materials.length; i++) {
+            const material = materials[i];
             if (! meta.materials[material.uuid]) meta.materials[material.uuid] = material.toJSON(stopRoot);
         }
-        for (let uuid in textures) {
-            const texture = textures[uuid];
+        const textures = AssetManager.getLibrary('texture');
+        for (let i = 0; i < textures.length; i++) {
+            const texture = textures[i];
             if (! meta.textures[texture.uuid]) meta.textures[texture.uuid] = texture.toJSON(meta);
         }
         for (const library in meta) {
@@ -724,11 +696,13 @@ class ComponentManager {
         for (const key in schema) {
             const prop = Array.isArray(schema[key]) ? schema[key] : [ schema[key] ];
             for (let i = 0, l = prop.length; i < l; i++) {
-                let property = prop[i];
+                const property = prop[i];
                 if (property.type === undefined) {
                     console.warn(`ComponentManager.register(): All schema properties require a 'type' value`);
                 } else if (property.type === 'divider') {
-                } else if (property.default === undefined) {
+                    continue;
+                }
+                if (property.default === undefined) {
                     switch (property.type) {
                         case 'select':      property.default = null;            break;
                         case 'number':      property.default = 0;               break;
@@ -750,8 +724,10 @@ class ComponentManager {
                         case 'script':      property.default = '';              break;
                         default:
                             console.warn(`ComponentManager.register(): Unknown property type: '${property.type}'`);
+                            property.default = null;
                     }
-                } else if (property.proMode !== undefined) {
+                }
+                if (property.proMode !== undefined) {
                     property.promode = property.proMode;
                 }
             }
@@ -764,6 +740,7 @@ class ComponentManager {
                 this.tag = '';
                 this.type = type;
                 this.entity = null;
+                this.data = {};
             }
             init(data) {
                 super.init(data);
@@ -780,9 +757,11 @@ class ComponentManager {
                 super.enable();
             }
             defaultData() {
-                let data = {};
-                for (let i = 0, l = arguments.length; i < l; i += 2) data[arguments[i]] = arguments[i+1];
-                ComponentManager.sanitizeData(data, ComponentClass.config.schema);
+                const data = {};
+                for (let i = 0, l = arguments.length; i < l; i += 2) {
+                    data[arguments[i]] = arguments[i+1];
+                }
+                ComponentManager.sanitizeData(this.type, data);
                 data.base = {
                     enabled: 	this.enabled,
                     tag:		this.tag,
@@ -793,7 +772,32 @@ class ComponentManager {
         }
         _registered[type] = Component;
     }
-    static sanitizeData(data, schema) {
+    static includeData(item, data1, data2 = undefined) {
+        for (let key in item.if) {
+            let conditions = item.if[key];
+            if (System.isIterable(conditions) !== true) conditions = [ conditions ];
+            let check1 = false, check2 = false;
+            for (let j = 0; j < conditions.length; j++) {
+                check1 = check1 || (data1[key] === conditions[j]);
+                check2 = check2 || (data2 === undefined) ? true : (data2[key] === conditions[j]);
+            }
+            if (! check1 || ! check2) return false;
+        }
+        for (let key in item.not) {
+            let conditions = item.not[key];
+            if (System.isIterable(conditions) !== true) conditions = [ conditions ];
+            let check1 = false, check2 = false;
+            for (let j = 0; j < conditions.length; j++) {
+                check1 = check1 || (data1[key] === conditions[j]);
+                check2 = check2 || (data2 === undefined) ? false : (data2[key] === conditions[j]);
+            }
+            if (check1 || check2) return false;
+        }
+        return true;
+    }
+    static sanitizeData(type, data) {
+        const ComponentClass = ComponentManager.registered(type);
+        const schema = (ComponentClass && ComponentClass.config) ? ComponentClass.config.schema : {};
         for (let schemaKey in schema) {
             let itemArray = schema[schemaKey];
             if (System.isIterable(itemArray) !== true) itemArray = [ schema[schemaKey] ];
@@ -801,26 +805,7 @@ class ComponentManager {
             for (let i = 0; i < itemArray.length; i++) {
                 let item = itemArray[i];
                 if (item.type === 'divider') continue;
-                if (item.if !== undefined) {
-                    let allConditions = true;
-                    for (let ifKey in item.if) {
-                        let ifArray = Array.isArray(item.if[ifKey]) ? item.if[ifKey] : [];
-                        let eachCondition = false;
-                        for (let j = 0; j < ifArray.length; j++) {
-                            if (data[ifKey] === ifArray[j]) {
-                                eachCondition = true;
-                                break;
-                            }
-                        }
-                        if (eachCondition !== true) {
-                            allConditions = false;
-                            break;
-                        }
-                    }
-                    if (allConditions !== true) {
-                        continue;
-                    }
-                }
+                if (! ComponentManager.includeData(item, data)) continue;
                 itemToInclude = item;
                 break;
             }
@@ -829,8 +814,8 @@ class ComponentManager {
                     data[schemaKey] = itemToInclude.default;
                 }
                 if (Maths.isNumber(data[schemaKey])) {
-                    let min = itemToInclude['min'] ?? -Infinity;
-                    let max = itemToInclude['max'] ??  Infinity;
+                    const min = itemToInclude['min'] ?? -Infinity;
+                    const max = itemToInclude['max'] ??  Infinity;
                     if (data[schemaKey] < min) data[schemaKey] = min;
                     if (data[schemaKey] > max) data[schemaKey] = max;
                 }
@@ -839,7 +824,9 @@ class ComponentManager {
             }
         }
     }
-    static stripData(oldData, newData, schema) {
+    static stripData(type, oldData, newData) {
+        const ComponentClass = ComponentManager.registered(type);
+        const schema = (ComponentClass && ComponentClass.config) ? ComponentClass.config.schema : {};
         for (let schemaKey in schema) {
             let matchedConditions = false;
             let itemArray = schema[schemaKey];
@@ -847,29 +834,7 @@ class ComponentManager {
             for (let i = 0; i < itemArray.length; i++) {
                 let item = itemArray[i];
                 if (item.type === 'divider') continue;
-                if (item.if !== undefined) {
-                    let allConditions = true;
-                    for (let ifKey in item.if) {
-                        let ifArray = Array.isArray(item.if[ifKey]) ? item.if[ifKey] : [];
-                        let eachCondition = false;
-                        let conditionOne = false, conditionTwo = false;
-                        for (let j = 0; j < ifArray.length; j++) {
-                            if (oldData[ifKey] === ifArray[j]) conditionOne = true;
-                            if (newData[ifKey] === ifArray[j]) conditionTwo = true;
-                            if (conditionOne && conditionTwo) {
-                                eachCondition = true;
-                                break;
-                            }
-                        }
-                        if (eachCondition !== true) {
-                            allConditions = false;
-                            break;
-                        }
-                    }
-                    if (allConditions !== true) {
-                        continue;
-                    }
-                }
+                if (! ComponentManager.includeData(item, oldData, newData)) continue;
                 matchedConditions = true;
                 break;
             }
@@ -1013,7 +978,7 @@ class Entity3D extends Object3D {
             }
         }
         component.entity = this;
-        ComponentManager.sanitizeData(data, config.schema);
+        ComponentManager.sanitizeData(type, data);
         if (component.init) component.init(data);
         if (this.enabled) component.enable();
         return component;
@@ -1062,6 +1027,14 @@ class Entity3D extends Object3D {
             console.warn(`Entity3D.removeComponent: Component ${component.uuid}, type '${component.type}' not found`);
         }
         return component;
+    }
+    rebuildComponents() {
+        for (let i = 0; i < this.components.length; i++) {
+            const component = this.components[i];
+            component.disable();
+            component.init(component.toJSON());
+            component.enable();
+        }
     }
     getEntities() {
         const filteredChildren = [];
@@ -1155,7 +1128,7 @@ class Entity3D extends Object3D {
             this.setFlag(key, json.object.flags[key]);
         }
         for (let i = 0; i < json.object.components.length; i++) {
-            let componentData = json.object.components[i];
+            const componentData = json.object.components[i];
             if (componentData && componentData.base && componentData.base.type) {
                 const component = this.addComponent(componentData.base.type, componentData, false);
                 if (componentData.enabled === false) component.disable();
@@ -1200,7 +1173,7 @@ class Entity3D extends Object3D {
         if (this.frustumCulled === false) json.object.frustumCulled = false;
         if (this.renderOrder !== 0) json.object.renderOrder = this.renderOrder;
         if (JSON.stringify(this.userData) !== '{}') json.object.userData = this.userData;
-        let children = this.getEntities();
+        const children = this.getEntities();
         if (children.length > 0) {
             json.object.entities = [];
             for (let i = 0; i < children.length; i++) {
@@ -1241,10 +1214,14 @@ class Scene3D extends Entity3D {
             if (Number.isInteger(data.background)) {
                 this.background = new THREE$1.Color(data.background);
             } else {
-                this.background = AssetManager.getTexture(data.background);
+                const backgroundTexture = AssetManager.getAsset(data.background);
+                if (backgroundTexture && backgroundTexture.isTexture) this.background = backgroundTexture;
             }
         }
-        if (data.environment !== undefined) this.environment = AssetManager.getTexture(data.environment);
+        if (data.environment !== undefined) {
+            const environmentTexture = AssetManager.getAsset(data.background);
+            if (environmentTexture && environmentTexture.isTexture) this.environment = environmentTexture;
+        }
         if (data.fog !== undefined) {
             if (data.fog.type === 'Fog') {
                 this.fog = new THREE$1.Fog(data.fog.color, data.fog.near, data.fog.far);
@@ -1435,7 +1412,7 @@ class Project {
         return this;
     }
     getFirstScene() {
-        let sceneList = Object.keys(this.scenes);
+        const sceneList = Object.keys(this.scenes);
         return (sceneList.length > 0) ? this.scenes[sceneList[0]] : null;
     }
     getSceneByName(name) {
@@ -1452,7 +1429,7 @@ class Project {
     }
     removeScene(scene) {
         if (scene.isScene !== true) return;
-        let entities = scene.getEntities();
+        const entities = scene.getEntities();
         for (let i = entities.length - 1; i >= 0; i--) {
             this.removeEntity(entities[i], true);
             entities[i].destroy();
@@ -1461,8 +1438,8 @@ class Project {
     }
     traverseScenes(callback) {
         for (let uuid in this.scenes) {
-            let scene = this.scenes[uuid];
-            scene.traverse(callback);
+            const scene = this.scenes[uuid];
+            scene.traverseEntities(callback);
         }
     }
     addEntity(entity, parent = undefined, index = -1, maintainWorldTransform = false) {
@@ -1573,7 +1550,7 @@ class Project {
         }
         for (let i = 0; i < json.scenes.length; i++) {
             switch (json.scenes[i].object.type) {
-                case 'Scene3D': this.addScene(new Scene3D().fromJSON(json.scenes[i], this)); break;
+                case 'Scene3D': this.addScene(new Scene3D().fromJSON(json.scenes[i])); break;
             }
         }
         return this;
@@ -2336,10 +2313,245 @@ class Vectors {
     }
 }
 
+const _uv = [ new THREE$1.Vector2(), new THREE$1.Vector2(), new THREE$1.Vector2() ];
+const _vertex = [ new THREE$1.Vector3(), new THREE$1.Vector3(), new THREE$1.Vector3() ];
+const _temp = new THREE$1.Vector3();
+class GeometryUtils {
+    static addAttribute(geometry, attributeName = 'color', stride = 3, fill = 0) {
+        if (! geometry.getAttribute(attributeName)) {
+            let array = new Float32Array(geometry.attributes.position.count * stride).fill(fill);
+	        const attribute = new THREE$1.BufferAttribute(array, stride, true).setUsage(THREE$1.DynamicDrawUsage);
+	        geometry.setAttribute(attributeName, attribute);
+        }
+        return geometry;
+    }
+    static coloredMesh(mesh) {
+        if (! mesh.geometry) return mesh;
+        if (! mesh.material) return mesh;
+        let material = mesh.material;
+        if (Array.isArray(material) !== true) material = [ mesh.material ];
+        for (let i = 0; i < material.length; i++) {
+            if (material[i].vertexColors !== true) {
+                material[i].vertexColors = true;
+                material[i].needsUpdate = true;
+            }
+        }
+        GeometryUtils.addAttribute(mesh.geometry, 'color', 3, 1.0);
+        return mesh;
+    }
+    static modelSize(geometry, type = 'max') {
+        let boxSize = new THREE$1.Vector3();
+        geometry.computeBoundingBox();
+        geometry.boundingBox.getSize(boxSize);
+        if (type === 'max') {
+            return Math.max(boxSize.x, boxSize.y, boxSize.z);
+        } else  {
+            return Math.min(boxSize.x, boxSize.y, boxSize.z);
+        }
+    }
+    static repeatTexture(geometry, s, t) {
+        if (! geometry) return;
+        if (geometry.attributes && geometry.attributes.uv && geometry.attributes.uv.array) {
+            for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+                geometry.attributes.uv.array[i + 0] *= s;
+                geometry.attributes.uv.array[i + 1] *= t;
+            }
+            geometry.attributes.uv.needsUpdate = true;
+        }
+    }
+    static uvFlip(geometry, x = true, y = true) {
+        if (! geometry || ! geometry.isBufferGeometry) return;
+        if (geometry.attributes.uv === undefined) return;
+        for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+            let u = geometry.attributes.uv.array[i + 0];
+            let v = geometry.attributes.uv.array[i + 1];
+            if (x) u = 1.0 - u;
+            if (y) v = 1.0 - v;
+            geometry.attributes.uv.array[i + 0] = u;
+            geometry.attributes.uv.array[i + 1] = v;
+        }
+    }
+    static uvMapCube(geometry, transformMatrix, frontFaceOnly = false) {
+        if (frontFaceOnly) {
+            if (geometry.index !== null) {
+                const nonIndexed = geometry.toNonIndexed();
+                geometry.dispose();
+                geometry = nonIndexed;
+            }
+        }
+        if (transformMatrix === undefined) transformMatrix = new THREE$1.Matrix4();
+        let geometrySize = GeometryUtils.modelSize(geometry);
+        let size = (geometrySize / 2);
+        let bbox = new THREE$1.Box3(new THREE$1.Vector3(-size, -size, -size), new THREE$1.Vector3(size, size, size));
+        let boxCenter = new THREE$1.Vector3();
+        geometry.boundingBox.getCenter(boxCenter);
+        const centerMatrix = new THREE$1.Matrix4().makeTranslation(-boxCenter.x, -boxCenter.y, -boxCenter.z);
+        const coords = [];
+        coords.length = 2 * geometry.attributes.position.array.length / 3;
+        const pos = geometry.attributes.position.array;
+        if (geometry.index) {
+            for (let vi = 0; vi < geometry.index.array.length; vi += 3) {
+                const idx0 = geometry.index.array[vi + 0];
+                const idx1 = geometry.index.array[vi + 1];
+                const idx2 = geometry.index.array[vi + 2];
+                const v0 = new THREE$1.Vector3(pos[(3 * idx0) + 0], pos[(3 * idx0) + 1], pos[(3 * idx0) + 2]);
+                const v1 = new THREE$1.Vector3(pos[(3 * idx1) + 0], pos[(3 * idx1) + 1], pos[(3 * idx1) + 2]);
+                const v2 = new THREE$1.Vector3(pos[(3 * idx2) + 0], pos[(3 * idx2) + 1], pos[(3 * idx2) + 2]);
+                calculateUVs(v0, v1, v2);
+                coords[2 * idx0 + 0] = _uv[0].x;
+                coords[2 * idx0 + 1] = _uv[0].y;
+                coords[2 * idx1 + 0] = _uv[1].x;
+                coords[2 * idx1 + 1] = _uv[1].y;
+                coords[2 * idx2 + 0] = _uv[2].x;
+                coords[2 * idx2 + 1] = _uv[2].y;
+            }
+        } else {
+            for (let vi = 0; vi < geometry.attributes.position.array.length; vi += 9) {
+                const v0 = new THREE$1.Vector3(pos[vi + 0], pos[vi + 1], pos[vi + 2]);
+                const v1 = new THREE$1.Vector3(pos[vi + 3], pos[vi + 4], pos[vi + 5]);
+                const v2 = new THREE$1.Vector3(pos[vi + 6], pos[vi + 7], pos[vi + 8]);
+                calculateUVs(v0, v1, v2);
+                const idx0 = vi / 3;
+                const idx1 = idx0 + 1;
+                const idx2 = idx0 + 2;
+                coords[2 * idx0 + 0] = _uv[0].x;
+                coords[2 * idx0 + 1] = _uv[0].y;
+                coords[2 * idx1 + 0] = _uv[1].x;
+                coords[2 * idx1 + 1] = _uv[1].y;
+                coords[2 * idx2 + 0] = _uv[2].x;
+                coords[2 * idx2 + 1] = _uv[2].y;
+            }
+        }
+        if (geometry.attributes.uv === undefined) {
+            geometry.addAttribute('uv', new THREE$1.Float32BufferAttribute(coords, 2));
+        }
+        geometry.attributes.uv.array = new Float32Array(coords);
+        geometry.attributes.uv.needsUpdate = true;
+        return geometry;
+        function calcNormal(target, vec1, vec2, vec3) {
+            _temp.subVectors(vec1, vec2);
+            target.subVectors(vec2, vec3);
+            target.cross(_temp).normalize();
+            Vectors.round(target, 5);
+        }
+        function calculateUVs(v0, v1, v2) {
+            v0.applyMatrix4(centerMatrix).applyMatrix4(transformMatrix);
+            v1.applyMatrix4(centerMatrix).applyMatrix4(transformMatrix);
+            v2.applyMatrix4(centerMatrix).applyMatrix4(transformMatrix);
+            const n = new THREE$1.Vector3();
+            calcNormal(n, v0, v1, v2);
+            _uv[0].set(0, 0, 0);
+            _uv[1].set(0, 0, 0);
+            _uv[2].set(0, 0, 0);
+            if (frontFaceOnly) {
+                let frontFace = (n.z < 0);
+                frontFace = frontFace && (Math.abs(n.y) < 0.866);
+                frontFace = frontFace && (Math.abs(n.x) < 0.866);
+                if (frontFace) {
+                    _uv[0].x = (v0.x - bbox.min.x) / geometrySize; _uv[0].y = (v0.y - bbox.min.y) / geometrySize;
+                    _uv[1].x = (v1.x - bbox.min.x) / geometrySize; _uv[1].y = (v1.y - bbox.min.y) / geometrySize;
+                    _uv[2].x = (v2.x - bbox.min.x) / geometrySize; _uv[2].y = (v2.y - bbox.min.y) / geometrySize;
+                }
+            } else {
+                n.x = Math.abs(n.x);
+                n.y = Math.abs(n.y);
+                n.z = Math.abs(n.z);
+                if (n.y > n.x && n.y > n.z) {
+                    _uv[0].x = (v0.x - bbox.min.x) / geometrySize; _uv[0].y = (bbox.max.z - v0.z) / geometrySize;
+                    _uv[1].x = (v1.x - bbox.min.x) / geometrySize; _uv[1].y = (bbox.max.z - v1.z) / geometrySize;
+                    _uv[2].x = (v2.x - bbox.min.x) / geometrySize; _uv[2].y = (bbox.max.z - v2.z) / geometrySize;
+                } else if (n.x > n.y && n.x > n.z) {
+                    _uv[0].x = (v0.z - bbox.min.z) / geometrySize; _uv[0].y = (v0.y - bbox.min.y) / geometrySize;
+                    _uv[1].x = (v1.z - bbox.min.z) / geometrySize; _uv[1].y = (v1.y - bbox.min.y) / geometrySize;
+                    _uv[2].x = (v2.z - bbox.min.z) / geometrySize; _uv[2].y = (v2.y - bbox.min.y) / geometrySize;
+                } else if (n.z > n.y && n.z > n.x) {
+                    _uv[0].x = (v0.x - bbox.min.x) / geometrySize; _uv[0].y = (v0.y - bbox.min.y) / geometrySize;
+                    _uv[1].x = (v1.x - bbox.min.x) / geometrySize; _uv[1].y = (v1.y - bbox.min.y) / geometrySize;
+                    _uv[2].x = (v2.x - bbox.min.x) / geometrySize; _uv[2].y = (v2.y - bbox.min.y) / geometrySize;
+                }
+            }
+        }
+    }
+    static uvMapSphere(geometry, setCoords = 'uv') {
+        if (geometry.index !== null) {
+            const nonIndexed = geometry.toNonIndexed();
+            nonIndexed.uuid = geometry.uuid;
+            nonIndexed.name = geometry.name;
+            geometry.dispose();
+            geometry = nonIndexed;
+        }
+        const coords = [];
+        coords.length = 2 * geometry.attributes.position.array.length / 3;
+        const hasUV = ! (geometry.attributes.uv === undefined);
+        if (! hasUV) geometry.addAttribute('uv', new THREE$1.Float32BufferAttribute(coords, 2));
+        const setU = (! hasUV || setCoords === 'u' || setCoords === 'uv');
+        const setV = (! hasUV || setCoords === 'v' || setCoords === 'uv');
+        const pos = geometry.attributes.position.array;
+        for (let vi = 0; vi < geometry.attributes.position.array.length; vi += 9) {
+            _vertex[0].set(pos[vi + 0], pos[vi + 1], pos[vi + 2]);
+            _vertex[1].set(pos[vi + 3], pos[vi + 4], pos[vi + 5]);
+            _vertex[2].set(pos[vi + 6], pos[vi + 7], pos[vi + 8]);
+            let index = vi / 3;
+            for (let i = 0; i < 3; i++) {
+                const polar = cartesian2polar(_vertex[i]);
+                if (polar.theta === 0 && (polar.phi === 0 || polar.phi === Math.PI)) {
+                    const alignedVertex = (polar.phi === 0) ? '1' : '0';
+                    polar.theta = cartesian2polar(_vertex[alignedVertex]).theta;
+                }
+                setUV(polar, index, i);
+                index++;
+            }
+            let overwrap = false;
+            if (Math.abs(_uv[0].x - _uv[1].x) > 0.75) overwrap = true;
+            if (Math.abs(_uv[0].x - _uv[2].x) > 0.75) overwrap = true;
+            if (Math.abs(_uv[1].x - _uv[0].x) > 0.75) overwrap = true;
+            if (Math.abs(_uv[1].x - _uv[2].x) > 0.75) overwrap = true;
+            if (Math.abs(_uv[2].x - _uv[0].x) > 0.75) overwrap = true;
+            if (Math.abs(_uv[2].x - _uv[1].x) > 0.75) overwrap = true;
+            if (overwrap) {
+                let index = vi / 3;
+                for (let i = 0; i < 3; i++) {
+                    const x = coords[2 * index];
+                    if (x > 0.75) coords[2 * index] = 0;
+                    index++;
+                }
+            }
+        }
+        geometry.attributes.uv.array = new Float32Array(coords);
+        geometry.attributes.uv.needsUpdate = true;
+        return geometry;
+        function setUV(polarVertex, index, i) {
+            const canvasPoint = polar2canvas(polarVertex);
+            const uv = new THREE$1.Vector2(1 - canvasPoint.x, 1 - canvasPoint.y);
+            const indexU = 2 * index + 0;
+            const indexV = 2 * index + 1;
+            coords[indexU] = (setU) ? uv.x : geometry.attributes.uv.array[indexU];
+            coords[indexV] = (setV) ? uv.y : geometry.attributes.uv.array[indexV];
+            _uv[i].x = coords[indexU];
+            _uv[i].y = coords[indexV];
+        }
+        function cartesian2polar(position) {
+            let sqrd = (position.x * position.x) + (position.y * position.y) + (position.z * position.z);
+            let radius = Math.sqrt(sqrd);
+            return({
+                r: radius,
+                theta: Math.atan2(position.z, position.x),
+                phi: Math.acos(position.y / radius)
+            });
+        }
+        function polar2canvas(polarPoint) {
+            return({
+                x: (polarPoint.theta + Math.PI) / (2 * Math.PI),
+                y: (polarPoint.phi / Math.PI)
+            });
+        }
+    }
+}
+
 const _color = new THREE$1.Color();
 const _position = new THREE$1.Vector3();
 class SVGBuilder {
-    static buildFromPaths(target, paths, onLoad, name = '') {
+    static createFromPaths(target, paths, onLoad, name = '') {
         const drawFills = true;
         const drawStrokes = true;
         let startZ = 0, zStep = 0.001;
@@ -2356,8 +2568,7 @@ class SVGBuilder {
                     const entity = new Entity3D(entityName);
                     const depth = 0.256;
                     const scaleDown = 0.001;
-                    for (let c = 0; c < shape.curves.length; c++) {
-                        const curve = shape.curves[c];
+                    function scaleCurve(curve) {
                         if (curve.v0) curve.v0.multiplyScalar(scaleDown);
                         if (curve.v1) curve.v1.multiplyScalar(scaleDown);
                         if (curve.v2) curve.v2.multiplyScalar(scaleDown);
@@ -2366,6 +2577,12 @@ class SVGBuilder {
                         if (curve.aY) curve.aY *= scaleDown;
                         if (curve.xRadius) curve.xRadius *= scaleDown;
                         if (curve.yRadius) curve.yRadius *= scaleDown;
+                    }
+                    for (let c = 0; c < shape.curves.length; c++) scaleCurve(shape.curves[c]);
+                    for (let h = 0; h < shape.holes.length; h++) {
+                        for (let c = 0; c < shape.holes[h].curves.length; c++) {
+                            scaleCurve(shape.holes[h].curves[c]);
+                        }
                     }
                     const geometry = new THREE$1.ExtrudeGeometry(shape, {
                         depth: depth,
@@ -2377,11 +2594,12 @@ class SVGBuilder {
                     });
                     geometry.name = entityName;
                     geometry.translate(0, 0, depth / -2);
+                    geometry.scale(1, -1, -1);
                     geometry.computeBoundingBox();
                     geometry.boundingBox.getCenter(_position);
                     geometry.center();
-                    geometry.scale(1, -1, -1);
                     entity.position.copy(_position);
+                    GeometryUtils.uvFlip(geometry, false , true );
                     entity.addComponent('geometry', geometry);
 	                entity.addComponent('material', {
                         style: 'standard',
@@ -2404,13 +2622,14 @@ class SVGBuilder {
                 child.position.y -= center.y;
             }
         }
+        target.name = name;
         if (onLoad && typeof onLoad === 'function') onLoad();
     }
-    static fromFile(url, onLoad) {
+    static createFromFile(url, onLoad) {
         const svgGroup = new Entity3D();
         const loader = new SVGLoader();
         loader.load(url, function(data) {
-            SVGBuilder.buildFromPaths(svgGroup, data.paths, onLoad, Strings.nameFromUrl(url));
+            SVGBuilder.createFromPaths(svgGroup, data.paths, onLoad, Strings.nameFromUrl(url));
         });
         return svgGroup;
     }
@@ -3367,229 +3586,6 @@ class GpuPickerPass extends Pass {
     }
 }
 
-const _uv = [ new THREE$1.Vector2(), new THREE$1.Vector2(), new THREE$1.Vector2() ];
-const _vertex = [ new THREE$1.Vector3(), new THREE$1.Vector3(), new THREE$1.Vector3() ];
-const _temp = new THREE$1.Vector3();
-class GeometryUtils {
-    static addAttribute(geometry, attributeName = 'color', stride = 3, fill = 0) {
-        if (! geometry.getAttribute(attributeName)) {
-            let array = new Float32Array(geometry.attributes.position.count * stride).fill(fill);
-	        const attribute = new THREE$1.BufferAttribute(array, stride, true).setUsage(THREE$1.DynamicDrawUsage);
-	        geometry.setAttribute(attributeName, attribute);
-        }
-        return geometry;
-    }
-    static coloredMesh(mesh) {
-        if (! mesh.geometry) return mesh;
-        if (! mesh.material) return mesh;
-        let material = mesh.material;
-        if (Array.isArray(material) !== true) material = [ mesh.material ];
-        for (let i = 0; i < material.length; i++) {
-            if (material[i].vertexColors !== true) {
-                material[i].vertexColors = true;
-                material[i].needsUpdate = true;
-            }
-        }
-        GeometryUtils.addAttribute(mesh.geometry, 'color', 3, 1.0);
-        return mesh;
-    }
-    static modelSize(geometry, type = 'max') {
-        let boxSize = new THREE$1.Vector3();
-        geometry.computeBoundingBox();
-        geometry.boundingBox.getSize(boxSize);
-        if (type === 'max') {
-            return Math.max(boxSize.x, boxSize.y, boxSize.z);
-        } else  {
-            return Math.min(boxSize.x, boxSize.y, boxSize.z);
-        }
-    }
-    static repeatTexture(geometry, s, t) {
-        if (! geometry) return;
-        if (geometry.attributes && geometry.attributes.uv && geometry.attributes.uv.array) {
-            for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
-                geometry.attributes.uv.array[i + 0] *= s;
-                geometry.attributes.uv.array[i + 1] *= t;
-            }
-            geometry.attributes.uv.needsUpdate = true;
-        }
-    }
-    static uvMapCube(geometry, transformMatrix, frontFaceOnly = false) {
-        if (frontFaceOnly) {
-            if (geometry.index !== null) {
-                const nonIndexed = geometry.toNonIndexed();
-                geometry.dispose();
-                geometry = nonIndexed;
-            }
-        }
-        if (transformMatrix === undefined) transformMatrix = new THREE$1.Matrix4();
-        let geometrySize = GeometryUtils.modelSize(geometry);
-        let size = (geometrySize / 2);
-        let bbox = new THREE$1.Box3(new THREE$1.Vector3(- size, - size, - size), new THREE$1.Vector3(size, size, size));
-        let boxCenter = new THREE$1.Vector3();
-        geometry.boundingBox.getCenter(boxCenter);
-        const centerMatrix = new THREE$1.Matrix4().makeTranslation(- boxCenter.x, - boxCenter.y, - boxCenter.z);
-        const coords = [];
-        coords.length = 2 * geometry.attributes.position.array.length / 3;
-        const pos = geometry.attributes.position.array;
-        if (geometry.index) {
-            for (let vi = 0; vi < geometry.index.array.length; vi += 3) {
-                const idx0 = geometry.index.array[vi + 0];
-                const idx1 = geometry.index.array[vi + 1];
-                const idx2 = geometry.index.array[vi + 2];
-                const v0 = new THREE$1.Vector3(pos[(3 * idx0) + 0], pos[(3 * idx0) + 1], pos[(3 * idx0) + 2]);
-                const v1 = new THREE$1.Vector3(pos[(3 * idx1) + 0], pos[(3 * idx1) + 1], pos[(3 * idx1) + 2]);
-                const v2 = new THREE$1.Vector3(pos[(3 * idx2) + 0], pos[(3 * idx2) + 1], pos[(3 * idx2) + 2]);
-                calculateUVs(v0, v1, v2);
-                coords[2 * idx0 + 0] = _uv[0].x;
-                coords[2 * idx0 + 1] = _uv[0].y;
-                coords[2 * idx1 + 0] = _uv[1].x;
-                coords[2 * idx1 + 1] = _uv[1].y;
-                coords[2 * idx2 + 0] = _uv[2].x;
-                coords[2 * idx2 + 1] = _uv[2].y;
-            }
-        } else {
-            for (let vi = 0; vi < geometry.attributes.position.array.length; vi += 9) {
-                const v0 = new THREE$1.Vector3(pos[vi + 0], pos[vi + 1], pos[vi + 2]);
-                const v1 = new THREE$1.Vector3(pos[vi + 3], pos[vi + 4], pos[vi + 5]);
-                const v2 = new THREE$1.Vector3(pos[vi + 6], pos[vi + 7], pos[vi + 8]);
-                calculateUVs(v0, v1, v2);
-                const idx0 = vi / 3;
-                const idx1 = idx0 + 1;
-                const idx2 = idx0 + 2;
-                coords[2 * idx0 + 0] = _uv[0].x;
-                coords[2 * idx0 + 1] = _uv[0].y;
-                coords[2 * idx1 + 0] = _uv[1].x;
-                coords[2 * idx1 + 1] = _uv[1].y;
-                coords[2 * idx2 + 0] = _uv[2].x;
-                coords[2 * idx2 + 1] = _uv[2].y;
-            }
-        }
-        if (geometry.attributes.uv === undefined) {
-            geometry.addAttribute('uv', new THREE$1.Float32BufferAttribute(coords, 2));
-        }
-        geometry.attributes.uv.array = new Float32Array(coords);
-        geometry.attributes.uv.needsUpdate = true;
-        return geometry;
-        function calcNormal(target, vec1, vec2, vec3) {
-            _temp.subVectors(vec1, vec2);
-            target.subVectors(vec2, vec3);
-            target.cross(_temp).normalize();
-            Vectors.round(target, 5);
-        }
-        function calculateUVs(v0, v1, v2) {
-            v0.applyMatrix4(centerMatrix).applyMatrix4(transformMatrix);
-            v1.applyMatrix4(centerMatrix).applyMatrix4(transformMatrix);
-            v2.applyMatrix4(centerMatrix).applyMatrix4(transformMatrix);
-            const n = new THREE$1.Vector3();
-            calcNormal(n, v0, v1, v2);
-            _uv[0].set(0, 0, 0);
-            _uv[1].set(0, 0, 0);
-            _uv[2].set(0, 0, 0);
-            if (frontFaceOnly) {
-                let frontFace = (n.z < 0);
-                frontFace = frontFace && (Math.abs(n.y) < 0.866);
-                frontFace = frontFace && (Math.abs(n.x) < 0.866);
-                if (frontFace) {
-                    _uv[0].x = (v0.x - bbox.min.x) / geometrySize; _uv[0].y = (v0.y - bbox.min.y) / geometrySize;
-                    _uv[1].x = (v1.x - bbox.min.x) / geometrySize; _uv[1].y = (v1.y - bbox.min.y) / geometrySize;
-                    _uv[2].x = (v2.x - bbox.min.x) / geometrySize; _uv[2].y = (v2.y - bbox.min.y) / geometrySize;
-                }
-            } else {
-                n.x = Math.abs(n.x);
-                n.y = Math.abs(n.y);
-                n.z = Math.abs(n.z);
-                if (n.y > n.x && n.y > n.z) {
-                    _uv[0].x = (v0.x - bbox.min.x) / geometrySize; _uv[0].y = (bbox.max.z - v0.z) / geometrySize;
-                    _uv[1].x = (v1.x - bbox.min.x) / geometrySize; _uv[1].y = (bbox.max.z - v1.z) / geometrySize;
-                    _uv[2].x = (v2.x - bbox.min.x) / geometrySize; _uv[2].y = (bbox.max.z - v2.z) / geometrySize;
-                } else if (n.x > n.y && n.x > n.z) {
-                    _uv[0].x = (v0.z - bbox.min.z) / geometrySize; _uv[0].y = (v0.y - bbox.min.y) / geometrySize;
-                    _uv[1].x = (v1.z - bbox.min.z) / geometrySize; _uv[1].y = (v1.y - bbox.min.y) / geometrySize;
-                    _uv[2].x = (v2.z - bbox.min.z) / geometrySize; _uv[2].y = (v2.y - bbox.min.y) / geometrySize;
-                } else if (n.z > n.y && n.z > n.x) {
-                    _uv[0].x = (v0.x - bbox.min.x) / geometrySize; _uv[0].y = (v0.y - bbox.min.y) / geometrySize;
-                    _uv[1].x = (v1.x - bbox.min.x) / geometrySize; _uv[1].y = (v1.y - bbox.min.y) / geometrySize;
-                    _uv[2].x = (v2.x - bbox.min.x) / geometrySize; _uv[2].y = (v2.y - bbox.min.y) / geometrySize;
-                }
-            }
-        }
-    }
-    static uvMapSphere(geometry, setCoords = 'uv') {
-        if (geometry.index !== null) {
-            const nonIndexed = geometry.toNonIndexed();
-            nonIndexed.uuid = geometry.uuid;
-            nonIndexed.name = geometry.name;
-            geometry.dispose();
-            geometry = nonIndexed;
-        }
-        const coords = [];
-        coords.length = 2 * geometry.attributes.position.array.length / 3;
-        const hasUV = ! (geometry.attributes.uv === undefined);
-        if (! hasUV) geometry.addAttribute('uv', new THREE$1.Float32BufferAttribute(coords, 2));
-        const setU = (! hasUV || setCoords === 'u' || setCoords === 'uv');
-        const setV = (! hasUV || setCoords === 'v' || setCoords === 'uv');
-        const pos = geometry.attributes.position.array;
-        for (let vi = 0; vi < geometry.attributes.position.array.length; vi += 9) {
-            _vertex[0].set(pos[vi + 0], pos[vi + 1], pos[vi + 2]);
-            _vertex[1].set(pos[vi + 3], pos[vi + 4], pos[vi + 5]);
-            _vertex[2].set(pos[vi + 6], pos[vi + 7], pos[vi + 8]);
-            let index = vi / 3;
-            for (let i = 0; i < 3; i++) {
-                const polar = cartesian2polar(_vertex[i]);
-                if (polar.theta === 0 && (polar.phi === 0 || polar.phi === Math.PI)) {
-                    const alignedVertex = (polar.phi === 0) ? '1' : '0';
-                    polar.theta = cartesian2polar(_vertex[alignedVertex]).theta;
-                }
-                setUV(polar, index, i);
-                index++;
-            }
-            let overwrap = false;
-            if (Math.abs(_uv[0].x - _uv[1].x) > 0.75) overwrap = true;
-            if (Math.abs(_uv[0].x - _uv[2].x) > 0.75) overwrap = true;
-            if (Math.abs(_uv[1].x - _uv[0].x) > 0.75) overwrap = true;
-            if (Math.abs(_uv[1].x - _uv[2].x) > 0.75) overwrap = true;
-            if (Math.abs(_uv[2].x - _uv[0].x) > 0.75) overwrap = true;
-            if (Math.abs(_uv[2].x - _uv[1].x) > 0.75) overwrap = true;
-            if (overwrap) {
-                let index = vi / 3;
-                for (let i = 0; i < 3; i++) {
-                    const x = coords[2 * index];
-                    if (x > 0.75) coords[2 * index] = 0;
-                    index++;
-                }
-            }
-        }
-        geometry.attributes.uv.array = new Float32Array(coords);
-        geometry.attributes.uv.needsUpdate = true;
-        return geometry;
-        function setUV(polarVertex, index, i) {
-            const canvasPoint = polar2canvas(polarVertex);
-            const uv = new THREE$1.Vector2(1 - canvasPoint.x, 1 - canvasPoint.y);
-            const indexU = 2 * index + 0;
-            const indexV = 2 * index + 1;
-            coords[indexU] = (setU) ? uv.x : geometry.attributes.uv.array[indexU];
-            coords[indexV] = (setV) ? uv.y : geometry.attributes.uv.array[indexV];
-            _uv[i].x = coords[indexU];
-            _uv[i].y = coords[indexV];
-        }
-        function cartesian2polar(position) {
-            let sqrd = (position.x * position.x) + (position.y * position.y) + (position.z * position.z);
-            let radius = Math.sqrt(sqrd);
-            return({
-                r: radius,
-                theta: Math.atan2(position.z, position.x),
-                phi: Math.acos(position.y / radius)
-            });
-        }
-        function polar2canvas(polarPoint) {
-            return({
-                x: (polarPoint.theta + Math.PI) / (2 * Math.PI),
-                y: (polarPoint.phi / Math.PI)
-            });
-        }
-    }
-}
-
 let _renderer;
 class RenderUtils {
     static offscreenRenderer(width = 512, height = 512) {
@@ -3708,7 +3704,7 @@ class Camera {
         }
     }
     toJSON() {
-        let data = this.defaultData('style', this.style);
+        const data = this.defaultData('style', this.style);
         for (let key in data) {
             if (this.data[key] !== undefined) {
                 data[key] = this.data[key];
@@ -3754,14 +3750,14 @@ class Geometry {
         }
         if (data.isBufferGeometry) {
             const assetUUID = data.uuid;
-            AssetManager.addGeometry(data);
+            AssetManager.addAsset(data);
             data = this.defaultData('style', 'asset');
             data.asset = assetUUID;
         }
         let geometry = undefined;
         switch (data.style) {
             case 'asset':
-                let assetGeometry = AssetManager.getGeometry(data.asset);
+                const assetGeometry = AssetManager.getAsset(data.asset);
                 if (assetGeometry && assetGeometry.isBufferGeometry) {
                     geometry = assetGeometry.clone();
                 }
@@ -3770,9 +3766,9 @@ class Geometry {
                 geometry = new THREE$1.BoxGeometry(data.width, data.height, data.depth, data.widthSegments, data.heightSegments, data.depthSegments);
                 break;
             case 'capsule':
-                let capRadiusTop = Maths.clamp(data.radiusTop, 0.1, data.height) / 1.5;
-                let capRadiusBottom = Maths.clamp(data.radiusBottom, 0.1, data.height) / 1.5;
-                let capHeight = data.height / 1.5;
+                const capRadiusTop = Maths.clamp(data.radiusTop, 0.1, data.height) / 1.5;
+                const capRadiusBottom = Maths.clamp(data.radiusBottom, 0.1, data.height) / 1.5;
+                const capHeight = data.height / 1.5;
                 geometry = new CapsuleGeometry(
                     capRadiusTop, capRadiusBottom, capHeight,
                     data.radialSegments, data.heightSegments,
@@ -3790,15 +3786,15 @@ class Geometry {
                 geometry = new CylinderGeometry(data.radiusTop, data.radiusBottom, data.height, data.radialSegments, data.heightSegments, data.openEnded, data.thetaStart, data.thetaLength);
                 break;
             case 'lathe':
-                let svgLoader = new SVGLoader();
-                let svgData = svgLoader.parse(`
+                const svgLoader = new SVGLoader();
+                const svgData = svgLoader.parse(`
                     <g transform="matrix(1,0,0,1,-62,77.5)">
                         <path d="M125,59C151.284,141.301 106.947,164.354 84,158L83,263C100.017,285.361 110.282,295.752 143,298" style="fill:none;stroke:black;stroke-width:1px;"/>
                     </g>
                 `);
-                let path = svgData.paths[Object.keys(svgData.paths)[0]];
-                let svgShapes = SVGLoader.createShapes(path);
-                let svgPoints = svgShapes[0].extractPoints(30);
+                const path = svgData.paths[Object.keys(svgData.paths)[0]];
+                const svgShapes = SVGLoader.createShapes(path);
+                const svgPoints = svgShapes[0].extractPoints(30);
                 const points = [];
                 for (let i = svgPoints.shape.length - 1; i >= 0; i--) {
                     points.push(new THREE$1.Vector2(svgPoints.shape[i].x * 0.005, svgPoints.shape[i].y * -0.005));
@@ -3825,7 +3821,7 @@ class Geometry {
                 geometry = new RoundedBoxGeometry(data.width, data.height, data.depth, data.segments, data.radius);
                 break;
             case 'shape':
-                let shape = data.shapes ?? new THREE$1.Shape([
+                const shape = data.shapes ?? new THREE$1.Shape([
                     new THREE$1.Vector2( 64,   8),
                     new THREE$1.Vector2(  0,  64),
                     new THREE$1.Vector2(-64,   8),
@@ -3858,8 +3854,8 @@ class Geometry {
                 for (let i = 0; i < californiaPts.length; i++) californiaPts[i].multiplyScalar(0.001);
                 const californiaShape = new THREE$1.Shape(californiaPts);
                 const circleShape = new THREE$1.Shape();
-                circleShape.absarc(0, 0, 1 );
-                let options = {
+                circleShape.absarc(0, 0, 0.5 );
+                const options = {
                     depth: data.depth,
                     curveSegments: data.curveSegments,
                     steps: data.steps,
@@ -3916,7 +3912,7 @@ class Geometry {
                 uvSmooth: data.uvSmooth ?? false,
                 flatOnly: data.flatOnly ?? false,
                 preserveEdges: false,
-                maxTriangles: 50000,
+                maxTriangles: 25000,
             };
             if (subdivideParams.split || data.subdivide > 0) {
                 let subdividedGeometry = LoopSubdivision.modify(geometry, data.subdivide, subdivideParams);
@@ -3956,7 +3952,7 @@ class Geometry {
         if (materialComponent !== undefined) materialComponent.refreshMesh();
     }
     toJSON() {
-        let data = this.defaultData('style', this.style);
+        const data = this.defaultData('style', this.style);
         for (let key in data) {
             if (this.data[key] !== undefined) {
                 data[key] = this.data[key];
@@ -4039,8 +4035,8 @@ Geometry.config = {
         thetaSegments: { type: 'int', default: 36, min: 3, max: 128, if: { style: [ 'ring' ] } },
         steps: { type: 'int', alias: 'Depth Segments', default: 8, min: 1, max: 128, promode: true, if: { style: [ 'shape' ] } },
         bevelEnabled: { type: 'boolean', alias: 'bevel', default: true, if: { style: [ 'shape' ] } },
-        bevelThickness: { type: 'number', default: 0.2, min: 0, step: 0.01, if: { style: [ 'shape' ], bevelEnabled: [ true ] } },
-        bevelSize: { type: 'number', default: 0.2, min: 0, step: 0.01, if: { style: [ 'shape' ], bevelEnabled: [ true ] } },
+        bevelThickness: { type: 'number', default: 0.1, min: 0, step: 0.01, if: { style: [ 'shape' ], bevelEnabled: [ true ] } },
+        bevelSize: { type: 'number', default: 0.1, min: 0, step: 0.01, if: { style: [ 'shape' ], bevelEnabled: [ true ] } },
         bevelSegments: { type: 'int', default: 4, min: 0, max: 64, promode: true, if: { style: [ 'shape' ], bevelEnabled: [ true ] } },
         curveSegments: { type: 'int', default: 16, min: 1, max: 128, promode: true, if: { style: [ 'shape' ] } },
         tube: [
@@ -4064,7 +4060,7 @@ Geometry.config = {
         textureDivider: { type: 'divider' },
         textureMapping: [
             { type: 'select', default: 'cube', select: [ 'none', 'cube', 'sphere' ], if: { style: [ 'shape' ] } },
-            { type: 'select', default: 'none', select: [ 'none', 'cube', 'sphere' ], if: { style: [ 'asset', 'box', 'capsule', 'circle', 'cone', 'cylinder', 'lathe', 'plane', 'platonicSolid', 'ring', 'roundedBox', 'sphere', 'torus', 'torusKnot', 'tube' ] } },
+            { type: 'select', default: 'none', select: [ 'none', 'cube', 'sphere' ], not: { style: [ 'shape' ] } },
         ],
         wrapS: { type: 'number', alias: 'wrapX', default: 1, min: 0, step: 0.2, precision: 2 },
         wrapT: { type: 'number', alias: 'wrapY', default: 1, min: 0, step: 0.2, precision: 2 },
@@ -4131,7 +4127,7 @@ class Light {
         if (this.entity && this.backend) this.entity.remove(this.backend);
     }
     toJSON() {
-        let data = this.defaultData('style', this.style);
+        const data = this.defaultData('style', this.style);
         for (let key in data) {
             if (this.data[key] !== undefined) {
                 data[key] = this.data[key];
@@ -4141,8 +4137,11 @@ class Light {
             for (let key in data) {
                 let value = this.backend[key];
                 if (value !== undefined) {
-                    if (value && value.isColor) data[key] = value.getHex();
-                    else data[key] = value;
+                    if (value && value.isColor) {
+                        data[key] = value.getHex();
+                    } else {
+                        data[key] = value;
+                    }
                 }
             }
             if (this.backend.shadow) {
@@ -4190,7 +4189,7 @@ class Material {
         const parameters = {};
         if (data.isMaterial) {
             const assetUUID = data.uuid;
-            AssetManager.addMaterial(data);
+            AssetManager.addAsset(data);
             data = this.defaultData('style', 'asset');
             data.asset = assetUUID;
         } else {
@@ -4201,10 +4200,10 @@ class Material {
                 if (System.isIterable(checkType) && checkType.length > 0) checkType = checkType[0];
                 if (value && checkType && checkType.type === 'map') {
                     if (value.isTexture) {
-                        AssetManager.addTexture(value);
+                        AssetManager.addAsset(value);
                     } else {
-                        const textureCheck = AssetManager.getTexture(value);
-                        if (textureCheck && textureCheck.isTexture === true) {
+                        const textureCheck = AssetManager.getAsset(value);
+                        if (textureCheck && textureCheck.isTexture) {
                             parameters[key] = textureCheck;
                         } else {
                             parameters[key] = null;
@@ -4225,7 +4224,7 @@ class Material {
         let material = undefined;
         switch (data.style) {
             case 'asset':
-                let assetMaterial = AssetManager.getMaterial(data.asset);
+                const assetMaterial = AssetManager.getAsset(data.asset);
                 if (assetMaterial && assetMaterial.isMaterial) {
                     material = assetMaterial.clone();
                 }
@@ -4303,7 +4302,7 @@ class Material {
         if (this.entity && this.mesh) this.entity.add(this.mesh);
     }
     toJSON() {
-        let data = this.defaultData('style', this.style);
+        const data = this.defaultData('style', this.style);
         for (let key in data) {
             if (this.data[key] !== undefined) {
                 if (this.data[key] && this.data[key].isTexture) {
@@ -4466,8 +4465,7 @@ Material.config = {
         transmission: { type: 'slider', default: 0.0, min: 0.0, max: 1.0, if: { style: [ 'physical' ] } },
         depthPacking: { type: 'select', default: 'BasicDepthPacking', select: depthPacking, if: { style: [ 'depth' ] } },
         map: [
-            { type: 'map', if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'physical', 'standard', 'toon' ] } },
-            { type: 'map', if: { style: [ 'points' ] } },
+            { type: 'map', if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'points', 'physical', 'standard', 'toon' ] } },
         ],
         matcap: { type: 'map', if: { style: [ 'matcap' ] } },
         alphaMap: { type: 'map', promode: true, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'physical', 'points', 'standard', 'toon' ] } },

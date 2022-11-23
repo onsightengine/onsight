@@ -40,5 +40,9 @@
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-visualizer": "^5.8.3"
   },
-  "private": false
+  "private": false,
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "0.16.0",
+    "three": ">=0.146.0"
+  }
 }

@@ -22,9 +22,10 @@ import * as THREE from 'three';
 
 import { ENTITY_FLAGS } from '../../constants.js';
 
-import { ComponentManager } from '../../app/ComponentManager.js'
+import { ComponentManager } from '../../app/ComponentManager.js';
+import { EntityUtils } from '../../three/utils/EntityUtils.js';
 import { Object3D } from './Object3D.js';
-import { Strings } from '../../core/Strings.js'
+import { Strings } from '../../core/Strings.js';
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////   Entity3D
@@ -184,8 +185,57 @@ class Entity3D extends Object3D {
     }
 
     /////////////////////////////////////////////////////////////////////////////////////
+    /////   Parent
+    ////////////////////
+
+    changeParent(newParent = undefined, newIndex = -1) {
+        if (! newParent) newParent = this.parent;
+        if (! newParent || ! newParent.isObject3D) return;
+
+        // Check if we have a parent
+        const oldParent = this.parent;
+        if (newIndex === -1 && oldParent) newIndex = oldParent.children.indexOf(this);
+
+        // // MOVE
+        // newParent.add(this);
+        // // OR
+        // newParent.attach(this);
+        // // OR
+        newParent.safeAttach(this);
+
+        // If desired array index was supplied, move entity to that index
+        if (newIndex !== -1) {
+            newParent.children.splice(newIndex, 0, this);
+            newParent.children.pop();
+        }
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////
     /////   Children
     ////////////////////
+
+    addEntity(entity, index = -1, maintainWorldTransform = false) {
+        if (! entity || ! entity.isObject3D) return this;
+        if (index === undefined || index === null) index = -1;
+
+        // Check if already a child
+        if (this.children.indexOf(entity) !== -1) return this;
+
+        // Add Entity
+        if (maintainWorldTransform && entity.parent) {
+            this.attach(entity)
+        } else {
+            this.add(entity);
+        }
+
+        // Preserve desired index
+        if (index !== -1) {
+            this.children.splice(index, 0, entity);
+            this.children.pop();
+        }
+
+        return this;
+    }
 
     getEntities() {
         const filteredChildren = [];
@@ -219,8 +269,19 @@ class Entity3D extends Object3D {
         return undefined;
     }
 
+    /** Removes entity, does not call 'destroy()' on Entity!! */
+    removeEntity(entity, forceDelete = false) {
+        if (! entity) return;
+
+        // Check for isScene, flags (BuiltIn, NoSelect, etc.)
+        if (! forceDelete && EntityUtils.isImportant(entity)) return;
+
+        // Remove entity (i.e. out of Project)
+        this.remove(entity);
+    }
+
     traverseEntities(callback) {
-        this.traverse(child => { if (child.isEntity3D) callback(child); });
+        this.traverse((child) => { if (child.isEntity3D) callback(child); });
     }
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -282,14 +343,14 @@ class Entity3D extends Object3D {
     ////////////////////
 
     destroy() {
-        let children = this.getEntities();
+        const children = this.getEntities();
         for (let i = 0; i < children.length; i++) {
-            if (this.project) this.project.removeEntity(children[i]);
+            this.removeEntity(children[i], true);
             children[i].destroy();
         }
 
         while (this.components.length > 0) {
-            let component = this.components[0];
+            const component = this.components[0];
             this.removeComponent(component);
         }
     }

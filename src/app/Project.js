@@ -16,7 +16,6 @@ import { Scene3D } from './scene3d/Scene3D.js';
 import { World3D } from './scene3d/World3D.js';
 
 import { AssetManager } from './AssetManager.js';
-import { EntityUtils } from '../three/utils/EntityUtils.js';
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////   Onsight Project
@@ -115,7 +114,7 @@ class Project {
         // Clear Entities
         const entities = scene.getEntities();
         for (let i = entities.length - 1; i >= 0; i--) {
-            this.removeEntity(entities[i], true);
+            scene.removeEntity(entities[i], true);
             entities[i].destroy();
         }
 
@@ -134,33 +133,7 @@ class Project {
     /////   Entities
     ////////////////////
 
-    addEntity(entity, parent = undefined, index = -1, maintainWorldTransform = false) {
-        if (! entity) return;
-        if (index === undefined || index === null) index = -1;
-
-        if (entity.isObject3D) {
-            if (parent && parent.children && index !== -1) {
-                parent.children.splice(index, 0, entity);
-                entity.parent = parent;
-            } else {
-                let newParent = parent;
-                if (! newParent || ! newParent.isObject3D) {
-                    if (window.editor) newParent = window.editor.viewport.scene;
-                }
-                if (newParent && newParent.isObject3D) {
-                    if (maintainWorldTransform) {
-                        newParent.attach(entity);
-                    } else {
-                        newParent.add(entity);
-                    }
-                }
-            }
-        }
-
-        return this;
-    }
-
-    getEntityByUuid(uuid, searchAllScenes = false) {
+    findEntityByUuid(uuid, searchAllScenes = false) {
         let sceneList = [];
         let activeScene = null;
         if (window.editor) activeScene = window.editor.viewport.scene;
@@ -185,40 +158,6 @@ class Project {
         }
 
         return undefined;
-    }
-
-    moveEntity(entity, parent = undefined, before = undefined, index = -1) {
-        if (! entity) return;
-
-        parent = parent;
-        if ((! parent || ! parent.isObject3D) && window.editor) parent = window.editor.viewport.scene;
-        if (! parent || ! parent.isObject3D) return;
-
-        // parent.add(entity);
-        ///// OR
-        // parent.attach(entity);
-        ///// OR
-        parent.safeAttach(entity);
-
-        // If 'before' was supplied, find index of that entity
-        if (before) index = parent.children.indexOf(before);
-
-        // If desired array index was supplied, move entity to that index
-        if (index !== -1) {
-            parent.children.splice(index, 0, entity);
-            parent.children.pop();
-        }
-    }
-
-    /** Removes entity from Project, does not call 'destroy()' on Entity!! */
-    removeEntity(entity, forceDelete = false) {
-        if (! entity) return;
-
-        // Check for isScene, flags (BuiltIn, NoSelect, etc.)
-        if (! forceDelete && EntityUtils.isImportant(entity)) return;
-
-        // Remove entity from parent (i.e. out of Project)
-        if (entity.parent) entity.parent.remove(entity);
     }
 
     //////////////////// Scripts

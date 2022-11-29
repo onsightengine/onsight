@@ -74,13 +74,13 @@ class ObjectUtils {
     static clearObject(object, removeFromParent = true) {
         if (! object) return;
 
-        while (object.children.length > 0) {
-            ObjectUtils.clearObject(object.children[0], true);
-        }
-
         if (object.geometry) object.geometry.dispose();
         if (object.material) ObjectUtils.clearMaterial(object.material);
         if (typeof object.dispose === 'function') object.dispose();
+
+        while (object.children.length > 0) {
+            ObjectUtils.clearObject(object.children[0], true);
+        }
 
         ObjectUtils.resetTransform(object);
         if (removeFromParent) object.removeFromParent();

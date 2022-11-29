@@ -40,10 +40,7 @@ class Geometry {
     init(data) {
 
         // Copy / Clear Backend
-        if (this.backend && this.backend.isBufferGeometry) {
-            this.backend.dispose();
-            this.backend = undefined;
-        }
+        this.dispose();
 
         // Passed in Geometry
         if (data.isBufferGeometry) {
@@ -326,7 +323,11 @@ class Geometry {
     }
 
     dispose() {
-        if (this.backend && this.backend.dispose) this.backend.dispose();
+        const geometry = this.backend;
+        if (geometry && geometry.isBufferGeometry) {
+            this.backend.dispose();
+        }
+        this.backend = undefined;
     }
 
     enable() {

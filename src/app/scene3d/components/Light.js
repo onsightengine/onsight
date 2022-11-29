@@ -39,9 +39,13 @@ class Light {
 
     init(data) {
 
+        // Copy / Clear Backend
+        this.dispose();
+
         ///// Generate Backend
 
         let light = undefined;
+        let shadows = false;
 
         switch (data.style) {
             case 'ambient':
@@ -51,21 +55,7 @@ class Light {
 
             case 'directional':
                 light = new THREE.DirectionalLight(data.color, data.intensity);
-                light.castShadow = true;
-                light.shadow.mapSize.width = 2048;      // default:     512
-                light.shadow.mapSize.height = 2048;     // default:     512
-
-                const SD = 5;
-
-                light.shadow.camera.near = 1;           // default:     0.5
-                light.shadow.camera.far = 500;          // default:     500
-                light.shadow.camera.left = -SD;         // default:     -5
-                light.shadow.camera.right = SD;         // default:     5
-                light.shadow.camera.top = SD;           // default:     5
-                light.shadow.camera.bottom = -SD;       // default:     -5
-
-                light.shadow.camera.updateProjectionMatrix();
-                light.shadow.bias = data.shadowBias;
+                shadows = true;
                 break;
 
             case 'hemisphere':
@@ -75,14 +65,13 @@ class Light {
 
             case 'point':
                 light = new THREE.PointLight(data.color, data.intensity, data.distance, data.decay);
-                light.castShadow = true;
-                light.shadow.bias = data.shadowBias;
+                shadows = true;
                 break;
 
             case 'spot':
-                light = new THREE.SpotLight(data.color, data.intensity, data.distance, data.angle, data.penumbra, data.decay);
-                light.castShadow = true;
-                light.shadow.bias = data.shadowBias;
+                const angle = (Math.PI / 180) * data.angle;
+                light = new THREE.SpotLight(data.color, data.intensity, data.distance, angle, data.penumbra, data.decay);
+                shadows = true;
                 break;
 
             default:
@@ -93,7 +82,20 @@ class Light {
 
         if (light && light.isLight) {
 
-            // NOTHING
+            if (shadows) {
+                const SD = 5;
+                light.castShadow = true;
+                light.shadow.bias = data.shadowBias;
+                light.shadow.mapSize.width = 2048;      // default:     512
+                light.shadow.mapSize.height = 2048;     // default:     512
+                light.shadow.camera.near = 1;           // default:     0.5
+                light.shadow.camera.far = 500;          // default:     500
+                light.shadow.camera.left = -SD;         // default:     -5
+                light.shadow.camera.right = SD;         // default:     5
+                light.shadow.camera.top = SD;           // default:     5
+                light.shadow.camera.bottom = -SD;       // default:     -5
+                light.shadow.camera.updateProjectionMatrix();
+            }
 
         } else {
             console.log('Error with light!');
@@ -107,7 +109,12 @@ class Light {
     }
 
     dispose() {
-        if (this.backend && this.backend.isLight) this.backend.dispose();
+        const light = this.backend;
+        if (light && light.isLight) {
+            if (light.shadow && light.shadow.map) light.shadow.map.dispose();
+            light.dispose();
+        }
+        this.backend = undefined;
     }
 
     enable() {
@@ -154,7 +161,7 @@ Light.config = {
         ],
         distance: { type: 'number', default: 0, if: { style: [ 'point', 'spot' ] } },
         decay: { type: 'number', default: 1, if: { style: [ 'point', 'spot' ] } },
-        angle: { type: 'number', default: Math.PI / 3, unit: '°', if: { style: [ 'spot' ] } },
+        angle: { type: 'number', default: 45, unit: '°', if: { style: [ 'spot' ] } },
         penumbra: { type: 'number', default: 0, if: { style: [ 'spot' ] } },
 
         shadowBias: { type: 'number', default: 0, precision: 6, promode: true, if: { style: [ 'directional', 'point', 'spot' ] } }

@@ -47,11 +47,9 @@ class Material {
     init(data) {
 
         // Copy / Clear Backend
-        if (this.backend && this.backend.isMaterial) {
-            this.backend.dispose();
-            this.backend = undefined;
-        }
+        this.dispose();
 
+        // Params Object
         const parameters = {};
 
         // Passed in Material
@@ -164,7 +162,11 @@ class Material {
     }
 
     dispose() {
-        if (this.backend && this.backend.dispose) this.backend.dispose();
+        const material = this.backend;
+        if (material && material.isMaterial) {
+            material.dispose();
+        }
+        this.backend = undefined;
     }
 
     enable() {

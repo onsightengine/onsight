@@ -37,11 +37,29 @@ class Camera {
                 this._tanFOV = Math.tan(((Math.PI / 180) * data.fov / 2));
                 this._windowHeight = (data.fixedSize) ? 1000 : 0;
 
-                camera = new THREE.PerspectiveCamera(data.fov, 1 /* data.aspect */, data.nearPersp, data.farPersp);
+                // Error checks
+                let nearPersp = (data.nearPersp <= 0) ? 0.00001 : data.nearPersp;
+                let farPersp = (data.farPersp == 0) ? 0.00001 : data.farPersp;
+                if (farPersp === nearPersp) farPersp += 0.001;
+
+                // Build Object
+                camera = new THREE.PerspectiveCamera(data.fov, 1 /* data.aspect */, nearPersp, farPersp);
                 break;
 
             case 'orthographic':
-                camera = new THREE.OrthographicCamera(data.left, data.right, data.top, data.bottom, data.nearOrtho, data.farOrtho);
+                // Error checks
+                let nearOrtho = data.nearOrtho;
+                let farOrtho = data.farOrtho;
+                let leftOrtho = data.left;
+                let rightOrtho = data.right;
+                let topOrtho = data.top;
+                let bottomOrtho = data.bottom;
+                if (farOrtho === farOrtho) farOrtho += 0.001;
+                if (rightOrtho === leftOrtho) rightOrtho += 0.001;
+                if (topOrtho === bottomOrtho) topOrtho += 0.001;
+
+                // Build Object
+                camera = new THREE.OrthographicCamera(leftOrtho, rightOrtho, topOrtho, bottomOrtho, nearOrtho, farOrtho);
                 break;
 
             default:
@@ -51,10 +69,8 @@ class Camera {
         ///// Modify Camera
 
         if (camera && camera.isCamera) {
-
             camera.position.set(0, 0, 0);
             camera.lookAt(0, 0, 0);
-
         } else {
             console.log('Error with camera!');
         }
@@ -124,10 +140,10 @@ Camera.config = {
     schema: {
         style: { type: 'select', default: 'perspective', select: [ 'perspective', 'orthographic' ] },
 
-        nearPersp: { type: 'number', default: 1, if: { style: [ 'perspective' ] } },
-        farPersp: { type: 'number', default: 500, if: { style: [ 'perspective' ] } },
-        nearOrtho: { type: 'number', default: -500, if: { style: [ 'orthographic' ] } },
-        farOrtho: { type: 'number', default: 500, if: { style: [ 'orthographic' ] } },
+        nearPersp: { type: 'number', default: 1, min: 0, step: 0.1, if: { style: [ 'perspective' ] } },
+        farPersp: { type: 'number', default: 500, min: 0, step: 1, if: { style: [ 'perspective' ] } },
+        nearOrtho: { type: 'number', default: -500, step: 1,  if: { style: [ 'orthographic' ] } },
+        farOrtho: { type: 'number', default: 500, step: 1,  if: { style: [ 'orthographic' ] } },
 
         fov: { type: 'number', default: 58.10, if: { style: [ 'perspective' ] } },
         fixedSize: { type: 'boolean', default: true, if: { style: [ 'perspective' ] } },

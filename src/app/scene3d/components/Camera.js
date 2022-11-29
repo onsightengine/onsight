@@ -17,9 +17,6 @@ import * as THREE from 'three';
 
 import { ComponentManager } from '../../ComponentManager.js';
 
-export const CAMERA_START_DISTANCE = 5;
-export const CAMERA_START_HEIGHT = 0;
-
 ///// Local Variables
 
 const _renderSize = new THREE.Vector2(1, 1);
@@ -51,13 +48,12 @@ class Camera {
                 console.error(`Camera.init: Invalid camera type '${data.style}'`);
         }
 
-        ///// Modifiy Camera
+        ///// Modify Camera
 
         if (camera && camera.isCamera) {
 
-            // Set Starting Location
-            camera.position.set(0, CAMERA_START_HEIGHT, CAMERA_START_DISTANCE);
-            camera.lookAt(0, CAMERA_START_HEIGHT, 0);
+            camera.position.set(0, 0, 0);
+            camera.lookAt(0, 0, 0);
 
         } else {
             console.log('Error with camera!');
@@ -99,9 +95,9 @@ class Camera {
                 let aspectHeight = 1.0;
 
                 // Calculate new frustum, update camera
-                this.backend.left =   - width / aspectWidth / 2;
-                this.backend.right =    width / aspectWidth / 2;
-                this.backend.top =      height * aspectHeight / 2;
+                this.backend.left = - width / aspectWidth / 2;
+                this.backend.right = width / aspectWidth / 2;
+                this.backend.top = height * aspectHeight / 2;
                 this.backend.bottom = - height * aspectHeight / 2;
             }
 
@@ -119,16 +115,6 @@ class Camera {
             }
         }
 
-        // Copy values from THREE.Camera
-        if (this.backend) {
-            for (let key in data) {
-                let value = this.backend[key];
-                if (value !== undefined) {
-                    data[key] = value;
-                }
-            }
-        }
-
         return data;
     }
 
@@ -139,9 +125,9 @@ Camera.config = {
         style: { type: 'select', default: 'perspective', select: [ 'perspective', 'orthographic' ] },
 
         nearPersp: { type: 'number', default: 1, if: { style: [ 'perspective' ] } },
-        farPersp: { type: 'number', default: 100000, if: { style: [ 'perspective' ] } },
-        nearOrtho: { type: 'number', default: -50000, if: { style: [ 'orthographic' ] } },
-        farOrtho: { type: 'number', default: 50000, if: { style: [ 'orthographic' ] } },
+        farPersp: { type: 'number', default: 500, if: { style: [ 'perspective' ] } },
+        nearOrtho: { type: 'number', default: -500, if: { style: [ 'orthographic' ] } },
+        farOrtho: { type: 'number', default: 500, if: { style: [ 'orthographic' ] } },
 
         fov: { type: 'number', default: 58.10, if: { style: [ 'perspective' ] } },
         fixedSize: { type: 'boolean', default: true, if: { style: [ 'perspective' ] } },

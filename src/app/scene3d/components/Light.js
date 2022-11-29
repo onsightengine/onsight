@@ -128,25 +128,6 @@ class Light {
             }
         }
 
-        // Copy values from THREE.Light
-        if (this.backend) {
-            for (let key in data) {
-                let value = this.backend[key];
-                if (value !== undefined) {
-                    if (value && value.isColor) {
-                        data[key] = value.getHex();
-                    } else {
-                        data[key] = value;
-                    }
-                }
-            }
-
-            // Manually include shadow properties
-            if (this.backend.shadow) {
-                data['shadowBias'] = this.backend.shadow.bias;
-            }
-        }
-
         return data;
     }
 

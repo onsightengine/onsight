@@ -59,7 +59,6 @@ export { FatLine, FatWireBox, FatWireframe } from './three/geometry/Wireframe.js
 
 ///// Three, Objects
 
-export { HelperObject } from './three/objects/HelperObject.js';
 export { SkyObject } from './three/objects/SkyObject.js';
 
 ///// Three, Passes

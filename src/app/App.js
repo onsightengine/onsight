@@ -99,14 +99,14 @@ class App {
             camera.position.x = 0;
             camera.position.y = 0;
 
-            // * Add Event Listeners
+            // Add Event Listeners
             document.addEventListener('keydown', onKeyDown);
             document.addEventListener('keyup', onKeyUp);
             document.addEventListener('pointerdown', onPointerDown);
             document.addEventListener('pointerup', onPointerUp);
             document.addEventListener('pointermove', onPointerMove);
 
-            // * Scripts
+            // Scripts
             let scriptFunctions = '';
             let scriptReturnObject = {};
             for (let eventKey in events) {
@@ -145,7 +145,7 @@ class App {
             }
             scene.traverse(loadScripts);
 
-            // * Call 'init()' functions
+            // Call 'init()' functions
             dispatch(events.init, arguments);
         };
 

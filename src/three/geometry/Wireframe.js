@@ -205,7 +205,7 @@ class BasicWireBox extends THREE.LineSegments {
         array[18] = min.x; array[19] = min.y; array[20] = min.z;
         array[21] = max.x; array[22] = min.y; array[23] = min.z;
 
-        // * Copy lines from indices
+        // Copy lines from indices
         const positions = [];
         for (let i = _indices.length - 1; i > 0; i -= 2) {
             const index1 = (_indices[i - 0]) * 3;
@@ -336,7 +336,7 @@ class FatWireBox extends Line2 {
         array[18] = min.x; array[19] = min.y; array[20] = min.z;
         array[21] = max.x; array[22] = min.y; array[23] = min.z;
 
-        // * Copy lines from indices
+        // Copy lines from indices
         const positions = [];
         for (let i = _indices.length - 1; i > 0; i -= 2) {
             const index1 = (_indices[i - 0]) * 3;

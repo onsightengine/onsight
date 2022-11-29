@@ -73,11 +73,15 @@ class ObjectUtils {
     /** Completely deletes 'object' (including geomtries and materials), and all of it's children */
     static clearObject(object, removeFromParent = true) {
         if (! object) return;
+
         while (object.children.length > 0) {
             ObjectUtils.clearObject(object.children[0], true);
         }
+
         if (object.geometry) object.geometry.dispose();
         if (object.material) ObjectUtils.clearMaterial(object.material);
+        if (typeof object.dispose === 'function') object.dispose();
+
         ObjectUtils.resetTransform(object);
         if (removeFromParent) object.removeFromParent();
     }
@@ -86,7 +90,7 @@ class ObjectUtils {
     static clearMaterial(materials) {
         if (System.isIterable(materials) !== true) materials = [ materials ];
         for (let i = 0, il = materials.length; i < il; i++) {
-            let material = materials[i];
+            const material = materials[i];
             Object.keys(material).forEach(prop => { /* in case of map, bumpMap, normalMap, envMap, etc. */
                 if (! material[prop]) return;
                 if (typeof material[prop].dispose === 'function') material[prop].dispose();

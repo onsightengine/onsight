@@ -118,7 +118,7 @@ class GpuPickerPass extends Pass {
                     vertexShader: THREE.ShaderChunk.meshbasic_vert,
 
                     //
-                    // * Alternative: Basic Vertex Shader
+                    // ----- Alternative: Basic Vertex Shader -----
                     //
                     // vertexShader: `
                     //  varying vec2 vUv;

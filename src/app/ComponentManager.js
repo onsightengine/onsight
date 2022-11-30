@@ -74,6 +74,7 @@
 //  hide            Hide in Inspector if any of these conditions are met
 //  alias           Override a variable name to have custom string shown in Inspector
 //  promode         Only Show when 'promode' is enabled
+//  rebuild         Change of this property will cause a rebuild of the Inspector ('style' always rebuilds)
 //
 //  NUMERICAL OPTIONS
 //  -----------------

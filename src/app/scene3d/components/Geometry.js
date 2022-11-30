@@ -449,7 +449,7 @@ Geometry.config = {
 
         // Shape (Extrude)
         steps: { type: 'int', alias: 'Depth Segments', default: 8, min: 1, max: 128, promode: true, if: { style: [ 'shape' ] } },
-        bevelEnabled: { type: 'boolean', alias: 'bevel', default: true, if: { style: [ 'shape' ] } },
+        bevelEnabled: { type: 'boolean', alias: 'bevel', default: true, if: { style: [ 'shape' ] }, rebuild: true },
         bevelThickness: { type: 'number', default: 0.1, min: 0, step: 0.01, if: { style: [ 'shape' ], bevelEnabled: [ true ] } },
         bevelSize: { type: 'number', default: 0.1, min: 0, step: 0.01, if: { style: [ 'shape' ], bevelEnabled: [ true ] } },
         bevelSegments: { type: 'int', default: 4, min: 0, max: 64, promode: true, if: { style: [ 'shape' ], bevelEnabled: [ true ] } },
@@ -484,7 +484,7 @@ Geometry.config = {
         // simplify: { type: 'slider', default: 1, min: 0, max: 1 },
 
         // Subdivision
-        subdivide: { type: 'slider', default: 0, min: 0, max: 5, step: 1, precision: 0 },
+        subdivide: { type: 'slider', default: 0, min: 0, max: 5, step: 1, precision: 0, rebuild: true },
         edgeSplit: { type: 'boolean', default: false, hide: { subdivide: [ 0 ] } },
         uvSmooth: { type: 'boolean', default: false, promode: true, hide: { subdivide: [ 0 ] } },
         flatOnly: { type: 'boolean', default: false, promode: true, hide: { subdivide: [ 0 ] } },

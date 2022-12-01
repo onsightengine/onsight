@@ -3,10 +3,10 @@
  * @about       Powerful, easy-to-use JavaScript video game and application creation engine.
  * @author      Stephens Nunnally <@stevinz>
  * @version     v0.0.3
- * @license     MIT - Copyright (c) 2021-2022 Stephens Nunnally and Scidian Software
+ * @license     MIT - Copyright (c) 2021-2022 Stephens Nunnally and Scidian Studios
  * @source      https://github.com/onsightengine/onsight
  */
-import * as THREE$1 from 'three';
+import * as THREE from 'three';
 import { mergeBufferGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 import { Line2 } from 'three/addons/lines/Line2.js';
@@ -50,21 +50,21 @@ const APP_STATES = {
 };
 
 const CAMERA_SCALE = 0.01;
-const CAMERA_START_DISTANCE$1 = 5;
-const CAMERA_START_HEIGHT$1 = 0;
-const _raycaster = new THREE$1.Raycaster();
+const CAMERA_START_DISTANCE = 5;
+const CAMERA_START_HEIGHT = 0;
+const _raycaster = new THREE.Raycaster();
 class CameraUtils {
     static createOrthographic(camWidth, camHeight, fitType = 'none', desiredSize = 0) {
-        const camera = new THREE$1.OrthographicCamera(0, 1, 1, 0, -1000, 1000);
+        const camera = new THREE.OrthographicCamera(0, 1, 1, 0, -1000, 1000);
         camera.desiredSize = desiredSize;
         camera.fitType = fitType;
-        camera.position.set(0, CAMERA_START_HEIGHT$1, CAMERA_START_DISTANCE$1);
-        camera.lookAt(0, CAMERA_START_HEIGHT$1, 0);
+        camera.position.set(0, CAMERA_START_HEIGHT, CAMERA_START_DISTANCE);
+        camera.lookAt(0, CAMERA_START_HEIGHT, 0);
         CameraUtils.updateOrthographic(camera, camWidth, camHeight);
         return camera;
     }
     static createPerspective(camWidth, camHeight, fixedSize = true) {
-        const camera = new THREE$1.PerspectiveCamera(
+        const camera = new THREE.PerspectiveCamera(
             58.10,
             1,
             0.01,
@@ -73,8 +73,8 @@ class CameraUtils {
         camera.tanFOV = Math.tan(((Math.PI / 180) * camera.fov / 2));
         camera.windowHeight = (fixedSize) ? 1000  : 0;
         camera.fixedSize = fixedSize;
-        camera.position.set(0, CAMERA_START_HEIGHT$1, CAMERA_START_DISTANCE$1);
-        camera.lookAt(0, CAMERA_START_HEIGHT$1, 0);
+        camera.position.set(0, CAMERA_START_HEIGHT, CAMERA_START_DISTANCE);
+        camera.lookAt(0, CAMERA_START_HEIGHT, 0);
         CameraUtils.updatePerspective(camera, camWidth, camHeight);
         return camera;
     }
@@ -118,24 +118,24 @@ class CameraUtils {
     static screenPoint(pointInWorld, camera) {
         if (! camera || ! camera.isCamera) {
             console.warn(`CameraUtils.screenPoint: No camera provided!`);
-            return new THREE$1.Vector3();
+            return new THREE.Vector3();
         }
-        return new THREE$1.Vector3.copy(pointInWorld).project(camera);
+        return new THREE.Vector3.copy(pointInWorld).project(camera);
     }
-    static worldPoint(pointOnScreen, camera, lookTarget = new THREE$1.Vector3(), facingPlane = 'xy') {
+    static worldPoint(pointOnScreen, camera, lookTarget = new THREE.Vector3(), facingPlane = 'xy') {
         if (! camera || ! camera.isCamera) {
             console.warn(`CameraUtils.worldPoint: No camera provided!`);
-            return new THREE$1.Vector3();
+            return new THREE.Vector3();
         }
-        const planeGeometry = new THREE$1.PlaneGeometry(100000000, 100000000, 2, 2);
+        const planeGeometry = new THREE.PlaneGeometry(100000000, 100000000, 2, 2);
         switch (facingPlane.toLowerCase()) {
             case 'yz': planeGeometry.rotateY(Math.PI / 2); break;
             case 'xz': planeGeometry.rotateX(Math.PI / 2); break;
             default:  ;
         }
         planeGeometry.translate(lookTarget.x, lookTarget.y, lookTarget.z);
-        const planeMaterial = new THREE$1.MeshBasicMaterial({ side: THREE$1.DoubleSide });
-        const plane = new THREE$1.Mesh(planeGeometry, planeMaterial);
+        const planeMaterial = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
+        const plane = new THREE.Mesh(planeGeometry, planeMaterial);
         _raycaster.setFromCamera(pointOnScreen, camera);
         if (camera.isOrthographicCamera) {
             _raycaster.ray.origin.set(pointOnScreen.x, pointOnScreen.y, - camera.far).unproject(camera);
@@ -148,10 +148,10 @@ class CameraUtils {
     static distanceToFitObject(camera, object, offset = 1.25) {
     }
     static fitCameraToObject(camera, object, controls = null, offset = 1.25) {
-        const boundingBox = new THREE$1.Box3();
+        const boundingBox = new THREE.Box3();
         boundingBox.setFromObject(object);
-        const center = boundingBox.getCenter(new THREE$1.Vector3());
-        const size = boundingBox.getSize(new THREE$1.Vector3());
+        const center = boundingBox.getCenter(new THREE.Vector3());
+        const size = boundingBox.getSize(new THREE.Vector3());
         const fitDepthDistance = size.z / (2.0 * Math.atan(Math.PI * camera.fov / 360));
         const fitHeightDistance = Math.max(fitDepthDistance, size.y / (2.0 * Math.atan(Math.PI * camera.fov / 360)));
         const fitWidthDistance = (size.x / (2.5 * Math.atan(Math.PI * camera.fov / 360))) / camera.aspect;
@@ -358,16 +358,16 @@ class System {
     }
 }
 
-const _boxCenter = new THREE$1.Box3();
-const _tempMatrix = new THREE$1.Matrix4();
-const _tempVector = new THREE$1.Vector3();
-const _startQuaternion = new THREE$1.Quaternion();
-const _tempQuaternion = new THREE$1.Quaternion();
-const _testQuaternion = new THREE$1.Quaternion();
-const _objPosition$2 = new THREE$1.Vector3();
-const _objQuaternion$2 = new THREE$1.Quaternion();
-const _objRotation = new THREE$1.Euler();
-const _objScale$2 = new THREE$1.Vector3();
+const _boxCenter = new THREE.Box3();
+const _tempMatrix = new THREE.Matrix4();
+const _tempVector = new THREE.Vector3();
+const _startQuaternion = new THREE.Quaternion();
+const _tempQuaternion = new THREE.Quaternion();
+const _testQuaternion = new THREE.Quaternion();
+const _objPosition$2 = new THREE.Vector3();
+const _objQuaternion$2 = new THREE.Quaternion();
+const _objRotation = new THREE.Euler();
+const _objScale$2 = new THREE.Vector3();
 class ObjectUtils {
     static allowSelection(object) {
         let allowSelect = true;
@@ -388,18 +388,19 @@ class ObjectUtils {
     }
     static clearObject(object, removeFromParent = true) {
         if (! object) return;
+        if (object.geometry) object.geometry.dispose();
+        if (object.material) ObjectUtils.clearMaterial(object.material);
+        if (typeof object.dispose === 'function') object.dispose();
         while (object.children.length > 0) {
             ObjectUtils.clearObject(object.children[0], true);
         }
-        if (object.geometry) object.geometry.dispose();
-        if (object.material) ObjectUtils.clearMaterial(object.material);
         ObjectUtils.resetTransform(object);
         if (removeFromParent) object.removeFromParent();
     }
     static clearMaterial(materials) {
         if (System.isIterable(materials) !== true) materials = [ materials ];
         for (let i = 0, il = materials.length; i < il; i++) {
-            let material = materials[i];
+            const material = materials[i];
             Object.keys(material).forEach(prop => {
                 if (! material[prop]) return;
                 if (typeof material[prop].dispose === 'function') material[prop].dispose();
@@ -408,7 +409,7 @@ class ObjectUtils {
         }
     }
     static computeBounds(groupOrArray, targetBox, checkIfSingleGeometry = false) {
-        if (targetBox === undefined || targetBox.isBox3 !== true) targetBox = new THREE$1.Box3();
+        if (targetBox === undefined || targetBox.isBox3 !== true) targetBox = new THREE.Box3();
         const objects = (System.isIterable(groupOrArray)) ? groupOrArray : [ groupOrArray ];
         targetBox.makeEmpty();
         if (checkIfSingleGeometry && ObjectUtils.countGeometry(groupOrArray) === 1) {
@@ -523,7 +524,7 @@ class Strings {
 const _assets = {};
 const _scripts = {};
 const _textureCache = {};
-const _textureLoader = new THREE$1.TextureLoader();
+const _textureLoader = new THREE.TextureLoader();
 class AssetManager {
     static assetType(asset) {
         if (asset.isBufferGeometry) return 'geometry';
@@ -579,7 +580,7 @@ class AssetManager {
     }
     static loadTexture(url, onLoad = undefined) {
         if (! url || url === '') return null;
-        const resolvedUrl = THREE$1.DefaultLoadingManager.resolveURL(url);
+        const resolvedUrl = THREE.DefaultLoadingManager.resolveURL(url);
         if (_textureCache[resolvedUrl]) {
             console.log(`AssetManager.loadTexture: Duplicate image!`);
             return _textureCache[resolvedUrl];
@@ -589,8 +590,8 @@ class AssetManager {
         function onTextureLoaded(newTexture) {
             newTexture.name = Strings.nameFromUrl(newTexture.image.src);
             newTexture.premultiplyAlpha = true;
-            newTexture.wrapS = THREE$1.RepeatWrapping;
-            newTexture.wrapT = THREE$1.RepeatWrapping;
+            newTexture.wrapS = THREE.RepeatWrapping;
+            newTexture.wrapT = THREE.RepeatWrapping;
             if (onLoad && typeof onLoad === 'function') onLoad(newTexture);
         }
         function onTextureLoadError() {
@@ -613,7 +614,7 @@ class AssetManager {
                 AssetManager.addAsset(asset);
             }
         }
-		const objectLoader = new THREE$1.ObjectLoader();
+		const objectLoader = new THREE.ObjectLoader();
 		const animations = objectLoader.parseAnimations(json.animations);
 		const shapes = objectLoader.parseShapes(json.shapes);
 		const geometries = objectLoader.parseGeometries(json.geometries, shapes);
@@ -846,28 +847,102 @@ class ComponentManager {
     }
 }
 
-const _m1 = new THREE$1.Matrix4();
-const _camPosition = new THREE$1.Vector3();
-const _camQuaternion = new THREE$1.Quaternion();
-const _camScale = new THREE$1.Vector3();
-const _lookQuaternion = new THREE$1.Quaternion();
-const _lookUpVector = new THREE$1.Vector3();
-const _objPosition$1 = new THREE$1.Vector3();
-const _objScale$1 = new THREE$1.Vector3();
-const _objQuaternion$1 = new THREE$1.Quaternion();
-const _parentQuaternion = new THREE$1.Quaternion();
-const _parentQuaternionInv = new THREE$1.Quaternion();
-const _rotationDirection = new THREE$1.Euler();
-const _rotationQuaternion = new THREE$1.Quaternion();
-const _worldPosition = new THREE$1.Vector3();
-const _worldQuaternion = new THREE$1.Quaternion();
-const _worldScale = new THREE$1.Vector3();
-const _worldRotation = new THREE$1.Euler();
-class Object3D extends THREE$1.Object3D {
+class EntityUtils {
+    static combineEntityArrays(intoEntityArray, entityArrayToAdd) {
+        for (let i = 0; i < entityArrayToAdd.length; i++) {
+            let entity = entityArrayToAdd[i];
+            if (EntityUtils.containsEntity(intoEntityArray, entity) === false) {
+                intoEntityArray.push(entity);
+            }
+        }
+    }
+    static commonEntity(entityArrayOne, entityArrayTwo) {
+        for (let i = 0; i < entityArrayOne.length; i++) {
+            if (EntityUtils.containsEntity(entityArrayTwo, entityArrayOne[i]) === true) return true;
+        }
+        for (let i = 0; i < entityArrayTwo.length; i++) {
+            if (EntityUtils.containsEntity(entityArrayOne, entityArrayTwo[i]) === true) return true;
+        }
+        return false;
+    }
+    static compareArrayOfEntities(entityArrayOne, entityArrayTwo) {
+        for (let i = 0; i < entityArrayOne.length; i++) {
+            if (EntityUtils.containsEntity(entityArrayTwo, entityArrayOne[i]) === false) return false;
+        }
+        for (let i = 0; i < entityArrayTwo.length; i++) {
+            if (EntityUtils.containsEntity(entityArrayOne, entityArrayTwo[i]) === false) return false;
+        }
+        return true;
+    }
+    static containsEntity(arrayOfEntities, entity) {
+        if (entity && entity.uuid && Array.isArray(arrayOfEntities)) {
+            for (let i = 0; i < arrayOfEntities.length; i++) {
+                if (arrayOfEntities[i].uuid === entity.uuid) return true;
+            }
+        }
+        return false;
+    }
+    static isImportant(entity) {
+        let important = false;
+        important = important || entity.parent === null;
+        important = important || entity.isScene;
+        important = important || entity.userData.flagLocked;
+        return important;
+    }
+    static parentEntity(entity, immediateOnly = false) {
+        while (entity && entity.parent && (entity.parent.isScene !== true)) {
+            entity = entity.parent;
+            if (immediateOnly && entity.isEntity) return entity;
+        }
+        return entity;
+    }
+    static parentScene(entity) {
+        while (entity && entity.parent) {
+            entity = entity.parent;
+            if (entity.isScene) return entity;
+        }
+        return undefined;
+    }
+    static removeEntityFromArray(entityArray, entity) {
+        let length = entityArray.length;
+        for (let i = 0; i < length; i++) {
+            if (entityArray[i].uuid === entity.uuid) {
+                entityArray.splice(i, 1);
+                length = entityArray.length;
+            }
+        }
+    }
+    static uuidArray(entityArray) {
+        let uuidArray = [];
+        for (let i = 0; i < entityArray.length; i++) {
+            uuidArray.push(entityArray[i].uuid);
+        }
+        return uuidArray;
+    }
+}
+
+const _m1 = new THREE.Matrix4();
+const _camPosition = new THREE.Vector3();
+const _camQuaternion = new THREE.Quaternion();
+const _camScale = new THREE.Vector3();
+const _lookQuaternion = new THREE.Quaternion();
+const _lookUpVector = new THREE.Vector3();
+const _objPosition$1 = new THREE.Vector3();
+const _objScale$1 = new THREE.Vector3();
+const _objQuaternion$1 = new THREE.Quaternion();
+const _parentQuaternion = new THREE.Quaternion();
+const _parentQuaternionInv = new THREE.Quaternion();
+const _rotationDirection = new THREE.Euler();
+const _rotationQuaternion = new THREE.Quaternion();
+const _worldPosition = new THREE.Vector3();
+const _worldQuaternion = new THREE.Quaternion();
+const _worldScale = new THREE.Vector3();
+const _worldRotation = new THREE.Euler();
+class Object3D extends THREE.Object3D {
     constructor() {
         super();
-        const rotation = new THREE$1.Euler();
-        const quaternion = new THREE$1.Quaternion();
+        const rotation = new THREE.Euler();
+        const quaternion = new THREE.Quaternion();
         function onRotationChange() {  }
         function onQuaternionChange() {  }
         rotation._onChange(onRotationChange);
@@ -1037,6 +1112,32 @@ class Entity3D extends Object3D {
             component.enable();
         }
     }
+    changeParent(newParent = undefined, newIndex = -1) {
+        if (! newParent) newParent = this.parent;
+        if (! newParent || ! newParent.isObject3D) return;
+        const oldParent = this.parent;
+        if (newIndex === -1 && oldParent) newIndex = oldParent.children.indexOf(this);
+        newParent.safeAttach(this);
+        if (newIndex !== -1) {
+            newParent.children.splice(newIndex, 0, this);
+            newParent.children.pop();
+        }
+    }
+    addEntity(entity, index = -1, maintainWorldTransform = false) {
+        if (! entity || ! entity.isObject3D) return this;
+        if (index === undefined || index === null) index = -1;
+        if (this.children.indexOf(entity) !== -1) return this;
+        if (maintainWorldTransform && entity.parent) {
+            this.attach(entity);
+        } else {
+            this.add(entity);
+        }
+        if (index !== -1) {
+            this.children.splice(index, 0, entity);
+            this.children.pop();
+        }
+        return this;
+    }
     getEntities() {
         const filteredChildren = [];
         const children = this.children;
@@ -1064,8 +1165,13 @@ class Entity3D extends Object3D {
         }
         return undefined;
     }
+    removeEntity(entity, forceDelete = false) {
+        if (! entity) return;
+        if (! forceDelete && EntityUtils.isImportant(entity)) return;
+        this.remove(entity);
+    }
     traverseEntities(callback) {
-        this.traverse(child => { if (child.isEntity3D) callback(child); });
+        this.traverse((child) => { if (child.isEntity3D) callback(child); });
     }
     cloneEntity(recursive = true) {
         return new this.constructor().copyEntity(this, recursive);
@@ -1098,13 +1204,13 @@ class Entity3D extends Object3D {
         return this;
     }
     destroy() {
-        let children = this.getEntities();
+        const children = this.getEntities();
         for (let i = 0; i < children.length; i++) {
-            if (this.project) this.project.removeEntity(children[i]);
+            this.removeEntity(children[i], true);
             children[i].destroy();
         }
         while (this.components.length > 0) {
-            let component = this.components[0];
+            const component = this.components[0];
             this.removeComponent(component);
         }
     }
@@ -1197,9 +1303,9 @@ class Scene3D extends Entity3D {
         this.fog = null;
         this.overrideMaterial = null;
         this.autoUpdate = true;
-        this.shadowPlane = new THREE$1.Mesh(
-            new THREE$1.PlaneGeometry(100000, 100000),
-            new THREE$1.ShadowMaterial({ color: 0, transparent: true, opacity: 0.2, depthWrite: false })
+        this.shadowPlane = new THREE.Mesh(
+            new THREE.PlaneGeometry(100000, 100000),
+            new THREE.ShadowMaterial({ color: 0, transparent: true, opacity: 0.2, depthWrite: false })
         );
         this.shadowPlane.name = 'ShadowPlane';
         this.shadowPlane.userData.flagTemp = true;
@@ -1213,7 +1319,7 @@ class Scene3D extends Entity3D {
         const data = json.object;
         if (data.background !== undefined) {
             if (Number.isInteger(data.background)) {
-                this.background = new THREE$1.Color(data.background);
+                this.background = new THREE.Color(data.background);
             } else {
                 const backgroundTexture = AssetManager.getAsset(data.background);
                 if (backgroundTexture && backgroundTexture.isTexture) this.background = backgroundTexture;
@@ -1225,9 +1331,9 @@ class Scene3D extends Entity3D {
         }
         if (data.fog !== undefined) {
             if (data.fog.type === 'Fog') {
-                this.fog = new THREE$1.Fog(data.fog.color, data.fog.near, data.fog.far);
+                this.fog = new THREE.Fog(data.fog.color, data.fog.near, data.fog.far);
             } else if (data.fog.type === 'FogExp2') {
-                this.fog = new THREE$1.FogExp2(data.fog.color, data.fog.density);
+                this.fog = new THREE.FogExp2(data.fog.color, data.fog.density);
             }
         }
         super.fromJSON(json);
@@ -1295,80 +1401,6 @@ class World3D {
     }
 }
 
-class EntityUtils {
-    static combineEntityArrays(intoEntityArray, entityArrayToAdd) {
-        for (let i = 0; i < entityArrayToAdd.length; i++) {
-            let entity = entityArrayToAdd[i];
-            if (EntityUtils.containsEntity(intoEntityArray, entity) === false) {
-                intoEntityArray.push(entity);
-            }
-        }
-    }
-    static commonEntity(entityArrayOne, entityArrayTwo) {
-        for (let i = 0; i < entityArrayOne.length; i++) {
-            if (EntityUtils.containsEntity(entityArrayTwo, entityArrayOne[i]) === true) return true;
-        }
-        for (let i = 0; i < entityArrayTwo.length; i++) {
-            if (EntityUtils.containsEntity(entityArrayOne, entityArrayTwo[i]) === true) return true;
-        }
-        return false;
-    }
-    static compareArrayOfEntities(entityArrayOne, entityArrayTwo) {
-        for (let i = 0; i < entityArrayOne.length; i++) {
-            if (EntityUtils.containsEntity(entityArrayTwo, entityArrayOne[i]) === false) return false;
-        }
-        for (let i = 0; i < entityArrayTwo.length; i++) {
-            if (EntityUtils.containsEntity(entityArrayOne, entityArrayTwo[i]) === false) return false;
-        }
-        return true;
-    }
-    static containsEntity(arrayOfEntities, entity) {
-        if (entity && entity.uuid && Array.isArray(arrayOfEntities)) {
-            for (let i = 0; i < arrayOfEntities.length; i++) {
-                if (arrayOfEntities[i].uuid === entity.uuid) return true;
-            }
-        }
-        return false;
-    }
-    static isImportant(entity) {
-        let important = false;
-        important = important || entity.parent === null;
-        important = important || entity.isScene;
-        important = important || entity.userData.flagLocked;
-        return important;
-    }
-    static parentEntity(entity, immediateOnly = false) {
-        while (entity && entity.parent && (entity.parent.isScene !== true)) {
-            entity = entity.parent;
-            if (immediateOnly && entity.isEntity) return entity;
-        }
-        return entity;
-    }
-    static parentScene(entity) {
-        while (entity && entity.parent) {
-            entity = entity.parent;
-            if (entity.isScene) return entity;
-        }
-        return undefined;
-    }
-    static removeEntityFromArray(entityArray, entity) {
-        let length = entityArray.length;
-        for (let i = 0; i < length; i++) {
-            if (entityArray[i].uuid === entity.uuid) {
-                entityArray.splice(i, 1);
-                length = entityArray.length;
-            }
-        }
-    }
-    static uuidArray(entityArray) {
-        let uuidArray = [];
-        for (let i = 0; i < entityArray.length; i++) {
-            uuidArray.push(entityArray[i].uuid);
-        }
-        return uuidArray;
-    }
-}
-
 class Project {
     constructor(name = 'My Project') {
         this.isProject = true;
@@ -1432,7 +1464,7 @@ class Project {
         if (scene.isScene !== true) return;
         const entities = scene.getEntities();
         for (let i = entities.length - 1; i >= 0; i--) {
-            this.removeEntity(entities[i], true);
+            scene.removeEntity(entities[i], true);
             entities[i].destroy();
         }
         delete this.scenes[scene.uuid];
@@ -1443,30 +1475,7 @@ class Project {
             scene.traverseEntities(callback);
         }
     }
-    addEntity(entity, parent = undefined, index = -1, maintainWorldTransform = false) {
-        if (! entity) return;
-        if (index === undefined || index === null) index = -1;
-        if (entity.isObject3D) {
-            if (parent && parent.children && index !== -1) {
-                parent.children.splice(index, 0, entity);
-                entity.parent = parent;
-            } else {
-                let newParent = parent;
-                if (! newParent || ! newParent.isObject3D) {
-                    if (window.editor) newParent = window.editor.viewport.scene;
-                }
-                if (newParent && newParent.isObject3D) {
-                    if (maintainWorldTransform) {
-                        newParent.attach(entity);
-                    } else {
-                        newParent.add(entity);
-                    }
-                }
-            }
-        }
-        return this;
-    }
-    getEntityByUuid(uuid, searchAllScenes = false) {
+    findEntityByUuid(uuid, searchAllScenes = false) {
         let sceneList = [];
         let activeScene = null;
         if (window.editor) activeScene = window.editor.viewport.scene;
@@ -1486,23 +1495,6 @@ class Project {
             if (entity) return entity;
         }
         return undefined;
-    }
-    moveEntity(entity, parent = undefined, before = undefined, index = -1) {
-        if (! entity) return;
-        parent = parent;
-        if ((! parent || ! parent.isObject3D) && window.editor) parent = window.editor.viewport.scene;
-        if (! parent || ! parent.isObject3D) return;
-        parent.safeAttach(entity);
-        if (before) index = parent.children.indexOf(before);
-        if (index !== -1) {
-            parent.children.splice(index, 0, entity);
-            parent.children.pop();
-        }
-    }
-    removeEntity(entity, forceDelete = false) {
-        if (! entity) return;
-        if (! forceDelete && EntityUtils.isImportant(entity)) return;
-        if (entity.parent) entity.parent.remove(entity);
     }
     addScript(entity, script) {
         const key = entity.uuid;
@@ -1603,7 +1595,7 @@ class App {
         this.width = 1;
         this.height = 1;
         this.wantsScreenshot = false;
-        renderer = new THREE$1.WebGLRenderer({ antialias: true });
+        renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setPixelRatio(1);
         renderer.shadowMap.enabled = true;
         this.dom = document.createElement('div');
@@ -1753,7 +1745,7 @@ class App {
             let eventY = fromEvent.clientY - rect.top;
             let x =  ((eventX / rect.width ) * (rect.width * 2)) - rect.width;
             let y = -((eventY / rect.height) * (rect.height * 2)) + rect.height;
-            let vec = new THREE$1.Vector3(x, y, 0);
+            let vec = new THREE.Vector3(x, y, 0);
             vec.unproject(camera);
             return vec;
         };
@@ -1812,14 +1804,14 @@ class Vectors {
     }
 }
 
-const _uv = [ new THREE$1.Vector2(), new THREE$1.Vector2(), new THREE$1.Vector2() ];
-const _vertex = [ new THREE$1.Vector3(), new THREE$1.Vector3(), new THREE$1.Vector3() ];
-const _temp = new THREE$1.Vector3();
+const _uv = [ new THREE.Vector2(), new THREE.Vector2(), new THREE.Vector2() ];
+const _vertex = [ new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3() ];
+const _temp = new THREE.Vector3();
 class GeometryUtils {
     static addAttribute(geometry, attributeName = 'color', stride = 3, fill = 0) {
         if (! geometry.getAttribute(attributeName)) {
             let array = new Float32Array(geometry.attributes.position.count * stride).fill(fill);
-	        const attribute = new THREE$1.BufferAttribute(array, stride, true).setUsage(THREE$1.DynamicDrawUsage);
+	        const attribute = new THREE.BufferAttribute(array, stride, true).setUsage(THREE.DynamicDrawUsage);
 	        geometry.setAttribute(attributeName, attribute);
         }
         return geometry;
@@ -1839,7 +1831,7 @@ class GeometryUtils {
         return mesh;
     }
     static modelSize(geometry, type = 'max') {
-        let boxSize = new THREE$1.Vector3();
+        let boxSize = new THREE.Vector3();
         geometry.computeBoundingBox();
         geometry.boundingBox.getSize(boxSize);
         if (type === 'max') {
@@ -1878,13 +1870,13 @@ class GeometryUtils {
                 geometry = nonIndexed;
             }
         }
-        if (transformMatrix === undefined) transformMatrix = new THREE$1.Matrix4();
+        if (transformMatrix === undefined) transformMatrix = new THREE.Matrix4();
         let geometrySize = GeometryUtils.modelSize(geometry);
         let size = (geometrySize / 2);
-        let bbox = new THREE$1.Box3(new THREE$1.Vector3(-size, -size, -size), new THREE$1.Vector3(size, size, size));
-        let boxCenter = new THREE$1.Vector3();
+        let bbox = new THREE.Box3(new THREE.Vector3(-size, -size, -size), new THREE.Vector3(size, size, size));
+        let boxCenter = new THREE.Vector3();
         geometry.boundingBox.getCenter(boxCenter);
-        const centerMatrix = new THREE$1.Matrix4().makeTranslation(-boxCenter.x, -boxCenter.y, -boxCenter.z);
+        const centerMatrix = new THREE.Matrix4().makeTranslation(-boxCenter.x, -boxCenter.y, -boxCenter.z);
         const coords = [];
         coords.length = 2 * geometry.attributes.position.array.length / 3;
         const pos = geometry.attributes.position.array;
@@ -1893,9 +1885,9 @@ class GeometryUtils {
                 const idx0 = geometry.index.array[vi + 0];
                 const idx1 = geometry.index.array[vi + 1];
                 const idx2 = geometry.index.array[vi + 2];
-                const v0 = new THREE$1.Vector3(pos[(3 * idx0) + 0], pos[(3 * idx0) + 1], pos[(3 * idx0) + 2]);
-                const v1 = new THREE$1.Vector3(pos[(3 * idx1) + 0], pos[(3 * idx1) + 1], pos[(3 * idx1) + 2]);
-                const v2 = new THREE$1.Vector3(pos[(3 * idx2) + 0], pos[(3 * idx2) + 1], pos[(3 * idx2) + 2]);
+                const v0 = new THREE.Vector3(pos[(3 * idx0) + 0], pos[(3 * idx0) + 1], pos[(3 * idx0) + 2]);
+                const v1 = new THREE.Vector3(pos[(3 * idx1) + 0], pos[(3 * idx1) + 1], pos[(3 * idx1) + 2]);
+                const v2 = new THREE.Vector3(pos[(3 * idx2) + 0], pos[(3 * idx2) + 1], pos[(3 * idx2) + 2]);
                 calculateUVs(v0, v1, v2);
                 coords[2 * idx0 + 0] = _uv[0].x;
                 coords[2 * idx0 + 1] = _uv[0].y;
@@ -1906,9 +1898,9 @@ class GeometryUtils {
             }
         } else {
             for (let vi = 0; vi < geometry.attributes.position.array.length; vi += 9) {
-                const v0 = new THREE$1.Vector3(pos[vi + 0], pos[vi + 1], pos[vi + 2]);
-                const v1 = new THREE$1.Vector3(pos[vi + 3], pos[vi + 4], pos[vi + 5]);
-                const v2 = new THREE$1.Vector3(pos[vi + 6], pos[vi + 7], pos[vi + 8]);
+                const v0 = new THREE.Vector3(pos[vi + 0], pos[vi + 1], pos[vi + 2]);
+                const v1 = new THREE.Vector3(pos[vi + 3], pos[vi + 4], pos[vi + 5]);
+                const v2 = new THREE.Vector3(pos[vi + 6], pos[vi + 7], pos[vi + 8]);
                 calculateUVs(v0, v1, v2);
                 const idx0 = vi / 3;
                 const idx1 = idx0 + 1;
@@ -1922,7 +1914,7 @@ class GeometryUtils {
             }
         }
         if (geometry.attributes.uv === undefined) {
-            geometry.addAttribute('uv', new THREE$1.Float32BufferAttribute(coords, 2));
+            geometry.addAttribute('uv', new THREE.Float32BufferAttribute(coords, 2));
         }
         geometry.attributes.uv.array = new Float32Array(coords);
         geometry.attributes.uv.needsUpdate = true;
@@ -1937,7 +1929,7 @@ class GeometryUtils {
             v0.applyMatrix4(centerMatrix).applyMatrix4(transformMatrix);
             v1.applyMatrix4(centerMatrix).applyMatrix4(transformMatrix);
             v2.applyMatrix4(centerMatrix).applyMatrix4(transformMatrix);
-            const n = new THREE$1.Vector3();
+            const n = new THREE.Vector3();
             calcNormal(n, v0, v1, v2);
             _uv[0].set(0, 0, 0);
             _uv[1].set(0, 0, 0);
@@ -1982,7 +1974,7 @@ class GeometryUtils {
         const coords = [];
         coords.length = 2 * geometry.attributes.position.array.length / 3;
         const hasUV = ! (geometry.attributes.uv === undefined);
-        if (! hasUV) geometry.addAttribute('uv', new THREE$1.Float32BufferAttribute(coords, 2));
+        if (! hasUV) geometry.addAttribute('uv', new THREE.Float32BufferAttribute(coords, 2));
         const setU = (! hasUV || setCoords === 'u' || setCoords === 'uv');
         const setV = (! hasUV || setCoords === 'v' || setCoords === 'uv');
         const pos = geometry.attributes.position.array;
@@ -2021,7 +2013,7 @@ class GeometryUtils {
         return geometry;
         function setUV(polarVertex, index, i) {
             const canvasPoint = polar2canvas(polarVertex);
-            const uv = new THREE$1.Vector2(1 - canvasPoint.x, 1 - canvasPoint.y);
+            const uv = new THREE.Vector2(1 - canvasPoint.x, 1 - canvasPoint.y);
             const indexU = 2 * index + 0;
             const indexV = 2 * index + 1;
             coords[indexU] = (setU) ? uv.x : geometry.attributes.uv.array[indexU];
@@ -2047,8 +2039,8 @@ class GeometryUtils {
     }
 }
 
-const _color = new THREE$1.Color();
-const _position = new THREE$1.Vector3();
+const _color = new THREE.Color();
+const _position = new THREE.Vector3();
 class SVGBuilder {
     static createFromPaths(target, paths, onLoad, name = '') {
         const drawFills = true;
@@ -2083,7 +2075,7 @@ class SVGBuilder {
                             scaleCurve(shape.holes[h].curves[c]);
                         }
                     }
-                    const geometry = new THREE$1.ExtrudeGeometry(shape, {
+                    const geometry = new THREE.ExtrudeGeometry(shape, {
                         depth: depth,
                         bevelEnabled: false,
                         bevelThickness: 0.25,
@@ -2114,7 +2106,7 @@ class SVGBuilder {
             }
         });
         if (target.children && target.children.length > 0) {
-            const center = new THREE$1.Vector3();
+            const center = new THREE.Vector3();
             ObjectUtils.computeCenter(target.children, center);
             for (let child of target.children) {
                 child.position.x -= center.x;
@@ -2636,7 +2628,7 @@ const COLOR_KEYWORDS = {
     'white': 0xFFFFFF, 'whitesmoke': 0xF5F5F5, 'yellow': 0xFFFF00, 'yellowgreen': 0x9ACD32
 };
 
-class CapsuleGeometry extends THREE$1.BufferGeometry {
+class CapsuleGeometry extends THREE.BufferGeometry {
     constructor(radiusTop = 1, radiusBottom = 1, height = 2, radialSegments = 12, heightSegments = 1,
                 capsTopSegments = 5, capsBottomSegments = 5, thetaStart, thetaLength) {
         super();
@@ -2666,10 +2658,10 @@ class CapsuleGeometry extends THREE$1.BufferGeometry {
         let eqRadii = (radiusTop-radiusBottom === 0);
         let vertexCount = calculateVertexCount();
         let indexCount = calculateIndexCount();
-        let indices = new THREE$1.BufferAttribute(new (indexCount > 65535 ? Uint32Array : Uint16Array)(indexCount), 1);
-        let vertices = new THREE$1.BufferAttribute(new Float32Array(vertexCount * 3), 3);
-        let normals = new THREE$1.BufferAttribute(new Float32Array(vertexCount * 3), 3);
-        let uvs = new THREE$1.BufferAttribute(new Float32Array(vertexCount * 2), 2);
+        let indices = new THREE.BufferAttribute(new (indexCount > 65535 ? Uint32Array : Uint16Array)(indexCount), 1);
+        let vertices = new THREE.BufferAttribute(new Float32Array(vertexCount * 3), 3);
+        let normals = new THREE.BufferAttribute(new Float32Array(vertexCount * 3), 3);
+        let uvs = new THREE.BufferAttribute(new Float32Array(vertexCount * 2), 2);
         let index = 0;
         let indexOffset = 0;
         let indexArray = [];
@@ -2689,13 +2681,13 @@ class CapsuleGeometry extends THREE$1.BufferGeometry {
         }
         function generateTorso() {
             let x, y;
-            let normal = new THREE$1.Vector3();
-            let vertex = new THREE$1.Vector3();
+            let normal = new THREE.Vector3();
+            let vertex = new THREE.Vector3();
             let cosAlpha = Math.cos(alpha);
             let sinAlpha = Math.sin(alpha);
             let cone_length =
-                new THREE$1.Vector2(radiusTop * sinAlpha, halfHeight + radiusTop * cosAlpha)
-                    .sub(new THREE$1.Vector2(radiusBottom * sinAlpha, -halfHeight + radiusBottom * cosAlpha))
+                new THREE.Vector2(radiusTop * sinAlpha, halfHeight + radiusTop * cosAlpha)
+                    .sub(new THREE.Vector2(radiusBottom * sinAlpha, -halfHeight + radiusBottom * cosAlpha))
                     .length();
             let vl = radiusTop * alpha
                     + cone_length
@@ -2810,40 +2802,40 @@ class CapsuleGeometry extends THREE$1.BufferGeometry {
         const c1 = cmax;
         const r0 = rmin;
         const r1 = rmax;
-        const sphereCenterTop = new THREE$1.Vector3(c0.x, c0.y, c0.z);
-        const sphereCenterBottom = new THREE$1.Vector3(c1.x, c1.y, c1.z);
+        const sphereCenterTop = new THREE.Vector3(c0.x, c0.y, c0.z);
+        const sphereCenterBottom = new THREE.Vector3(c1.x, c1.y, c1.z);
         const radiusTop = r0;
         const radiusBottom = r1;
         let height = sphereCenterTop.distanceTo(sphereCenterBottom);
         if (height < Math.abs(r0 - r1)){
-            let g = new THREE$1.SphereGeometry(r1, radialSegments, capsBottomSegments, thetaStart, thetaLength);
+            let g = new THREE.SphereGeometry(r1, radialSegments, capsBottomSegments, thetaStart, thetaLength);
             g.translate(r1.x, r1.y, r1.z);
             return g;
         }
         const alpha = Math.acos((radiusBottom - radiusTop) / height);
         const cosAlpha = Math.cos(alpha);
-        const rotationMatrix = new THREE$1.Matrix4();
-        const quaternion = new THREE$1.Quaternion();
-        const capsuleModelUnitVector = new THREE$1.Vector3(0, 1, 0);
-        const capsuleUnitVector = new THREE$1.Vector3();
+        const rotationMatrix = new THREE.Matrix4();
+        const quaternion = new THREE.Quaternion();
+        const capsuleModelUnitVector = new THREE.Vector3(0, 1, 0);
+        const capsuleUnitVector = new THREE.Vector3();
         capsuleUnitVector.subVectors(sphereCenterTop, sphereCenterBottom);
         capsuleUnitVector.normalize();
         quaternion.setFromUnitVectors(capsuleModelUnitVector, capsuleUnitVector);
         rotationMatrix.makeRotationFromQuaternion(quaternion);
-        const translationMatrix = new THREE$1.Matrix4();
-        const cylVec = new THREE$1.Vector3();
+        const translationMatrix = new THREE.Matrix4();
+        const cylVec = new THREE.Vector3();
         cylVec.subVectors(sphereCenterTop, sphereCenterBottom);
         cylVec.normalize();
-        let cylTopPoint = new THREE$1.Vector3();
+        let cylTopPoint = new THREE.Vector3();
         cylTopPoint = sphereCenterTop;
         cylTopPoint.addScaledVector(cylVec, cosAlpha * radiusTop);
-        let cylBottomPoint = new THREE$1.Vector3();
+        let cylBottomPoint = new THREE.Vector3();
         cylBottomPoint = sphereCenterBottom;
         cylBottomPoint.addScaledVector(cylVec, cosAlpha * radiusBottom);
-        const dir = new THREE$1.Vector3();
+        const dir = new THREE.Vector3();
         dir.subVectors(cylBottomPoint, cylTopPoint);
         dir.normalize();
-        const middlePoint = new THREE$1.Vector3();
+        const middlePoint = new THREE.Vector3();
         middlePoint.lerpVectors(cylBottomPoint, cylTopPoint, 0.5);
         translationMatrix.makeTranslation(middlePoint.x, middlePoint.y, middlePoint.z);
         let g = new CapsuleGeometry(radiusBottom, radiusTop, height, radialSegments, heightSegments, capsTopSegments, capsBottomSegments, thetaStart, thetaLength);
@@ -2853,7 +2845,7 @@ class CapsuleGeometry extends THREE$1.BufferGeometry {
     }
 }
 
-class CylinderGeometry extends THREE$1.BufferGeometry {
+class CylinderGeometry extends THREE.BufferGeometry {
     constructor(radiusTop = 1, radiusBottom = 1, height = 1, radialSegments = 8, heightSegments = 1, openEnded = false, thetaStart = 0, thetaLength = Math.PI * 2) {
         super();
         this.type = 'CylinderGeometry';
@@ -2884,12 +2876,12 @@ class CylinderGeometry extends THREE$1.BufferGeometry {
             if (radiusBottom > 0) generateCap(false);
         }
         this.setIndex(indices);
-        this.setAttribute('position', new THREE$1.Float32BufferAttribute(vertices, 3));
-        this.setAttribute('normal', new THREE$1.Float32BufferAttribute(normals, 3));
-        this.setAttribute('uv', new THREE$1.Float32BufferAttribute(uvs, 2));
+        this.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+        this.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+        this.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
         function generateTorso() {
-            const normal = new THREE$1.Vector3();
-            const vertex = new THREE$1.Vector3();
+            const normal = new THREE.Vector3();
+            const vertex = new THREE.Vector3();
             let groupCount = 0;
             const slope = (radiusBottom - radiusTop) / height;
             for (let y = 0; y <= heightSegments; y++) {
@@ -2918,12 +2910,12 @@ class CylinderGeometry extends THREE$1.BufferGeometry {
                     const b = indexArray[y + 1][x    ];
                     const c = indexArray[y + 1][x + 1];
                     const d = indexArray[y    ][x + 1];
-                    const vecA = new THREE$1.Vector3(vertices[(a * 3) + 0], vertices[(a * 3) + 1], vertices[(a * 3) + 2]);
-                    const vecB = new THREE$1.Vector3(vertices[(b * 3) + 0], vertices[(b * 3) + 1], vertices[(b * 3) + 2]);
-                    const vecC = new THREE$1.Vector3(vertices[(c * 3) + 0], vertices[(c * 3) + 1], vertices[(c * 3) + 2]);
-                    const vecD = new THREE$1.Vector3(vertices[(d * 3) + 0], vertices[(d * 3) + 1], vertices[(d * 3) + 2]);
-                    const triangleABD = new THREE$1.Triangle(vecA, vecB, vecD);
-                    const triangleBCD = new THREE$1.Triangle(vecB, vecC, vecD);
+                    const vecA = new THREE.Vector3(vertices[(a * 3) + 0], vertices[(a * 3) + 1], vertices[(a * 3) + 2]);
+                    const vecB = new THREE.Vector3(vertices[(b * 3) + 0], vertices[(b * 3) + 1], vertices[(b * 3) + 2]);
+                    const vecC = new THREE.Vector3(vertices[(c * 3) + 0], vertices[(c * 3) + 1], vertices[(c * 3) + 2]);
+                    const vecD = new THREE.Vector3(vertices[(d * 3) + 0], vertices[(d * 3) + 1], vertices[(d * 3) + 2]);
+                    const triangleABD = new THREE.Triangle(vecA, vecB, vecD);
+                    const triangleBCD = new THREE.Triangle(vecB, vecC, vecD);
                     if (triangleABD.getArea() > 0.0001) { indices.push(a, b, d); groupCount += 3; }
                     if (triangleBCD.getArea() > 0.0001) { indices.push(b, c, d); groupCount += 3; }
                 }
@@ -2933,8 +2925,8 @@ class CylinderGeometry extends THREE$1.BufferGeometry {
         }
         function generateCap(top) {
             const centerIndexStart = index;
-            const uv = new THREE$1.Vector2();
-            const vertex = new THREE$1.Vector3();
+            const uv = new THREE.Vector2();
+            const vertex = new THREE.Vector3();
             let groupCount = 0;
             const radius = (top === true) ? radiusTop : radiusBottom;
             const sign = (top === true) ? 1 : -1;
@@ -2979,9 +2971,9 @@ class CylinderGeometry extends THREE$1.BufferGeometry {
     }
 }
 
-class PrismGeometry extends THREE$1.ExtrudeGeometry {
+class PrismGeometry extends THREE.ExtrudeGeometry {
     constructor(vertices, height) {
-        let shape = new THREE$1.Shape();
+        let shape = new THREE.Shape();
         (function makeShapeFromVertices(s) {
             s.moveTo(vertices[0].x, vertices[0].y);
             for (let i = 1; i < vertices.length; i++) {
@@ -3005,32 +2997,32 @@ class PrismGeometry extends THREE$1.ExtrudeGeometry {
 
 function setWireframeMaterialDefaults(material) {
     material.transparent = true;
-    material.resolution = new THREE$1.Vector2(1024, 1024);
+    material.resolution = new THREE.Vector2(1024, 1024);
     material.depthTest = true;
     material.depthWrite = false;
     material.polygonOffset = true;
     material.polygonOffsetFactor = 1;
-    material.side = THREE$1.DoubleSide;
+    material.side = THREE.DoubleSide;
     material.alphaToCoverage = true;
 }
-const _objQuaternion = new THREE$1.Quaternion();
-const _objScale = new THREE$1.Vector3();
-const _objPosition = new THREE$1.Vector3();
-const _tempScale = new THREE$1.Vector3();
-const _tempSize = new THREE$1.Vector3();
-const _box = new THREE$1.Box3();
+const _objQuaternion = new THREE.Quaternion();
+const _objScale = new THREE.Vector3();
+const _objPosition = new THREE.Vector3();
+const _tempScale = new THREE.Vector3();
+const _tempSize = new THREE.Vector3();
+const _box = new THREE.Box3();
 const _indices = new Uint16Array([ 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 ]);
-class BasicLine extends THREE$1.LineSegments {
+class BasicLine extends THREE.LineSegments {
     constructor(x1, y1, z1, x2, y2, z2, boxColor = 0xffffff) {
         const vertices = [
             x1, y1, z1,
             x2, y2, z2,
         ];
         const indices = [0, 1];
-        const lineGeometry = new THREE$1.BufferGeometry();
+        const lineGeometry = new THREE.BufferGeometry();
         lineGeometry.setIndex(indices);
-        lineGeometry.setAttribute('position', new THREE$1.Float32BufferAttribute(vertices, 3));
-        const lineMaterial = new THREE$1.LineBasicMaterial({ color: boxColor });
+        lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+        const lineMaterial = new THREE.LineBasicMaterial({ color: boxColor });
         setWireframeMaterialDefaults(lineMaterial);
         lineMaterial.wireframe = true;
         super(lineGeometry, lineMaterial);
@@ -3064,8 +3056,8 @@ class FatLine extends Line2 {
         super(lineGeometry, lineMaterial);
         this.computeLineDistances();
         this.scale.set(1, 1, 1);
-        this.point1 = new THREE$1.Vector3(x1, y1, z1);
-        this.point2 = new THREE$1.Vector3(x2, y2, z2);
+        this.point1 = new THREE.Vector3(x1, y1, z1);
+        this.point2 = new THREE.Vector3(x2, y2, z2);
     }
     clone() {
         return new this.constructor(this.point1.x, this.point1.y, this.point1.z,
@@ -3081,10 +3073,10 @@ class FatLine extends Line2 {
         this.computeLineDistances();
     }
 }
-class BasicWireBox extends THREE$1.LineSegments {
+class BasicWireBox extends THREE.LineSegments {
     constructor(object, boxColor = 0xffffff, opacity = 1.0, matchTransform = false) {
-        const lineGeometry = new THREE$1.WireframeGeometry();
-        const lineMaterial = new THREE$1.LineBasicMaterial({
+        const lineGeometry = new THREE.WireframeGeometry();
+        const lineMaterial = new THREE.LineBasicMaterial({
             color: boxColor,
             opacity: opacity,
         });
@@ -3092,7 +3084,7 @@ class BasicWireBox extends THREE$1.LineSegments {
         super(lineGeometry, lineMaterial);
         this._positions = new Float32Array(8 * 3);
         this.points = [];
-        for (let i = 0; i < 8; i++) this.points.push(new THREE$1.Vector3());
+        for (let i = 0; i < 8; i++) this.points.push(new THREE.Vector3());
         if (object) this.updateFromObject(object, matchTransform);
         this.clone = function() {
             return new this.constructor(object, boxColor, opacity, matchTransform).copy(this, true);
@@ -3134,7 +3126,7 @@ class BasicWireBox extends THREE$1.LineSegments {
             positions.push(array[index1 + 0], array[index1 + 1], array[index1 + 2]);
             positions.push(array[index2 + 0], array[index2 + 1], array[index2 + 2]);
         }
-        this.geometry.setAttribute('position', new THREE$1.Float32BufferAttribute(positions, 3));
+        this.geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
         if (matchTransform) {
             this.setRotationFromQuaternion(_objQuaternion);
             this.scale.set(_objScale.x, _objScale.y, _objScale.z);
@@ -3164,7 +3156,7 @@ class BasicWireBox extends THREE$1.LineSegments {
     }
     getBox3(targetBox3) {
         const points = this.getLocalPoints();
-        targetBox3 = targetBox3 ?? new THREE$1.Box3();
+        targetBox3 = targetBox3 ?? new THREE.Box3();
         targetBox3.min.x = points[6].x;
         targetBox3.min.y = points[6].y;
         targetBox3.min.z = points[6].z;
@@ -3186,7 +3178,7 @@ class FatWireBox extends Line2 {
         super(lineGeometry, lineMaterial);
         this._positions = new Float32Array(8 * 3);
         this.points = [];
-        for (let i = 0; i <  8; i++) this.points.push(new THREE$1.Vector3());
+        for (let i = 0; i <  8; i++) this.points.push(new THREE.Vector3());
         if (object) this.updateFromObject(object, matchTransform);
         this.clone = function() {
             return new this.constructor(object, lineWidth, boxColor, opacity, matchTransform).copy(this, true);
@@ -3268,7 +3260,7 @@ class FatWireBox extends Line2 {
     }
     getBox3(targetBox3) {
         const points = this.getLocalPoints();
-        targetBox3 = targetBox3 ?? new THREE$1.Box3();
+        targetBox3 = targetBox3 ?? new THREE.Box3();
         targetBox3.min.x = points[6].x;
         targetBox3.min.y = points[6].y;
         targetBox3.min.z = points[6].z;
@@ -3288,10 +3280,10 @@ class FatWireBox extends Line2 {
         return Math.max(Math.max(_tempSize.x, _tempSize.y), _tempSize.z);
     }
 }
-class BasicWireframe extends THREE$1.LineSegments {
+class BasicWireframe extends THREE.LineSegments {
     constructor(object, wireframeColor, opacity = 1.0, copyObjectTransform = false) {
-        const wireframeGeometry = new THREE$1.WireframeGeometry(object.geometry);
-        const lineMaterial = new THREE$1.LineBasicMaterial({
+        const wireframeGeometry = new THREE.WireframeGeometry(object.geometry);
+        const lineMaterial = new THREE.LineBasicMaterial({
             color: wireframeColor,
             opacity: opacity,
         });
@@ -3313,7 +3305,7 @@ class FatWireframe extends Wireframe {
         const lineMaterial = new LineMaterial({
             color: wireframeColor,
             linewidth: lineWidth,
-            resolution: new THREE$1.Vector2(500, 500),
+            resolution: new THREE.Vector2(500, 500),
             opacity: opacity,
         });
         setWireframeMaterialDefaults(lineMaterial);
@@ -3330,44 +3322,16 @@ class FatWireframe extends Wireframe {
     }
 }
 
-class HelperObject {
-    fromObject(object) {
-        let geometry = new THREE.SphereGeometry(2, 4, 2);
-        let material = new THREE.MeshBasicMaterial({ color: 0xff0000, visible: false });
-        let helper;
-        if (object.isCamera) {
-            helper = new THREE.CameraHelper(object);
-        } else if (object.isPointLight) {
-            helper = new THREE.PointLightHelper(object, 1);
-        } else if (object.isDirectionalLight) {
-            helper = new THREE.DirectionalLightHelper(object, 1);
-        } else if (object.isSpotLight) {
-            helper = new THREE.SpotLightHelper(object);
-        } else if (object.isHemisphereLight) {
-            helper = new THREE.HemisphereLightHelper(object, 1);
-        } else if (object.isSkinnedMesh) {
-            helper = new THREE.SkeletonHelper(object.skeleton.bones[0]);
-        } else {
-            return undefined;
-        }
-        const picker = new THREE.Mesh(geometry, material);
-        picker.name = 'picker';
-        picker.userData.object = object;
-        helper.add(picker);
-        return helper;
-    }
-}
-
 const SCALE = 500;
-class SkyObject extends THREE$1.Mesh {
+class SkyObject extends THREE.Mesh {
     constructor() {
         const shader = SkyObject.SkyShader;
-        super(new THREE$1.SphereGeometry(1), new THREE$1.ShaderMaterial({
+        super(new THREE.SphereGeometry(1), new THREE.ShaderMaterial({
             name:           'SkyShader',
             fragmentShader: shader.fragmentShader,
             vertexShader:   shader.vertexShader,
-            uniforms:       THREE$1.UniformsUtils.clone(shader.uniforms),
-            side:           THREE$1.BackSide,
+            uniforms:       THREE.UniformsUtils.clone(shader.uniforms),
+            side:           THREE.BackSide,
             depthTest:      false,
             depthWrite:     false
         }));
@@ -3384,9 +3348,9 @@ class SkyObject extends THREE$1.Mesh {
 }
 SkyObject.SkyShader = {
     uniforms: {
-        'uSky':     { value: new THREE$1.Color(0.00, 0.85, 0.80) },
-        'uHorizon': { value: new THREE$1.Color(1.00, 0.75, 0.50) },
-        'uGround':  { value: new THREE$1.Color(0.90, 0.70, 0.50) },
+        'uSky':     { value: new THREE.Color(0.00, 0.85, 0.80) },
+        'uHorizon': { value: new THREE.Color(1.00, 0.75, 0.50) },
+        'uGround':  { value: new THREE.Color(0.90, 0.70, 0.50) },
         'uScale':   { value: SCALE },
     },
     vertexShader: `
@@ -3425,9 +3389,9 @@ SkyObject.SkyShader = {
         }`
 };
 
-const _clearColor = new THREE$1.Color(0xffffff);
+const _clearColor = new THREE.Color(0xffffff);
 const _materialCache = [];
-const _currClearColor = new THREE$1.Color();
+const _currClearColor = new THREE.Color();
 let _emptyScene;
 let _renderer$1;
 class GpuPickerPass extends Pass {
@@ -3447,11 +3411,11 @@ class GpuPickerPass extends Pass {
         this.x = 0;
         this.y = 0;
         this.pickedId = -1;
-        _emptyScene = new THREE$1.Scene();
+        _emptyScene = new THREE.Scene();
         _emptyScene.onAfterRender = renderList;
-        this.pickingTarget = new THREE$1.WebGLRenderTarget(1, 1, {
-            minFilter: THREE$1.NearestFilter, magFilter: THREE$1.NearestFilter,
-            format: THREE$1.RGBAFormat, encoding: THREE$1.LinearEncoding
+        this.pickingTarget = new THREE.WebGLRenderTarget(1, 1, {
+            minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter,
+            format: THREE.RGBAFormat, encoding: THREE.LinearEncoding
         });
         this.pixelBuffer = new Uint8Array(4 * this.pickingTarget.width * this.pickingTarget.height);
         function renderList() {
@@ -3478,9 +3442,9 @@ class GpuPickerPass extends Pass {
             }
             let useSkinning = object.isSkinnedMesh ? 1 : 0;
             let useInstancing = object.isInstancedMesh === true ? 1 : 0;
-            let frontSide = material.side === THREE$1.FrontSide ? 1 : 0;
-            let backSide = material.side === THREE$1.BackSide ? 1 : 0;
-            let doubleSide = material.side === THREE$1.DoubleSide ? 1 : 0;
+            let frontSide = material.side === THREE.FrontSide ? 1 : 0;
+            let backSide = material.side === THREE.BackSide ? 1 : 0;
+            let doubleSide = material.side === THREE.DoubleSide ? 1 : 0;
             let index = (useMorphing << 0) |
                 (useSkinning << 1) |
                 (useInstancing << 2) |
@@ -3489,9 +3453,9 @@ class GpuPickerPass extends Pass {
                 (doubleSide << 5);
             let renderMaterial = _materialCache[index];
             if (! renderMaterial) {
-                renderMaterial = new THREE$1.ShaderMaterial({
+                renderMaterial = new THREE.ShaderMaterial({
                     defines: { USE_MAP: '', USE_UV: '', USE_LOGDEPTHBUF: '', },
-                    vertexShader: THREE$1.ShaderChunk.meshbasic_vert,
+                    vertexShader: THREE.ShaderChunk.meshbasic_vert,
                     fragmentShader: `
                         #include <common>
 
@@ -3529,7 +3493,7 @@ class GpuPickerPass extends Pass {
                 renderMaterial.uniforms = {
                     opacity: { value: 1.0 },
                     map: { value: undefined },
-                    uvTransform: { value: new THREE$1.Matrix3() },
+                    uvTransform: { value: new THREE.Matrix3() },
                     objectId: { value: [1.0, 1.0, 1.0, 1.0] },
                     useMap: { value: 0.0 },
                 };
@@ -3591,19 +3555,19 @@ let _renderer;
 class RenderUtils {
     static offscreenRenderer(width = 512, height = 512) {
         if (_renderer === undefined) {
-            _renderer = new THREE$1.WebGLRenderer({ alpha: true });
+            _renderer = new THREE.WebGLRenderer({ alpha: true });
         }
         _renderer.setClearColor(0xffffff, 0);
         _renderer.setSize(width, height, false);
         return _renderer;
     }
     static renderGeometryToCanvas(canvas, geometry, geometryColor = 0xffffff) {
-        const scene = new THREE$1.Scene();
-        scene.add(new THREE$1.HemisphereLight(0xffffff, 0x202020, 1.5));
-        const camera = new THREE$1.PerspectiveCamera(50, canvas.width / canvas.height);
+        const scene = new THREE.Scene();
+        scene.add(new THREE.HemisphereLight(0xffffff, 0x202020, 1.5));
+        const camera = new THREE.PerspectiveCamera(50, canvas.width / canvas.height);
         camera.position.set(0, 0, 1);
-        const material = new THREE$1.MeshStandardMaterial({ color: geometryColor });
-        const mesh = new THREE$1.Mesh(geometry, material);
+        const material = new THREE.MeshStandardMaterial({ color: geometryColor });
+        const mesh = new THREE.Mesh(geometry, material);
         scene.add(mesh);
         CameraUtils.fitCameraToObject(camera, mesh);
         const renderer = RenderUtils.offscreenRenderer(canvas.width, canvas.height);
@@ -3616,11 +3580,11 @@ class RenderUtils {
         }
     }
     static renderTextureToCanvas(canvas, texture) {
-        const scene = new THREE$1.Scene();
-        const camera = new THREE$1.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-        const material = new THREE$1.MeshBasicMaterial({ map: texture, alphaTest: true });
-        const quad = new THREE$1.PlaneGeometry(2, 2);
-        const mesh = new THREE$1.Mesh(quad, material);
+        const scene = new THREE.Scene();
+        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+        const material = new THREE.MeshBasicMaterial({ map: texture, alphaTest: true });
+        const quad = new THREE.PlaneGeometry(2, 2);
+        const mesh = new THREE.Mesh(quad, material);
         scene.add(mesh);
         const image = texture.image;
         const renderer = RenderUtils.offscreenRenderer(image.width, image.height);
@@ -3648,9 +3612,7 @@ class RenderUtils {
     }
 }
 
-const CAMERA_START_DISTANCE = 5;
-const CAMERA_START_HEIGHT = 0;
-const _renderSize = new THREE$1.Vector2(1, 1);
+const _renderSize = new THREE.Vector2(1, 1);
 class Camera {
     init(data) {
         let camera = undefined;
@@ -3658,17 +3620,29 @@ class Camera {
             case 'perspective':
                 this._tanFOV = Math.tan(((Math.PI / 180) * data.fov / 2));
                 this._windowHeight = (data.fixedSize) ? 1000 : 0;
-                camera = new THREE$1.PerspectiveCamera(data.fov, 1 , data.nearPersp, data.farPersp);
+                let nearPersp = (data.nearPersp <= 0) ? 0.00001 : data.nearPersp;
+                let farPersp = (data.farPersp == 0) ? 0.00001 : data.farPersp;
+                if (farPersp === nearPersp) farPersp += 0.001;
+                camera = new THREE.PerspectiveCamera(data.fov, 1 , nearPersp, farPersp);
                 break;
             case 'orthographic':
-                camera = new THREE$1.OrthographicCamera(data.left, data.right, data.top, data.bottom, data.nearOrtho, data.farOrtho);
+                let nearOrtho = data.nearOrtho;
+                let farOrtho = data.farOrtho;
+                let leftOrtho = data.left;
+                let rightOrtho = data.right;
+                let topOrtho = data.top;
+                let bottomOrtho = data.bottom;
+                if (farOrtho === farOrtho) farOrtho += 0.001;
+                if (rightOrtho === leftOrtho) rightOrtho += 0.001;
+                if (topOrtho === bottomOrtho) topOrtho += 0.001;
+                camera = new THREE.OrthographicCamera(leftOrtho, rightOrtho, topOrtho, bottomOrtho, nearOrtho, farOrtho);
                 break;
             default:
                 console.error(`Camera.init: Invalid camera type '${data.style}'`);
         }
         if (camera && camera.isCamera) {
-            camera.position.set(0, CAMERA_START_HEIGHT, CAMERA_START_DISTANCE);
-            camera.lookAt(0, CAMERA_START_HEIGHT, 0);
+            camera.position.set(0, 0, 0);
+            camera.lookAt(0, 0, 0);
         } else {
             console.log('Error with camera!');
         }
@@ -3696,9 +3670,9 @@ class Camera {
             } else if (this.backend.isOrthographicCamera) {
                 let aspectWidth = 1.0;
                 let aspectHeight = 1.0;
-                this.backend.left =   - width / aspectWidth / 2;
-                this.backend.right =    width / aspectWidth / 2;
-                this.backend.top =      height * aspectHeight / 2;
+                this.backend.left = - width / aspectWidth / 2;
+                this.backend.right = width / aspectWidth / 2;
+                this.backend.top = height * aspectHeight / 2;
                 this.backend.bottom = - height * aspectHeight / 2;
             }
             this.backend.updateProjectionMatrix();
@@ -3711,24 +3685,16 @@ class Camera {
                 data[key] = this.data[key];
             }
         }
-        if (this.backend) {
-            for (let key in data) {
-                let value = this.backend[key];
-                if (value !== undefined) {
-                    data[key] = value;
-                }
-            }
-        }
         return data;
     }
 }
 Camera.config = {
     schema: {
         style: { type: 'select', default: 'perspective', select: [ 'perspective', 'orthographic' ] },
-        nearPersp: { type: 'number', default: 1, if: { style: [ 'perspective' ] } },
-        farPersp: { type: 'number', default: 100000, if: { style: [ 'perspective' ] } },
-        nearOrtho: { type: 'number', default: -50000, if: { style: [ 'orthographic' ] } },
-        farOrtho: { type: 'number', default: 50000, if: { style: [ 'orthographic' ] } },
+        nearPersp: { type: 'number', default: 1, min: 0, step: 0.1, if: { style: [ 'perspective' ] } },
+        farPersp: { type: 'number', default: 500, min: 0, step: 1, if: { style: [ 'perspective' ] } },
+        nearOrtho: { type: 'number', default: -500, step: 1,  if: { style: [ 'orthographic' ] } },
+        farOrtho: { type: 'number', default: 500, step: 1,  if: { style: [ 'orthographic' ] } },
         fov: { type: 'number', default: 58.10, if: { style: [ 'perspective' ] } },
         fixedSize: { type: 'boolean', default: true, if: { style: [ 'perspective' ] } },
         left: { type: 'number', default: -1, if: { style: [ 'orthographic' ] } },
@@ -3745,10 +3711,7 @@ let _x = 0;
 let _y = 0;
 class Geometry {
     init(data) {
-        if (this.backend && this.backend.isBufferGeometry) {
-            this.backend.dispose();
-            this.backend = undefined;
-        }
+        this.dispose();
         if (data.isBufferGeometry) {
             const assetUUID = data.uuid;
             AssetManager.addAsset(data);
@@ -3764,7 +3727,7 @@ class Geometry {
                 }
                 break;
             case 'box':
-                geometry = new THREE$1.BoxGeometry(data.width, data.height, data.depth, data.widthSegments, data.heightSegments, data.depthSegments);
+                geometry = new THREE.BoxGeometry(data.width, data.height, data.depth, data.widthSegments, data.heightSegments, data.depthSegments);
                 break;
             case 'capsule':
                 const capRadiusTop = Maths.clamp(data.radiusTop, 0.1, data.height) / 1.5;
@@ -3778,7 +3741,7 @@ class Geometry {
                 geometry = GeometryUtils.uvMapSphere(geometry, 'v');
                 break;
             case 'circle':
-                geometry = new THREE$1.CircleGeometry(data.radius, data.segments, data.thetaStart, data.thetaLength);
+                geometry = new THREE.CircleGeometry(data.radius, data.segments, data.thetaStart, data.thetaLength);
                 break;
             case 'cone':
                 geometry = new CylinderGeometry(0, data.radius, data.height, data.radialSegments, data.heightSegments, data.openEnded, data.thetaStart, data.thetaLength);
@@ -3798,63 +3761,63 @@ class Geometry {
                 const svgPoints = svgShapes[0].extractPoints(30);
                 const points = [];
                 for (let i = svgPoints.shape.length - 1; i >= 0; i--) {
-                    points.push(new THREE$1.Vector2(svgPoints.shape[i].x * 0.005, svgPoints.shape[i].y * -0.005));
+                    points.push(new THREE.Vector2(svgPoints.shape[i].x * 0.005, svgPoints.shape[i].y * -0.005));
                 }
-                geometry = new THREE$1.LatheGeometry(points, data.segments, 0, data.phiLength);
+                geometry = new THREE.LatheGeometry(points, data.segments, 0, data.phiLength);
                 geometry.center();
                 break;
             case 'plane':
-                geometry = new THREE$1.PlaneGeometry(data.width, data.height, data.widthSegments, data.heightSegments);
+                geometry = new THREE.PlaneGeometry(data.width, data.height, data.widthSegments, data.heightSegments);
                 break;
             case 'platonicSolid':
                 switch (data.polyhedron) {
-                    case 'dodecahedron': geometry = new THREE$1.DodecahedronGeometry(data.radius, data.detail); break;
-                    case 'icosahedron': geometry = new THREE$1.IcosahedronGeometry(data.radius, data.detail); break;
-                    case 'octahedron': geometry = new THREE$1.OctahedronGeometry(data.radius, data.detail); break;
-                    case 'tetrahedron': geometry = new THREE$1.TetrahedronGeometry(data.radius, data.detail); break;
-                    default: geometry = new THREE$1.DodecahedronGeometry(data.radius, data.detail); break;
+                    case 'dodecahedron': geometry = new THREE.DodecahedronGeometry(data.radius, data.detail); break;
+                    case 'icosahedron': geometry = new THREE.IcosahedronGeometry(data.radius, data.detail); break;
+                    case 'octahedron': geometry = new THREE.OctahedronGeometry(data.radius, data.detail); break;
+                    case 'tetrahedron': geometry = new THREE.TetrahedronGeometry(data.radius, data.detail); break;
+                    default: geometry = new THREE.DodecahedronGeometry(data.radius, data.detail); break;
                 }
                 break;
             case 'ring':
-                geometry = new THREE$1.RingGeometry(data.innerRadius, data.outerRadius, data.thetaSegments, data.phiSegments, data.thetaStart, data.thetaLength);
+                geometry = new THREE.RingGeometry(data.innerRadius, data.outerRadius, data.thetaSegments, data.phiSegments, data.thetaStart, data.thetaLength);
                 break;
             case 'roundedBox':
                 geometry = new RoundedBoxGeometry(data.width, data.height, data.depth, data.segments, data.radius);
                 break;
             case 'shape':
-                const shape = data.shapes ?? new THREE$1.Shape([
-                    new THREE$1.Vector2( 64,   8),
-                    new THREE$1.Vector2(  0,  64),
-                    new THREE$1.Vector2(-64,   8),
-                    new THREE$1.Vector2(-32, -64),
-                    new THREE$1.Vector2( 32, -64)
+                const shape = data.shapes ?? new THREE.Shape([
+                    new THREE.Vector2( 64,   8),
+                    new THREE.Vector2(  0,  64),
+                    new THREE.Vector2(-64,   8),
+                    new THREE.Vector2(-32, -64),
+                    new THREE.Vector2( 32, -64)
                 ]);
                 const californiaPts = [];
-                californiaPts.push(new THREE$1.Vector2(610, 320));
-                californiaPts.push(new THREE$1.Vector2(450, 300));
-                californiaPts.push(new THREE$1.Vector2(392, 392));
-                californiaPts.push(new THREE$1.Vector2(266, 438));
-                californiaPts.push(new THREE$1.Vector2(190, 570));
-                californiaPts.push(new THREE$1.Vector2(190, 600));
-                californiaPts.push(new THREE$1.Vector2(160, 620));
-                californiaPts.push(new THREE$1.Vector2(160, 650));
-                californiaPts.push(new THREE$1.Vector2(180, 640));
-                californiaPts.push(new THREE$1.Vector2(165, 680));
-                californiaPts.push(new THREE$1.Vector2(150, 670));
-                californiaPts.push(new THREE$1.Vector2( 90, 737));
-                californiaPts.push(new THREE$1.Vector2( 80, 795));
-                californiaPts.push(new THREE$1.Vector2( 50, 835));
-                californiaPts.push(new THREE$1.Vector2( 64, 870));
-                californiaPts.push(new THREE$1.Vector2( 60, 945));
-                californiaPts.push(new THREE$1.Vector2(300, 945));
-                californiaPts.push(new THREE$1.Vector2(300, 743));
-                californiaPts.push(new THREE$1.Vector2(600, 473));
-                californiaPts.push(new THREE$1.Vector2(626, 425));
-                californiaPts.push(new THREE$1.Vector2(600, 370));
-                californiaPts.push(new THREE$1.Vector2(610, 320));
+                californiaPts.push(new THREE.Vector2(610, 320));
+                californiaPts.push(new THREE.Vector2(450, 300));
+                californiaPts.push(new THREE.Vector2(392, 392));
+                californiaPts.push(new THREE.Vector2(266, 438));
+                californiaPts.push(new THREE.Vector2(190, 570));
+                californiaPts.push(new THREE.Vector2(190, 600));
+                californiaPts.push(new THREE.Vector2(160, 620));
+                californiaPts.push(new THREE.Vector2(160, 650));
+                californiaPts.push(new THREE.Vector2(180, 640));
+                californiaPts.push(new THREE.Vector2(165, 680));
+                californiaPts.push(new THREE.Vector2(150, 670));
+                californiaPts.push(new THREE.Vector2( 90, 737));
+                californiaPts.push(new THREE.Vector2( 80, 795));
+                californiaPts.push(new THREE.Vector2( 50, 835));
+                californiaPts.push(new THREE.Vector2( 64, 870));
+                californiaPts.push(new THREE.Vector2( 60, 945));
+                californiaPts.push(new THREE.Vector2(300, 945));
+                californiaPts.push(new THREE.Vector2(300, 743));
+                californiaPts.push(new THREE.Vector2(600, 473));
+                californiaPts.push(new THREE.Vector2(626, 425));
+                californiaPts.push(new THREE.Vector2(600, 370));
+                californiaPts.push(new THREE.Vector2(610, 320));
                 for (let i = 0; i < californiaPts.length; i++) californiaPts[i].multiplyScalar(0.001);
-                const californiaShape = new THREE$1.Shape(californiaPts);
-                const circleShape = new THREE$1.Shape();
+                const californiaShape = new THREE.Shape(californiaPts);
+                const circleShape = new THREE.Shape();
                 circleShape.absarc(0, 0, 0.5 );
                 const options = {
                     depth: data.depth,
@@ -3865,20 +3828,20 @@ class Geometry {
                     bevelSize: data.bevelSize,
                     bevelSegments: data.bevelSegments,
                 };
-                geometry = new THREE$1.ExtrudeGeometry(circleShape, options);
+                geometry = new THREE.ExtrudeGeometry(circleShape, options);
                 geometry.center();
                 break;
             case 'sphere':
-                geometry = new THREE$1.SphereGeometry(data.radius, data.widthSegments, data.heightSegments, data.phiStart, data.phiLength, data.thetaStart, data.thetaLength);
+                geometry = new THREE.SphereGeometry(data.radius, data.widthSegments, data.heightSegments, data.phiStart, data.phiLength, data.thetaStart, data.thetaLength);
                 break;
             case 'torus':
-                geometry = new THREE$1.TorusGeometry(data.radius, data.tube, data.radialSegments, data.tubularSegments, data.arc);
+                geometry = new THREE.TorusGeometry(data.radius, data.tube, data.radialSegments, data.tubularSegments, data.arc);
                 break;
             case 'torusKnot':
-                geometry = new THREE$1.TorusKnotGeometry(data.radius, data.tube, data.tubularSegments, data.radialSegments, data.p, data.q);
+                geometry = new THREE.TorusKnotGeometry(data.radius, data.tube, data.tubularSegments, data.radialSegments, data.p, data.q);
                 break;
             case 'tube':
-                const heartShape = new THREE$1.Shape()
+                const heartShape = new THREE.Shape()
                     .moveTo(_x + 25, _y + 25)
                     .bezierCurveTo(_x + 25, _y + 25, _x + 20, _y, _x, _y)
                     .bezierCurveTo(_x - 30, _y, _x - 30, _y + 35, _x - 30, _y + 35)
@@ -3892,15 +3855,15 @@ class Geometry {
                     const pointA = arcPoints[i];
                     const pointB = arcPoints[i + 1] || pointA;
                     lines.push(
-                        new THREE$1.LineCurve3(
-                            new THREE$1.Vector3(pointA.x * 0.01, pointA.y * -0.01, 0),
-                            new THREE$1.Vector3(pointB.x * 0.01, pointB.y * -0.01, 0),
+                        new THREE.LineCurve3(
+                            new THREE.Vector3(pointA.x * 0.01, pointA.y * -0.01, 0),
+                            new THREE.Vector3(pointB.x * 0.01, pointB.y * -0.01, 0),
                         ),
                     );
                 }
-                const path3D = new THREE$1.CurvePath();
+                const path3D = new THREE.CurvePath();
                 path3D.curves.push(...lines);
-                geometry = new THREE$1.TubeGeometry(path3D, data.tubularSegments, data.radius, data.radialSegments, data.closed);
+                geometry = new THREE.TubeGeometry(path3D, data.tubularSegments, data.radius, data.radialSegments, data.closed);
                 geometry.center();
                 break;
             default:
@@ -3940,7 +3903,11 @@ class Geometry {
         this.style = data.style;
     }
     dispose() {
-        if (this.backend && this.backend.dispose) this.backend.dispose();
+        const geometry = this.backend;
+        if (geometry && geometry.isBufferGeometry) {
+            this.backend.dispose();
+        }
+        this.backend = undefined;
     }
     enable() {
         if (! this.entity) return;
@@ -4035,7 +4002,7 @@ Geometry.config = {
         phiSegments: { type: 'int', default: 10, min: 1, max: 64, promode: true, if: { style: [ 'ring' ] } },
         thetaSegments: { type: 'int', default: 36, min: 3, max: 128, if: { style: [ 'ring' ] } },
         steps: { type: 'int', alias: 'Depth Segments', default: 8, min: 1, max: 128, promode: true, if: { style: [ 'shape' ] } },
-        bevelEnabled: { type: 'boolean', alias: 'bevel', default: true, if: { style: [ 'shape' ] } },
+        bevelEnabled: { type: 'boolean', alias: 'bevel', default: true, if: { style: [ 'shape' ] }, rebuild: true },
         bevelThickness: { type: 'number', default: 0.1, min: 0, step: 0.01, if: { style: [ 'shape' ], bevelEnabled: [ true ] } },
         bevelSize: { type: 'number', default: 0.1, min: 0, step: 0.01, if: { style: [ 'shape' ], bevelEnabled: [ true ] } },
         bevelSegments: { type: 'int', default: 4, min: 0, max: 64, promode: true, if: { style: [ 'shape' ], bevelEnabled: [ true ] } },
@@ -4054,7 +4021,7 @@ Geometry.config = {
         q: { type: 'number', default: 3, min: 1, max: 128, if: { style: [ 'torusKnot' ] } },
         closed: { type: 'boolean', default: true, if: { style: [ 'tube' ] } },
         modifierDivider: { type: 'divider' },
-        subdivide: { type: 'slider', default: 0, min: 0, max: 5, step: 1, precision: 0 },
+        subdivide: { type: 'slider', default: 0, min: 0, max: 5, step: 1, precision: 0, rebuild: true },
         edgeSplit: { type: 'boolean', default: false, hide: { subdivide: [ 0 ] } },
         uvSmooth: { type: 'boolean', default: false, promode: true, hide: { subdivide: [ 0 ] } },
         flatOnly: { type: 'boolean', default: false, promode: true, hide: { subdivide: [ 0 ] } },
@@ -4074,17 +4041,39 @@ ComponentManager.register('geometry', Geometry);
 
 class Light {
     init(data) {
+        this.dispose();
         let light = undefined;
+        let shadows = false;
         switch (data.style) {
             case 'ambient':
-                light = new THREE$1.AmbientLight(data.color, data.intensity);
+                light = new THREE.AmbientLight(data.color, data.intensity);
                 break;
             case 'directional':
-                light = new THREE$1.DirectionalLight(data.color, data.intensity);
+                light = new THREE.DirectionalLight(data.color, data.intensity);
+                shadows = true;
+                break;
+            case 'hemisphere':
+                light = new THREE.HemisphereLight(data.color, data.groundColor, data.intensity);
+                break;
+            case 'point':
+                light = new THREE.PointLight(data.color, data.intensity, data.distance, data.decay);
+                shadows = true;
+                break;
+            case 'spot':
+                const angle = (Math.PI / 180) * data.angle;
+                light = new THREE.SpotLight(data.color, data.intensity, data.distance, angle, data.penumbra, data.decay);
+                shadows = true;
+                break;
+            default:
+                console.error(`Light: Invalid light type '${data.style}'`);
+        }
+        if (light && light.isLight) {
+            if (shadows) {
+                const SD = 5;
                 light.castShadow = true;
+                light.shadow.bias = data.shadowBias;
                 light.shadow.mapSize.width = 2048;
                 light.shadow.mapSize.height = 2048;
-                const SD = 5;
                 light.shadow.camera.near = 1;
                 light.shadow.camera.far = 500;
                 light.shadow.camera.left = -SD;
@@ -4092,25 +4081,7 @@ class Light {
                 light.shadow.camera.top = SD;
                 light.shadow.camera.bottom = -SD;
                 light.shadow.camera.updateProjectionMatrix();
-                light.shadow.bias = data.shadowBias;
-                break;
-            case 'hemisphere':
-                light = new THREE$1.HemisphereLight(data.color, data.groundColor, data.intensity);
-                break;
-            case 'point':
-                light = new THREE$1.PointLight(data.color, data.intensity, data.distance, data.decay);
-                light.castShadow = true;
-                light.shadow.bias = data.shadowBias;
-                break;
-            case 'spot':
-                light = new THREE$1.SpotLight(data.color, data.intensity, data.distance, data.angle, data.penumbra, data.decay);
-                light.castShadow = true;
-                light.shadow.bias = data.shadowBias;
-                break;
-            default:
-                console.error(`Light: Invalid light type '${data.style}'`);
-        }
-        if (light && light.isLight) {
+            }
         } else {
             console.log('Error with light!');
         }
@@ -4119,7 +4090,12 @@ class Light {
         this.style = data.style;
     }
     dispose() {
-        if (this.backend && this.backend.isLight) this.backend.dispose();
+        const light = this.backend;
+        if (light && light.isLight) {
+            if (light.shadow && light.shadow.map) light.shadow.map.dispose();
+            light.dispose();
+        }
+        this.backend = undefined;
     }
     enable() {
         if (this.entity && this.backend) this.entity.add(this.backend);
@@ -4132,21 +4108,6 @@ class Light {
         for (let key in data) {
             if (this.data[key] !== undefined) {
                 data[key] = this.data[key];
-            }
-        }
-        if (this.backend) {
-            for (let key in data) {
-                let value = this.backend[key];
-                if (value !== undefined) {
-                    if (value && value.isColor) {
-                        data[key] = value.getHex();
-                    } else {
-                        data[key] = value;
-                    }
-                }
-            }
-            if (this.backend.shadow) {
-                data['shadowBias'] = this.backend.shadow.bias;
             }
         }
         return data;
@@ -4169,7 +4130,7 @@ Light.config = {
         ],
         distance: { type: 'number', default: 0, if: { style: [ 'point', 'spot' ] } },
         decay: { type: 'number', default: 1, if: { style: [ 'point', 'spot' ] } },
-        angle: { type: 'number', default: Math.PI / 3, unit: '°', if: { style: [ 'spot' ] } },
+        angle: { type: 'number', default: 45, unit: '°', if: { style: [ 'spot' ] } },
         penumbra: { type: 'number', default: 0, if: { style: [ 'spot' ] } },
         shadowBias: { type: 'number', default: 0, precision: 6, promode: true, if: { style: [ 'directional', 'point', 'spot' ] } }
     },
@@ -4183,10 +4144,7 @@ const sides = [ 'FrontSide', 'BackSide', 'DoubleSide' ];
 const depthPacking = [ 'BasicDepthPacking', 'RGBADepthPacking' ];
 class Material {
     init(data) {
-        if (this.backend && this.backend.isMaterial) {
-            this.backend.dispose();
-            this.backend = undefined;
-        }
+        this.dispose();
         const parameters = {};
         if (data.isMaterial) {
             const assetUUID = data.uuid;
@@ -4219,8 +4177,8 @@ class Material {
             delete parameters['premultiplyAlpha'];
             if (typeof parameters.blending === 'string') parameters.blending = blendingModes.indexOf(parameters.blending);
             if (typeof parameters.side === 'string') parameters.side = sides.indexOf(parameters.side);
-            if (parameters.depthPacking === 'BasicDepthPacking') parameters.depthPacking = THREE$1.BasicDepthPacking;
-            if (parameters.depthPacking === 'RGBADepthPacking') parameters.depthPacking = THREE$1.RGBADepthPacking;
+            if (parameters.depthPacking === 'BasicDepthPacking') parameters.depthPacking = THREE.BasicDepthPacking;
+            if (parameters.depthPacking === 'RGBADepthPacking') parameters.depthPacking = THREE.RGBADepthPacking;
         }
         let material = undefined;
         switch (data.style) {
@@ -4230,23 +4188,23 @@ class Material {
                     material = assetMaterial.clone();
                 }
                 break;
-            case 'basic': material = new THREE$1.MeshBasicMaterial(parameters); break;
-            case 'depth': material = new THREE$1.MeshDepthMaterial(parameters); break;
-            case 'lambert': material = new THREE$1.MeshLambertMaterial(parameters); break;
-            case 'matcap': material = new THREE$1.MeshMatcapMaterial(parameters); break;
-            case 'normal': material = new THREE$1.MeshNormalMaterial(parameters); break;
-            case 'phong': material = new THREE$1.MeshPhongMaterial(parameters); break;
-            case 'physical': material = new THREE$1.MeshPhysicalMaterial(parameters); break;
-            case 'points': material = new THREE$1.PointsMaterial(parameters); break;
-            case 'shader': material = new THREE$1.ShaderMaterial(parameters); break;
-            case 'standard': material = new THREE$1.MeshStandardMaterial(parameters); break;
+            case 'basic': material = new THREE.MeshBasicMaterial(parameters); break;
+            case 'depth': material = new THREE.MeshDepthMaterial(parameters); break;
+            case 'lambert': material = new THREE.MeshLambertMaterial(parameters); break;
+            case 'matcap': material = new THREE.MeshMatcapMaterial(parameters); break;
+            case 'normal': material = new THREE.MeshNormalMaterial(parameters); break;
+            case 'phong': material = new THREE.MeshPhongMaterial(parameters); break;
+            case 'physical': material = new THREE.MeshPhysicalMaterial(parameters); break;
+            case 'points': material = new THREE.PointsMaterial(parameters); break;
+            case 'shader': material = new THREE.ShaderMaterial(parameters); break;
+            case 'standard': material = new THREE.MeshStandardMaterial(parameters); break;
             case 'toon':
-                material = new THREE$1.MeshToonMaterial(parameters);
+                material = new THREE.MeshToonMaterial(parameters);
                 data.gradientSize = Math.min(Math.max(data.gradientSize, 1), 16);
-                const format = (getRenderer().capabilities.isWebGL2) ? THREE$1.RedFormat : THREE$1.LuminanceFormat;
+                const format = (getRenderer().capabilities.isWebGL2) ? THREE.RedFormat : THREE.LuminanceFormat;
                 const colors = new Uint8Array(data.gradientSize + 2);
                 for (let c = 0; c <= colors.length; c++) colors[c] = (c / colors.length) * 256;
-                material.gradientMap = new THREE$1.DataTexture(colors, colors.length, 1, format);
+                material.gradientMap = new THREE.DataTexture(colors, colors.length, 1, format);
                 material.gradientMap.needsUpdate = true;
                 break;
             default:
@@ -4261,7 +4219,11 @@ class Material {
         this.style = data.style;
     }
     dispose() {
-        if (this.backend && this.backend.dispose) this.backend.dispose();
+        const material = this.backend;
+        if (material && material.isMaterial) {
+            material.dispose();
+        }
+        this.backend = undefined;
     }
     enable() {
         this.refreshMesh();
@@ -4281,9 +4243,9 @@ class Material {
         const geometry = geometryComponent.backend;
         if (! geometry) return;
         if (this.style === 'points') {
-            this.mesh = new THREE$1.Points(geometry, material);
+            this.mesh = new THREE.Points(geometry, material);
         } else {
-            this.mesh = new THREE$1.Mesh(geometry, material);
+            this.mesh = new THREE.Mesh(geometry, material);
             this.mesh.castShadow = this.entity.castShadow;
             this.mesh.receiveShadow = this.entity.receiveShadow;
         }
@@ -4325,7 +4287,7 @@ function extendMaterial(material, data = { style: 'basic', premultiplyAlpha: tru
     material.polygonOffsetFactor = 1;
     material.onBeforeCompile = function(shader) {
         if (data.style === 'toon') {
-            shader.uniforms = THREE$1.UniformsUtils.merge([
+            shader.uniforms = THREE.UniformsUtils.merge([
                 shader.uniforms, {
                     uBitDepth: { value: data.gradientSize ?? 4},
                     uEdgeSize: { value: data.edgeSize ?? 6 },
@@ -4417,13 +4379,13 @@ function extendMaterial(material, data = { style: 'basic', premultiplyAlpha: tru
         }
     };
     if (data.premultiplyAlpha) {
-        material.blending = THREE$1.CustomBlending;
-        material.blendEquation = THREE$1.AddEquation;
-        material.blendSrc = THREE$1.OneFactor;
-        material.blendDst = THREE$1.OneMinusSrcAlphaFactor;
-        material.blendEquationAlpha = THREE$1.AddEquation;
-        material.blendSrcAlpha = THREE$1.OneFactor;
-        material.blendDstAlpha = THREE$1.OneMinusSrcAlphaFactor;
+        material.blending = THREE.CustomBlending;
+        material.blendEquation = THREE.AddEquation;
+        material.blendSrc = THREE.OneFactor;
+        material.blendDst = THREE.OneMinusSrcAlphaFactor;
+        material.blendEquationAlpha = THREE.AddEquation;
+        material.blendSrcAlpha = THREE.OneFactor;
+        material.blendDstAlpha = THREE.OneMinusSrcAlphaFactor;
     }
     material.needsUpdate = true;
     return material;
@@ -4496,7 +4458,7 @@ ComponentManager.register('material', Material);
 
 class Mesh {
     init(data) {
-        this.backend = (data.isObject3D) ? data : new THREE$1.Object3D();
+        this.backend = (data.isObject3D) ? data : new THREE.Object3D();
         this.backend.traverse((child) => { child.castShadow = this.entity.castShadow; });
         this.backend.traverse((child) => { child.receiveShadow = this.entity.receiveShadow; });
     }
@@ -4526,4 +4488,4 @@ if (typeof window !== 'undefined') {
     }
 }
 
-export { APP_STATES, App, AssetManager, BACKENDS, BasicLine, BasicWireBox, BasicWireframe, CAMERA_SCALE, CAMERA_START_DISTANCE$1 as CAMERA_START_DISTANCE, CAMERA_START_HEIGHT$1 as CAMERA_START_HEIGHT, CameraUtils, CapsuleGeometry, ComponentManager, CylinderGeometry, ENTITY_FLAGS, ENTITY_TYPES, Entity3D, EntityPool, EntityUtils, FatLine, FatWireBox, FatWireframe, GeometryUtils, GpuPickerPass, HelperObject, Iris, Maths, Object3D, ObjectUtils, PrismGeometry, Project, RenderUtils, SCENE_TYPES, SVGBuilder, Scene3D, SkyObject, Strings, System, VERSION, Vectors, WORLD_TYPES, World3D };
+export { APP_STATES, App, AssetManager, BACKENDS, BasicLine, BasicWireBox, BasicWireframe, CAMERA_SCALE, CAMERA_START_DISTANCE, CAMERA_START_HEIGHT, CameraUtils, CapsuleGeometry, ComponentManager, CylinderGeometry, ENTITY_FLAGS, ENTITY_TYPES, Entity3D, EntityPool, EntityUtils, FatLine, FatWireBox, FatWireframe, GeometryUtils, GpuPickerPass, Iris, Maths, Object3D, ObjectUtils, PrismGeometry, Project, RenderUtils, SCENE_TYPES, SVGBuilder, Scene3D, SkyObject, Strings, System, VERSION, Vectors, WORLD_TYPES, World3D };

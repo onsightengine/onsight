@@ -43,6 +43,6 @@
   "private": false,
   "dependencies": {
     "@dimforge/rapier3d-compat": "0.16.0",
-    "three": ">=0.146.0"
+    "three": ">=0.147.0"
   }
 }

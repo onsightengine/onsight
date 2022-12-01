@@ -23,14 +23,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/onsightengine/onsight.git"
+    "url": "git+https://github.com/scidian/onsight-engine.git"
   },
   "author": "Stephens Nunnally <stephens@scidian.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/onsightengine/issues"
+    "url": "https://github.com/scidian/onsight-engine/issues"
   },
-  "homepage": "https://github.com/onsightengine",
+  "homepage": "https://github.com/scidian/onsight-engine",
   "devDependencies": {
     "javascript-obfuscator": "^4.0.0",
     "jsdoc": "~4.0.0",

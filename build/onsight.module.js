@@ -4,7 +4,7 @@
  * @author      Stephens Nunnally <@stevinz>
  * @version     v0.0.3
  * @license     MIT - Copyright (c) 2021-2022 Stephens Nunnally and Scidian Studios
- * @source      https://github.com/onsightengine/onsight
+ * @source      https://github.com/scidian/onsight-engine
  */
 import * as THREE from 'three';
 import { mergeBufferGeometries } from 'three/addons/utils/BufferGeometryUtils.js';

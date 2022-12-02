@@ -362,7 +362,7 @@ Geometry.config = {
         style: [ { type: 'select', default: 'box', select: [ 'asset', 'box', 'capsule', 'circle', 'cone', 'cylinder', 'lathe', 'plane', 'platonicSolid', 'ring', 'roundedBox', 'shape', 'sphere', 'torus', 'torusKnot', 'tube' ] } ],
 
         // Asset UUID
-        asset: { type: 'asset', if: { style: [ 'asset' ] } },
+        asset: { type: 'asset', class: 'BufferGeometry', if: { style: [ 'asset' ] } },
 
         ///// DIVIDER
         styleDivider: { type: 'divider' },

@@ -148,11 +148,11 @@ class Entity3D extends Object3D {
     /** Returns all components that match all key, value pairs */
     getComponentsWithProperties(/* key, value, key, value, etc. */) {
         let components = [];
-        for (let i = 0, il = this.components.length; i < il; i++) {
+        for (let i = 0; i < this.components.length; i++) {
             const component = this.components[i];
 
             let hasProperties = true;
-            for (let j = 0, jl = arguments.length; j < jl; j += 2) {
+            for (let j = 0; j < arguments.length; j += 2) {
                 if (component[arguments[j]] !== arguments[j+1]) {
                     hasProperties = false;
                     break;

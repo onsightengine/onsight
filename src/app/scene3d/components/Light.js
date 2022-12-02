@@ -82,6 +82,10 @@ class Light {
 
         if (light && light.isLight) {
 
+            // Zero position (some lights set starting position: DirectionalLight, HemisphereLight...)
+            light.position.set(0, 0, 0);
+
+            // Increase shadow detail, default is kinda low
             if (shadows) {
                 const SD = 5;
                 light.castShadow = true;

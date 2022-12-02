@@ -211,7 +211,7 @@ class CameraUtils {
     }
 
     /* Fits camera to object */
-    static fitCameraToObject(camera, object, controls = null, offset = 1.25) {
+    static fitCameraToObject(camera, object, controls = null, offset = 1.25, tilt = false) {
         const boundingBox = new THREE.Box3();
         boundingBox.setFromObject(object);
         const center = boundingBox.getCenter(new THREE.Vector3());
@@ -238,8 +238,10 @@ class CameraUtils {
         camera.updateProjectionMatrix();
 
         camera.position.copy(center);
-        // camera.position.x += distance / 3;
-        // camera.position.y += distance / 3;
+        if (tilt) {
+            camera.position.x += distance / 6;
+            camera.position.y += distance / 6;
+        }
         camera.position.z += distance;
         camera.lookAt(center);
 

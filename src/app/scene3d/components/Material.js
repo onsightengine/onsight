@@ -416,7 +416,7 @@ Material.config = {
         asset: { type: 'asset', class: 'Material', if: { style: [ 'asset' ] } },
 
         color: { type: 'color', if: { style: [ 'basic', 'lambert', 'matcap', 'phong', 'physical', 'points', 'standard', 'toon' ] } },
-        emissive: { type: 'color', default: 0x000000, if: { style: [ 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
+        emissive: { type: 'color', default: 0x000000, promode: true, if: { style: [ 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
         emissiveIntensity: { type: 'slider', default: 1, min: 0, max: 2, promode: true, if: { style: [ 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
 
         opacity: { type: 'slider', default: 1.0, min: 0.0, max: 1.0, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'normal', 'phong', 'physical', 'points', 'standard', 'toon' ] } },

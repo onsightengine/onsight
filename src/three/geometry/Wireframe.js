@@ -173,7 +173,7 @@ class BasicWireBox extends THREE.LineSegments {
     }
 
     updateFromObject(object, matchTransform) {
-        let updateObject = object.clone();
+        const updateObject = object.clone();
 
         // Get object transform info, clear info to compute box
         if (matchTransform) {
@@ -220,6 +220,7 @@ class BasicWireBox extends THREE.LineSegments {
             this.setRotationFromQuaternion(_objQuaternion);
             this.scale.set(_objScale.x, _objScale.y, _objScale.z);
             this.position.set(_objPosition.x, _objPosition.y, _objPosition.z);
+            this.updateMatrix();
         }
 
         this.updateMatrixWorld(true);
@@ -304,7 +305,7 @@ class FatWireBox extends Line2 {
     }
 
     updateFromObject(object, matchTransform) {
-        let updateObject = object.clone();
+        const updateObject = object.clone();
 
         // Get object transform info, clear info to compute box
         if (matchTransform) {
@@ -351,6 +352,7 @@ class FatWireBox extends Line2 {
             this.setRotationFromQuaternion(_objQuaternion);
             this.scale.set(_objScale.x, _objScale.y, _objScale.z);
             this.position.set(_objPosition.x, _objPosition.y, _objPosition.z);
+            this.updateMatrix();
         }
 
         this.updateMatrixWorld(true);

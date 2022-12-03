@@ -87,12 +87,12 @@ class Light {
 
             // Increase shadow detail, default is kinda low
             if (shadows) {
-                const SD = 5;
+                const SD = 10;
                 light.castShadow = true;
                 light.shadow.bias = data.shadowBias;
                 light.shadow.mapSize.width = 2048;      // default:     512
                 light.shadow.mapSize.height = 2048;     // default:     512
-                light.shadow.camera.near = 1;           // default:     0.5
+                light.shadow.camera.near = -500;        // default:     0.5
                 light.shadow.camera.far = 500;          // default:     500
                 light.shadow.camera.left = -SD;         // default:     -5
                 light.shadow.camera.right = SD;         // default:     5

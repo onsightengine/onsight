@@ -166,9 +166,10 @@ class ObjectUtils {
 
     /** Copies world transform from one object to another */
     static copyWorldTransform(source, target, updateMatrix = true) {
-        source.updateWorldMatrix(true, true);
+        source.updateWorldMatrix(true, false);
         source.matrixWorld.decompose(target.position, _tempQuaternion, target.scale);
         target.rotation.setFromQuaternion(_tempQuaternion, undefined, false);
+        target.quaternion.setFromEuler(target.rotation, false);
         if (updateMatrix) target.updateMatrix();
     }
 

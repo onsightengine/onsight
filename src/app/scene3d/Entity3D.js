@@ -183,6 +183,12 @@ class Entity3D extends Object3D {
         }
     }
 
+    traverseComponents(callback) {
+        for (let i = 0; i < this.components.length; i++) {
+            callback(this.components[i]);
+        }
+    }
+
     /////////////////////////////////////////////////////////////////////////////////////
     /////   Parent
     ////////////////////
@@ -280,7 +286,11 @@ class Entity3D extends Object3D {
     }
 
     traverseEntities(callback) {
-        this.traverse((child) => { if (child.isEntity3D) callback(child); });
+        this.traverse((child) => {
+            if (child.isEntity3D) {
+                callback(child);
+            }
+        });
     }
 
     /////////////////////////////////////////////////////////////////////////////////////

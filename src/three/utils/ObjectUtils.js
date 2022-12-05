@@ -21,8 +21,6 @@
 //      countGeometry               Counts total geometris in an object or array of objects
 //      flattenGroup                Puts an object's children into parent, deletes original containing object
 //      resetTransform              Normalize / zero / reset object 3D transform
-//      tempObjectRemoval           Removes temporary children, returns removed objects as array
-//      tempObjectRestore           Restores temporary children
 //
 /////////////////////////////////////////////////////////////////////////////////////
 
@@ -54,7 +52,6 @@ class ObjectUtils {
         let allowSelect = true;
         if (object.userData) {
             if (object.userData.flagLocked) allowSelect = false;
-            if (object.userData.flagTemp) allowSelect = false;
         }
         return allowSelect;
     }
@@ -108,7 +105,11 @@ class ObjectUtils {
         // If object contains single geometry, we might want un-rotated box
         if (checkIfSingleGeometry && ObjectUtils.countGeometry(groupOrArray) === 1) {
             let geomObject = undefined;
-            objects.forEach((object) => { object.traverse((child) => { if (child.geometry) geomObject = child; }); });
+            objects.forEach((object) => {
+                object.traverse((child) => {
+                    if (child.geometry) geomObject = child;
+                });
+            });
 
             // Use unrotated geometry for box
             if (geomObject && geomObject.geometry) {
@@ -173,12 +174,14 @@ class ObjectUtils {
         if (updateMatrix) target.updateMatrix();
     }
 
-    /** Counts total geometris in an object or array of objects */
+    /** Counts total geometries in an object or array of objects */
     static countGeometry(groupOrArray) {
         const objects = (System.isIterable(groupOrArray)) ? groupOrArray : [ groupOrArray ];
         let geometryCount = 0;
         objects.forEach((object) => {
-            object.traverse((child) => { if (child.geometry) geometryCount++; });
+            object.traverse((child) => {
+                if (child.geometry) geometryCount++;
+            });
         });
         return geometryCount;
     }
@@ -196,28 +199,6 @@ class ObjectUtils {
         object.position.set(0, 0, 0);
         object.rotation.set(0, 0, 0);
         object.scale.set(1, 1, 1);
-    }
-
-    /** Removes temporary children, returns removed objects as array */
-    static tempObjectRemoval(object) {
-        const tempObjectArray = [];
-        object.traverse((child) => {
-            if (child.userData && child.userData.flagTemp) {
-                tempObjectArray.push({ object: child, parent: child.parent });
-            }
-        });
-        for (let i = 0; i < tempObjectArray.length; i++) {
-            tempObjectArray[i].object.removeFromParent();
-        }
-        return tempObjectArray;
-    }
-
-    /** Restores temporary children */
-    static tempObjectRestore(tempObjectArray) {
-        for (let i = 0; i < tempObjectArray.length; i++) {
-            const tempObject = tempObjectArray[i];
-            tempObject.parent.attach(tempObject.object);
-        }
     }
 
 }

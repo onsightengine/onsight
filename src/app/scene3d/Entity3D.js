@@ -11,7 +11,6 @@
 //  Object3D.userData
 //      Flags
 //          userData.flagLocked         Locked in Editor (do not allow selection, deletion, or duplication)
-//          userData.flagTemp           Object not really in scene, for temporary (editor) use only
 //
 //      Internal
 //          userData.entityId           Used for transform controls to link a transform clone with original entity
@@ -423,6 +422,7 @@ class Entity3D extends Object3D {
         return this;
     }
 
+    /** Coverts Entity to JSON, NOTE: Any NON-entity children (Object3D only) are NOT included! */
     toJSON() {
         const json = {
             object: {

@@ -59,24 +59,17 @@ class GpuPickerPass extends Pass {
         const refreshScene = new THREE.Scene();
         const refreshCamera = new THREE.Camera();
 
-        // Sprite Texture
-        function getSpriteMaterial(color, text = null) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 64;
-            canvas.height = 64;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = 'rgb(255,255,255)';
-
-            // Circle
-            ctx.beginPath();
-            ctx.arc(32, 32, 24, 0, 2 * Math.PI);
-            ctx.closePath();
-            ctx.fill();
-
-            return new THREE.CanvasTexture(canvas);
-        }
-
-        this.spriteMap = getSpriteMaterial();
+        // Sprite Texture (circle)
+        const spriteCanvas = document.createElement('canvas');
+        spriteCanvas.width = 64;
+        spriteCanvas.height = 64;
+        const ctx = spriteCanvas.getContext('2d');
+        ctx.fillStyle = 'rgb(255,255,255)';
+        ctx.beginPath();
+        ctx.arc(32, 32, 24, 0, 2 * Math.PI);
+        ctx.closePath();
+        ctx.fill();
+        this.spriteMap = new THREE.CanvasTexture(spriteCanvas);
 
         // We need to be inside of .render in order to call renderBufferDirect in renderList() so,
         // create empty scene and use the onAfterRender callback to actually render geometry for picking
@@ -228,7 +221,7 @@ class GpuPickerPass extends Pass {
                 renderMaterial.color.r = (objId >> 0 & 255) / 255;
                 renderMaterial.color.g = (objId >> 8 & 255) / 255;
                 renderMaterial.color.b = (objId >> 16 & 255) / 255;
-                renderMaterial.map = self.spriteMap; //material.map;
+                renderMaterial.map = self.spriteMap; // material.map;
 
             // Shader Material
             } else {
@@ -270,6 +263,7 @@ class GpuPickerPass extends Pass {
     dispose() {
         this.pickingTarget.dispose();
         this.spriteMap.dispose();
+        console.warn('GpuPickerPass: Instance was disposed!');
     }
 
     render(renderer, writeBuffer, readBuffer /*, deltaTime, maskActive */) {

@@ -37,13 +37,13 @@ class Scene3D extends Entity3D {
         this.overrideMaterial = null;
         this.autoUpdate = true;             // checked by the renderer
 
-        // Shadow Plane (temp object)
+        // Shadow Plane (added as Object3D, NOT saved)
         this.shadowPlane = new THREE.Mesh(
             new THREE.PlaneGeometry(100000, 100000),
             new THREE.ShadowMaterial({ color: 0, transparent: true, opacity: 0.2, depthWrite: false })
         );
         this.shadowPlane.name = 'ShadowPlane';
-        this.shadowPlane.userData.flagTemp = true;
+        this.shadowPlane.userData.flagLocked = true;
         this.shadowPlane.rotation.x = - Math.PI / 2;
         this.shadowPlane.castShadow = false;
         this.shadowPlane.receiveShadow = true;

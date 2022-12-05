@@ -41,7 +41,6 @@ export const WORLD_TYPES = {
 
 export const ENTITY_FLAGS = {
     LOCKED:         'flagLocked',
-    TEMP:           'flagTemp',
 }
 
 ///// States

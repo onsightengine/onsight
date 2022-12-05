@@ -115,7 +115,7 @@ class Project {
         const entities = scene.getEntities();
         for (let i = entities.length - 1; i >= 0; i--) {
             scene.removeEntity(entities[i], true);
-            entities[i].destroy();
+            entities[i].dispose();
         }
 
         // Remove from 'scenes'

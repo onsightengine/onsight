@@ -37,7 +37,7 @@ class EntityPool {
     }
 
     recycle(entity) {
-        entity.destroy();
+        entity.dispose();
         this.entities.push(entity);
     }
 

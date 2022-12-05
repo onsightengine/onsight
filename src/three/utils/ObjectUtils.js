@@ -215,7 +215,7 @@ class ObjectUtils {
     /** Restores temporary children */
     static tempObjectRestore(tempObjectArray) {
         for (let i = 0; i < tempObjectArray.length; i++) {
-            let tempObject = tempObjectArray[i];
+            const tempObject = tempObjectArray[i];
             tempObject.parent.attach(tempObject.object);
         }
     }

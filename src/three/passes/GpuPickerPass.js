@@ -55,6 +55,29 @@ class GpuPickerPass extends Pass {
         this.y = 0;                                 // Mouse y location to perform pick
         this.pickedId = -1;                         // Returns object id
 
+        // For rendering off screen to force WebGLRenderer to 'refreshProgram' for Sprites
+        const refreshScene = new THREE.Scene();
+        const refreshCamera = new THREE.Camera();
+
+        // Sprite Texture
+        function getSpriteMaterial(color, text = null) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = 'rgb(255,255,255)';
+
+            // Circle
+            ctx.beginPath();
+            ctx.arc(32, 32, 24, 0, 2 * Math.PI);
+            ctx.closePath();
+            ctx.fill();
+
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        this.spriteMap = getSpriteMaterial();
+
         // We need to be inside of .render in order to call renderBufferDirect in renderList() so,
         // create empty scene and use the onAfterRender callback to actually render geometry for picking
         _emptyScene = new THREE.Scene();
@@ -67,8 +90,8 @@ class GpuPickerPass extends Pass {
         });
         this.pixelBuffer = new Uint8Array(4 * this.pickingTarget.width * this.pickingTarget.height); // RGBA is 4 channels
 
-        // This is the magic, these render lists are still filled with valid data. Because of this
-        // we can submit them again for picking and save lots of work!
+        // This is the magic, these render lists are still filled with valid data.
+        // Because of this we can submit them again for picking and save lots of work!
         function renderList() {
             const renderList = _renderer.renderLists.get(self.scene, 0);
             renderList.opaque.forEach(processItem);
@@ -77,133 +100,176 @@ class GpuPickerPass extends Pass {
         }
 
         function processItem(renderItem) {
-            let object = renderItem.object;
+            const object = renderItem.object;
 
             if (! object || ! object.isObject3D) return;
             if (! object.visible) return;
             if (! ObjectUtils.allowSelection(object)) return;
 
-            let objId = object.id;
-            let material = object.material; // renderItem.material;
-            let geometry = object.geometry; // renderItem.geometry;
+            const objId = object.id;
+            const material = object.material; // renderItem.material;
+            const geometry = object.geometry; // renderItem.geometry;
 
             let useMorphing = 0;
-            if (material.morphTargets === true) {
-                if (geometry.isBufferGeometry === true) {
-                    useMorphing = (geometry.morphAttributes?.position?.length > 0) ? 1 : 0;
-                } else if (geometry.isGeometry === true) {
-                    useMorphing = (geometry.morphTargets?.length > 0) ? 1 : 0;
-                }
+            if (material.morphTargets && geometry.isBufferGeometry) {
+                useMorphing = (geometry.morphAttributes.position.length > 0) ? 1 : 0;
             }
 
-            let useSkinning = object.isSkinnedMesh ? 1 : 0;
-            let useInstancing = object.isInstancedMesh === true ? 1 : 0;
-            let frontSide = material.side === THREE.FrontSide ? 1 : 0;
-            let backSide = material.side === THREE.BackSide ? 1 : 0;
-            let doubleSide = material.side === THREE.DoubleSide ? 1 : 0;
-            let index = (useMorphing << 0) |
+            const useSkinning = (object.isSkinnedMesh) ? 1 : 0;
+            const useInstancing = (object.isInstancedMesh === true) ? 1 : 0;
+            const frontSide = (material.side === THREE.FrontSide) ? 1 : 0;
+            const backSide = (material.side === THREE.BackSide) ? 1 : 0;
+            const doubleSide = (material.side === THREE.DoubleSide) ? 1 : 0;
+            const isSprite = (material.isSpriteMaterial) ? 1 : 0;
+
+            const index =
+                (useMorphing << 0) |
                 (useSkinning << 1) |
                 (useInstancing << 2) |
                 (frontSide << 3) |
                 (backSide << 4) |
-                (doubleSide << 5);
+                (doubleSide << 5) |
+                (isSprite << 6);
+
             let renderMaterial = _materialCache[index];
             if (! renderMaterial) {
-                renderMaterial = new THREE.ShaderMaterial({
-                    defines: { USE_MAP: '', USE_UV: '', USE_LOGDEPTHBUF: '', },
 
-                    // For common Three.js shader uniforms, see:
-                    //      https://github.com/mrdoob/three.js/blob/master/src/renderers/shaders/UniformsLib.js
+                if (material.isSpriteMaterial) {
+                    renderMaterial = new THREE.SpriteMaterial({ map: material.map });
 
-                    vertexShader: THREE.ShaderChunk.meshbasic_vert,
+                    renderMaterial.onBeforeCompile = function(shader) {
+                        shader.fragmentShader = shader.fragmentShader.replace(
+                            '#include <map_fragment>', `
+                            #include <map_fragment>
+                            if (sampledDiffuseColor.a < 0.05) discard;
+                            `
+                        );
 
-                    //
-                    // ----- Alternative: Basic Vertex Shader -----
-                    //
-                    // vertexShader: `
-                    //  varying vec2 vUv;
-                    //  void main() {
-                    //      vUv = uv;
-                    //      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-                    //      gl_Position = projectionMatrix * mvPosition;
-                    //  }
-                    // `,
+                        shader.fragmentShader = shader.fragmentShader.replace(
+                            '#include <fog_fragment>', `
+                            #include <fog_fragment>
+                            gl_FragColor = vec4(diffuse.r, diffuse.g, diffuse.b, 1.0);
+                            `
+                        );
+                    }
 
-                    // shader reference
-                    // 		https://github.com/mrdoob/three.js/blob/master/src/renderers/shaders/ShaderLib/meshbasic.glsl.js
+                } else {
+                    renderMaterial = new THREE.ShaderMaterial({
+                        defines: { USE_MAP: '', USE_UV: '', USE_LOGDEPTHBUF: '', },
 
-                    fragmentShader: `
-                        #include <common>
+                        // For common Three.js shader uniforms, see:
+                        //      https://github.com/mrdoob/three.js/blob/master/src/renderers/shaders/UniformsLib.js
 
-                        varying vec2 vUv;
+                        vertexShader: THREE.ShaderChunk.meshbasic_vert,
 
-                        uniform float opacity;
-                        uniform sampler2D map;
-                        uniform vec4 objectId;
-                        uniform float useMap;
+                        //
+                        // ----- Alternative: Simple Vertex Shader -----
+                        //
+                        // vertexShader: `
+                        //  varying vec2 vUv;
+                        //  void main() {
+                        //      vUv = uv;
+                        //      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                        //      gl_Position = projectionMatrix * mvPosition;
+                        //  }
+                        // `,
 
-                        #include <logdepthbuf_pars_fragment>
+                        // shader reference
+                        // 		https://github.com/mrdoob/three.js/blob/master/src/renderers/shaders/ShaderLib/meshbasic.glsl.js
 
-                        void main() {
-                            #include <logdepthbuf_fragment>
+                        fragmentShader: `
+                            #include <common>
 
-                            gl_FragColor = objectId;
+                            varying vec2 vUv;
 
-                            if (opacity < 0.05) discard;
+                            uniform float opacity;
+                            uniform sampler2D map;
+                            uniform vec4 objectId;
+                            uniform float useMap;
 
-                            if (useMap > 0.0) {
-                                vec4 texelColor = texture2D(map, vUv);
-                                if (texelColor.a < 0.05) discard;
+                            #include <logdepthbuf_pars_fragment>
 
-                                ///// To just render normal texture color:
-                                // gl_FragColor = texelColor;
+                            void main() {
+                                #include <logdepthbuf_fragment>
+
+                                gl_FragColor = objectId;
+
+                                if (opacity < 0.05) discard;
+                                if (useMap > 0.0) {
+                                    vec4 texelColor = texture2D(map, vUv);
+                                    if (texelColor.a < 0.05) discard;
+                                }
                             }
-                        }
-                    `,
+                        `,
 
-                    fog: false,
-                    lights: false,
-                });
+                        fog: false,
+                        lights: false,
+                        side: (object.isSprite) ? THREE.DoubleSide : THREE.FrontSide,
+                    });
 
-                // Material Settings
-                renderMaterial.side = material.side;
-                renderMaterial.skinning = useSkinning > 0;
-                renderMaterial.morphTargets = useMorphing > 0;
+                    renderMaterial.uniforms = {
+                        opacity: { value: 1.0 },
+                        map: { value: undefined },
+                        uvTransform: { value: new THREE.Matrix3() },
+                        objectId: { value: [ 1.0, 1.0, 1.0, 1.0 ] },
+                        useMap: { value: 0.0 },
+                    };
 
-                renderMaterial.uniforms = {
-                    opacity: { value: 1.0 },
-                    map: { value: undefined },
-                    uvTransform: { value: new THREE.Matrix3() },
-                    objectId: { value: [1.0, 1.0, 1.0, 1.0] },
-                    useMap: { value: 0.0 },
-                };
+                    renderMaterial.side = material.side;
+                    renderMaterial.skinning = (useSkinning > 0);
+                    renderMaterial.morphTargets = (useMorphing > 0);
+                }
+
                 _materialCache[index] = renderMaterial;
             }
 
-            // Uniforms
-            renderMaterial.uniforms.objectId.value = [
-                (objId >> 24 & 255) / 255,
-                (objId >> 16 & 255) / 255,
-                (objId >> 8 & 255) / 255,
-                (objId & 255) / 255,
-            ];
-            // // Render fully transparent objects to gpu picker
-            // renderMaterial.uniforms.opacity.value = (material.opacity) ? material.opacity : 1.0;
-            renderMaterial.uniforms.useMap.value = 0.0;
-            if (material.map) {
-                renderMaterial.uniforms.useMap.value = 1.0;
-                renderMaterial.uniforms.map.value = material.map;
-            }
-            renderMaterial.uniformsNeedUpdate = true;
+            // Sprite Material
+            if (material.isSpriteMaterial) {
+                renderMaterial.color.r = (objId >> 0 & 255) / 255;
+                renderMaterial.color.g = (objId >> 8 & 255) / 255;
+                renderMaterial.color.b = (objId >> 16 & 255) / 255;
+                renderMaterial.map = self.spriteMap; //material.map;
 
-            // Render Object
-            _renderer.renderBufferDirect(self.camera, null, geometry, renderMaterial, object, null);
+            // Shader Material
+            } else {
+                renderMaterial.uniforms.objectId.value = [
+                    (objId >> 0 & 255) / 255,
+                    (objId >> 8 & 255) / 255,
+                    (objId >> 16 & 255) / 255,
+                    1, // (objId >> 24 & 255) / 255,
+                ];
+
+                // // Opacity, OPTION: Render objects to gpu picker as fully transparent
+                // renderMaterial.uniforms.opacity.value = (material.opacity) ? material.opacity : 1.0;
+
+                renderMaterial.uniforms.useMap.value = 0.0;
+                if (material.map) {
+                    renderMaterial.uniforms.useMap.value = 1.0;
+                    renderMaterial.uniforms.map.value = material.map;
+                }
+
+                // Schedule Uniform Update
+                renderMaterial.uniformsNeedUpdate = true; // NOTE: Only works on ShaderMaterial!!
+            }
+
+            // Render
+            if (object.isSprite) {
+                // By rendering twice, first with a differnt camera, forces renderer to 'refreshMaterial'
+                // Otherwise, SpriteMaterial doesn't seem to refresh uniforms at a regular interval.
+                _renderer.renderBufferDirect(refreshCamera, refreshScene, geometry, renderMaterial, object, null);
+                _renderer.renderBufferDirect(self.camera, self.scene, geometry, renderMaterial, object, null);
+            } else {
+                _renderer.renderBufferDirect(self.camera, self.scene, geometry, renderMaterial, object, null);
+            }
         }
 
     } // end ctor
 
+    //////////////////// Methods
+
     dispose() {
         this.pickingTarget.dispose();
+        this.spriteMap.dispose();
     }
 
     render(renderer, writeBuffer, readBuffer /*, deltaTime, maskActive */) {
@@ -237,7 +303,7 @@ class GpuPickerPass extends Pass {
 
         // Store picked ID
         if (this.needPick) {
-            this.pickedId = (this.pixelBuffer[0] << 24) + (this.pixelBuffer[1] << 16) + (this.pixelBuffer[2] << 8) + this.pixelBuffer[3];
+            this.pickedId = this.pixelBuffer[0] + (this.pixelBuffer[1] << 8) + (this.pixelBuffer[2] << 16);
             this.needPick = false;
         }
     }

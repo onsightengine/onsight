@@ -269,7 +269,7 @@ class Entity3D extends Object3D {
         return undefined;
     }
 
-    /** Removes entity, does not call 'destroy()' on Entity!! */
+    /** Removes entity, does not call 'dispose()' on Entity!! */
     removeEntity(entity, forceDelete = false) {
         if (! entity) return;
 
@@ -293,8 +293,9 @@ class Entity3D extends Object3D {
     }
 
     copyEntity(source, recursive = true) {
+
         // Remove Existing Children / Components
-        this.destroy();
+        this.dispose();
 
         // Backend THREE.Object3D.copy()
         super.copy(source, false);
@@ -339,14 +340,15 @@ class Entity3D extends Object3D {
     }
 
     /////////////////////////////////////////////////////////////////////////////////////
-    /////   Destroy
+    /////   dispose
     ////////////////////
 
-    destroy() {
-        const children = this.getEntities();
+    dispose() {
+        const children = this.children;
         for (let i = 0; i < children.length; i++) {
-            this.removeEntity(children[i], true);
-            children[i].destroy();
+            const child = children[i];
+            this.removeEntity(child, true);
+            if (child.dispose) child.dispose();
         }
 
         while (this.components.length > 0) {
@@ -467,11 +469,11 @@ class Entity3D extends Object3D {
 
         ///// Child Entities
 
-        const children = this.getEntities();
-        if (children.length > 0) {
+        const childEntities = this.getEntities();
+        if (childEntities.length > 0) {
             json.object.entities = [];
-            for (let i = 0; i < children.length; i++) {
-                json.object.entities.push(children[i].toJSON());
+            for (let i = 0; i < childEntities.length; i++) {
+                json.object.entities.push(childEntities[i].toJSON());
             }
         }
 

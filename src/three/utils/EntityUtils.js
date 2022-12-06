@@ -13,7 +13,7 @@
 //      commonEntity                Checks two arrays to see if they have any common entites
 //      compareArrayOfEntities      Checks if two entity arrays hold the same entities (i.e. are the same collections)
 //      containsEntity              Checks array to see if it has an entity (by entity.uuid)
-//      hasGeometry                 Checks if entity contains component that has geometry
+//      containsMesh                Checks if entity contains Mesh
 //      isImportant                 Checks if entity is important and should be protected
 //      parentEntity                Returns parent most entity that is not a Scene
 //      parentScene                 Returns parent scene of an entity
@@ -70,10 +70,10 @@ class EntityUtils {
         return false;
     }
 
-    /** Checks if entity contains component that has geometry */
-    static hasGeometry(entity, recursive = true) {
+    /** Checks if entity contains Mesh */
+    static containsMesh(entity, recursive = true) {
         if (! entity.isEntity) {
-            console.warn(`EntityUtils.hasGeometry: Object was not an Entity!`);
+            console.warn(`EntityUtils.containsMesh: Object was not an Entity!`);
             return false;
         }
 

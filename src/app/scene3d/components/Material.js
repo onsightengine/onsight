@@ -28,6 +28,7 @@ import * as THREE from 'three';
 import { AssetManager } from '../../../app/AssetManager.js';
 import { ComponentManager } from '../../ComponentManager.js';
 import { GeometryUtils } from '../../../three/utils/GeometryUtils.js';
+import { ObjectUtils } from '../../../three/utils/ObjectUtils.js';
 import { Maths } from '../../../core/Maths.js';
 import { System } from '../../../core/System.js';
 
@@ -179,7 +180,11 @@ class Material {
 
     refreshMesh() {
         // Remove current Mesh
-        if (this.entity && this.mesh) this.entity.remove(this.mesh);
+        if (this.entity && this.mesh) {
+            this.entity.remove(this.mesh);
+            ObjectUtils.clearObject(this.mesh);
+            this.mesh = undefined;
+        }
         if (this.enabled !== true) return;
 
         // Get material and geometry (if present)

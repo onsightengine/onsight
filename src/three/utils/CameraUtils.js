@@ -78,7 +78,7 @@ class CameraUtils {
         const camera = new THREE.PerspectiveCamera(
             58.10,      // fov = Field Of View
             1,          // aspect ratio (dummy value)
-            0.10,       // near clipping plane
+            0.01,       // near clipping plane
             1000,       // far clipping plane
         );
 

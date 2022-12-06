@@ -71,17 +71,18 @@ class EntityUtils {
     }
 
     /** Checks if entity contains component that has geometry */
-    static hasGeometry(entity) {
+    static hasGeometry(entity, recursive = true) {
         if (! entity.isEntity) {
             console.warn(`EntityUtils.hasGeometry: Object was not an Entity!`);
             return false;
         }
+
         let hasMesh = false;
         entity.traverseEntities((child) => {
             child.traverseComponents((component) => {
                 hasMesh = hasMesh || (component.mesh && component.mesh.isMesh);
             });
-        });
+        }, recursive);
         return hasMesh;
     }
 

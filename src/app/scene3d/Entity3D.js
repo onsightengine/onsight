@@ -285,12 +285,15 @@ class Entity3D extends Object3D {
         this.remove(entity);
     }
 
-    traverseEntities(callback) {
-        this.traverse((child) => {
-            if (child.isEntity3D) {
-                callback(child);
+    traverseEntities(callback, recursive = true) {
+        callback(this);
+
+        if (recursive) {
+            for (let i = 0; i < this.children.length; i++) {
+                const child = this.children[i];
+                if (child.isEntity3D) child.traverseEntities(callback);
             }
-        });
+        }
     }
 
     /////////////////////////////////////////////////////////////////////////////////////

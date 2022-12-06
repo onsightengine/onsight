@@ -66,7 +66,7 @@ class AssetManager {
                     const bufferGeometry = mergeBufferGeometries([ asset ]);
                     bufferGeometry.name = asset.name;
                     bufferGeometry.uuid = asset.uuid;
-                    asset.dispose();
+                    if (asset.dispose) asset.dispose();
                     asset = bufferGeometry;
                 }
             }
@@ -100,7 +100,7 @@ class AssetManager {
                 }
 
                 // Dispose, Remove
-                if (dispose && asset.dispose === 'function') asset.dispose();
+                if (dispose && asset.dispose) asset.dispose();
                 delete _assets[asset.uuid];
             }
         }

@@ -157,7 +157,9 @@ class BasicWireBox extends THREE.LineSegments {
         // Members
         this._positions = new Float32Array(8 * 3);      // Box data
         this.points = [];                               // To store points
-        for (let i = 0; i < 8; i++) this.points.push(new THREE.Vector3());
+        for (let i = 0; i < 8; i++) {
+            this.points.push(new THREE.Vector3());
+        }
 
         // Apply geometry
         if (object) this.updateFromObject(object, matchTransform);
@@ -195,7 +197,7 @@ class BasicWireBox extends THREE.LineSegments {
         Vectors.sanity(_box.max);
 
         // Assign points
-        let array = this._positions;
+        const array = this._positions;
         array[ 0] = max.x; array[ 1] = max.y; array[ 2] = max.z;
         array[ 3] = min.x; array[ 4] = max.y; array[ 5] = max.z;
         array[ 6] = min.x; array[ 7] = min.y; array[ 8] = max.z;
@@ -289,7 +291,9 @@ class FatWireBox extends Line2 {
         // Members
         this._positions = new Float32Array(8 * 3);      // Box data
         this.points = [];                               // To store points
-        for (let i = 0; i <  8; i++) this.points.push(new THREE.Vector3());
+        for (let i = 0; i <  8; i++) {
+            this.points.push(new THREE.Vector3());
+        }
 
         // Apply geometry
         if (object) this.updateFromObject(object, matchTransform);
@@ -327,7 +331,7 @@ class FatWireBox extends Line2 {
         Vectors.sanity(_box.max);
 
         // Assign points
-        let array = this._positions;
+        const array = this._positions;
         array[ 0] = max.x; array[ 1] = max.y; array[ 2] = max.z;
         array[ 3] = min.x; array[ 4] = max.y; array[ 5] = max.z;
         array[ 6] = min.x; array[ 7] = min.y; array[ 8] = max.z;

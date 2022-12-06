@@ -13,6 +13,7 @@
 //      commonEntity                Checks two arrays to see if they have any common entites
 //      compareArrayOfEntities      Checks if two entity arrays hold the same entities (i.e. are the same collections)
 //      containsEntity              Checks array to see if it has an entity (by entity.uuid)
+//      hasGeometry                 Checks if entity contains component that has geometry
 //      isImportant                 Checks if entity is important and should be protected
 //      parentEntity                Returns parent most entity that is not a Scene
 //      parentScene                 Returns parent scene of an entity
@@ -67,6 +68,22 @@ class EntityUtils {
             }
         }
         return false;
+    }
+
+    /** Checks if entity contains component that has geometry */
+    static hasGeometry(entity) {
+        if (! entity.isEntity) {
+            console.warn(`EntityUtils.hasGeometry: Object was not an Entity!`);
+            return false;
+        }
+        let hasMesh = false;
+        entity.traverseEntities((child) => {
+            child.traverseComponents((component) => {
+                hasMesh = hasMesh || (component.type === 'geometry');
+                hasMesh = hasMesh || (component.type === 'mesh');
+            });
+        });
+        return hasMesh;
     }
 
     /** Checks if entity is important and should be protected */

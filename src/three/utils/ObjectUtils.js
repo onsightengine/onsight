@@ -73,7 +73,7 @@ class ObjectUtils {
 
         if (object.geometry) object.geometry.dispose();
         if (object.material) ObjectUtils.clearMaterial(object.material);
-        if (typeof object.dispose === 'function') object.dispose();
+        if (object.dispose) object.dispose();
 
         while (object.children.length > 0) {
             ObjectUtils.clearObject(object.children[0], true);
@@ -81,6 +81,7 @@ class ObjectUtils {
 
         ObjectUtils.resetTransform(object);
         if (removeFromParent) object.removeFromParent();
+        object = null;
     }
 
     /** Disposes of a material */
@@ -92,7 +93,7 @@ class ObjectUtils {
                 if (! material[prop]) return;
                 if (typeof material[prop].dispose === 'function') material[prop].dispose();
             });
-            material.dispose();
+            if (material.dispose) material.dispose();
         }
     }
 

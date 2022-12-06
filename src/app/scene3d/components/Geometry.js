@@ -102,7 +102,7 @@ class Geometry {
 
             case 'lathe':
                 //
-                // !!!!! TODO: CUSTOM LINE
+                // TODO: CUSTOM LINE
                 //
                 //const points = data.points;
 

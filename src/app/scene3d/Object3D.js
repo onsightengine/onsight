@@ -141,12 +141,12 @@ class Object3D extends THREE.Object3D {
             // // Look Directly at Camera
             // } else if (camera.isPerspectiveCamera) {
             //
-            //     // !!!!! OPTION 1: Look at Camera
+            //     // // OPTION 1: Look at Camera
             //     _lookUpVector.copy(camera.up).applyQuaternion(_camQuaternion);  // Rotate up vector by cam rotation
             //     _m1.lookAt(_camPosition, _worldPosition, _lookUpVector);        // Create look at matrix
             //     _lookQuaternion.setFromRotationMatrix(_m1);
             //
-            //     // !!!!! OPTION 2: Only 'Y' Axis
+            //     // // OPTION 2: Only 'Y' Axis
             //     // _rotationDirection.set(0, 0, 0);
             //     // _rotationDirection.y = Math.atan2((_camPosition.x - _worldPosition.x), (_camPosition.z - _worldPosition.z));
             //     // _lookQuaternion.setFromEuler(_rotationDirection, false);

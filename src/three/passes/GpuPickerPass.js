@@ -266,7 +266,7 @@ class GpuPickerPass extends Pass {
         }
     }
 
-    // !!!!! DEBUG: For debugging, render picker scene
+    /** DEBUG: For debugging, render picker scene */
     renderPickScene(renderer, camera) {
         _renderer = renderer;
 

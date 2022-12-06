@@ -81,7 +81,7 @@ class GeometryUtils {
         let boxSize = new THREE.Vector3();
         geometry.computeBoundingBox();
         geometry.boundingBox.getSize(boxSize);
-        // !!!!! OPTION: Maximum size
+        // // OPTION: Maximum size
         if (type === 'max') {
             return Math.max(boxSize.x, boxSize.y, boxSize.z);
         } else /* 'min' */ {

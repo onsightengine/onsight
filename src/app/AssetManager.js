@@ -126,7 +126,7 @@ class AssetManager {
             // Name from source filename
             newTexture.name = Strings.nameFromUrl(newTexture.image.src);
 
-            // !!!!! DEBUG: Pixel Access
+            // // DEBUG: Pixel Access
             // const canvas = document.createElement('canvas');
             // canvas.width = newTexture.image.width;
             // canvas.height = newTexture.image.height;

@@ -156,7 +156,7 @@ class ComponentManager {
                         case 'color':       property.default = 0xffffff;        break;
                         case 'asset':       property.default = null;            break;
                         case 'map':         property.default = null;            break;
-                        // ------ !!!!! TODO: Below Needs Incorporate Inspector ------
+                        // --------- TODO: Below Needs Incorporate Inspector ---------
                         case 'scroller':    property.default = 0;               break;
                         case 'variable':    property.default = [ 0, 0 ];        break;
                         case 'array':       property.default = [];              break;

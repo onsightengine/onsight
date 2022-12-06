@@ -93,7 +93,7 @@ class App {
             // Set Scene
             this.scene = project.getFirstScene();
 
-            // !!!!! TEMP: Set Camera
+            // // TEMP: Set Camera
             // this.setCamera(loader.parse(json.camera));
             this.setCamera(CameraUtils.createPerspective(500, 500, true));
             camera.position.x = 0;

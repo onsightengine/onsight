@@ -46,6 +46,8 @@ class Object3D extends THREE.Object3D {
     constructor() {
         super();
 
+        this.isObject3DOverload = true;
+
         const rotation = new THREE.Euler();
         const quaternion = new THREE.Quaternion();
 
@@ -69,14 +71,26 @@ class Object3D extends THREE.Object3D {
 
     //////////////////// Copy
 
+    clone(recursive) {
+		return new this.constructor().copy(this, recursive);
+	}
+
     copy(source, recursive = true) {
         // Base three.js Object3D.copy()
-        super.copy(source, recursive);
+        super.copy(source, false /* recursive, overloadede */);
 
         // Override copy transform, apply new updateMAtrix()
         ObjectUtils.copyLocalTransform(source, this, false /* updateMatrix */);
         this.lookAtCamera = source.lookAtCamera;
         this.updateMatrix();
+
+        // Copy Children
+        if (recursive === true) {
+			for (let i = 0; i < source.children.length; i++) {
+                const clone = source.children[i].clone()
+				this.add(clone);
+			}
+		}
 
         return this;
     }

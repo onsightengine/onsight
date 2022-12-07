@@ -332,7 +332,7 @@ class Entity3D extends Object3D {
             const component = components[i];
 
             // Add Component Clone
-            let clonedComponent = this.addComponent(component.type, component.toJSON(), false);
+            const clonedComponent = this.addComponent(component.type, component.toJSON(), false);
 
             // Copy Component Properties
             clonedComponent.tag = component.tag;

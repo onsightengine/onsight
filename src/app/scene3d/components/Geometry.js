@@ -25,7 +25,7 @@ import { AssetManager } from '../../../app/AssetManager.js';
 import { CapsuleGeometry } from '../../../three/geometry/CapsuleGeometry.js';
 import { ComponentManager } from '../../ComponentManager.js';
 import { CylinderGeometry } from '../../../three/geometry/CylinderGeometry.js';
-import { GeometryUtils } from '../../../three/utils/GeometryUtils.js';
+import { GeometryUtils } from '../../../three/GeometryUtils.js';
 import { Maths } from '../../../core/Maths.js';
 
 ///// Local Variables

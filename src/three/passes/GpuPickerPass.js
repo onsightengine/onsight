@@ -17,7 +17,7 @@ import * as THREE from 'three';
 
 import { Pass } from 'three/addons/postprocessing/Pass.js';
 
-import { ObjectUtils } from '../utils/ObjectUtils.js';
+import { ObjectUtils } from '../ObjectUtils.js';
 
 ///// Local Variables
 

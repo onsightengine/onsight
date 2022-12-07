@@ -26,8 +26,8 @@
 
 import * as THREE from 'three';
 
-import { Maths } from '../../core/Maths.js';
-import { System } from '../../core/System.js';
+import { Maths } from '../core/Maths.js';
+import { System } from '../core/System.js';
 
 ///// Local Variables
 

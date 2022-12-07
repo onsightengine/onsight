@@ -22,7 +22,7 @@ import * as THREE from 'three';
 import { ENTITY_FLAGS } from '../../constants.js';
 
 import { ComponentManager } from '../../app/ComponentManager.js';
-import { EntityUtils } from '../../three/utils/EntityUtils.js';
+import { EntityUtils } from '../../three/EntityUtils.js';
 import { Object3D } from './Object3D.js';
 import { Strings } from '../../core/Strings.js';
 
@@ -308,8 +308,8 @@ class Entity3D extends Object3D {
         // Remove Existing Children / Components
         this.dispose();
 
-        // Backend THREE.Object3D.copy()
-        super.copy(source, false);
+        // Backend ONE.Object3D.copy()
+        super.copy(source, false /* recursive */);
 
         // Copy Properties, Basic
         this.name = source.name;
@@ -343,7 +343,7 @@ class Entity3D extends Object3D {
             const entities = source.getEntities();
             for (let i = 0; i < entities.length; i++) {
                 const entity = entities[i];
-                this.add(entity.cloneEntity(true));
+                this.add(entity.cloneEntity(recursive));
             }
         }
 

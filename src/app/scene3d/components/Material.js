@@ -27,8 +27,8 @@ import * as THREE from 'three';
 
 import { AssetManager } from '../../../app/AssetManager.js';
 import { ComponentManager } from '../../ComponentManager.js';
-import { GeometryUtils } from '../../../three/utils/GeometryUtils.js';
-import { ObjectUtils } from '../../../three/utils/ObjectUtils.js';
+import { GeometryUtils } from '../../../three/GeometryUtils.js';
+import { ObjectUtils } from '../../../three/ObjectUtils.js';
 import { Maths } from '../../../core/Maths.js';
 import { System } from '../../../core/System.js';
 

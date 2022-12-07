@@ -18,8 +18,8 @@ import * as THREE from 'three';
 
 import { APP_STATES, BACKENDS } from '../constants.js';
 
-import { CameraUtils } from '../three/utils/CameraUtils.js';
-import { ObjectUtils } from '../three/utils/ObjectUtils.js';
+import { CameraUtils } from '../three/CameraUtils.js';
+import { ObjectUtils } from '../three/ObjectUtils.js';
 import { Project } from './Project.js';
 import { System } from '../core/System.js';
 

@@ -15,7 +15,7 @@
 
 import * as THREE from 'three';
 
-import { ObjectUtils } from '../../three/utils/ObjectUtils.js';
+import { ObjectUtils } from '../../three/ObjectUtils.js';
 
 ///// Local Variables
 
@@ -77,7 +77,7 @@ class Object3D extends THREE.Object3D {
 
     copy(source, recursive = true) {
         // Base three.js Object3D.copy()
-        super.copy(source, false /* recursive, overloadede */);
+        super.copy(source, false /* recursive */);
 
         // Override copy transform, apply new updateMAtrix()
         ObjectUtils.copyLocalTransform(source, this, false /* updateMatrix */);

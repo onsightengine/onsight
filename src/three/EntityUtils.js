@@ -81,6 +81,7 @@ class EntityUtils {
         entity.traverseEntities((child) => {
             child.traverseComponents((component) => {
                 hasMesh = hasMesh || (component.mesh && component.mesh.isMesh);
+                hasMesh = hasMesh || (component.mesh && component.mesh.isPoints);
             });
         }, recursive);
         return hasMesh;

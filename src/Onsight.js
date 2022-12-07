@@ -16,7 +16,7 @@ export * from './constants.js';
 
 ///// Camera Constants
 
-export { CAMERA_SCALE, CAMERA_START_DISTANCE, CAMERA_START_HEIGHT } from './three/utils/CameraUtils.js'
+export { CAMERA_SCALE, CAMERA_START_DISTANCE, CAMERA_START_HEIGHT } from './three/CameraUtils.js'
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////   Onsight Classes
@@ -67,11 +67,11 @@ export { GpuPickerPass } from './three/passes/GpuPickerPass.js';
 
 ///// Three, Utils
 
-export { CameraUtils } from './three/utils/CameraUtils.js';
-export { EntityUtils } from './three/utils/EntityUtils.js';
-export { GeometryUtils } from './three/utils/GeometryUtils.js';
-export { ObjectUtils } from './three/utils/ObjectUtils.js';
-export { RenderUtils } from './three/utils/RenderUtils.js';
+export { CameraUtils } from './three/CameraUtils.js';
+export { EntityUtils } from './three/EntityUtils.js';
+export { GeometryUtils } from './three/GeometryUtils.js';
+export { ObjectUtils } from './three/ObjectUtils.js';
+export { RenderUtils } from './three/RenderUtils.js';
 
 ///// Register Components (files self register w/Component Manager on import)
 

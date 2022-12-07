@@ -42,7 +42,6 @@ class Entity3D extends Object3D {
         // Properties, Basic
         this.name = name;
         this.type = 'Entity3D';
-        this.project = null;
 
         // Properties, More
         this.enabled = true;

@@ -124,7 +124,7 @@ class ObjectUtils {
             }
         }
 
-        // Expand using geometries
+        // Expand from geometries
         objects.forEach(object => targetBox.expandByObject(object));
         return targetBox;
     }

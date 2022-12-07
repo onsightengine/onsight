@@ -10,6 +10,7 @@
 //
 //  Object3D.userData
 //      Flags
+//          userData.flagIgnore         Ignore object during selction, focus, saving, etc. (for Editor)
 //          userData.flagLocked         Locked in Editor (do not allow selection, deletion, or duplication)
 //
 //      Internal

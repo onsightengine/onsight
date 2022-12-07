@@ -43,6 +43,7 @@ class Scene3D extends Entity3D {
             new THREE.ShadowMaterial({ color: 0, transparent: true, opacity: 0.2, depthWrite: false })
         );
         this.shadowPlane.name = 'ShadowPlane';
+        this.shadowPlane.userData.flagIgnore = true;
         this.shadowPlane.userData.flagLocked = true;
         this.shadowPlane.rotation.x = - Math.PI / 2;
         this.shadowPlane.castShadow = false;

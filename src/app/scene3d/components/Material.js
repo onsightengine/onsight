@@ -226,7 +226,7 @@ class Material {
         }
 
         ///// NOTE: Adding backend mesh into Project as Object3D only.
-        //          Mesh will not be exported, shown in SceneTree, etc.
+        //          Mesh will not be exported, shown in Outliner, etc.
         if (this.entity && this.mesh) this.entity.add(this.mesh);
     }
 

@@ -40,6 +40,7 @@ export const WORLD_TYPES = {
 ///// Flags
 
 export const ENTITY_FLAGS = {
+    IGNORE:         'flagIgnore',
     LOCKED:         'flagLocked',
 }
 

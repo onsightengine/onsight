@@ -1,5 +1,5 @@
 <div align="center">
-<img src="./assets/logo/eye256.png" alt="Onsight Engine"/>
+<img src="./files/logo/eye256.png" alt="Onsight Engine"/>
 
 <br>
 

@@ -26,8 +26,8 @@
 
 import * as THREE from 'three';
 
-import { Maths } from '../core/Maths.js';
-import { System } from '../core/System.js';
+import { MathUtils } from '../math/MathUtils.js';
+import { System } from '../sys/System.js';
 
 ///// Local Variables
 
@@ -63,7 +63,7 @@ class ObjectUtils {
         array[0].getWorldQuaternion(_startQuaternion);
         for (let i = 1; i < array.length; i++) {
             array[i].getWorldQuaternion(_testQuaternion);
-            if (Maths.fuzzyQuaternion(_startQuaternion, _testQuaternion) === false) return false;
+            if (MathUtils.fuzzyQuaternion(_startQuaternion, _testQuaternion) === false) return false;
         }
         return true;
     }

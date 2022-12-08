@@ -93,9 +93,9 @@
 
 import * as THREE from 'three';
 
-import { Maths } from '../core/Maths.js';
-import { Strings } from '../core/Strings.js';
-import { System } from '../core/System.js';
+import { MathUtils } from '../math/MathUtils.js';
+import { Strings } from '../sys/Strings.js';
+import { System } from '../sys/System.js';
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////   Component Manager
@@ -312,7 +312,7 @@ class ComponentManager {
                     data[schemaKey] = itemToInclude.default;
                 }
 
-                if (Maths.isNumber(data[schemaKey])) {
+                if (MathUtils.isNumber(data[schemaKey])) {
                     const min = itemToInclude['min'] ?? -Infinity;
                     const max = itemToInclude['max'] ??  Infinity;
                     if (data[schemaKey] < min) data[schemaKey] = min;

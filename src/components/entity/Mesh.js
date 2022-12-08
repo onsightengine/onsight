@@ -15,7 +15,7 @@
 
 import * as THREE from 'three';
 
-import { ComponentManager } from '../../ComponentManager.js';
+import { ComponentManager } from '../ComponentManager.js';
 
 ///// Component
 

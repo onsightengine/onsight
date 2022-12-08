@@ -10,7 +10,7 @@
 
 import * as THREE from 'three';
 
-import { AssetManager } from '../../app/AssetManager.js';
+import { AssetManager } from '../assets/AssetManager.js';
 import { Entity3D } from './Entity3D.js';
 
 /////////////////////////////////////////////////////////////////////////////////////

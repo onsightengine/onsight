@@ -15,9 +15,9 @@
 
 import * as THREE from 'three';
 
-import { Body, Material } from '../../../../libs/cannon-es.js';
+import { Body, Material } from '../../../libs/cannon-es.js';
 
-import { ComponentManager } from '../../../ComponentManager.js';
+import { ComponentManager } from '../../ComponentManager.js';
 
 const styles = [ 'dynamic', 'static', 'kinematic' ];
 const indexedTypes = [ undefined, 'dynamic', 'static', undefined, 'kinematic' ];

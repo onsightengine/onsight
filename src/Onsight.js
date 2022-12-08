@@ -25,29 +25,42 @@ export { CAMERA_SCALE, CAMERA_START_DISTANCE, CAMERA_START_HEIGHT } from './thre
 ///// App
 
 export { App } from './app/App.js';
-export { AssetManager } from './app/AssetManager.js';
-export { ComponentManager } from './app/ComponentManager.js';
 export { EntityPool } from './app/EntityPool.js';
-export { Project } from './app/Project.js';
 
-///// App, Project, Scene3D
+///// Assets
 
-export { Entity3D } from './app/scene3d/Entity3D.js';
-export { Object3D } from './app/scene3d/Object3D.js';
-export { Scene3D } from './app/scene3d/Scene3D.js';
-export { World3D } from './app/scene3d/World3D.js';
+export { AssetManager } from './assets/AssetManager.js';
+export { Script } from './assets/script/Script.js';
 
-///// App, Project, Scene3D, Builders
+///// Components
 
-export { SVGBuilder } from './app/scene3d/builders/SVGBuilder.js';
+export { ComponentManager } from './components/ComponentManager.js';
 
-///// Core
+///// Math
 
-export { Iris } from './core/Iris.js';
-export { Maths } from './core/Maths.js';
-export { Strings } from './core/Strings.js';
-export { System } from './core/System.js';
-export { Vectors } from './core/Vectors.js';
+export { Iris } from './math/Iris.js';
+export { MathUtils } from './math/MathUtils.js';
+export { Vectors } from './math/Vectors.js';
+
+///// Project
+
+export { Project } from './project/Project.js';
+
+///// Scene3D
+
+export { Entity3D } from './scene3d/Entity3D.js';
+export { Object3D } from './scene3d/Object3D.js';
+export { Scene3D } from './scene3d/Scene3D.js';
+export { World3D } from './scene3d/World3D.js';
+
+///// Scene3D, Builders
+
+export { SVGBuilder } from './scene3d/builders/SVGBuilder.js';
+
+///// Sys
+
+export { Strings } from './sys/Strings.js';
+export { System } from './sys/System.js';
 
 ///// Three, Geometry
 
@@ -73,15 +86,21 @@ export { GeometryUtils } from './three/GeometryUtils.js';
 export { ObjectUtils } from './three/ObjectUtils.js';
 export { RenderUtils } from './three/RenderUtils.js';
 
-///// Register Components (files self register w/Component Manager on import)
+/////////////////////////////////////////////////////////////////////////////////////
+/////   Register Components
+/////////////////////////////////////////////////////////////////////////////////////
 
-import './app/scene3d/components/Camera.js';
-import './app/scene3d/components/Geometry.js';
-import './app/scene3d/components/Light.js';
-import './app/scene3d/components/Material.js';
-import './app/scene3d/components/Mesh.js';
+///// Entity
 
-///// Single Import
+import './components/entity/Camera.js';
+import './components/entity/Geometry.js';
+import './components/entity/Light.js';
+import './components/entity/Material.js';
+import './components/entity/Mesh.js';
+
+/////////////////////////////////////////////////////////////////////////////////////
+/////   Single Import
+/////////////////////////////////////////////////////////////////////////////////////
 
 if (typeof window !== 'undefined') {
     if (window.__ONSIGHT__) {

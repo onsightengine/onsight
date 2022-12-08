@@ -18,10 +18,10 @@ import * as THREE from 'three';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 
 import { Entity3D } from '../Entity3D.js';
-import { GeometryUtils } from '../../../three/GeometryUtils.js';
-import { ObjectUtils } from '../../../three/ObjectUtils.js';
-import { Strings } from '../../../core/Strings.js';
-import { Vectors } from '../../../core/Vectors.js';
+import { GeometryUtils } from '../../three/GeometryUtils.js';
+import { ObjectUtils } from '../../three/ObjectUtils.js';
+import { Strings } from '../../sys/Strings.js';
+import { Vectors } from '../../math/Vectors.js';
 
 ///// Local Variables
 

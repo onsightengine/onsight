@@ -40,7 +40,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////////////
 
-class Maths {
+class MathUtils {
 
     //////////////////// Angles
 
@@ -60,15 +60,15 @@ class Maths {
     }
 
     static fuzzyVector(a, b, tolerance = 0.001) {
-        if (Maths.fuzzyFloat(a.x, b.x, tolerance) === false) return false;
-        if (Maths.fuzzyFloat(a.y, b.y, tolerance) === false) return false;
-        if (Maths.fuzzyFloat(a.z, b.z, tolerance) === false) return false;
+        if (MathUtils.fuzzyFloat(a.x, b.x, tolerance) === false) return false;
+        if (MathUtils.fuzzyFloat(a.y, b.y, tolerance) === false) return false;
+        if (MathUtils.fuzzyFloat(a.z, b.z, tolerance) === false) return false;
         return true;
     }
 
     static fuzzyQuaternion(a, b, tolerance = 0.001) {
-        if (Maths.fuzzyVector(a, b, tolerance) === false) return false;
-        if (Maths.fuzzyFloat(a.w, b.w, tolerance) === false) return false;
+        if (MathUtils.fuzzyVector(a, b, tolerance) === false) return false;
+        if (MathUtils.fuzzyFloat(a.w, b.w, tolerance) === false) return false;
         return true;
     }
 
@@ -84,7 +84,7 @@ class Maths {
 
     /** http://www.rorydriscoll.com/2016/03/07/frame-rate-independent-damping-using-lerp/ */
     static damp(x, y, lambda, dt) {
-	    return Maths.lerp(x, y, 1 - Math.exp(- lambda * dt));
+	    return MathUtils.lerp(x, y, 1 - Math.exp(- lambda * dt));
     }
 
     /** https://en.wikipedia.org/wiki/Linear_interpolation */
@@ -129,7 +129,7 @@ class Maths {
     static lineCollision(x1, y1, x2, y2, x3, y3, x4, y4) {
         // Calculate the direction of the lines
         let denom = ((y4 - y3) * (x2 - x1)) - ((x4 - x3) * (y2 - y1));
-        if (Maths.fuzzyFloat(denom, 0, 0.0000001)) return false;
+        if (MathUtils.fuzzyFloat(denom, 0, 0.0000001)) return false;
         let ua = (((x4 - x3) * (y1 - y3)) - ((y4 - y3) * (x1 - x3))) / denom;
         let ub = (((x2 - x1) * (y1 - y3)) - ((y2 - y1) * (x1 - x3))) / denom;
 
@@ -144,10 +144,10 @@ class Maths {
 
     /** Checks if a line is intersecting a rectangle */
     static lineRectCollision(x1, y1, x2, y2, left, top, right, down) {
-        const rectLeft =    Maths.lineCollision(x1, y1, x2, y2, left, top, left, down);
-        const rectRight =   Maths.lineCollision(x1, y1, x2, y2, right, top, right, down);
-        const rectTop =     Maths.lineCollision(x1, y1, x2, y2, left, top, right, top);
-        const rectDown =    Maths.lineCollision(x1, y1, x2, y2, left, down, right, down);
+        const rectLeft =    MathUtils.lineCollision(x1, y1, x2, y2, left, top, left, down);
+        const rectRight =   MathUtils.lineCollision(x1, y1, x2, y2, right, top, right, down);
+        const rectTop =     MathUtils.lineCollision(x1, y1, x2, y2, left, top, right, top);
+        const rectDown =    MathUtils.lineCollision(x1, y1, x2, y2, left, down, right, down);
         return (rectLeft || rectRight || rectTop || rectDown);
     }
 
@@ -165,4 +165,4 @@ class Maths {
 
 }
 
-export { Maths };
+export { MathUtils };

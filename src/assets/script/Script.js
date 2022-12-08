@@ -15,7 +15,6 @@
 class Script {
 
     constructor() {
-        super();
 
         // Prototype
         this.isScript = true;
@@ -41,6 +40,7 @@ class Script {
             '\n\n\n' +
             '// Example pointer event\n' +
             'function pointermove(event) {\n\t\n}';
+
     }
 
 }

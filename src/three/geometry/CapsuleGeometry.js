@@ -10,7 +10,7 @@
 ///////////////////////////////////////////////////////////////////////////////////*/
 
 import * as THREE from 'three';
-import { Maths } from '../../core/Maths.js';
+import { MathUtils } from '../../math/MathUtils.js';
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////   CapsuleGeometry
@@ -38,8 +38,8 @@ class CapsuleGeometry extends THREE.BufferGeometry {
         radiusBottom = radiusBottom !== undefined ? radiusBottom : 1;
         height = height !== undefined ? height : 2;
 
-        radiusTop = Maths.clamp(radiusTop, 0.001, height);
-        radiusBottom = Maths.clamp(radiusBottom, 0.001, height);
+        radiusTop = MathUtils.clamp(radiusTop, 0.001, height);
+        radiusBottom = MathUtils.clamp(radiusBottom, 0.001, height);
         if (height < 0.001) height = 0.001;
 
         radialSegments = Math.floor(radialSegments) || 12;

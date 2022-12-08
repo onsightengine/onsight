@@ -29,7 +29,7 @@
 
 import * as THREE from 'three';
 
-import { Vectors } from '../core/Vectors.js';
+import { Vectors } from '../math/Vectors.js';
 
 ///// Local Variables
 

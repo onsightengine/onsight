@@ -20,12 +20,12 @@
 
 import * as THREE from 'three';
 
-import { ENTITY_FLAGS } from '../constants.js';
+import { ENTITY_FLAGS } from '../../constants.js';
 
-import { ComponentManager } from '../components/ComponentManager.js';
-import { EntityUtils } from '../three/EntityUtils.js';
+import { ComponentManager } from '../ComponentManager.js';
+import { EntityUtils } from '../../three/EntityUtils.js';
 import { Object3D } from './Object3D.js';
-import { Strings } from '../sys/Strings.js';
+import { Strings } from '../../sys/Strings.js';
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////   Entity3D

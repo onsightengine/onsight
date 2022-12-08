@@ -21,9 +21,10 @@ import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 
 import { LoopSubdivision } from 'three-subdivide';
 
-import { AssetManager } from '../../assets/AssetManager.js';
-import { CapsuleGeometry } from '../../three/geometry/CapsuleGeometry.js';
+import { AssetManager } from '../AssetManager.js';
 import { ComponentManager } from '../ComponentManager.js';
+
+import { CapsuleGeometry } from '../../three/geometry/CapsuleGeometry.js';
 import { CylinderGeometry } from '../../three/geometry/CylinderGeometry.js';
 import { GeometryUtils } from '../../three/GeometryUtils.js';
 import { MathUtils } from '../../math/MathUtils.js';

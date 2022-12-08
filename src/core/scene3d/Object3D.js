@@ -15,7 +15,7 @@
 
 import * as THREE from 'three';
 
-import { ObjectUtils } from '../three/ObjectUtils.js';
+import { ObjectUtils } from '../../three/ObjectUtils.js';
 
 ///// Local Variables
 

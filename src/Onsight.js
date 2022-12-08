@@ -27,14 +27,26 @@ export { CAMERA_SCALE, CAMERA_START_DISTANCE, CAMERA_START_HEIGHT } from './thre
 export { App } from './app/App.js';
 export { EntityPool } from './app/EntityPool.js';
 
-///// Assets
+///// Core
 
-export { AssetManager } from './assets/AssetManager.js';
-export { Script } from './assets/script/Script.js';
+export { AssetManager } from './core/AssetManager.js';
+export { ComponentManager } from './core/ComponentManager.js';
+export { Project } from './core/Project.js';
 
-///// Components
+///// Core, Assets
 
-export { ComponentManager } from './components/ComponentManager.js';
+export { Script } from './core/assets/Script.js';
+
+///// Core, Scene3D
+
+export { Entity3D } from './core/scene3d/Entity3D.js';
+export { Object3D } from './core/scene3d/Object3D.js';
+export { Scene3D } from './core/scene3d/Scene3D.js';
+export { World3D } from './core/scene3d/World3D.js';
+
+///// Core, Scene3D, Builders
+
+export { SVGBuilder } from './core/scene3d/builders/SVGBuilder.js';
 
 ///// Math
 
@@ -42,25 +54,18 @@ export { Iris } from './math/Iris.js';
 export { MathUtils } from './math/MathUtils.js';
 export { Vectors } from './math/Vectors.js';
 
-///// Project
-
-export { Project } from './project/Project.js';
-
-///// Scene3D
-
-export { Entity3D } from './scene3d/Entity3D.js';
-export { Object3D } from './scene3d/Object3D.js';
-export { Scene3D } from './scene3d/Scene3D.js';
-export { World3D } from './scene3d/World3D.js';
-
-///// Scene3D, Builders
-
-export { SVGBuilder } from './scene3d/builders/SVGBuilder.js';
-
 ///// Sys
 
 export { Strings } from './sys/Strings.js';
 export { System } from './sys/System.js';
+
+///// Three
+
+export { CameraUtils } from './three/CameraUtils.js';
+export { EntityUtils } from './three/EntityUtils.js';
+export { GeometryUtils } from './three/GeometryUtils.js';
+export { ObjectUtils } from './three/ObjectUtils.js';
+export { RenderUtils } from './three/RenderUtils.js';
 
 ///// Three, Geometry
 
@@ -78,25 +83,17 @@ export { SkyObject } from './three/objects/SkyObject.js';
 
 export { GpuPickerPass } from './three/passes/GpuPickerPass.js';
 
-///// Three, Utils
-
-export { CameraUtils } from './three/CameraUtils.js';
-export { EntityUtils } from './three/EntityUtils.js';
-export { GeometryUtils } from './three/GeometryUtils.js';
-export { ObjectUtils } from './three/ObjectUtils.js';
-export { RenderUtils } from './three/RenderUtils.js';
-
 /////////////////////////////////////////////////////////////////////////////////////
 /////   Register Components
 /////////////////////////////////////////////////////////////////////////////////////
 
 ///// Entity
 
-import './components/entity/Camera.js';
-import './components/entity/Geometry.js';
-import './components/entity/Light.js';
-import './components/entity/Material.js';
-import './components/entity/Mesh.js';
+import './core/components/Camera.js';
+import './core/components/Geometry.js';
+import './core/components/Light.js';
+import './core/components/Material.js';
+import './core/components/Mesh.js';
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////   Single Import

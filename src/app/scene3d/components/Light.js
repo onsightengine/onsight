@@ -166,7 +166,7 @@ Light.config = {
         distance: { type: 'number', default: 0, if: { style: [ 'point', 'spot' ] } },
         decay: { type: 'number', default: 1, if: { style: [ 'point', 'spot' ] } },
         angle: { type: 'number', default: 45, unit: '°', if: { style: [ 'spot' ] } },
-        penumbra: { type: 'number', default: 0, if: { style: [ 'spot' ] } },
+        penumbra: { type: 'number', default: 0, min: 0, max: 1, if: { style: [ 'spot' ] } },
 
         shadowBias: { type: 'number', default: 0, precision: 6, promode: true, if: { style: [ 'directional', 'point', 'spot' ] } }
     },

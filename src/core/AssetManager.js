@@ -30,6 +30,7 @@ class AssetManager {
 
     static assetType(asset) {
         if (asset.isBufferGeometry) return 'geometry';
+        if (asset.type === 'Shape') return 'shape';
         if (asset.isMaterial) return 'material';
         if (asset.isTexture) return 'texture';
         return 'asset';
@@ -49,26 +50,24 @@ class AssetManager {
         if (! assetOrArray) return;
 
         const assetArray = (Array.isArray(assetOrArray)) ? assetOrArray : [ assetOrArray ];
+
         for (let i = 0; i < assetArray.length; i++) {
             let asset = assetArray[i];
 
-            // Process Geometry
-            if (asset.isBufferGeometry) {
-                // Ensure geometry has a name
-                if (! asset.name || asset.name === '') asset.name = asset.constructor.name;
+            // Ensure asset has a name
+            if (! asset.name || asset.name === '') asset.name = asset.constructor.name;
 
-                // Force 'BufferGeometry' type (strip ExtrudeGeometry, TextGeometry, etc...)
-                if (asset.constructor.name !== 'BufferGeometry') {
-                    // // DEBUG: Show fancy geometry type
-                    // console.log(`Trimming ${asset.constructor.name}`);
+            // Force 'BufferGeometry' type (strip ExtrudeGeometry, TextGeometry, etc...)
+            if (asset.isBufferGeometry && asset.constructor.name !== 'BufferGeometry') {
+                // // DEBUG: Show fancy geometry type
+                // console.log(`Trimming ${asset.constructor.name}`);
 
-                    // Covert to BufferGeometry
-                    const bufferGeometry = mergeBufferGeometries([ asset ]);
-                    bufferGeometry.name = asset.name;
-                    bufferGeometry.uuid = asset.uuid;
-                    if (asset.dispose) asset.dispose();
-                    asset = bufferGeometry;
-                }
+                // Covert to BufferGeometry
+                const bufferGeometry = mergeBufferGeometries([ asset ]);
+                bufferGeometry.name = asset.name;
+                bufferGeometry.uuid = asset.uuid;
+                if (asset.dispose) asset.dispose();
+                asset = bufferGeometry;
             }
 
             // Add Asset
@@ -87,6 +86,7 @@ class AssetManager {
         if (! assetOrArray) return;
 
         const assetArray = (Array.isArray(assetOrArray)) ? assetOrArray : [ assetOrArray ];
+
         for (let i = 0; i < assetArray.length; i++) {
             const asset = assetArray[i];
 
@@ -189,7 +189,7 @@ class AssetManager {
 		const objectLoader = new THREE.ObjectLoader();
 		const animations = objectLoader.parseAnimations(json.animations);
 		const shapes = objectLoader.parseShapes(json.shapes);
-		const geometries = objectLoader.parseGeometries(json.geometries, shapes);
+		const geometries = objectLoader.parseGeometries(json.geometries, {});
 		const images = objectLoader.parseImages(json.images);
 		const textures = objectLoader.parseTextures(json.textures, images);
 		const materials = objectLoader.parseMaterials(json.materials, textures);
@@ -228,15 +228,15 @@ class AssetManager {
             const geometry = geometries[i];
             if (! meta.geometries[geometry.uuid]) meta.geometries[geometry.uuid] = geometry.toJSON(meta);
 
-            // Shapes
-            if (geometry.parameters && geometry.parameters.shapes) {
-                const shapes = geometry.parameters.shapes;
-                if (Array.isArray(shapes) !== true) shapes = [ shapes ];
-                for (let i = 0, l = shapes.length; i < l; i++) {
-                    const shape = shapes[i];
-                    if (! meta.shapes[shape.uuid]) meta.shapes[shape.uuid] = shape.toJSON(meta);
-                }
-            }
+            // // Shapes
+            // if (geometry.parameters && geometry.parameters.shapes) {
+            //     const shapes = geometry.parameters.shapes;
+            //     if (Array.isArray(shapes) !== true) shapes = [ shapes ];
+            //     for (let i = 0, l = shapes.length; i < l; i++) {
+            //         const shape = shapes[i];
+            //         if (! meta.shapes[shape.uuid]) meta.shapes[shape.uuid] = shape.toJSON(meta);
+            //     }
+            // }
         }
 
         // Materials
@@ -244,6 +244,13 @@ class AssetManager {
         for (let i = 0; i < materials.length; i++) {
             const material = materials[i];
             if (! meta.materials[material.uuid]) meta.materials[material.uuid] = material.toJSON(stopRoot);
+        }
+
+        // Shapes
+        const shapes = AssetManager.getLibrary('shape');
+        for (let i = 0; i < shapes.length; i++) {
+            const shape = shapes[i];
+            if (! meta.shapes[shape.uuid]) meta.shapes[shape.uuid] = shape.toJSON(stopRoot);
         }
 
         // Textures

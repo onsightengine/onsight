@@ -154,41 +154,6 @@ class Geometry {
                 break;
 
             case 'shape':
-                // PENTAGON
-                const shape = data.shapes ?? new THREE.Shape([
-                    new THREE.Vector2( 64,   8),
-                    new THREE.Vector2(  0,  64),
-                    new THREE.Vector2(-64,   8),
-                    new THREE.Vector2(-32, -64),
-                    new THREE.Vector2( 32, -64)
-                ]);
-
-                // CALIFORNIA
-                const californiaPts = [];
-                californiaPts.push(new THREE.Vector2(610, 320));
-                californiaPts.push(new THREE.Vector2(450, 300));
-                californiaPts.push(new THREE.Vector2(392, 392));
-                californiaPts.push(new THREE.Vector2(266, 438));
-                californiaPts.push(new THREE.Vector2(190, 570));
-                californiaPts.push(new THREE.Vector2(190, 600));
-                californiaPts.push(new THREE.Vector2(160, 620));
-                californiaPts.push(new THREE.Vector2(160, 650));
-                californiaPts.push(new THREE.Vector2(180, 640));
-                californiaPts.push(new THREE.Vector2(165, 680));
-                californiaPts.push(new THREE.Vector2(150, 670));
-                californiaPts.push(new THREE.Vector2( 90, 737));
-                californiaPts.push(new THREE.Vector2( 80, 795));
-                californiaPts.push(new THREE.Vector2( 50, 835));
-                californiaPts.push(new THREE.Vector2( 64, 870));
-                californiaPts.push(new THREE.Vector2( 60, 945));
-                californiaPts.push(new THREE.Vector2(300, 945));
-                californiaPts.push(new THREE.Vector2(300, 743));
-                californiaPts.push(new THREE.Vector2(600, 473));
-                californiaPts.push(new THREE.Vector2(626, 425));
-                californiaPts.push(new THREE.Vector2(600, 370));
-                californiaPts.push(new THREE.Vector2(610, 320));
-                for (let i = 0; i < californiaPts.length; i++) californiaPts[i].multiplyScalar(0.001);
-                const californiaShape = new THREE.Shape(californiaPts);
 
                 const circleShape = new THREE.Shape();
                 circleShape.absarc(0, 0, 0.5 /* radius */);
@@ -204,9 +169,7 @@ class Geometry {
                     bevelSegments: data.bevelSegments,
                 };
 
-                ///// Create Geometry
-                // geometry = new TeapotGeometry(15, 18).scale(5, 5, 5);
-                // geometry = new THREE.SphereGeometry(128, 32, 32);
+                // Create Geometry
                 geometry = new THREE.ExtrudeGeometry(circleShape, options);
                 // geometry.translate(0, 0, data.depth / -2);
                 geometry.center();

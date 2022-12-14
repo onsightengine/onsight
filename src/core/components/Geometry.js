@@ -34,6 +34,14 @@ import { MathUtils } from '../../math/MathUtils.js';
 let _x = 0;
 let _y = 0;
 
+const boxGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+const circleShape = new THREE.Shape().absarc(0, 0, 0.5 /* radius */);
+const wedgeShape = new THREE.Shape([
+    new THREE.Vector2(-0.5,  0.5),
+    new THREE.Vector2(-0.5, -0.5),
+    new THREE.Vector2( 0.5, -0.5),
+]);
+
 ///// Component
 
 class Geometry {
@@ -61,7 +69,7 @@ class Geometry {
             case 'asset':
                 const assetGeometry = AssetManager.getAsset(data.asset);
                 if (assetGeometry && assetGeometry.isBufferGeometry) {
-                    geometry = assetGeometry.clone();
+                    geometry = assetGeometry;
                 }
                 break;
 
@@ -155,8 +163,12 @@ class Geometry {
 
             case 'shape':
 
-                const circleShape = new THREE.Shape();
-                circleShape.absarc(0, 0, 0.5 /* radius */);
+                let shape = AssetManager.getAsset(data.shape);
+                if (shape && shape.type === 'Shape') {
+                    shape = shape;
+                } else {
+                    shape = wedgeShape; // circleShape;
+                }
 
                 // Set Options
                 const options = {
@@ -170,7 +182,7 @@ class Geometry {
                 };
 
                 // Create Geometry
-                geometry = new THREE.ExtrudeGeometry(circleShape, options);
+                geometry = new THREE.ExtrudeGeometry(shape, options);
                 // geometry.translate(0, 0, data.depth / -2);
                 geometry.center();
                 break;
@@ -328,6 +340,9 @@ Geometry.config = {
         // Asset UUID
         asset: { type: 'asset', class: 'BufferGeometry', if: { style: [ 'asset' ] } },
 
+        // Shape UUID
+        shape: { type: 'asset', class: 'Shape', if: { style: [ 'shape' ] } },
+
         ///// DIVIDER
         styleDivider: { type: 'divider' },
         /////
@@ -340,7 +355,7 @@ Geometry.config = {
 
         depth: [
             { type: 'number', default: 1.0, min: 0, step: 'grid', if: { style: [ 'box', 'roundedBox' ] } },
-            { type: 'number', default: 0.4, min: 0, step: 'grid', if: { style: [ 'shape' ] } },
+            { type: 'number', default: 0.5, min: 0, step: 'grid', if: { style: [ 'shape' ] } },
         ],
         height: [
             { type: 'number', default: 1.0, min: 0, step: 'grid', if: { style: [ 'box', 'capsule', 'cone', 'cylinder', 'plane', 'roundedBox' ] } },
@@ -412,8 +427,8 @@ Geometry.config = {
         thetaSegments: { type: 'int', default: 36, min: 3, max: 128, if: { style: [ 'ring' ] } },
 
         // Shape (Extrude)
-        steps: { type: 'int', alias: 'Depth Segments', default: 8, min: 1, max: 128, promode: true, if: { style: [ 'shape' ] } },
-        bevelEnabled: { type: 'boolean', alias: 'bevel', default: true, if: { style: [ 'shape' ] }, rebuild: true },
+        steps: { type: 'int', alias: 'Depth Segments', default: 3, min: 1, max: 128, promode: true, if: { style: [ 'shape' ] } },
+        bevelEnabled: { type: 'boolean', alias: 'bevel', default: false, if: { style: [ 'shape' ] }, rebuild: true },
         bevelThickness: { type: 'number', default: 0.1, min: 0, step: 0.01, if: { style: [ 'shape' ], bevelEnabled: [ true ] } },
         bevelSize: { type: 'number', default: 0.1, min: 0, step: 0.01, if: { style: [ 'shape' ], bevelEnabled: [ true ] } },
         bevelSegments: { type: 'int', default: 4, min: 0, max: 64, promode: true, if: { style: [ 'shape' ], bevelEnabled: [ true ] } },
@@ -448,7 +463,7 @@ Geometry.config = {
         // simplify: { type: 'slider', default: 1, min: 0, max: 1 },
 
         // Subdivision
-        subdivide: { type: 'slider', default: 0, min: 0, max: 5, step: 1, precision: 0, rebuild: true },
+        subdivide: { type: 'slider', default: 0, min: 0, max: 3, step: 1, precision: 0, rebuild: true },
         edgeSplit: { type: 'boolean', default: false, hide: { subdivide: [ 0 ] } },
         uvSmooth: { type: 'boolean', default: false, promode: true, hide: { subdivide: [ 0 ] } },
         flatOnly: { type: 'boolean', default: false, promode: true, hide: { subdivide: [ 0 ] } },

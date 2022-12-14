@@ -173,8 +173,8 @@ class SVGBuilder {
             const center = new THREE.Vector3();
             ObjectUtils.computeCenter(target.children, center);
             for (let child of target.children) {
-                child.position.x -= center.x;
-                child.position.y -= center.y;
+                child.position.x -= (center.x - target.position.x);
+                child.position.y -= (center.y - target.position.y);
             }
         }
 
@@ -182,7 +182,7 @@ class SVGBuilder {
         target.name = name;
 
         // Call 'onLoad'
-        if (onLoad && typeof onLoad === 'function') onLoad();
+        if (onLoad && typeof onLoad === 'function') onLoad(target);
     }
 
     static createFromFile(url, onLoad) {

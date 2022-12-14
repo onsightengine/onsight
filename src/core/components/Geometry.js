@@ -31,9 +31,6 @@ import { MathUtils } from '../../math/MathUtils.js';
 
 ///// Local Variables
 
-let _x = 0;
-let _y = 0;
-
 const boxGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
 const circleShape = new THREE.Shape().absarc(0, 0, 0.5 /* radius */);
 const wedgeShape = new THREE.Shape([
@@ -200,31 +197,29 @@ class Geometry {
                 break;
 
             case 'tube':
-                // HEART
-                const heartShape = new THREE.Shape()
-                    .moveTo(_x + 25, _y + 25)
-                    .bezierCurveTo(_x + 25, _y + 25, _x + 20, _y, _x, _y)
-                    .bezierCurveTo(_x - 30, _y, _x - 30, _y + 35, _x - 30, _y + 35)
-                    .bezierCurveTo(_x - 30, _y + 55, _x - 10, _y + 77, _x + 25, _y + 95)
-                    .bezierCurveTo(_x + 60, _y + 77, _x + 80, _y + 55, _x + 80, _y + 35)
-                    .bezierCurveTo(_x + 80, _y + 35, _x + 80, _y, _x + 50, _y)
-                    .bezierCurveTo(_x + 35, _y, _x + 25, _y + 25, _x + 25, _y + 25);
+
+                let tubeShape = AssetManager.getAsset(data.shape);
+                if (tubeShape && tubeShape.type === 'Shape') {
+                    tubeShape = tubeShape;
+                } else {
+                    tubeShape = circleShape;
+                }
 
                 // Convert 2D Lines to 3D Lines
-                const arcPoints = heartShape.getPoints(256);
-                const lines = [];
-                for (let i = 0; i < arcPoints.length; i += 2) {
+                const path3D = new THREE.CurvePath();
+                const arcPoints = tubeShape.getPoints(Math.max(256, data.tubularSegments * 4));
+
+                for (let i = 0; i < arcPoints.length - 1; i++) {
                     const pointA = arcPoints[i];
-                    const pointB = arcPoints[i + 1] || pointA;
-                    lines.push(
+                    const pointB = arcPoints[i + 1];
+
+                    path3D.curves.push(
                         new THREE.LineCurve3(
-                            new THREE.Vector3(pointA.x * 0.01, pointA.y * -0.01, 0),
-                            new THREE.Vector3(pointB.x * 0.01, pointB.y * -0.01, 0),
+                            new THREE.Vector3(pointA.x, pointA.y, 0),
+                            new THREE.Vector3(pointB.x, pointB.y, 0),
                         ),
                     );
                 }
-                const path3D = new THREE.CurvePath();
-                path3D.curves.push(...lines);
 
                 // Create Geometry
                 geometry = new THREE.TubeGeometry(path3D, data.tubularSegments, data.radius, data.radialSegments, data.closed);
@@ -341,7 +336,7 @@ Geometry.config = {
         asset: { type: 'asset', class: 'BufferGeometry', if: { style: [ 'asset' ] } },
 
         // Shape UUID
-        shape: { type: 'asset', class: 'Shape', if: { style: [ 'shape' ] } },
+        shape: { type: 'asset', class: 'Shape', if: { style: [ 'shape', 'tube' ] } },
 
         ///// DIVIDER
         styleDivider: { type: 'divider' },
@@ -382,7 +377,7 @@ Geometry.config = {
             { type: 'number', default: 0.50, min: 0, step: 0.01, if: { style: [ 'circle', 'cone', 'platonicSolid', 'sphere' ] } },
             { type: 'number', default: 0.50, min: 0, step: 0.01, if: { style: [ 'torus' ] } },
             { type: 'number', default: 0.40, min: 0, step: 0.01, if: { style: [ 'torusKnot' ] } },
-            { type: 'number', default: 0.20, min: 0, step: 0.01, if: { style: [ 'tube' ] } },
+            { type: 'number', default: 0.10, min: 0, step: 0.01, if: { style: [ 'tube' ] } },
         ],
         radiusTop: [
             { type: 'number', default: 0.5, min: 0, step: 0.01, if: { style: [ 'capsule' ] } },
@@ -445,7 +440,7 @@ Geometry.config = {
         tubularSegments: [
             { type: 'int', default: 32, min: 3, max: 128, if: { style: [ 'torus' ] } },
             { type: 'int', default: 64, min: 3, max: 128, if: { style: [ 'torusKnot' ] } },
-            { type: 'int', default: 64, min: 2, if: { style: [ 'tube' ] } },
+            { type: 'int', default: 128, min: 2, if: { style: [ 'tube' ] } },
         ],
         arc: { type: 'angle', default: 2 * Math.PI, min: 0, max: 360, if: { style: [ 'torus' ] } },
 

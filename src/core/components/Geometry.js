@@ -107,28 +107,19 @@ class Geometry {
                 break;
 
             case 'lathe':
-                //
-                // TODO: CUSTOM LINE
-                //
-                //const points = data.points;
 
-                /// SVG
-                const svgLoader = new SVGLoader();
-                // Create Paths
-                const svgData = svgLoader.parse(`
-                    <g transform="matrix(1,0,0,1,-62,77.5)">
-                        <path d="M125,59C151.284,141.301 106.947,164.354 84,158L83,263C100.017,285.361 110.282,295.752 143,298" style="fill:none;stroke:black;stroke-width:1px;"/>
-                    </g>
-                `);
-                // Create Shapes
-                const path = svgData.paths[Object.keys(svgData.paths)[0]];
-                const svgShapes = SVGLoader.createShapes(path);
-                const svgPoints = svgShapes[0].extractPoints(30);
-
-                // Flip Y from SVG (and reverse point CW --> CCW)
                 const points = [];
-                for (let i = svgPoints.shape.length - 1; i >= 0; i--) {
-                    points.push(new THREE.Vector2(svgPoints.shape[i].x * 0.005, svgPoints.shape[i].y * -0.005));
+
+                let latheShape = AssetManager.getAsset(data.shape);
+                if (! latheShape || latheShape.type !== 'Shape') {
+                    for (let i = 0; i < 2.5; i += 0.1) {
+                        points.push(new THREE.Vector2(Math.abs(Math.cos(i) * 0.4) + 0.2, i * 0.4));
+                    }
+                } else {
+                    const shapePoints = latheShape.getPoints(data.segments);
+                    for (let i = 0; i < shapePoints.length; i++) {
+                        points.push(new THREE.Vector2(shapePoints[i].x, shapePoints[i].y));
+                    }
                 }
 
                 // Create Lathe
@@ -161,10 +152,8 @@ class Geometry {
             case 'shape':
 
                 let shape = AssetManager.getAsset(data.shape);
-                if (shape && shape.type === 'Shape') {
-                    shape = shape;
-                } else {
-                    shape = wedgeShape; // circleShape;
+                if (! shape || shape.type !== 'Shape') {
+                    shape = wedgeShape;
                 }
 
                 // Set Options
@@ -199,10 +188,8 @@ class Geometry {
             case 'tube':
 
                 let tubeShape = AssetManager.getAsset(data.shape);
-                if (tubeShape && tubeShape.type === 'Shape') {
-                    tubeShape = tubeShape;
-                } else {
-                    tubeShape = circleShape;
+                if (! tubeShape || tubeShape.type !== 'Shape') {
+                    tubeShape = circleShape
                 }
 
                 // Convert 2D Lines to 3D Lines
@@ -336,7 +323,7 @@ Geometry.config = {
         asset: { type: 'asset', class: 'BufferGeometry', if: { style: [ 'asset' ] } },
 
         // Shape UUID
-        shape: { type: 'asset', class: 'Shape', if: { style: [ 'shape', 'tube' ] } },
+        shape: { type: 'asset', class: 'Shape', if: { style: [ 'lathe', 'shape', 'tube' ] } },
 
         ///// DIVIDER
         styleDivider: { type: 'divider' },

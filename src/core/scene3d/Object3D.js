@@ -32,6 +32,7 @@ const _parentQuaternion = new THREE.Quaternion();
 const _parentQuaternionInv = new THREE.Quaternion();
 const _rotationDirection = new THREE.Euler();
 const _rotationQuaternion = new THREE.Quaternion();
+const _rotationQuaternionInv = new THREE.Quaternion();
 const _worldPosition = new THREE.Vector3();
 const _worldQuaternion = new THREE.Quaternion();
 const _worldScale = new THREE.Vector3();
@@ -134,26 +135,41 @@ class Object3D extends THREE.Object3D {
         const camera = window.activeCamera;
         let lookAtCamera = this.lookAtCamera && camera && ! this.isScene;
         if (lookAtCamera && this.parent && this.parent.isObject3D) {
-            this.traverseAncestors((parent) => { if (parent.lookAtCamera) lookAtCamera = false; });
+            this.traverseAncestors((parent) => {
+                if (parent.lookAtCamera) lookAtCamera = false;
+            });
         }
 
         // Look at Camera
         if (lookAtCamera) {
 
-            // Gather Transform Data
-            camera.matrixWorld.decompose(_camPosition, _camQuaternion, _camScale);
-            this.matrixWorld.decompose(_worldPosition, _worldQuaternion, _worldScale);
-            _rotationQuaternion.setFromEuler(this.rotation, false);
+            // Subtract parent rotation
+            if (this.parent && this.parent.isObject3D) {
+                this.parent.getWorldQuaternion(_parentQuaternion, false /* ignoreBillboard */);
+                _parentQuaternionInv.copy(_parentQuaternion).invert();
+                this.quaternion.copy(_parentQuaternionInv);
+            } else {
+                this.quaternion.identity();
+            }
 
             // // Match Camera Plane
             // if (camera.isOrthographicCamera) {
 
+                // Gather Transform Data
+                camera.matrixWorld.decompose(_camPosition, _camQuaternion, _camScale);
+                _rotationQuaternion.setFromEuler(this.rotation, false);
+
                 // Apply Rotations
-                this.quaternion.copy(_camQuaternion);                           // Start with rotate to camera
+                this.quaternion.multiply(_camQuaternion);                       // Start with rotate to camera
                 this.quaternion.multiply(_rotationQuaternion);                  // Add in 'rotation' property
 
             // // Look Directly at Camera
             // } else if (camera.isPerspectiveCamera) {
+            //
+            //      // Gather Transform Data
+            //      camera.matrixWorld.decompose(_camPosition, _camQuaternion, _camScale);
+            //      this.matrixWorld.decompose(_worldPosition, _worldQuaternion, _worldScale);
+            //      _rotationQuaternion.setFromEuler(this.rotation, false);
             //
             //     // // OPTION 1: Look at Camera
             //     _lookUpVector.copy(camera.up).applyQuaternion(_camQuaternion);  // Rotate up vector by cam rotation
@@ -170,13 +186,6 @@ class Object3D extends THREE.Object3D {
             //     this.quaternion.multiply(_rotationQuaternion);                  // Add in 'rotation' property
             //
             // }
-
-            // Subtract parent rotation
-            if (this.parent && this.parent.isObject3D) {
-                this.parent.getWorldQuaternion(_parentQuaternion, false);
-                _parentQuaternionInv.copy(_parentQuaternion).invert();
-                this.quaternion.multiply(_parentQuaternionInv);
-            }
 
         // Use 'rotation' Property Only
         } else {

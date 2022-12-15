@@ -18,6 +18,7 @@
 import * as THREE from 'three';
 
 import { CameraUtils } from './CameraUtils.js';
+import { MathUtils } from '../math/MathUtils.js';
 
 ///// Local Variables
 
@@ -27,12 +28,15 @@ let _renderer;
 
 class RenderUtils {
 
-    static offscreenRenderer(width = 512, height = 512) {
+    static offscreenRenderer(width, height) {
         if (_renderer === undefined) {
             _renderer = new THREE.WebGLRenderer({ alpha: true /* transparent background */});
+            _renderer.setClearColor(0xffffff, 0);
+            _renderer.setSize(512, 512, false);
         }
-        _renderer.setClearColor(0xffffff, 0);
-        _renderer.setSize(width, height, false);
+        if (MathUtils.isNumber(width) && MathUtils.isNumber(height)) {
+            _renderer.setSize(width, height, false);
+        }
         return _renderer;
     }
 

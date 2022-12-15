@@ -201,7 +201,7 @@ class CameraUtils {
         planeGeometry.dispose();
         planeMaterial.dispose();
 
-        return (planeIntersects.length > 0) ? planeIntersects[0].point : false;
+        return (planeIntersects.length > 0) ? planeIntersects[0].point.clone() : false;
     }
 
     //////////////////// Utils

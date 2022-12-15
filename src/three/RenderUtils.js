@@ -82,6 +82,7 @@ class RenderUtils {
         const image = texture.image;
         const renderer = RenderUtils.offscreenRenderer(image.width, image.height);
         renderer.render(scene, camera);
+        quad.dispose();
         material.dispose();
 
         const context = canvas.getContext('2d');

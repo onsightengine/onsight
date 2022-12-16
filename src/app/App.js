@@ -134,7 +134,7 @@ class App {
                             for (let name in functions) {
                                 if (! functions[name]) continue;
                                 if (events[name] === undefined) {
-                                    console.warn(`Player: Event type not supported ('${name}')`);
+                                    console.warn(`App: Event type not supported ('${name}')`);
                                     continue;
                                 }
                                 events[name].push(functions[name].bind(object));

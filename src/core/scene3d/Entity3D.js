@@ -359,7 +359,7 @@ class Entity3D extends Object3D {
         const children = this.children;
         for (let i = 0; i < children.length; i++) {
             const child = children[i];
-            this.removeEntity(child, true);
+            this.removeEntity(child, true /* forceDelete */);
             if (child.dispose) child.dispose();
         }
 

@@ -4,7 +4,7 @@
 // @about       Powerful, easy-to-use JavaScript video game and application creation engine.
 // @author      Stephens Nunnally <@stevinz>
 // @license     MIT - Copyright (c) 2021-2022 Stephens Nunnally and Scidian Studios
-// @source      https://github.com/scidian/onsight-engine
+// @source      https://github.com/onsightengine/onsight-engine
 //
 ///////////////////////////////////////////////////////////////////////////////////*/
 //
@@ -99,9 +99,8 @@ class GpuPickerPass extends Pass {
             const material = object.material; // renderItem.material;
             const geometry = object.geometry; // renderItem.geometry;
 
-            // THREE.Sprite / SpriteMaterial implemented in
-            // https://github.com/scidian/onsight-editor/commit/f91c5b2aeeaa4cbbf36e08dada4fcf4152bbe83a
-            // Does not work great, using custom Object3D.lookAtCamera / isSpriteHelper instead
+            // THREE.Sprite / SpriteMaterial implemented previously, does not work great,
+            // Using custom Object3D.lookAtCamera / isSpriteHelper instead
             if (material.isSpriteMaterial) return;
 
             // Material Options

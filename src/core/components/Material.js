@@ -39,7 +39,7 @@ const blendingModes = [ 'NoBlending', 'NormalBlending', 'AdditiveBlending', 'Sub
 const sides = [ 'FrontSide', 'BackSide', 'DoubleSide' ];
 const depthPacking = [ 'BasicDepthPacking', 'RGBADepthPacking' ];
 
-// const hdrEquirect = new RGBELoader().setPath('../onsight-engine/src/project/scene3d/components/textures/')
+// const hdrEquirect = new RGBELoader().setPath('../engine/src/project/scene3d/components/textures/')
 //  .load('royal_esplanade_1k.hdr', () => hdrEquirect.mapping = THREE.EquirectangularReflectionMapping);
 
 ///// Component

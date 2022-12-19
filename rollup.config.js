@@ -13,8 +13,8 @@ import { VERSION } from './src/constants.js';              // Pull in version
 ///// Plugins
 
 import { terser } from 'rollup-plugin-terser';              // Remove comments, minify
-import { visualizer } from "rollup-plugin-visualizer";      // Visualize
-import cleanup from "rollup-plugin-cleanup";                // Remove comments, supports sourcemap
+import { visualizer } from 'rollup-plugin-visualizer';      // Visualize
+import cleanup from 'rollup-plugin-cleanup';                // Remove comments, supports sourcemap
 // import obfuscator from 'rollup-plugin-obfuscator';       // Obfuscate
 
 ///// Post Build Header

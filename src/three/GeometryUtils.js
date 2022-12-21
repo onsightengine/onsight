@@ -1,7 +1,7 @@
 /** /////////////////////////////////////////////////////////////////////////////////
 //
 // @description Onsight Engine
-// @about       Powerful, easy-to-use JavaScript video game and application creation engine.
+// @about       Easy to use 2D / 3D JavaScript game engine.
 // @author      Stephens Nunnally <@stevinz>
 // @license     MIT - Copyright (c) 2021-2022 Stephens Nunnally and Scidian Studios
 // @source      https://github.com/onsightengine
@@ -31,13 +31,9 @@ import * as THREE from 'three';
 
 import { Vectors } from '../math/Vectors.js';
 
-///// Local Variables
-
 const _uv = [ new THREE.Vector2(), new THREE.Vector2(), new THREE.Vector2() ];
 const _vertex = [ new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3() ];
 const _temp = new THREE.Vector3();
-
-//////////////////// Class
 
 class GeometryUtils {
 

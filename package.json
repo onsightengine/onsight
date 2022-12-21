@@ -1,7 +1,7 @@
 {
   "name": "onsight",
   "version": "0.0.3",
-  "description": "Powerful, easy-to-use JavaScript video game and application creation engine.",
+  "description": "Easy to use 2D / 3D JavaScript game engine.",
   "module": "src/Onsight.js",
   "main": "build/onsight.module.js",
   "type": "module",

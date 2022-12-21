@@ -1,7 +1,7 @@
 /** /////////////////////////////////////////////////////////////////////////////////
 //
 // @description Onsight Engine
-// @about       Powerful, easy-to-use JavaScript video game and application creation engine.
+// @about       Easy to use 2D / 3D JavaScript game engine.
 // @author      Stephens Nunnally <@stevinz>
 // @license     MIT - Copyright (c) 2021-2022 Stephens Nunnally and Scidian Studios
 // @source      https://github.com/onsightengine
@@ -29,21 +29,16 @@ import * as THREE from 'three';
 import { MathUtils } from '../math/MathUtils.js';
 import { System } from '../sys/System.js';
 
-///// Local Variables
-
 const _boxCenter = new THREE.Box3();
 const _tempMatrix = new THREE.Matrix4();
 const _tempVector = new THREE.Vector3();
 const _startQuaternion = new THREE.Quaternion();
 const _tempQuaternion = new THREE.Quaternion();
 const _testQuaternion = new THREE.Quaternion();
-
 const _objPosition = new THREE.Vector3();
 const _objQuaternion = new THREE.Quaternion();
 const _objRotation = new THREE.Euler();
 const _objScale = new THREE.Vector3();
-
-///// Class
 
 class ObjectUtils {
 

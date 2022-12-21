@@ -1,7 +1,7 @@
 /** /////////////////////////////////////////////////////////////////////////////////
 //
 // @description Onsight Engine
-// @about       Powerful, easy-to-use JavaScript video game and application creation engine.
+// @about       Easy to use 2D / 3D JavaScript game engine.
 // @author      Stephens Nunnally <@stevinz>
 // @license     MIT - Copyright (c) 2021-2022 Stephens Nunnally and Scidian Studios
 // @source      https://github.com/onsightengine
@@ -26,10 +26,6 @@ import { ComponentManager } from '../ComponentManager.js';
 import { EntityUtils } from '../../three/EntityUtils.js';
 import { Object3D } from './Object3D.js';
 import { Strings } from '../../sys/Strings.js';
-
-/////////////////////////////////////////////////////////////////////////////////////
-/////   Entity3D
-/////////////////////////////////////////////////////////////////////////////////////
 
 class Entity3D extends Object3D {
 
@@ -494,9 +490,5 @@ class Entity3D extends Object3D {
     }
 
 }
-
-/////////////////////////////////////////////////////////////////////////////////////
-/////   Exports
-/////////////////////////////////////////////////////////////////////////////////////
 
 export { Entity3D };

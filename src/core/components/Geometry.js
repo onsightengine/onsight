@@ -1,7 +1,7 @@
 /** /////////////////////////////////////////////////////////////////////////////////
 //
 // @description Onsight Engine
-// @about       Powerful, easy-to-use JavaScript video game and application creation engine.
+// @about       Easy to use 2D / 3D JavaScript game engine.
 // @author      Stephens Nunnally <@stevinz>
 // @license     MIT - Copyright (c) 2021-2022 Stephens Nunnally and Scidian Studios
 // @source      https://github.com/onsightengine
@@ -29,8 +29,6 @@ import { CylinderGeometry } from '../../three/geometry/CylinderGeometry.js';
 import { GeometryUtils } from '../../three/GeometryUtils.js';
 import { MathUtils } from '../../math/MathUtils.js';
 
-///// Local Variables
-
 const boxGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
 const circleShape = new THREE.Shape().absarc(0, 0, 0.5 /* radius */);
 const wedgeShape = new THREE.Shape([
@@ -38,8 +36,6 @@ const wedgeShape = new THREE.Shape([
     new THREE.Vector2(-0.5, -0.5),
     new THREE.Vector2( 0.5, -0.5),
 ]);
-
-///// Component
 
 class Geometry {
 

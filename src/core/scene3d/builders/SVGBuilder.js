@@ -1,7 +1,7 @@
 /** /////////////////////////////////////////////////////////////////////////////////
 //
 // @description Onsight Engine
-// @about       Powerful, easy-to-use JavaScript video game and application creation engine.
+// @about       Easy to use 2D / 3D JavaScript game engine.
 // @author      Stephens Nunnally <@stevinz>
 // @license     MIT - Copyright (c) 2021-2022 Stephens Nunnally and Scidian Studios
 // @source      https://github.com/onsightengine
@@ -23,14 +23,8 @@ import { ObjectUtils } from '../../../three/ObjectUtils.js';
 import { Strings } from '../../../sys/Strings.js';
 import { Vectors } from '../../../math/Vectors.js';
 
-///// Local Variables
-
 const _color = new THREE.Color();
 const _position = new THREE.Vector3();
-
-/////////////////////////////////////////////////////////////////////////////////////
-/////   SVGBuilder
-/////////////////////////////////////////////////////////////////////////////////////
 
 class SVGBuilder {
 

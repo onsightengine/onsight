@@ -12,10 +12,6 @@
 import * as THREE from 'three';
 import { MathUtils } from '../../math/MathUtils.js';
 
-/////////////////////////////////////////////////////////////////////////////////////
-/////   CapsuleGeometry
-/////////////////////////////////////////////////////////////////////////////////////
-
 class CapsuleGeometry extends THREE.BufferGeometry {
 
     constructor(radiusTop = 1, radiusBottom = 1, height = 2, radialSegments = 12, heightSegments = 1,

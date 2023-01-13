@@ -50,7 +50,6 @@ export { SVGBuilder } from './core/scene3d/builders/SVGBuilder.js';
 
 ///// Math
 
-export { Iris } from './math/Iris.js';
 export { MathUtils } from './math/MathUtils.js';
 export { Vectors } from './math/Vectors.js';
 

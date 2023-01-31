@@ -15,7 +15,7 @@
 
 import * as THREE from 'three';
 
-import { ComponentManager } from '../ComponentManager.js';
+import { ComponentManager } from '../../ComponentManager.js';
 
 const _renderSize = new THREE.Vector2(1, 1);
 

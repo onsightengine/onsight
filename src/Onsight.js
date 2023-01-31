@@ -88,11 +88,11 @@ export { GpuPickerPass } from './three/passes/GpuPickerPass.js';
 
 ///// Entity
 
-import './core/components/Camera.js';
-import './core/components/Geometry.js';
-import './core/components/Light.js';
-import './core/components/Material.js';
-import './core/components/Mesh.js';
+import './core/scene3d/components/Camera.js';
+import './core/scene3d/components/Geometry.js';
+import './core/scene3d/components/Light.js';
+import './core/scene3d/components/Material.js';
+import './core/scene3d/components/Mesh.js';
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////   Single Import

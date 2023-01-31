@@ -25,13 +25,12 @@
 import * as THREE from 'three';
 // import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
-import { AssetManager } from '../AssetManager.js';
-import { ComponentManager } from '../ComponentManager.js';
+import { AssetManager } from '../../AssetManager.js';
+import { ComponentManager } from '../../ComponentManager.js';
 
-import { GeometryUtils } from '../../three/GeometryUtils.js';
-import { ObjectUtils } from '../../three/ObjectUtils.js';
-import { MathUtils } from '../../math/MathUtils.js';
-import { System } from '../../sys/System.js';
+import { GeometryUtils } from '../../../three/GeometryUtils.js';
+import { ObjectUtils } from '../../../three/ObjectUtils.js';
+import { System } from '../../../sys/System.js';
 
 const blendingModes = [ 'NoBlending', 'NormalBlending', 'AdditiveBlending', 'SubstractiveBlending', 'MultiplyBlending', 'CustomBlending' ];
 const sides = [ 'FrontSide', 'BackSide', 'DoubleSide' ];

@@ -1,50 +1,41 @@
-/** /////////////////////////////////////////////////////////////////////////////////
-//
-// @description Onsight Engine
-// @about       Easy to use 2D / 3D JavaScript game engine.
-// @author      Stephens Nunnally <@stevinz>
-// @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally and Scidian Studios
-// @source      https://github.com/onsightengine
-//
-///////////////////////////////////////////////////////////////////////////////////*/
 
 export const VERSION = '0.0.3';
 
-///// Backends
-
 export const BACKENDS = {
     RENDERER_3D: {
-        ONSIGHT:    'ONE',
+        PIXI:       'PIXI',
+    },
+    PHYSICS_2D: {
+        MATTER:     'MATTER',
+    },
+    RENDERER_3D: {
         THREE:      'THREE',
     },
     PHYSICS_3D: {
         CANNON:     'CANNON',
         RAPIER:     'RAPIER',
-    }
+    },
 }
 
-///// Types
-
 export const ENTITY_TYPES = {
+    Entity2D:       'Entity2D',
     Entity3D:       'Entity3D',
 };
 
 export const SCENE_TYPES = {
+    Scene2D:        'Scene2D',
     Scene3D:        'Scene3D',
 };
 
 export const WORLD_TYPES = {
+    World2D:        'World2D',
     World3D:        'World3D',
 };
-
-///// Flags
 
 export const ENTITY_FLAGS = {
     IGNORE:         'flagIgnore',
     LOCKED:         'flagLocked',
 }
-
-///// States
 
 export const APP_STATES = {
     PLAYING:        'playing',

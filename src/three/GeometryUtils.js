@@ -1,35 +1,18 @@
-/** /////////////////////////////////////////////////////////////////////////////////
-//
-// @description Onsight Engine
-// @about       Easy to use 2D / 3D JavaScript game engine.
-// @author      Stephens Nunnally <@stevinz>
-// @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally and Scidian Studios
-// @source      https://github.com/onsightengine
-//
-///////////////////////////////////////////////////////////////////////////////////*/
-//
-//  Reference(s)
-//      https://stackoverflow.com/questions/20774648/three-js-generate-uv-coordinate
-//      https://stackoverflow.com/questions/34958072/programmatically-generate-simple-uv-mapping-for-models
-//      https://discourse.threejs.org/t/can-i-make-a-uv-unwrapping-of-a-model-programmatically-with-three-js/2421/6
-//      https://codepen.io/knee-cola/pen/XMVBwQ
-//
-/////////////////////////////////////////////////////////////////////////////////////
-//
-//  Geometry Utility Functions
-//      addAttribute                Adds attribute to geometry
-//      coloredMesh                 Converts mesh to be able to used custom colored triangles (painting)
-//      modelSize                   Finds max / min geometry Size
-//      repeatTexture               Multiplies uv coordinates in geometry to repeat texture
-//      uvFlip                      Flip uv coordinates
-//      uvMapCube                   Maps uv coordinates onto an object that fits inside a cube
-//      uvMapSphere                 Maps uv coordinates onto an object that fits inside a sphere
-//
-/////////////////////////////////////////////////////////////////////////////////////
-
 import * as THREE from 'three';
-
 import { Vectors } from '../utils/Vectors.js';
+
+// https://stackoverflow.com/questions/20774648/three-js-generate-uv-coordinate
+// https://stackoverflow.com/questions/34958072/programmatically-generate-simple-uv-mapping-for-models
+// https://discourse.threejs.org/t/can-i-make-a-uv-unwrapping-of-a-model-programmatically-with-three-js/2421/6
+// https://codepen.io/knee-cola/pen/XMVBwQ
+
+// addAttribute()           Adds attribute to geometry
+// coloredMesh()            Converts mesh to be able to used custom colored triangles (painting)
+// modelSize()              Finds max / min geometry Size
+// repeatTexture()          Multiplies uv coordinates in geometry to repeat texture
+// uvFlip()                 Flip uv coordinates
+// uvMapCube()              Maps uv coordinates onto an object that fits inside a cube
+// uvMapSphere()            Maps uv coordinates onto an object that fits inside a sphere
 
 const _uv = [ new THREE.Vector2(), new THREE.Vector2(), new THREE.Vector2() ];
 const _vertex = [ new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3() ];

@@ -1,26 +1,13 @@
-/** /////////////////////////////////////////////////////////////////////////////////
-//
-// @description Onsight Engine
-// @about       Easy to use 2D / 3D JavaScript game engine.
-// @author      Stephens Nunnally <@stevinz>
-// @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally and Scidian Studios
-// @source      https://github.com/onsightengine
-//
-///////////////////////////////////////////////////////////////////////////////////*/
-//
-//  Entity Utility Functions
-//      combineEntityArrays         Adds entities from 'entityArrayToAdd' into 'intoEntityArray'
-//      commonEntity                Checks two arrays to see if they have any common entites
-//      compareArrayOfEntities      Checks if two entity arrays hold the same entities (i.e. are the same collections)
-//      containsEntity              Checks array to see if it has an entity (by entity.uuid)
-//      containsMesh                Checks if entity contains Mesh
-//      isImportant                 Checks if entity is important and should be protected
-//      parentEntity                Returns parent most entity that is not a Scene
-//      parentScene                 Returns parent scene of an entity
-//      removeEntityFromArray       Removes all instances of an entity (by uuid) from an array of entities
-//      uuidArray                   Converts entity array to UUID array
-//
-/////////////////////////////////////////////////////////////////////////////////////
+// combineEntityArrays()        Adds entities from 'entityArrayToAdd' into 'intoEntityArray'
+// commonEntity()               Checks two arrays to see if they have any common entites
+// compareArrayOfEntities()     Checks if two entity arrays hold the same entities (i.e. are the same collections)
+// containsEntity()             Checks array to see if it has an entity (by entity.uuid)
+// containsMesh()               Checks if entity contains Mesh
+// isImportant()                Checks if entity is important and should be protected
+// parentEntity()               Returns parent most entity that is not a Scene
+// parentScene()                Returns parent scene of an entity
+// removeEntityFromArray()      Removes all instances of an entity (by uuid) from an array of entities
+// uuidArray()                  Converts entity array to UUID array
 
 class EntityUtils {
 
@@ -80,8 +67,11 @@ class EntityUtils {
         let hasMesh = false;
         entity.traverseEntities((child) => {
             child.traverseComponents((component) => {
-                hasMesh = hasMesh || (component.mesh && component.mesh.isMesh);
-                hasMesh = hasMesh || (component.mesh && component.mesh.isPoints);
+                hasMesh = hasMesh || (component.type === 'geometry');
+                hasMesh = hasMesh || (component.type === 'mesh');
+                hasMesh = hasMesh || (component.type === 'sprite');
+                // hasMesh = hasMesh || (component.mesh && component.mesh.isMesh);
+                // hasMesh = hasMesh || (component.mesh && component.mesh.isPoints);
             });
         }, recursive);
         return hasMesh;

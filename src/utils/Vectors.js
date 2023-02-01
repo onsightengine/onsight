@@ -1,23 +1,10 @@
-/** /////////////////////////////////////////////////////////////////////////////////
-//
-// @description Onsight Engine
-// @about       Easy to use 2D / 3D JavaScript game engine.
-// @author      Stephens Nunnally <@stevinz>
-// @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally and Scidian Studios
-// @source      https://github.com/onsightengine
-//
-///////////////////////////////////////////////////////////////////////////////////*/
-//
-//  Vector Functions
-//      absolute            Set x, y, z to positive numbers
-//      noZero              Check if Vector3 is equal to zero ({ x:0, y:0, z:0 })
-//      printOut            Logs a vector3 to the console
-//      round               Rounds vector3 values to 'decimalPlaces'
-//      sanity              Makes sure Vector3 values are real numbers
-//
-/////////////////////////////////////////////////////////////////////////////////////
-
 import { MathUtils } from './MathUtils.js';
+
+// absolute()       Set x, y, z to positive numbers
+// noZero()         Check if Vector3 is equal to zero ({ x:0, y:0, z:0 })
+// printOut()       Logs a vector3 to the console
+// round()          Rounds vector3 values to 'decimalPlaces'
+// sanity()         Makes sure Vector3 values are real numbers
 
 class Vectors {
 

@@ -1,15 +1,4 @@
-/** /////////////////////////////////////////////////////////////////////////////////
-//
-// @description Onsight Engine
-// @about       Easy to use 2D / 3D JavaScript game engine.
-// @author      Stephens Nunnally <@stevinz>
-// @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally and Scidian Studios
-// @source      https://github.com/onsightengine
-//
-///////////////////////////////////////////////////////////////////////////////////*/
-
 import * as THREE from 'three';
-
 import { Line2 } from 'three/addons/lines/Line2.js';
 import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
@@ -47,9 +36,7 @@ const _box = new THREE.Box3();
 
 const _indices = new Uint16Array([ 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 ]);
 
-/////////////////////////////////////////////////////////////////////////////////////
-/////   Simple Lines
-/////////////////////////////////////////////////////////////////////////////////////
+/******************** LINES********************/
 
 /** Basic single pixel width line between two points */
 class BasicLine extends THREE.LineSegments {
@@ -130,9 +117,7 @@ class FatLine extends Line2 {
     }
 }
 
-/////////////////////////////////////////////////////////////////////////////////////
-/////   Wireframe Boxes (cubes with no cross lines)
-/////////////////////////////////////////////////////////////////////////////////////
+/******************** WIREFRAME BOXES ********************/
 
 /** Single pixel width wireframe cube (used for 3d bounding box when calculating rubber band selection */
 class BasicWireBox extends THREE.LineSegments {
@@ -426,9 +411,7 @@ class FatWireBox extends Line2 {
     }
 }
 
-/////////////////////////////////////////////////////////////////////////////////////
-/////   Wireframes - clone of object geometry
-/////////////////////////////////////////////////////////////////////////////////////
+/******************** WIREFRAME CLONES ********************/
 
 /** Basic (single pixel) wireframe */
 class BasicWireframe extends THREE.LineSegments {
@@ -484,10 +467,6 @@ class FatWireframe extends Wireframe {
         }
     }
 }
-
-/////////////////////////////////////////////////////////////////////////////////////
-/////   Exports
-/////////////////////////////////////////////////////////////////////////////////////
 
 export {
     // Lines

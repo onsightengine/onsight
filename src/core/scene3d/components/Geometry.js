@@ -1,33 +1,17 @@
-/** /////////////////////////////////////////////////////////////////////////////////
-//
-// @description Onsight Engine
-// @about       Easy to use 2D / 3D JavaScript game engine.
-// @author      Stephens Nunnally <@stevinz>
-// @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally and Scidian Studios
-// @source      https://github.com/onsightengine
-//
-///////////////////////////////////////////////////////////////////////////////////*/
-//
-//  Additional Source(s)
-//      MIT     https://github.com/Cloud9c/taro/blob/main/src/components/Geometry.js
-//
-/////////////////////////////////////////////////////////////////////////////////////
-
 import * as THREE from 'three';
-
+import { LoopSubdivision } from 'three-subdivide';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 // import { SimplifyModifier } from 'three/addons/modifiers/SimplifyModifier.js';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 
-import { LoopSubdivision } from 'three-subdivide';
-
 import { AssetManager } from '../../AssetManager.js';
 import { ComponentManager } from '../../ComponentManager.js';
-
 import { CapsuleGeometry } from '../../../three/geometry/CapsuleGeometry.js';
 import { CylinderGeometry } from '../../../three/geometry/CylinderGeometry.js';
 import { GeometryUtils } from '../../../three/GeometryUtils.js';
 import { MathUtils } from '../../../utils/MathUtils.js';
+
+// https://github.com/Cloud9c/taro/blob/main/src/components/Geometry.js
 
 const boxGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
 const circleShape = new THREE.Shape().absarc(0, 0, 0.5 /* radius */);

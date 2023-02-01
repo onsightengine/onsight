@@ -1,19 +1,14 @@
-/** /////////////////////////////////////////////////////////////////////////////////
-//
-// @description CylinderGeometry
-// @about       CylinderGeometry
-// @license     MIT - Copyright (c) 2010-2022 mrdoob and three.js authors
-// @source      https://github.com/mrdoob/three.js/blob/master/src/geometries/CylinderGeometry.js
-// @version     Jun 24, 2021
-//
-///////////////////////////////////////////////////////////////////////////////////*/
-//
-//  Note(s)
-//      - Standard THREE.CylinderGeometry, modified by stevinz to not include zero sized triangles
-//
-/////////////////////////////////////////////////////////////////////////////////////
+/**
+ * @description CylinderGeometry
+ * @about       CylinderGeometry
+ * @license     MIT - Copyright (c) 2010-2022 mrdoob and three.js authors
+ * @source      https://github.com/mrdoob/three.js/blob/master/src/geometries/CylinderGeometry.js
+ * @version     Jun 24, 2021
+ */
 
 import * as THREE from 'three';
+
+// Standard THREE.CylinderGeometry, modified by stevinz to not include zero sized triangles
 
 class CylinderGeometry extends THREE.BufferGeometry {
 

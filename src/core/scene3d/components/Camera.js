@@ -1,21 +1,7 @@
-/** /////////////////////////////////////////////////////////////////////////////////
-//
-// @description Onsight Engine
-// @about       Easy to use 2D / 3D JavaScript game engine.
-// @author      Stephens Nunnally <@stevinz>
-// @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally and Scidian Studios
-// @source      https://github.com/onsightengine
-//
-///////////////////////////////////////////////////////////////////////////////////*/
-//
-//  Additional Source(s)
-//      MIT     https://github.com/Cloud9c/taro/blob/main/src/components/Camera.js
-//
-/////////////////////////////////////////////////////////////////////////////////////
-
 import * as THREE from 'three';
-
 import { ComponentManager } from '../../ComponentManager.js';
+
+// https://github.com/Cloud9c/taro/blob/main/src/components/Camera.js
 
 const _renderSize = new THREE.Vector2(1, 1);
 

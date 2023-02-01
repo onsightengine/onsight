@@ -1,14 +1,12 @@
-/** /////////////////////////////////////////////////////////////////////////////////
-// 
-// @description fflate
-// @about       Fast JavaScript compression / decompression
-// @author      Arjun Barrett
-// @license     MIT - Copyright (c) 2020 Arjun Barrett
-// @source      https://github.com/101arrowz/fflate
-// @version:    version 0.6.9
-// 
-///////////////////////////////////////////////////////////////////////////////////*/
-//
+/**
+ * @description fflate
+ * @about       Fast JavaScript compression / decompression
+ * @author      Arjun Barrett
+ * @license     MIT - Copyright (c) 2020 Arjun Barrett
+ * @source      https://github.com/101arrowz/fflate
+ * @version:    version 0.6.9
+ */
+
 // DEFLATE is a complex format; to read this code, you should probably check the RFC first:
 // https://tools.ietf.org/html/rfc1951
 // You may also wish to take a look at the guide I made about this program:
@@ -18,8 +16,6 @@
 // However, the vast majority of the codebase has diverged from UZIP.js to increase performance and reduce bundle size.
 // Sometimes 0 will appear where -1 would be more appropriate. This is because using a uint
 // is better for memory in most engines (I *think*).
-//
-/////////////////////////////////////////////////////////////////////////////////////
 
 var ch2 = {};
 var durl = function (c) { return URL.createObjectURL(new Blob([c], { type: 'text/javascript' })); };

@@ -1,44 +1,27 @@
-/** /////////////////////////////////////////////////////////////////////////////////
-//
-// @description Onsight Engine
-// @about       Easy to use 2D / 3D JavaScript game engine.
-// @author      Stephens Nunnally <@stevinz>
-// @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally and Scidian Studios
-// @source      https://github.com/onsightengine
-//
-///////////////////////////////////////////////////////////////////////////////////*/
-//
-//  Additional Source(s)
-//      MIT     https://github.com/mrdoob/three.js/blob/dev/src/math/MathUtils.js
-//
-/////////////////////////////////////////////////////////////////////////////////////
-//
-//  Angles
-//      radiansToDegrees        Converts radians to degrees
-//      degreesToRadians        Converts degrees to radians
-//  Common
-//      clamp                   Clamps a number between min and max
-//      damp                    Time based linear interpolation
-//      lerp                    Linear interpolation
-//      roundTo                 Returns a number rounded to 'decimalPlaces'
-//  Fuzzy Comparison
-//      fuzzyFloat              Compare two floats
-//      fuzzyVector             Compare two Vector3
-//      fuzzyQuaternion         Compare two Quaternion
-//  Geometry
-//      isPowerOfTwo            Checks if a number is power of 2
-//  Number Functions
-//      addCommas               Formats a number into a string with commas added for large numbers
-//      countDecimals           Counts significant decimal places
-//      isNumber                Checks if 'number' is a valid number
-//  Polygon
-//      lineCollision           Check if two lines are intersecting
-//      lineRectCollision       Checks if a line is intersecting a rectangle
-//  Random
-//      randomFloat             Random float from min (inclusive) to max (exclusive)
-//      randomInt               Random integer from min (inclusive) to max (exclusive)
-//
-/////////////////////////////////////////////////////////////////////////////////////
+// ANGLES
+//  radiansToDegrees()      Converts radians to degrees
+//  degreesToRadians()      Converts degrees to radians
+// COMMON
+//  clamp()                 Clamps a number between min and max
+//  damp()                  Time based linear interpolation
+//  lerp()                  Linear interpolation
+//  roundTo()               Returns a number rounded to 'decimalPlaces'
+// FUZZY
+//  fuzzyFloat()            Compare two floats
+//  fuzzyVector()           Compare two Vector3
+//  fuzzyQuaternion()       Compare two Quaternion
+// GEOMETRY
+//  isPowerOfTwo()          Checks if a number is power of 2
+// NUMBERS
+//  addCommas()             Formats a number into a string with commas added for large numbers
+//  countDecimals()         Counts significant decimal places
+//  isNumber()              Checks if 'number' is a valid number
+// POLYGONS
+//  lineCollision()         Check if two lines are intersecting
+//  lineRectCollision()     Checks if a line is intersecting a rectangle
+// RANDOM
+//  randomFloat()           Random float from min (inclusive) to max (exclusive)
+//  randomInt()             Random integer from min (inclusive) to max (exclusive)
 
 class MathUtils {
 

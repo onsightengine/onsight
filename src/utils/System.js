@@ -1,51 +1,20 @@
-/** /////////////////////////////////////////////////////////////////////////////////
-//
-// @description Onsight Engine
-// @about       Easy to use 2D / 3D JavaScript game engine.
-// @author      Stephens Nunnally <@stevinz>
-// @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally and Scidian Studios
-// @source      https://github.com/onsightengine
-//
-///////////////////////////////////////////////////////////////////////////////////*/
-//
-//  Array Functions
-//      arrayFromArguments      Converts argument list to Array
-//      isIterable              Checks if a javascript object is iterable
-//      isObject                Checks if a variable is an object (and not null / array / function)
-//
-//  File System Functions
-//      save                    Saves an URL object to the host system
-//
-//  OS Functions
-//      detectOS                Attempts to detect current operating system
-//      fullscreen              Go fullscreen on DOM 'element'
-//      metaKeyOS               Returns character string of shortcut key depending on OS
-//
-//  System Functions
-//      sleep                   Pauses app for specified milliseconds
-//      waitForObject           Wait for getter to return an object that exists, then call a function
-//
-//  ------------------------------------------------------
-//
-//  Unicode Symbols
-//      Alt (Option)    ⌥ OR ⎇     Apple       
-//      Ctrl (Control)  ⌃
-//      Cmd (Command)   ⌘
-//      Shift           ⇧           Space      ' '  &nbsp;
-//      Caps Lock       ⇪           Degrees     °   &deg;
-//      Fn                          Search      ⌕
-//      Escape          ⎋           Target      ⌖
-//      Delete          ⌦           Touch       ⍝
-//      Backspace       ⌫
-//      Enter           ↵
-//
-/////////////////////////////////////////////////////////////////////////////////////
+// ARRAYS
+//  arrayFromArguments()    Converts argument list to Array
+//  isIterable()            Checks if a javascript object is iterable
+//  isObject()              Checks if a variable is an object (and not null / array / function)
+// FILE SYSTEM
+//  save()                  Saves an URL object to the host system
+// PLATFORM
+//  detectOS()              Attempts to detect current operating system
+//  fullscreen()            Go fullscreen on DOM 'element'
+//  metaKeyOS()             Returns character string of shortcut key depending on OS
+// SYSTEM
+//  sleep()                 Pauses app for specified milliseconds
+//  waitForObject()         Wait for getter to return an object that exists, then call a function
 
 class System {
 
-    /////////////////////////////////////////////////////////////////////////////////////
-    /////   Array Functions
-    ///////////////
+    /******************** ARRAYS ********************/
 
     /** Returns argument list as array, or if array was passed as argument, returns array */
     static arrayFromArguments() {
@@ -67,9 +36,7 @@ class System {
         return (typeof variable === 'object' && ! Array.isArray(variable) && variable !== null);
     }
 
-    /////////////////////////////////////////////////////////////////////////////////////
-    /////   File System
-    ///////////////
+    /******************** FILE SYSTEM ********************/
 
     static save(url, filename) {
         try {
@@ -102,9 +69,7 @@ class System {
         System.save(url, filename);
     }
 
-    /////////////////////////////////////////////////////////////////////////////////////
-    /////   OS (Operating System)
-    ///////////////
+    /******************** PLATFORM ********************/
 
     /** Attempts to detect current operating system */
     static detectOS() {
@@ -160,9 +125,7 @@ class System {
         }
     }
 
-    /////////////////////////////////////////////////////////////////////////////////////
-    /////   System
-    ///////////////
+    /******************** SYSTEM ********************/
 
     /** Pauses app for specified milliseconds */
     static sleep(ms) {

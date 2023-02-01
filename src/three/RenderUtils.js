@@ -1,24 +1,10 @@
-/** /////////////////////////////////////////////////////////////////////////////////
-//
-// @description Onsight Engine
-// @about       Easy to use 2D / 3D JavaScript game engine.
-// @author      Stephens Nunnally <@stevinz>
-// @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally and Scidian Studios
-// @source      https://github.com/onsightengine
-//
-///////////////////////////////////////////////////////////////////////////////////*/
-//
-//  Render Utility Functions
-//      offscreenRenderer           Offscreen renderer to be shared across the app
-//      renderGeometryToCanvas      Render geometry to canvas, camera centered on geometry
-//      renderTextureToCanvas       Render texture to canvas
-//
-/////////////////////////////////////////////////////////////////////////////////////
-
 import * as THREE from 'three';
-
 import { CameraUtils } from './CameraUtils.js';
 import { MathUtils } from '../utils/MathUtils.js';
+
+// offscreenRenderer()          Offscreen renderer to be shared across the app
+// renderGeometryToCanvas()     Render geometry to canvas, camera centered on geometry
+// renderTextureToCanvas()      Render texture to canvas
 
 let _renderer;
 

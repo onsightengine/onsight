@@ -1,39 +1,19 @@
-/** /////////////////////////////////////////////////////////////////////////////////
-//
-// @description Onsight Engine
-// @about       Easy to use 2D / 3D JavaScript game engine.
-// @author      Stephens Nunnally <@stevinz>
-// @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally and Scidian Studios
-// @source      https://github.com/onsightengine
-//
-///////////////////////////////////////////////////////////////////////////////////*/
-//
-//  Additional Source(s)
-//      MIT     https://github.com/Cloud9c/taro/blob/main/src/components/Light.js
-//
-/////////////////////////////////////////////////////////////////////////////////////
-//
-//          Three.js Light Types
-//          --------------------
-//
-// 	Light       Shadow      Description
-//	-----       -------     -----------
-//	Ambient     -           Globally illuminates all objects in the scene equally
-//	Directional YES         Light whose rays are parallel and emitted in a specific direction (Sun)
-//	Hemisphere  -           Light above the scene, with color fading from sky color to ground color
-//	Point       YES, SLOW   Light emitted from a single point in all directions (Lightbulb)
-//	Rectangle   -           Emits light uniformly across the face a rectangular plane (Window, Strip Light)
-//	Spot        YES         Light gets emitted from a single point in one direction, along a cone
-//
-//	Basic Scene
-//      'Sky' -	Hemisphere light
-//      'Sun' - Directional light
-//
-/////////////////////////////////////////////////////////////////////////////////////
-
 import * as THREE from 'three';
-
 import { ComponentManager } from '../../ComponentManager.js';
+
+// LIGHT       SHADOW      DESCRIPTION
+// Ambient     -           Globally illuminates all objects in the scene equally
+// Directional YES         Light whose rays are parallel and emitted in a specific direction (Sun)
+// Hemisphere  -           Light above the scene, with color fading from sky color to ground color
+// Point       YES, SLOW   Light emitted from a single point in all directions (Lightbulb)
+// Rectangle   -           Emits light uniformly across the face a rectangular plane (Window, Strip Light)
+// Spot        YES         Light gets emitted from a single point in one direction, along a cone
+
+// TYPES
+// 'Sky' - Hemisphere light
+// 'Sun' - Directional light
+
+// https://github.com/Cloud9c/taro/blob/main/src/components/Light.js
 
 class Light {
 

@@ -1,20 +1,42 @@
-/** /////////////////////////////////////////////////////////////////////////////////
-//
-// @description Onsight Engine
-// @about       Easy to use 2D / 3D JavaScript game engine.
-// @author      Stephens Nunnally <@stevinz>
-// @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally and Scidian Studios
-// @source      https://github.com/onsightengine
-//
-///////////////////////////////////////////////////////////////////////////////////*/
-//
-//  String Functions
-//      addSpaces           Adds spaces between 'CamelCaseWords' -> 'Camel Case Words'
-//      capitalize          Capitalizes the first letter of every word in a string
-//      countDigits         Counts number of digits in a number
-//      nameFromUrl         Returns name from file url
-//
-/////////////////////////////////////////////////////////////////////////////////////
+// META
+//  Alt/Option  ⌥ ⎇
+//  Ctrl        ⌃
+//  Cmd         ⌘
+//  Shift       ⇧
+// KEYS
+//  Caps Lock   ⇪
+//  Fn
+//  Escape      ⎋
+//  Delete      ⌦
+//  Backspace   ⌫
+//  Enter       ↵
+//  Space      ' '      &nbsp;
+//  Space (EM) ' '      &emsp;
+// MATH
+//  Amperstand  &       &amp;
+//  Degrees     °       &deg;
+//  Delta       Δ       &Delta;
+//  Dot         •       &sdot;
+//  Fuzzy       ~       &sim;
+//  Infinity    ∞       &infin;
+//  Multiply    ×
+//  Not Equal   ≠       &ne;
+// SYMBOLS
+//  Apple       
+//  Copyright   ©       &copy;
+//  Double      "       &quot;
+//  Heart       ♥       &hearts;
+//  Registered  ®       &reg;
+//  Search      ⌕
+//  Single      '       &apos;
+//  Target      ⌖
+//  Touch       ⍝
+//  Trademark   ™       &trade;
+
+// addSpaces()      Adds spaces between 'CamelCaseWords' -> 'Camel Case Words'
+// capitalize()     Capitalizes the first letter of every word in a string
+// countDigits()    Counts number of digits in a number
+// nameFromUrl()    Returns name from file url
 
 class Strings {
 

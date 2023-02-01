@@ -1,30 +1,20 @@
-/** /////////////////////////////////////////////////////////////////////////////////
-//
-// @description cannon-es
-// @about       Lightweight 3D physics engine written in JavaScript
-// @author      Stefan Hedman and Cannon-es (Open Source Developer Collective) Authors
-// @license     MIT - Copyright (c) 2015 cannon.js Authors
-// @source      https://github.com/pmndrs/cannon-es
-// @version:    0.19.0 - Jan 19, 2022
-//
-///////////////////////////////////////////////////////////////////////////////////*/
-
 /**
- * Records what objects are colliding with each other
+ * @description cannon-es
+ * @about       Lightweight 3D physics engine written in JavaScript
+ * @author      Stefan Hedman and Cannon-es (Open Source Developer Collective) Authors
+ * @license     MIT - Copyright (c) 2015 cannon.js Authors
+ * @source      https://github.com/pmndrs/cannon-es
+ * @version:    0.19.0 - Jan 19, 2022
  */
- class ObjectCollisionMatrix {
-  /**
-   * The matrix storage.
-   */
 
+/** Records what objects are colliding with each other */
+class ObjectCollisionMatrix {
+  /** The matrix storage */
   constructor() {
     this.matrix = {};
   }
-  /**
-   * get
-   */
 
-
+  /** get */
   get(bi, bj) {
     let {
       id: i
@@ -41,11 +31,8 @@
 
     return `${i}-${j}` in this.matrix;
   }
-  /**
-   * set
-   */
 
-
+  /** set */
   set(bi, bj, value) {
     let {
       id: i

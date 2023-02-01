@@ -1,19 +1,3 @@
-/** /////////////////////////////////////////////////////////////////////////////////
-//
-// @description Onsight Engine
-// @about       Easy to use 2D / 3D JavaScript game engine.
-// @author      Stephens Nunnally <@stevinz>
-// @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally and Scidian Studios
-// @source      https://github.com/onsightengine
-//
-///////////////////////////////////////////////////////////////////////////////////*/
-//
-//  SVGBuilder
-//      createFromPaths             Builds Object3D from SVG paths
-//      createFromFile              Builds Object3D from SVG file
-//
-/////////////////////////////////////////////////////////////////////////////////////
-
 import * as THREE from 'three';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 
@@ -22,6 +6,9 @@ import { GeometryUtils } from '../../../three/GeometryUtils.js';
 import { ObjectUtils } from '../../../three/ObjectUtils.js';
 import { Strings } from '../../../utils/Strings.js';
 import { Vectors } from '../../../utils/Vectors.js';
+
+// createFromPaths()        Builds Object3D from SVG paths
+// createFromFile()         Builds Object3D from SVG file
 
 const _color = new THREE.Color();
 const _position = new THREE.Vector3();

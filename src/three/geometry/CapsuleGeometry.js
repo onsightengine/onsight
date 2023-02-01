@@ -1,13 +1,11 @@
-/** /////////////////////////////////////////////////////////////////////////////////
-//
-// @description CapsuleGeometry
-// @about       CapsuleGeometry as a new geometry primitive for Three.js
-// @author      maximequiblier <maximeq>
-// @license     MIT - Copyright (c) 2019 maximequiblier
-// @source      https://github.com/maximeq/three-js-capsule-geometry
-// @version     Aug 6, 2021
-//
-///////////////////////////////////////////////////////////////////////////////////*/
+/**
+ * @description CapsuleGeometry
+ * @about       CapsuleGeometry as a new geometry primitive for Three.js
+ * @author      maximequiblier <maximeq>
+ * @license     MIT - Copyright (c) 2019 maximequiblier
+ * @source      https://github.com/maximeq/three-js-capsule-geometry
+ * @version     Aug 6, 2021
+ */
 
 import * as THREE from 'three';
 import { MathUtils } from '../../utils/MathUtils.js';

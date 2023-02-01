@@ -1,33 +1,19 @@
-/** /////////////////////////////////////////////////////////////////////////////////
-//
-// @description Onsight Engine
-// @about       Easy to use 2D / 3D JavaScript game engine.
-// @author      Stephens Nunnally <@stevinz>
-// @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally and Scidian Studios
-// @source      https://github.com/onsightengine
-//
-///////////////////////////////////////////////////////////////////////////////////*/
-//
-//  Object3D Utility Functions
-//      allowSelection              Check if object should be allowed to be interacted with in Editor
-//      checkTransforms             Compares array of objects to see if transforms are all the same
-//      clearObject                 Completely deletes object (including geomtries/materials), and all of it's children
-//      clearMaterial               Disposes of a material
-//      computeBounds               Finds bounding box of an object or array of objects
-//      computeCenter               Finds center point of an object or array of objects
-//      containsObject              Checks array to see if it has an object (by Object3D.uuid)
-//      copyLocalTransform          Copies local transform from one object to another
-//      copyWorldTransform          Copies world transform from one object to another
-//      countGeometry               Counts total geometris in an object or array of objects
-//      flattenGroup                Puts an object's children into parent, deletes original containing object
-//      resetTransform              Normalize / zero / reset object 3D transform
-//
-/////////////////////////////////////////////////////////////////////////////////////
-
 import * as THREE from 'three';
-
 import { MathUtils } from '../utils/MathUtils.js';
 import { System } from '../utils/System.js';
+
+// allowSelection()         Check if object should be allowed to be interacted with in Editor
+// checkTransforms()        Compares array of objects to see if transforms are all the same
+// clearObject()            Completely deletes object (including geomtries/materials), and all of it's children
+// clearMaterial()          Disposes of a material
+// computeBounds()          Finds bounding box of an object or array of objects
+// computeCenter()          Finds center point of an object or array of objects
+// containsObject()         Checks array to see if it has an object (by Object3D.uuid)
+// copyLocalTransform()     Copies local transform from one object to another
+// copyWorldTransform()     Copies world transform from one object to another
+// countGeometry()          Counts total geometris in an object or array of objects
+// flattenGroup()           Puts an object's children into parent, deletes original containing object
+// resetTransform()         Normalize / zero / reset object 3D transform
 
 const _boxCenter = new THREE.Box3();
 const _tempMatrix = new THREE.Matrix4();

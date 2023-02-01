@@ -1,30 +1,17 @@
-/** /////////////////////////////////////////////////////////////////////////////////
-//
-// @description Onsight Engine
-// @about       Easy to use 2D / 3D JavaScript game engine.
-// @author      Stephens Nunnally <@stevinz>
-// @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally and Scidian Studios
-// @source      https://github.com/onsightengine
-//
-///////////////////////////////////////////////////////////////////////////////////*/
-//
-//  Camera Utility Functions
-//      Creation
-//          createOrthographic          Create an orthographic camera
-//          createPerspective           Create a perspective camera
-//      Update
-//          updateCamera                Calls appropriate update function for camera
-//          updatePerspective           Updates a perspective camera's frustum
-//          updateOrthographic          Updates an orthographic camera's frustum
-//      Space
-//          screenPoint                 Projects a point from 3D world space coordinates to 2D screen coordinates
-//          worldPoint                  Unprojects a point from 2D screen coordinates to 3D world space coordinates
-//      Utils
-//          fitCameraToObject           Fits camera to object
-//
-/////////////////////////////////////////////////////////////////////////////////////
-
 import * as THREE from 'three';
+
+// CREATION
+//  createOrthographic()    Create an orthographic camera
+//  createPerspective()     Create a perspective camera
+// UPDATE
+//  updateCamera()          Calls appropriate update function for camera
+//  updatePerspective()     Updates a perspective camera's frustum
+//  updateOrthographic()    Updates an orthographic camera's frustum
+// SPACE
+//  screenPoint()           Projects a point from 3D world space coordinates to 2D screen coordinates
+//  worldPoint()            Unprojects a point from 2D screen coordinates to 3D world space coordinates
+// UTILS
+//  fitCameraToObject()     Fits camera to object
 
 export const CAMERA_SCALE = 0.01;
 export const CAMERA_START_DISTANCE = 5;
@@ -34,7 +21,7 @@ const _raycaster = new THREE.Raycaster();
 
 class CameraUtils {
 
-    //////////////////// Creation
+    /******************** CREATION ********************/
 
     /**
      * Create an orthographic camera
@@ -89,7 +76,7 @@ class CameraUtils {
         return camera;
     }
 
-    //////////////////// Update
+    /******************** UPDATE ********************/
 
     static updateCamera(camera, camWidth, camHeight) {
         if (camera.isPerspectiveCamera) CameraUtils.updatePerspective(camera, camWidth, camHeight);
@@ -139,7 +126,7 @@ class CameraUtils {
         camera.updateProjectionMatrix();
     }
 
-    //////////////////// Space
+    /******************** SPACE ********************/
 
     /** Projects a point from 3D world space coordinates to 2D screen coordinates */
     static screenPoint(pointInWorld, camera) {
@@ -198,7 +185,7 @@ class CameraUtils {
         return (planeIntersects.length > 0) ? planeIntersects[0].point.clone() : false;
     }
 
-    //////////////////// Utils
+    /******************** UTILS ********************/
 
     static distanceToFitObject(camera, object, offset = 1.25) {
 

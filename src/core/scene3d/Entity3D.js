@@ -1,31 +1,15 @@
-/** /////////////////////////////////////////////////////////////////////////////////
-//
-// @description Onsight Engine
-// @about       Easy to use 2D / 3D JavaScript game engine.
-// @author      Stephens Nunnally <@stevinz>
-// @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally and Scidian Studios
-// @source      https://github.com/onsightengine
-//
-///////////////////////////////////////////////////////////////////////////////////*/
-//
-//  Object3D.userData
-//      Flags
-//          userData.flagIgnore         Ignore object during selction, focus, saving, etc. (for Editor)
-//          userData.flagLocked         Locked in Editor (do not allow selection, deletion, or duplication)
-//
-//      Internal
-//          userData.entityId           Used for transform controls to link a transform clone with original entity
-//
-/////////////////////////////////////////////////////////////////////////////////////
-
 import * as THREE from 'three';
-
 import { ENTITY_FLAGS } from '../../constants.js';
-
 import { ComponentManager } from '../ComponentManager.js';
 import { EntityUtils } from '../../three/EntityUtils.js';
 import { Object3D } from './Object3D.js';
 import { Strings } from '../../utils/Strings.js';
+
+// FLAGS
+//  Object3D.userData.flagIgnore    Ignore object during selction, focus, saving, etc. (for Editor)
+//  Object3D.userData.flagLocked    Locked in Editor (do not allow selection, deletion, or duplication)
+// INTERNAL
+//  Object3D.userData.entityId      Used for transform controls to link a transform clone with original entity
 
 class Entity3D extends Object3D {
 

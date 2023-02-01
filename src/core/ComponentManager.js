@@ -1,33 +1,22 @@
-/** /////////////////////////////////////////////////////////////////////////////////
+import * as THREE from 'three';
+import { MathUtils } from '../utils/MathUtils.js';
+import { Strings } from '../utils/Strings.js';
+import { System } from '../utils/System.js';
+
+// REGISTRATION
+//  registered()        Returns class definition of a registered type
+//  registeredTypes()   Returns an array of all types registered with Component Manager
+//  register()          Registers a component type with the internal Component Manager
+// DATA
+//  includeData()       Checks if a schema item should be included in a component data structure
+//  sanitizeData()      Build default data of 'type', remove any properties that should not be included
+//  stripData()         Removes data from 'newData' if conditions from schema on 'newData' don't match 'oldData'
+
+/******************** Property Types ********************/
 //
-// @description Onsight Engine
-// @about       Easy to use 2D / 3D JavaScript game engine.
-// @author      Stephens Nunnally <@stevinz>
-// @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally and Scidian Studios
-// @source      https://github.com/onsightengine
+//  TYPE            DESCRIPTION                     DEFAULT             OPTIONS (DEFAULT)
 //
-///////////////////////////////////////////////////////////////////////////////////*/
-//
-//  ComponentManager Functions
-//      Registration
-//          registered          Returns class definition of a registered type
-//          registeredTypes     Returns an array of all types registered with Component Manager
-//          register            Registers a component type with the internal Component Manager
-//      Data
-//          includeData         Checks if a schema item should be included in a component data structure
-//          sanitizeData        Build default data of 'type', remove any properties that should not be included
-//          stripData           Removes data from 'newData' if conditions from schema on 'newData' don't match 'oldData'
-//
-/////////////////////////////////////////////////////////////////////////////////////
-//
-//              Component Property Types
-//              ------------------------
-//
-//  Type            Description                     Default             Options (Default)
-//  ----            -----------                     -------             -----------------
-//
-//  ///// DATA TYPES /////
-//
+//      -- DATA TYPES --
 //  select          Dropdown                        null
 //  number          Number Box                      0                   min (-inf), max (inf), step (1), unit (''), precision (3)
 //  int             Whole Number                    0                   min (-inf), max (inf), step (1), unit ('')
@@ -40,12 +29,10 @@
 //  asset           Asset (asset.uuid)              null
 //  map             Texture Map (texture.uuid)      null
 //
-//  ///// FORMATTING /////
-//
+//      -- FORMATTING --
 //  divider         Inserts horizontal rule
 //
-//  ////////// BELOW: STILL NEED TO IMPLEMENT //////////
-//
+//      -- BELOW: STILL NEED TO IMPLEMENT --
 //  !! scroller     Number Scroller Box             0
 //  !! variable     Number with +/- Number          [ 0, 0 ]
 //
@@ -59,10 +46,10 @@
 //
 //  !! script       Script                          ''
 //
-/////////////////////////////////////////////////////////////////////////////////////
+
+/******************** OPTIONS ********************/
 //
 //  DATA OPTIONS
-//  ------------
 //  type            Must be provided, data type, see above
 //  select          Options for drop down selection box
 //  if              Only include property if these conditions are met
@@ -70,14 +57,12 @@
 //  default         Default value of item if none provided
 //
 //  INSPECTOR OPTIONS
-//  --------------
 //  hide            Hide in Inspector if any of these conditions are met
 //  alias           Override a variable name to have custom string shown in Inspector
 //  promode         Only Show when 'promode' is enabled
 //  rebuild         Change of this property will cause a rebuild of the Inspector ('style' always rebuilds)
 //
 //  NUMERICAL OPTIONS
-//  -----------------
 //  min             Minimum allowed value
 //  max             Maximum allowed value
 //  precision       Decimal precision of value
@@ -85,25 +70,14 @@
 //  step            Mouse wheel / arrow key step of number when being changed in Inspector. See special step values below
 //
 //  SPECIAL STEP VALUES (Number / Int / Angle / Slider)
-//  -------------------
 //  'any'           Applies to Slider only. Totally smooth, slider can be any value
 //  'grid'          Align step to current editor 'grid' setting
-//
-/////////////////////////////////////////////////////////////////////////////////////
-
-import * as THREE from 'three';
-
-import { MathUtils } from '../utils/MathUtils.js';
-import { Strings } from '../utils/Strings.js';
-import { System } from '../utils/System.js';
 
 const _registered = {};
 
 class ComponentManager {
 
-    /////////////////////////////////////////////////////////////////////////////////////
-    /////   Registration
-    ////////////////////
+    /******************** REGISTRATION ********************/
 
     /** Returns class definition of a registered type */
     static registered(type = '') {
@@ -236,9 +210,7 @@ class ComponentManager {
         _registered[type] = Component;
     }
 
-    /////////////////////////////////////////////////////////////////////////////////////
-    /////   Data
-    ////////////////////
+    /******************** DATA ********************/
 
     /** Checks if a schema item should be included in a component data structure, optionally check a second data structure */
     static includeData(item, data1, data2 = undefined) {
@@ -322,7 +294,7 @@ class ComponentManager {
 
         } // next schemaKey
 
-    } // end santitizeData
+    }
 
     /** Removes properties from 'newData' if conditions from schema on 'newData' don't match 'oldData' */
     static stripData(type, oldData, newData) {
@@ -357,9 +329,9 @@ class ComponentManager {
                 delete newData[schemaKey];
             }
 
-        }	// end for
+        }
 
-    } // end function
+    }
 
 }
 

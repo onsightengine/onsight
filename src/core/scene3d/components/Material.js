@@ -1,36 +1,19 @@
-/** /////////////////////////////////////////////////////////////////////////////////
-//
-// @description Onsight Engine
-// @about       Easy to use 2D / 3D JavaScript game engine.
-// @author      Stephens Nunnally <@stevinz>
-// @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally and Scidian Studios
-// @source      https://github.com/onsightengine
-//
-///////////////////////////////////////////////////////////////////////////////////*/
-//
-//  Additional Source(s)
-//      MIT     https://github.com/Cloud9c/taro/blob/main/src/components/Material.js
-//
-/////////////////////////////////////////////////////////////////////////////////////
-//
-// Three.js materials, in order of quality
-//      MeshBasicMaterial,          // not affected by lights
-//      MeshLambertMaterial,        // non-physically based material for non-shiny surfaces, without specular highlights
-//      MeshPhongMaterial,          // non-physically based material for shiny surfaces with specular highlights
-//      MeshStandardMaterial,       // standard physically based material, using Metallic-Roughness workflow
-//      MeshPhysicalMaterial,       // extension of MeshStandardMaterial, providing even more advanced physically-based rendering
-//
-/////////////////////////////////////////////////////////////////////////////////////
-
 import * as THREE from 'three';
 // import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
 import { AssetManager } from '../../AssetManager.js';
 import { ComponentManager } from '../../ComponentManager.js';
-
 import { GeometryUtils } from '../../../three/GeometryUtils.js';
 import { ObjectUtils } from '../../../three/ObjectUtils.js';
 import { System } from '../../../utils/System.js';
+
+// MeshBasicMaterial        not affected by lights
+// MeshLambertMaterial      non-physically based material for non-shiny surfaces, without specular highlights
+// MeshPhongMaterial        non-physically based material for shiny surfaces with specular highlights
+// MeshStandardMaterial     standard physically based material, using Metallic-Roughness workflow
+// MeshPhysicalMaterial     extension of MeshStandardMaterial, providing even more advanced physically-based rendering
+
+// https://github.com/Cloud9c/taro/blob/main/src/components/Material.js
 
 const blendingModes = [ 'NoBlending', 'NormalBlending', 'AdditiveBlending', 'SubstractiveBlending', 'MultiplyBlending', 'CustomBlending' ];
 const sides = [ 'FrontSide', 'BackSide', 'DoubleSide' ];

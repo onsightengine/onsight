@@ -48,16 +48,6 @@ export { World3D } from './core/scene3d/World3D.js';
 
 export { SVGBuilder } from './core/scene3d/builders/SVGBuilder.js';
 
-///// Math
-
-export { MathUtils } from './math/MathUtils.js';
-export { Vectors } from './math/Vectors.js';
-
-///// Sys
-
-export { Strings } from './sys/Strings.js';
-export { System } from './sys/System.js';
-
 ///// Three
 
 export { CameraUtils } from './three/CameraUtils.js';
@@ -82,6 +72,13 @@ export { SkyObject } from './three/objects/SkyObject.js';
 
 export { GpuPickerPass } from './three/passes/GpuPickerPass.js';
 
+///// Utils
+
+export { MathUtils } from './utils/MathUtils.js';
+export { Strings } from './utils/Strings.js';
+export { System } from './utils/System.js';
+export { Vectors } from './utils/Vectors.js';
+
 /////////////////////////////////////////////////////////////////////////////////////
 /////   Register Components
 /////////////////////////////////////////////////////////////////////////////////////
@@ -93,6 +90,7 @@ import './core/scene3d/components/Geometry.js';
 import './core/scene3d/components/Light.js';
 import './core/scene3d/components/Material.js';
 import './core/scene3d/components/Mesh.js';
+import './core/scene3d/components/Sprite.js';
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////   Single Import

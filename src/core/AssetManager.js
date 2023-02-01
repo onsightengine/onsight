@@ -12,7 +12,7 @@ import * as THREE from 'three';
 
 import { mergeBufferGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
-import { Strings } from '../sys/Strings.js';
+import { Strings } from '../utils/Strings.js';
 
 const _assets = {};
 const _scripts = {};

@@ -20,7 +20,6 @@ import { ComponentManager } from '../../ComponentManager.js';
 
 const styles = [ 'dynamic', 'static', 'kinematic' ];
 const indexedTypes = [ undefined, 'dynamic', 'static', undefined, 'kinematic' ];
-const fileLoader = new THREE.FileLoader();
 
 class Rigidbody {
 

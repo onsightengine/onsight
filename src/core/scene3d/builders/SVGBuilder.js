@@ -20,8 +20,8 @@ import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 import { Entity3D } from '../Entity3D.js';
 import { GeometryUtils } from '../../../three/GeometryUtils.js';
 import { ObjectUtils } from '../../../three/ObjectUtils.js';
-import { Strings } from '../../../sys/Strings.js';
-import { Vectors } from '../../../math/Vectors.js';
+import { Strings } from '../../../utils/Strings.js';
+import { Vectors } from '../../../utils/Vectors.js';
 
 const _color = new THREE.Color();
 const _position = new THREE.Vector3();

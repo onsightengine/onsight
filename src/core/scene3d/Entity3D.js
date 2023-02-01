@@ -25,7 +25,7 @@ import { ENTITY_FLAGS } from '../../constants.js';
 import { ComponentManager } from '../ComponentManager.js';
 import { EntityUtils } from '../../three/EntityUtils.js';
 import { Object3D } from './Object3D.js';
-import { Strings } from '../../sys/Strings.js';
+import { Strings } from '../../utils/Strings.js';
 
 class Entity3D extends Object3D {
 

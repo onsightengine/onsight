@@ -26,8 +26,8 @@
 
 import * as THREE from 'three';
 
-import { MathUtils } from '../math/MathUtils.js';
-import { System } from '../sys/System.js';
+import { MathUtils } from '../utils/MathUtils.js';
+import { System } from '../utils/System.js';
 
 const _boxCenter = new THREE.Box3();
 const _tempMatrix = new THREE.Matrix4();

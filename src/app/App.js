@@ -21,7 +21,7 @@ import { APP_STATES, BACKENDS } from '../constants.js';
 import { CameraUtils } from '../three/CameraUtils.js';
 import { ObjectUtils } from '../three/ObjectUtils.js';
 import { Project } from '../core/Project.js';
-import { System } from '../sys/System.js';
+import { System } from '../utils/System.js';
 
 class App {
 

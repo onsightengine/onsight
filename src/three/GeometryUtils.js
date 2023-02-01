@@ -29,7 +29,7 @@
 
 import * as THREE from 'three';
 
-import { Vectors } from '../math/Vectors.js';
+import { Vectors } from '../utils/Vectors.js';
 
 const _uv = [ new THREE.Vector2(), new THREE.Vector2(), new THREE.Vector2() ];
 const _vertex = [ new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3() ];

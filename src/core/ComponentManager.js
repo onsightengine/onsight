@@ -93,9 +93,9 @@
 
 import * as THREE from 'three';
 
-import { MathUtils } from '../math/MathUtils.js';
-import { Strings } from '../sys/Strings.js';
-import { System } from '../sys/System.js';
+import { MathUtils } from '../utils/MathUtils.js';
+import { Strings } from '../utils/Strings.js';
+import { System } from '../utils/System.js';
 
 const _registered = {};
 

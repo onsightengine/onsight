@@ -30,7 +30,7 @@ import { ComponentManager } from '../../ComponentManager.js';
 
 import { GeometryUtils } from '../../../three/GeometryUtils.js';
 import { ObjectUtils } from '../../../three/ObjectUtils.js';
-import { System } from '../../../sys/System.js';
+import { System } from '../../../utils/System.js';
 
 const blendingModes = [ 'NoBlending', 'NormalBlending', 'AdditiveBlending', 'SubstractiveBlending', 'MultiplyBlending', 'CustomBlending' ];
 const sides = [ 'FrontSide', 'BackSide', 'DoubleSide' ];

@@ -10,7 +10,7 @@
 ///////////////////////////////////////////////////////////////////////////////////*/
 
 import * as THREE from 'three';
-import { MathUtils } from '../../math/MathUtils.js';
+import { MathUtils } from '../../utils/MathUtils.js';
 
 class CapsuleGeometry extends THREE.BufferGeometry {
 

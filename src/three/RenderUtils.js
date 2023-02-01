@@ -18,7 +18,7 @@
 import * as THREE from 'three';
 
 import { CameraUtils } from './CameraUtils.js';
-import { MathUtils } from '../math/MathUtils.js';
+import { MathUtils } from '../utils/MathUtils.js';
 
 let _renderer;
 

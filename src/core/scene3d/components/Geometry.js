@@ -27,7 +27,7 @@ import { ComponentManager } from '../../ComponentManager.js';
 import { CapsuleGeometry } from '../../../three/geometry/CapsuleGeometry.js';
 import { CylinderGeometry } from '../../../three/geometry/CylinderGeometry.js';
 import { GeometryUtils } from '../../../three/GeometryUtils.js';
-import { MathUtils } from '../../../math/MathUtils.js';
+import { MathUtils } from '../../../utils/MathUtils.js';
 
 const boxGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
 const circleShape = new THREE.Shape().absarc(0, 0, 0.5 /* radius */);

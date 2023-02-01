@@ -14,7 +14,6 @@
 /////////////////////////////////////////////////////////////////////////////////////
 
 import * as THREE from 'three';
-
 import { Pass } from 'three/addons/postprocessing/Pass.js';
 
 import { ObjectUtils } from '../ObjectUtils.js';
@@ -93,9 +92,8 @@ class GpuPickerPass extends Pass {
             const material = object.material; // renderItem.material;
             const geometry = object.geometry; // renderItem.geometry;
 
-            // THREE.Sprite / SpriteMaterial implemented previously, does not work great,
-            // Using custom Object3D.lookAtCamera / isSpriteHelper instead
-            if (material.isSpriteMaterial) return;
+            // THREE.Sprite implemented using custom Object3D.lookAtCamera parent
+            // if (material.isSpriteMaterial) return;
 
             // Material Options
             let useMorphing = 0;
@@ -107,6 +105,7 @@ class GpuPickerPass extends Pass {
             const frontSide = (material.side === THREE.FrontSide) ? 1 : 0;
             const backSide = (material.side === THREE.BackSide) ? 1 : 0;
             const doubleSide = (material.side === THREE.DoubleSide) ? 1 : 0;
+            const sprite = (material.isSpriteMaterial) ? 1 : 0;
 
             const index =
                 (useMorphing << 0) |
@@ -114,7 +113,8 @@ class GpuPickerPass extends Pass {
                 (useInstancing << 2) |
                 (frontSide << 3) |
                 (backSide << 4) |
-                (doubleSide << 5);
+                (doubleSide << 5) |
+                (sprite << 6);
 
             let renderMaterial = _materialCache[index];
             if (! renderMaterial) {

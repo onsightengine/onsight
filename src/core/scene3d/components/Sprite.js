@@ -1,8 +1,11 @@
 import * as THREE from 'three';
+import { Object3D } from '../Object3D.js';
 import { AssetManager } from '../../AssetManager.js';
 import { ComponentManager } from '../../ComponentManager.js';
 
 class Sprite {
+
+    #material = undefined;
 
     init(data) {
 
@@ -10,8 +13,6 @@ class Sprite {
         this.dispose();
 
         ///// Generate Backend
-
-        let sprite = undefined;
 
         // Make sure texture is in AssetManager
         let map = null, color = 0xffffff;
@@ -26,17 +27,22 @@ class Sprite {
             }
         }
 
-        sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: map, color: color }));
+        const lookAtCamera = new Object3D();
+        lookAtCamera.lookAtCamera = true;
+        this.#material = new THREE.SpriteMaterial({ map: map, color: color });
+        lookAtCamera.add(new THREE.Sprite(this.#material));
 
         ///// Save Data / Backend
 
-        this.backend = sprite;
+        this.backend = lookAtCamera;
         this.data = data;
     }
 
     dispose() {
-        const sprite = this.backend;
-        if (sprite && sprite.material) sprite.material.dispose();
+        if (this.#material) {
+            this.#material.dispose();
+            this.#material = undefined;
+        }
         this.backend = undefined;
     }
 
@@ -49,7 +55,25 @@ class Sprite {
     }
 
     toJSON() {
+        const data = this.defaultData();
 
+        // Copy Existing 'data' Properties
+        for (let key in data) {
+            if (this.data[key] !== undefined) {
+
+                // Save 'map' types (textures) as uuid only
+                if (this.data[key] && this.data[key].isTexture) {
+                    data[key] = this.data[key].uuid;
+
+                // All other data
+                } else {
+                    data[key] = this.data[key];
+                }
+
+            }
+        }
+
+        return data;
     }
 
 }

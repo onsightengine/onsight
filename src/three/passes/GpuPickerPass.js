@@ -201,7 +201,7 @@ class GpuPickerPass extends Pass {
 
     } // end ctor
 
-    //////////////////// Methods
+    /******************** METHODS ********************/
 
     dispose() {
         this.pickingTarget.dispose();

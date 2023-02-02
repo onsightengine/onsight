@@ -62,7 +62,7 @@ class App {
             pointermove: [],
         };
 
-        //////////////////// Load Project
+        /***** LOAD PROJECT *****/
 
         this.load = function(json, loadAssets = true) {
 
@@ -128,7 +128,7 @@ class App {
             dispatch(events.init, arguments);
         };
 
-        //////////////////// Event Dispatcher
+        /***** EVENT DISPATCHER *****/
 
         function dispatch(array, event) {
             for (let i = 0, l = array.length; i < l; i++) {
@@ -136,7 +136,7 @@ class App {
             }
         }
 
-        //////////////////// Animate / Render
+        /***** ANIMATE / RENDER *****/
 
         let requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
                                     window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
@@ -176,7 +176,7 @@ class App {
             requestId = requestAnimationFrame(animate);
         }
 
-        //////////////////// Game State (Play, Stop, etc.)
+        /***** GAME STATE *****/
 
         /** Start game loop */
         this.play = function() {
@@ -216,7 +216,7 @@ class App {
             }
         };
 
-        //////////////////// Events
+        /***** EVENTS *****/
 
         function onKeyDown(event) { dispatch(events.keydown, event); }
         function onKeyUp(event) { dispatch(events.keyup, event); }
@@ -224,7 +224,7 @@ class App {
         function onPointerUp(event) { dispatch(events.pointerup, event); }
         function onPointerMove(event) { dispatch(events.pointermove, event); }
 
-        //////////////////// Getters
+        /***** GETTERS *****/
 
         this.getRenderer = function() {
             return renderer;
@@ -234,7 +234,7 @@ class App {
             return state;
         };
 
-        //////////////////// Setters
+        /***** SETTERS *****/
 
         this.setCamera = function(value) {
             camera = value;
@@ -251,7 +251,7 @@ class App {
             if (renderer) renderer.setSize(width, height);
         };
 
-        //////////////////// Game Helper Functions
+        /***** GAME HELPERS *****/
 
         this.gameCoordinates = function(fromEvent) {
             // Get mouse coords

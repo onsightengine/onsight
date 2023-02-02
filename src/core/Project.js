@@ -1,6 +1,7 @@
 import { VERSION, SCENE_TYPES, WORLD_TYPES } from '../constants.js';
 
 import { AssetManager } from './AssetManager.js';
+import { MathUtils } from '../utils/MathUtils.js';
 import { Scene3D } from './scene3d/Scene3D.js';
 import { World3D } from './scene3d/World3D.js';
 
@@ -13,7 +14,7 @@ class Project {
 
         // Members
         this.name = name;
-        this.uuid = crypto.randomUUID();
+        this.uuid = MathUtils.uuid();
         this.type = 'Project';
 
         // Collections
@@ -166,7 +167,7 @@ class Project {
 
         // Reset Properties
         this.name = 'My Project';
-        this.uuid = crypto.randomUUID();
+        this.uuid = MathUtils.uuid();
 
     }
 
@@ -225,14 +226,11 @@ class Project {
 
     toJSON() {
 
-        ///// Assets
-
+        // Assets
         const meta = {};
-
         const json = AssetManager.toJSON(meta);
 
-        ///// Project Properties
-
+        // Project Properties
         json.metadata = {
             type: 'Onsight',
             version: VERSION,

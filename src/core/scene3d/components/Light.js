@@ -22,7 +22,7 @@ class Light {
         // Copy / Clear Backend
         this.dispose();
 
-        ///// Generate Backend
+        // Generate Backend
 
         let light = undefined;
         let shadows = false;
@@ -58,7 +58,7 @@ class Light {
                 console.error(`Light: Invalid light type '${data.style}'`);
         }
 
-        ///// Modify Light
+        // Modify Light
 
         if (light && light.isLight) {
 
@@ -85,7 +85,7 @@ class Light {
             console.log('Error with light!');
         }
 
-        ///// Save Data / Backend
+        // Save Data / Backend
 
         this.backend = light;
         this.data = data;
@@ -128,9 +128,9 @@ Light.config = {
     schema: {
         style: { type: 'select', default: 'ambient', select: [ 'ambient', 'directional', 'hemisphere', 'point', 'spot' ] },
 
-        ///// DIVIDER
+        // DIVIDER
         styleDivider: { type: 'divider' },
-        /////
+        //
 
         color: [
             { type: 'color', default: 0xffffff, if: { style: [ 'ambient', 'directional', 'point', 'spot' ] } },

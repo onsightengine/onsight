@@ -38,7 +38,7 @@ class Geometry {
             data.asset = assetUUID;
         }
 
-        ///// Generate Backend
+        // Generate Backend
 
         let geometry = undefined;
 
@@ -197,7 +197,7 @@ class Geometry {
                 console.error('Geometry: Invalid geometry type ' + data.style);
         }
 
-        ///// Modifiy Geometry
+        // Modifiy Geometry
 
         if (geometry && geometry.isBufferGeometry) {
 
@@ -253,7 +253,7 @@ class Geometry {
             // console.log('Error with geometry!');
         }
 
-        ///// Save Data / Backend
+        // Save Data / Backend
 
         this.backend = geometry;
         this.data = data;
@@ -305,9 +305,9 @@ Geometry.config = {
         // Shape UUID
         shape: { type: 'asset', class: 'Shape', if: { style: [ 'lathe', 'shape', 'tube' ] } },
 
-        ///// DIVIDER
+        // DIVIDER
         styleDivider: { type: 'divider' },
-        /////
+        //
 
         polyhedron: [ { type: 'select', default: 'dodecahedron', select: [ 'dodecahedron', 'icosahedron', 'octahedron', 'tetrahedron' ], if: { style: [ 'platonicSolid' ] } } ],
 
@@ -417,9 +417,9 @@ Geometry.config = {
         // Tube
         closed: { type: 'boolean', default: true, if: { style: [ 'tube' ] } },
 
-        ///// DIVIDER
+        // DIVIDER
         modifierDivider: { type: 'divider' },
-        /////
+        //
 
         // // Simplify
         // simplify: { type: 'slider', default: 1, min: 0, max: 1 },
@@ -431,9 +431,9 @@ Geometry.config = {
         flatOnly: { type: 'boolean', default: false, promode: true, hide: { subdivide: [ 0 ] } },
         // maxTriangles: { type: 'number', default: 25000, min: 1, promode: true },
 
-        ///// DIVIDER
+        // DIVIDER
         textureDivider: { type: 'divider' },
-        /////
+        //
 
         // Texture Mapping
         textureMapping: [
@@ -446,7 +446,7 @@ Geometry.config = {
         wrapT: { type: 'number', alias: 'wrapY', default: 1, min: 0, step: 0.2, precision: 2 },
 
     },
-    ///// EXAMPLE: Svg Icon for Inspector Tab (built in components have images built into Editor)
+    // EXAMPLE: Svg Icon for Inspector Tab (built in components have images built into Editor)
     // icon: `<svg width="100%" height="100%" version="1.1" xmlns="http://www.w3.org/2000/svg"></svg>`,
     icon: ``,
     color: 'rgb(255, 113, 0)',

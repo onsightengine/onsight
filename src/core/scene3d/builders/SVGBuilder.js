@@ -22,13 +22,13 @@ class SVGBuilder {
         let startZ = 0, zStep = 0.001;
         let fillNumber = 0, strokeNumber = 0;
 
-        ///// Process Paths
+        // Process Paths
         paths.forEach((path) => {
             let fillColor = path.userData.style.fill;
             let fillOpacity = path.userData.style.fillOpacity;
             if (! fillOpacity && fillOpacity !== 0) fillOpacity = 1;
 
-            ///// Fills
+            // Fills
             if (drawFills && fillColor !== undefined && fillColor !== 'none') {
                 const shapes = SVGLoader.createShapes(path);
                 shapes.forEach((shape) => {
@@ -112,7 +112,7 @@ class SVGBuilder {
                 });
             }
 
-            // ///// TODO: SVG Strokes
+            // // TODO: SVG Strokes
             //
             // const strokeColor = path.userData.style.stroke;
             // const strokeOpacity = path.userData.style.strokeOpacity;

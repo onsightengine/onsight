@@ -12,7 +12,7 @@ class Sprite {
         // Copy / Clear Backend
         this.dispose();
 
-        ///// Generate Backend
+        // Generate Backend
 
         // Make sure texture is in AssetManager
         let map = null, color = 0xffffff;
@@ -32,7 +32,7 @@ class Sprite {
         this.#material = new THREE.SpriteMaterial({ map: map, color: color });
         lookAtCamera.add(new THREE.Sprite(this.#material));
 
-        ///// Save Data / Backend
+        // Save Data / Backend
 
         this.backend = lookAtCamera;
         this.data = data;

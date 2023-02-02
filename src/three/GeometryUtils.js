@@ -34,7 +34,7 @@ class GeometryUtils {
         if (! mesh.geometry) return mesh;
         if (! mesh.material) return mesh;
 
-        ///// MATERIAL
+        // MATERIAL
 
         // Enable Vertex Colors
         let material = mesh.material;
@@ -46,7 +46,7 @@ class GeometryUtils {
             }
         }
 
-        ///// GEOMETRY
+        // GEOMETRY
 
         // Add Color Attribute (if not already)
         GeometryUtils.addAttribute(mesh.geometry, 'color', 3, 1.0);
@@ -173,8 +173,6 @@ class GeometryUtils {
         geometry.attributes.uv.array = new Float32Array(coords);
         geometry.attributes.uv.needsUpdate = true;
         return geometry;
-
-        /////
 
         function calcNormal(target, vec1, vec2, vec3) {
             _temp.subVectors(vec1, vec2);
@@ -310,8 +308,6 @@ class GeometryUtils {
         geometry.attributes.uv.array = new Float32Array(coords);
         geometry.attributes.uv.needsUpdate = true;
         return geometry;
-
-        //////////
 
         function setUV(polarVertex, index, i) {
             const canvasPoint = polar2canvas(polarVertex);

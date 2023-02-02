@@ -252,7 +252,7 @@ class ComponentManager {
         const ComponentClass = ComponentManager.registered(type);
         const schema = (ComponentClass && ComponentClass.config) ? ComponentClass.config.schema : {};
 
-        ///// PARSE KEYS
+        // PARSE KEYS
         for (let schemaKey in schema) {
 
             // Get Value as Array (which is a list of properties with different 'if' conditions)
@@ -264,10 +264,10 @@ class ComponentManager {
             for (let i = 0; i < itemArray.length; i++) {
                 let item = itemArray[i];
 
-                ///// FORMATTING ONLY
+                // FORMATTING ONLY
                 if (item.type === 'divider') continue;
 
-                ///// PROCESS 'IF' / 'NOT'
+                // PROCESS 'IF' / 'NOT'
                 if (! ComponentManager.includeData(item, data)) continue;
 
                 itemToInclude = item;
@@ -302,7 +302,7 @@ class ComponentManager {
         const ComponentClass = ComponentManager.registered(type);
         const schema = (ComponentClass && ComponentClass.config) ? ComponentClass.config.schema : {};
 
-        ///// PARSE KEYS
+        // PARSE KEYS
         for (let schemaKey in schema) {
             let matchedConditions = false;
 
@@ -314,10 +314,10 @@ class ComponentManager {
             for (let i = 0; i < itemArray.length; i++) {
                 let item = itemArray[i];
 
-                ///// FORMATTING ONLY
+                // FORMATTING ONLY
                 if (item.type === 'divider') continue;
 
-                ///// PROCESS 'IF' / 'NOT'
+                // PROCESS 'IF' / 'NOT'
                 if (! ComponentManager.includeData(item, oldData, newData)) continue;
 
                 matchedConditions = true;

@@ -38,9 +38,7 @@ class Entity3D extends Object3D {
 
     } // end ctor
 
-    /////////////////////////////////////////////////////////////////////////////////////
-    /////   Info
-    ////////////////////
+    /******************** INFO ********************/
 
     getReducedType() {
         if (this.isScene) return 'Scene';
@@ -56,9 +54,7 @@ class Entity3D extends Object3D {
         return this;
     }
 
-    /////////////////////////////////////////////////////////////////////////////////////
-    /////   Components
-    ////////////////////
+    /******************** COMPONENTS ********************/
 
     /** Adds component of 'type' using 'data' object */
     addComponent(type, data = {}, includeDependencies = true) {
@@ -169,9 +165,7 @@ class Entity3D extends Object3D {
         }
     }
 
-    /////////////////////////////////////////////////////////////////////////////////////
-    /////   Parent
-    ////////////////////
+    /******************** PARENT ********************/
 
     changeParent(newParent = undefined, newIndex = -1) {
         if (! newParent) newParent = this.parent;
@@ -195,9 +189,7 @@ class Entity3D extends Object3D {
         }
     }
 
-    /////////////////////////////////////////////////////////////////////////////////////
-    /////   Children
-    ////////////////////
+    /******************** CHILDREN ********************/
 
     addEntity(entity, index = -1, maintainWorldTransform = false) {
         if (! entity || ! entity.isObject3D) return this;
@@ -276,9 +268,7 @@ class Entity3D extends Object3D {
         }
     }
 
-    /////////////////////////////////////////////////////////////////////////////////////
-    /////   Copy / Clone
-    ////////////////////
+    /******************** COPY / CLONE ********************/
 
     cloneEntity(recursive = true) {
         return new this.constructor().copyEntity(this, recursive);
@@ -331,9 +321,7 @@ class Entity3D extends Object3D {
         return this;
     }
 
-    /////////////////////////////////////////////////////////////////////////////////////
-    /////   dispose
-    ////////////////////
+    /******************** DISPOSE ********************/
 
     dispose() {
         const children = this.children;
@@ -349,14 +337,12 @@ class Entity3D extends Object3D {
         }
     }
 
-    /////////////////////////////////////////////////////////////////////////////////////
-    /////   JSON
-    ////////////////////
+    /******************** JSON ********************/
 
     fromJSON(json) {
         const data = json.object;
 
-        ///// Entity3D Properties
+        // Entity3D Properties
 
         this.uuid = data.uuid;
         if (data.name !== undefined) this.name = data.name;
@@ -366,7 +352,7 @@ class Entity3D extends Object3D {
         if (data.receiveShadow !== undefined) this.receiveShadow = data.receiveShadow;
         if (data.lookAtCamera !== undefined) this.lookAtCamera = data.lookAtCamera;
 
-        ///// Object3D Properties
+        // Object3D Properties
 
         if (data.position !== undefined) this.position.fromArray(data.position);
         if (data.rotation !== undefined) this.rotation.fromArray(data.rotation);
@@ -380,13 +366,13 @@ class Entity3D extends Object3D {
         if (data.renderOrder !== undefined) this.renderOrder = data.renderOrder;
         if (data.userData !== undefined) this.userData = data.userData;
 
-        ///// Flags
+        // Flags
 
         for (let key in json.object.flags) {
             this.setFlag(key, json.object.flags[key]);
         }
 
-        ///// Components
+        // Components
 
         for (let i = 0; i < json.object.components.length; i++) {
             const componentData = json.object.components[i];
@@ -401,7 +387,7 @@ class Entity3D extends Object3D {
             }
         }
 
-        ///// Children
+        // Children
 
         if (data.entities !== undefined) {
             for (let i = 0; i < json.object.entities.length; i++) {
@@ -433,20 +419,20 @@ class Entity3D extends Object3D {
             json.object.flags[key] = this.getFlag(key);
         }
 
-        ///// Components
+        // Components
 
         for (let i = 0; i < this.components.length; i++) {
             json.object.components.push(this.components[i].toJSON());
         }
 
-        ///// Entity3D Properties
+        // Entity3D Properties
 
         json.object.enabled = this.enabled;
         json.object.castShadow = this.castShadow;
         json.object.receiveShadow = this.receiveShadow;
         json.object.lookAtCamera = this.lookAtCamera;
 
-        ///// Object3D Properties
+        // Object3D Properties
 
         json.object.position  = this.position.toArray();
         json.object.rotation = this.rotation.toArray();
@@ -460,7 +446,7 @@ class Entity3D extends Object3D {
         if (this.renderOrder !== 0) json.object.renderOrder = this.renderOrder;
         if (JSON.stringify(this.userData) !== '{}') json.object.userData = this.userData;
 
-        ///// Child Entities
+        // Child Entities
 
         const childEntities = this.getEntities();
         if (childEntities.length > 0) {

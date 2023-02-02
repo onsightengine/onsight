@@ -1,3 +1,5 @@
+import { MathUtils } from '../../utils/MathUtils.js';
+
 /** Holds a collection of scenes */
 class World3D {
 
@@ -10,7 +12,7 @@ class World3D {
         // Properties, Basic
         this.name = name;
         this.type = 'World3D';
-        this.uuid = crypto.randomUUID();
+        this.uuid = MathUtils.uuid();
 
         // Properties, More
         this.order = 0;
@@ -22,7 +24,7 @@ class World3D {
 
     } // end ctor
 
-    //////////////////// Scenes
+    /******************** SCENE ********************/
 
     addScene(scene) {
         if (scene && scene.type === 'Scene3D') {
@@ -42,7 +44,7 @@ class World3D {
         return this;
     }
 
-    //////////////////// JSON
+    /******************** JSON ********************/
 
     fromJSON(json) {
         const data = json.object;

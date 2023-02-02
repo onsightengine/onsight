@@ -37,7 +37,7 @@ class SkyObject extends THREE.Mesh {
 
 }
 
-//////////////////// Shader
+/******************** SHADER ********************/
 
 SkyObject.SkyShader = {
 
@@ -70,19 +70,19 @@ SkyObject.SkyShader = {
             float lowerGround =         0.0;
             float h = normalize(vWorldPosition + lowerGround).y;
 
-            ///// Sky fade (brighten at horizon)
+            // Sky fade (brighten at horizon)
             float skyFade = pow(vWorldPosition.y / (uScale * 0.25), 0.4);
             skyFade = clamp(skyFade, 0.0, 1.0);
             vec3 sky = mix(uHorizon, uSky, skyFade);
 
-            ///// Seperates ground and sky, solid horizon: clamp(h * uScale, 0.0, 1.0)
+            // Seperates ground and sky, solid horizon: clamp(h * uScale, 0.0, 1.0)
             float blurHorizon =         0.05;
             float compressHorizon =     5.0;
             float skyMix = max(pow(max(h, 0.0), blurHorizon) * compressHorizon, 0.0);
             skyMix = clamp(skyMix, 0.0, 1.0);
             vec3 outColor = mix(uGround, sky, skyMix);
 
-            ///// Output Color
+            // Output Color
             gl_FragColor = vec4(outColor, 1.0);
         }`
 

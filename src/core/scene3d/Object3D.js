@@ -32,13 +32,13 @@ class Object3D extends THREE.Object3D {
         const rotation = new THREE.Euler();
         const quaternion = new THREE.Quaternion();
 
-        ///// ORIGINAL from: THREE.Object3D.constructor()
+        // ORIGINAL from: THREE.Object3D.constructor()
         // function onRotationChange() { quaternion.setFromEuler(rotation, false); }
         // function onQuaternionChange() { rotation.setFromQuaternion(quaternion, undefined, false); }
-        ///// NEW
+        // NEW
         function onRotationChange() { /* EMPTY, updates in updateMatrix() */ }
         function onQuaternionChange() { /* EMPTY, updates in updateMatrix() */ }
-        /////
+        //
 
         rotation._onChange(onRotationChange);
         quaternion._onChange(onQuaternionChange);
@@ -50,7 +50,7 @@ class Object3D extends THREE.Object3D {
 
     } // end ctor
 
-    //////////////////// Copy
+    /******************** COPY ********************/
 
     clone(recursive) {
 		return new this.constructor().copy(this, recursive);
@@ -76,7 +76,7 @@ class Object3D extends THREE.Object3D {
         return this;
     }
 
-    //////////////////// Get World Quaternion
+    /******************** GET WORLD QUATERNION ********************/
 
     /** Extracts World Quaternion without rotating to camera, good for Viewport Transform Group! :) */
     getWorldQuaternion(targetQuaternion, ignoreBillboard = true) {
@@ -93,7 +93,7 @@ class Object3D extends THREE.Object3D {
         return targetQuaternion;
     }
 
-    //////////////////// Custom Attach
+    /******************** CUSOTM '.attach()' ********************/
 
     safeAttach(object) {
         if (! object || ! object.isObject3D) return;
@@ -107,7 +107,7 @@ class Object3D extends THREE.Object3D {
         this.attach(object);
     }
 
-    //////////////////// Update Matrix
+    /******************** UPDATE MATRIX ********************/
 
     updateMatrix() {
 
@@ -172,12 +172,10 @@ class Object3D extends THREE.Object3D {
             this.quaternion.setFromEuler(this.rotation, false);
         }
 
-        ///// ORIGINAL from: THREE.Object3D.updateMatrix()
-
+        // ORIGINAL from: THREE.Object3D.updateMatrix()
         this.matrix.compose(this.position, this.quaternion, this.scale);
         this.matrixWorldNeedsUpdate = true;
-
-        /////
+        //
     }
 
 }

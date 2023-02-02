@@ -38,7 +38,7 @@ class Scene3D extends Entity3D {
 
     } // end ctor
 
-    //////////////////// JSON
+    /******************** JSON ********************/
 
     fromJSON(json) {
         const data = json.object;

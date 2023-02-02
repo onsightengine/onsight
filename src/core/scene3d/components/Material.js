@@ -90,7 +90,7 @@ class Material {
             if (parameters.depthPacking === 'RGBADepthPacking') parameters.depthPacking = THREE.RGBADepthPacking;
         }
 
-        ///// Generate Backend
+        // Generate Backend
 
         let material = undefined;
 
@@ -124,7 +124,7 @@ class Material {
                 console.error(`Material: Invalid material type '${data.style}'`);
         }
 
-        ///// Modifiy Material
+        // Modifiy Material
 
         if (material && material.isMaterial) {
 
@@ -134,7 +134,7 @@ class Material {
             console.log('Error with material!');
         }
 
-        ///// Save Data / Backend
+        // Save Data / Backend
 
         this.backend = material;
         this.data = data;
@@ -204,8 +204,8 @@ class Material {
             }
         }
 
-        ///// NOTE: Adding backend mesh into Project as Object3D only.
-        //          Mesh will not be exported, shown in Outliner, etc.
+        // NOTE: Adding backend mesh into Project as Object3D only.
+        //        Mesh will not be exported, shown in Outliner, etc.
         if (this.entity && this.mesh) this.entity.add(this.mesh);
     }
 
@@ -233,7 +233,7 @@ class Material {
 
 }
 
-//////////////////// Extend Material
+/******************** EXTEND MATERIAL ********************/
 
 function extendMaterial(material, data = { style: 'basic', premultiplyAlpha: true }) {
     if (! material || ! material.isMaterial) return;
@@ -383,7 +383,7 @@ function extendMaterial(material, data = { style: 'basic', premultiplyAlpha: tru
     return material;
 }
 
-//////////////////// Schema
+/******************** SCHEMA ********************/
 
 Material.config = {
     schema: {
@@ -393,9 +393,9 @@ Material.config = {
             { type: 'select', default: 'standard', select: [ 'basic', 'points', 'standard', 'toon' ] },
         ],
 
-        ///// DIVIDER
+        // DIVIDER
         styleDivider: { type: 'divider' },
-        /////
+        //
 
         asset: { type: 'asset', class: 'Material', if: { style: [ 'asset' ] } },
 
@@ -438,14 +438,14 @@ Material.config = {
 
         depthPacking: { type: 'select', default: 'BasicDepthPacking', select: depthPacking, if: { style: [ 'depth' ] } },
 
-        ///// Standard Maps
+        // Standard Maps
         map: [
             { type: 'map', if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'points', 'physical', 'standard', 'toon' ] } },
         ],
 
         matcap: { type: 'map', if: { style: [ 'matcap' ] } },
 
-        ///// Surface Maps (see: https://market.pmnd.rs/material/stylized-crystal)
+        // Surface Maps (see: https://market.pmnd.rs/material/stylized-crystal)
         alphaMap: { type: 'map', promode: true, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'physical', 'points', 'standard', 'toon' ] } },
         bumpMap: { type: 'map', promode: true, if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
         bumpScale: { type: 'slider', default: 1, min: 0, max: 2, promode: true, if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
@@ -460,7 +460,7 @@ Material.config = {
         thicknessMap: { type: 'map', promode: true, if: { style: [ 'physical' ] } },
         transmissionMap: { type: 'map', promode: true, if: { style: [ 'physical' ] } },
 
-        ///// Light Maps
+        // Light Maps
         aoMap: { type: 'map', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
         // aoMapIntensity: { type: 'slider', promode: true, default: 1, min: 0, max: 100, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
         envMap: { type: 'map', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard' ] } },
@@ -470,10 +470,10 @@ Material.config = {
         normalMap: { type: 'map', if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
         // normalScale: { type: 'vector2', default: [ 1, 1 ], promode: true, if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
 
-        ///// Front / Back / Double
+        // Front / Back / Double
         side: { type: 'select', default: 'FrontSide', select: sides, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
 
-        ////////// The following Material parameters are handled internally
+        // // The following Material parameters are handled internally
         // transparent: { type: 'boolean', promode: true, default: true },
         // blending: { type: 'select', default: 'NormalBlending', select: blendingModes, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
         // alphaTest: { type: 'number', default: 0.05, min: 0, max: 1, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },

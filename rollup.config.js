@@ -1,23 +1,16 @@
-/** /////////////////////////////////////////////////////////////////////////////////
-//
-// @description Onsight Engine
-// @about       Easy to use 2D / 3D JavaScript game engine.
-// @author      Stephens Nunnally <@stevinz>
-// @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally and Scidian Studios
-// @source      https://github.com/onsightengine
-//
-///////////////////////////////////////////////////////////////////////////////////*/
+/**
+ * @description Onsight Engine
+ * @about       Easy to use 2D / 3D JavaScript game engine.
+ * @author      Stephens Nunnally <@stevinz>
+ * @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally and Scidian Studios
+ * @source      https://github.com/onsightengine
+ */
 
 import { VERSION } from './src/constants.js';              // Pull in version
-
-///// Plugins
-
 import { terser } from 'rollup-plugin-terser';              // Remove comments, minify
 import { visualizer } from 'rollup-plugin-visualizer';      // Visualize
 import cleanup from 'rollup-plugin-cleanup';                // Remove comments, supports sourcemap
 // import obfuscator from 'rollup-plugin-obfuscator';       // Obfuscate
-
-///// Post Build Header
 
 function header() {
 	return {
@@ -34,8 +27,6 @@ ${code}`;
         }
     };
 }
-
-///// Builds
 
 const builds = [
 

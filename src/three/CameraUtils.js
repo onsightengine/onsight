@@ -144,7 +144,7 @@ class CameraUtils {
             return new THREE.Vector3();
         }
 
-        ///// Distance to Z (as a percentage, interpolate between the near and far plane points)
+        // Distance to Z (as a percentage, interpolate between the near and far plane points)
 
         // let z = pointOnScreen.z ?? 0;
         // const nearVector = new THREE.Vector3(pointOnScreen.x, pointOnScreen.y, 0).unproject(camera);
@@ -156,7 +156,7 @@ class CameraUtils {
         // const nz = nearVector.z + (zPercent * (farVector.z - nearVector.z));
         // return new THREE.Vector3(nx, ny, 0);//nz);
 
-        ///// Raycaster Method
+        // Raycaster Method
 
         // Rotate to 'facingPlane'
         const planeGeometry = new THREE.PlaneGeometry(100000000, 100000000, 2, 2);

@@ -20,7 +20,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-////////// 3rd Party Library Licenses //////////
+// 3rd Party Library Licenses //
 
 cannon-es     (MIT)     https://github.com/pmndrs/cannon-es
 fflate        (MIT)     https://github.com/101arrowz/fflate

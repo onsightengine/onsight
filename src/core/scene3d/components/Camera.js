@@ -9,7 +9,7 @@ class Camera {
 
     init(data) {
 
-        ///// Generate Backend
+        // Generate Backend
 
         let camera = undefined;
 
@@ -48,7 +48,7 @@ class Camera {
                 console.error(`Camera.init: Invalid camera type '${data.style}'`);
         }
 
-        ///// Modify Camera
+        // Modify Camera
 
         if (camera && camera.isCamera) {
             camera.position.set(0, 0, 0);
@@ -57,7 +57,7 @@ class Camera {
             console.log('Error with camera!');
         }
 
-        ///// Save Data / Backend
+        // Save Data / Backend
 
         this.backend = camera;
         this.data = data;

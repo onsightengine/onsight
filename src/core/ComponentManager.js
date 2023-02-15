@@ -77,7 +77,7 @@ const _registered = {};
 
 class ComponentManager {
 
-    /******************** REGISTRATION ********************/
+    /******************** REGISTRATION */
 
     /** Returns class definition of a registered type */
     static registered(type = '') {
@@ -210,7 +210,7 @@ class ComponentManager {
         _registered[type] = Component;
     }
 
-    /******************** DATA ********************/
+    /******************** DATA */
 
     /** Checks if a schema item should be included in a component data structure, optionally check a second data structure */
     static includeData(item, data1, data2 = undefined) {

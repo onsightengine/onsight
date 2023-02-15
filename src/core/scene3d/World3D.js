@@ -22,9 +22,9 @@ class World3D {
         // Collections
         this.sceneNodes = {};
 
-    } // end ctor
+    }
 
-    /******************** SCENE ********************/
+    /******************** SCENE */
 
     addScene(scene) {
         if (scene && scene.type === 'Scene3D') {
@@ -44,7 +44,7 @@ class World3D {
         return this;
     }
 
-    /******************** JSON ********************/
+    /******************** JSON */
 
     fromJSON(json) {
         const data = json.object;

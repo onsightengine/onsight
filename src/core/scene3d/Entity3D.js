@@ -38,7 +38,7 @@ class Entity3D extends Object3D {
 
     } // end ctor
 
-    /******************** INFO ********************/
+    /******************** INFO */
 
     getReducedType() {
         if (this.isScene) return 'Scene';
@@ -54,7 +54,7 @@ class Entity3D extends Object3D {
         return this;
     }
 
-    /******************** COMPONENTS ********************/
+    /******************** COMPONENTS */
 
     /** Adds component of 'type' using 'data' object */
     addComponent(type, data = {}, includeDependencies = true) {
@@ -165,7 +165,7 @@ class Entity3D extends Object3D {
         }
     }
 
-    /******************** PARENT ********************/
+    /******************** PARENT */
 
     changeParent(newParent = undefined, newIndex = -1) {
         if (! newParent) newParent = this.parent;
@@ -189,7 +189,7 @@ class Entity3D extends Object3D {
         }
     }
 
-    /******************** CHILDREN ********************/
+    /******************** CHILDREN */
 
     addEntity(entity, index = -1, maintainWorldTransform = false) {
         if (! entity || ! entity.isObject3D) return this;
@@ -268,7 +268,7 @@ class Entity3D extends Object3D {
         }
     }
 
-    /******************** COPY / CLONE ********************/
+    /******************** COPY / CLONE */
 
     cloneEntity(recursive = true) {
         return new this.constructor().copyEntity(this, recursive);
@@ -321,7 +321,7 @@ class Entity3D extends Object3D {
         return this;
     }
 
-    /******************** DISPOSE ********************/
+    /******************** DISPOSE */
 
     dispose() {
         const children = this.children;
@@ -337,7 +337,7 @@ class Entity3D extends Object3D {
         }
     }
 
-    /******************** JSON ********************/
+    /******************** JSON */
 
     fromJSON(json) {
         const data = json.object;

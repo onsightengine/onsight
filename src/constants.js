@@ -24,6 +24,7 @@ export const ENTITY_TYPES = {
 export const SCENE_TYPES = {
     Scene2D:        'Scene2D',
     Scene3D:        'Scene3D',
+    SceneUI:        'SceneUI',
 };
 
 export const WORLD_TYPES = {

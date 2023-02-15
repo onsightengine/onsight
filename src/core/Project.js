@@ -22,9 +22,9 @@ class Project {
         this.scenes = {};
         this.worlds = {};
 
-    } // end ctor
+    }
 
-    /******************** WORLD ********************/
+    /******************** WORLD */
 
     addWorld(world) {
         if (world && WORLD_TYPES[world.type]) {
@@ -52,7 +52,7 @@ class Project {
         }
     }
 
-    /******************** SCENE ********************/
+    /******************** SCENE */
 
     addScene(scene) {
         if (scene && SCENE_TYPES[scene.type]) {
@@ -109,7 +109,7 @@ class Project {
         }
     }
 
-    /******************** ENTITY ********************/
+    /******************** ENTITY */
 
     findEntityByUuid(uuid, searchAllScenes = false) {
         let sceneList = [];
@@ -138,7 +138,7 @@ class Project {
         return undefined;
     }
 
-    /******************** SCRIPT ********************/
+    /******************** SCRIPT */
 
     addScript(entity, script) {
         const key = entity.uuid;
@@ -154,7 +154,7 @@ class Project {
         if (index !== -1) this.scripts[key].splice(index, 1);
     }
 
-    /******************** CLEAR ********************/
+    /******************** CLEAR */
 
     clear() {
 
@@ -171,7 +171,7 @@ class Project {
 
     }
 
-    /******************** JSON ********************/
+    /******************** JSON */
 
     fromJSON(json, loadAssets = true) {
 

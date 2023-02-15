@@ -25,7 +25,7 @@ class AssetManager {
         return library;
     }
 
-    /********** ADD / GET / REMOVE **********/
+    /******************** ADD / GET / REMOVE */
 
     static addAsset(assetOrArray) {
         if (! assetOrArray) return;
@@ -87,7 +87,7 @@ class AssetManager {
         }
     }
 
-    /********** TEXTURE LOADER **********/
+    /******************** TEXTURE LOADER */
 
     static loadTexture(url, onLoad = undefined) {
         if (! url || url === '') return null;
@@ -146,7 +146,7 @@ class AssetManager {
 		return texture;
     }
 
-    /********** JSON **********/
+    /******************** JSON */
 
     static clear() {
         for (let uuid in _assets) {

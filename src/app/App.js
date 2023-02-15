@@ -50,9 +50,9 @@ class App {
         this.dom = document.createElement('div');
         this.dom.appendChild(renderer.domElement);
 
-        // Local Variables
-        let scriptGlobals = 'player,renderer,scene,camera';
-        let events = {
+        // Scripts
+        const scriptGlobals = 'player,renderer,scene,camera';
+        const events = {
             init: [],
             update: [],
             keydown: [],
@@ -62,7 +62,7 @@ class App {
             pointermove: [],
         };
 
-        /***** LOAD PROJECT *****/
+        /******************** LOAD PROJECT */
 
         this.load = function(json, loadAssets = true) {
 
@@ -128,7 +128,7 @@ class App {
             dispatch(events.init, arguments);
         };
 
-        /***** EVENT DISPATCHER *****/
+        /******************** EVENT DISPATCHER */
 
         function dispatch(array, event) {
             for (let i = 0, l = array.length; i < l; i++) {
@@ -136,11 +136,8 @@ class App {
             }
         }
 
-        /***** ANIMATE / RENDER *****/
+        /******************** ANIMATE / RENDER */
 
-        let requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
-                                    window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-        let cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame;
         let requestId = null;
         let time, startTime, prevTime;
 
@@ -173,16 +170,16 @@ class App {
 
             prevTime = time;
 
-            requestId = requestAnimationFrame(animate);
+            requestId = window.requestAnimationFrame(animate);
         }
 
-        /***** GAME STATE *****/
+        /******************** GAME STATE */
 
         /** Start game loop */
         this.play = function() {
             startTime = prevTime = performance.now();
             state = APP_STATES.PLAYING;
-            requestId = requestAnimationFrame(animate);
+            requestId = window.requestAnimationFrame(animate);
         };
 
         this.pause = function() {
@@ -211,12 +208,12 @@ class App {
             }
 
             if (requestId) {
-                cancelAnimationFrame(requestId);
+                window.cancelAnimationFrame(requestId);
                 requestId = null;
             }
         };
 
-        /***** EVENTS *****/
+        /******************** EVENTS */
 
         function onKeyDown(event) { dispatch(events.keydown, event); }
         function onKeyUp(event) { dispatch(events.keyup, event); }
@@ -224,7 +221,7 @@ class App {
         function onPointerUp(event) { dispatch(events.pointerup, event); }
         function onPointerMove(event) { dispatch(events.pointermove, event); }
 
-        /***** GETTERS *****/
+        /******************** GETTERS */
 
         this.getRenderer = function() {
             return renderer;
@@ -234,7 +231,7 @@ class App {
             return state;
         };
 
-        /***** SETTERS *****/
+        /******************** SETTERS */
 
         this.setCamera = function(value) {
             camera = value;
@@ -251,7 +248,7 @@ class App {
             if (renderer) renderer.setSize(width, height);
         };
 
-        /***** GAME HELPERS *****/
+        /******************** GAME HELPERS */
 
         this.gameCoordinates = function(fromEvent) {
             // Get mouse coords

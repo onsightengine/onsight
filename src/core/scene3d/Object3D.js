@@ -50,7 +50,7 @@ class Object3D extends THREE.Object3D {
 
     } // end ctor
 
-    /******************** COPY ********************/
+    /******************** COPY */
 
     clone(recursive) {
 		return new this.constructor().copy(this, recursive);
@@ -76,7 +76,7 @@ class Object3D extends THREE.Object3D {
         return this;
     }
 
-    /******************** GET WORLD QUATERNION ********************/
+    /******************** GET WORLD QUATERNION */
 
     /** Extracts World Quaternion without rotating to camera, good for Viewport Transform Group! :) */
     getWorldQuaternion(targetQuaternion, ignoreBillboard = true) {
@@ -93,7 +93,7 @@ class Object3D extends THREE.Object3D {
         return targetQuaternion;
     }
 
-    /******************** CUSOTM '.attach()' ********************/
+    /******************** CUSOTM '.attach()' */
 
     safeAttach(object) {
         if (! object || ! object.isObject3D) return;
@@ -107,7 +107,7 @@ class Object3D extends THREE.Object3D {
         this.attach(object);
     }
 
-    /******************** UPDATE MATRIX ********************/
+    /******************** UPDATE MATRIX */
 
     updateMatrix() {
 

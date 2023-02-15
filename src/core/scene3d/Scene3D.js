@@ -36,9 +36,9 @@ class Scene3D extends Entity3D {
         this.shadowPlane.visible = false;
         this.add(this.shadowPlane);
 
-    } // end ctor
+    }
 
-    /******************** JSON ********************/
+    /******************** JSON */
 
     fromJSON(json) {
         const data = json.object;

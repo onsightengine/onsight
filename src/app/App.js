@@ -44,7 +44,7 @@ class App {
         renderer.shadowMap.enabled = true;
         // renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         // renderer.toneMapping = THREE.ReinhardToneMapping;
-        // renderer.physicallyCorrectLights = false;
+        renderer.useLegacyLights = false;
 
         // DOM
         this.dom = document.createElement('div');

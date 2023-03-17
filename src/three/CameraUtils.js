@@ -33,7 +33,14 @@ class CameraUtils {
      */
     static createOrthographic(camWidth, camHeight, fitType = 'none', desiredSize = 0) {
         // Create camera
-        const camera = new THREE.OrthographicCamera(0, 1, 1, 0, -1000, 1000);
+        const camera = new THREE.OrthographicCamera(
+            0,          // left
+            1,          // right
+            1,          // top
+            0,          // bottom
+            -1000,      // near
+            1000        // far
+        );
 
         // Add custom properties
         camera.desiredSize = desiredSize;

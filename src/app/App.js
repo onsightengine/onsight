@@ -111,7 +111,7 @@ class App {
 
                             // Add functions to event dispatch handler
                             for (let name in functions) {
-                                if (! functions[name]) continue;
+                                if (!functions[name]) continue;
                                 if (events[name] === undefined) {
                                     console.warn(`App: Event type not supported ('${name}')`);
                                     continue;

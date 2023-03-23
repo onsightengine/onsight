@@ -142,14 +142,14 @@ class Project {
 
     addScript(entity, script) {
         const key = entity.uuid;
-        if (! this.scripts[key]) this.scripts[key] = [];
+        if (!this.scripts[key]) this.scripts[key] = [];
         this.scripts[key].push(script);
         return this;
     }
 
     removeScript(entity, script) {
         const key = entity.uuid;
-        if (! this.scripts[key]) return;
+        if (!this.scripts[key]) return;
         const index = this.scripts[key].indexOf(script);
         if (index !== -1) this.scripts[key].splice(index, 1);
     }
@@ -189,7 +189,7 @@ class Project {
         }
 
         // Check object type
-        if (! json.object || json.object.type !== this.type) {
+        if (!json.object || json.object.type !== this.type) {
             console.error(`Project.fromJSON: Save file corrupt, no 'Project' object found!`);
             return;
         }

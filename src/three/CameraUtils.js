@@ -137,7 +137,7 @@ class CameraUtils {
 
     /** Projects a point from 3D world space coordinates to 2D screen coordinates */
     static screenPoint(pointInWorld, camera) {
-        if (! camera || ! camera.isCamera) {
+        if (!camera || !camera.isCamera) {
             console.warn(`CameraUtils.screenPoint: No camera provided!`);
             return new THREE.Vector3();
         }
@@ -146,7 +146,7 @@ class CameraUtils {
 
     /** Unprojects a point from 2D screen coordinates to 3D world space coordinates */
     static worldPoint(pointOnScreen, camera, lookTarget = new THREE.Vector3(), facingPlane = 'xy') {
-        if (! camera || ! camera.isCamera) {
+        if (!camera || !camera.isCamera) {
             console.warn(`CameraUtils.worldPoint: No camera provided!`);
             return new THREE.Vector3();
         }

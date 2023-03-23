@@ -168,8 +168,8 @@ class Entity3D extends Object3D {
     /******************** PARENT */
 
     changeParent(newParent = undefined, newIndex = -1) {
-        if (! newParent) newParent = this.parent;
-        if (! newParent || ! newParent.isObject3D) return;
+        if (!newParent) newParent = this.parent;
+        if (!newParent || !newParent.isObject3D) return;
 
         // Check if we have a parent
         const oldParent = this.parent;
@@ -192,7 +192,7 @@ class Entity3D extends Object3D {
     /******************** CHILDREN */
 
     addEntity(entity, index = -1, maintainWorldTransform = false) {
-        if (! entity || ! entity.isObject3D) return this;
+        if (!entity || !entity.isObject3D) return this;
         if (index === undefined || index === null) index = -1;
 
         // Check if already a child
@@ -248,10 +248,10 @@ class Entity3D extends Object3D {
 
     /** Removes entity, does not call 'dispose()' on Entity!! */
     removeEntity(entity, forceDelete = false) {
-        if (! entity) return;
+        if (!entity) return;
 
         // Check for isScene, flags (BuiltIn, NoSelect, etc.)
-        if (! forceDelete && EntityUtils.isImportant(entity)) return;
+        if (!forceDelete && EntityUtils.isImportant(entity)) return;
 
         // Remove entity (i.e. out of Project)
         this.remove(entity);

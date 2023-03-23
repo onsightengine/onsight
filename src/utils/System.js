@@ -33,7 +33,7 @@ class System {
 
     /** Checks if a variable is an object (and not null / array / function) */
     static isObject(variable) {
-        return (typeof variable === 'object' && ! Array.isArray(variable) && variable !== null);
+        return (typeof variable === 'object' && !Array.isArray(variable) && variable !== null);
     }
 
     /******************** FILE SYSTEM ********************/

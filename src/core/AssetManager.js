@@ -28,7 +28,7 @@ class AssetManager {
     /******************** ADD / GET / REMOVE */
 
     static addAsset(assetOrArray) {
-        if (! assetOrArray) return;
+        if (!assetOrArray) return;
 
         const assetArray = (Array.isArray(assetOrArray)) ? assetOrArray : [ assetOrArray ];
 
@@ -36,7 +36,7 @@ class AssetManager {
             let asset = assetArray[i];
 
             // Ensure asset has a name
-            if (! asset.name || asset.name === '') asset.name = asset.constructor.name;
+            if (!asset.name || asset.name === '') asset.name = asset.constructor.name;
 
             // Force 'BufferGeometry' type (strip ExtrudeGeometry, TextGeometry, etc...)
             if (asset.isBufferGeometry && asset.constructor.name !== 'BufferGeometry') {
@@ -64,7 +64,7 @@ class AssetManager {
     }
 
     static removeAsset(assetOrArray, dispose = true) {
-        if (! assetOrArray) return;
+        if (!assetOrArray) return;
 
         const assetArray = (Array.isArray(assetOrArray)) ? assetOrArray : [ assetOrArray ];
 
@@ -90,7 +90,7 @@ class AssetManager {
     /******************** TEXTURE LOADER */
 
     static loadTexture(url, onLoad = undefined) {
-        if (! url || url === '') return null;
+        if (!url || url === '') return null;
 
         // Check if trying to add an Image already in AssetManager
         const resolvedUrl = THREE.DefaultLoadingManager.resolveURL(url);
@@ -188,14 +188,14 @@ class AssetManager {
 
         const json = {};
 
-        if (! meta) meta = {};
-        if (! meta.shapes) meta.shapes = {};
-        if (! meta.geometries) meta.geometries = {};
-        if (! meta.images) meta.images = {};
-        if (! meta.textures) meta.textures = {};
-        if (! meta.materials) meta.materials = {};
-        if (! meta.animations) meta.animations = {};
-        if (! meta.skeletons) meta.skeletons = {};
+        if (!meta) meta = {};
+        if (!meta.shapes) meta.shapes = {};
+        if (!meta.geometries) meta.geometries = {};
+        if (!meta.images) meta.images = {};
+        if (!meta.textures) meta.textures = {};
+        if (!meta.materials) meta.materials = {};
+        if (!meta.animations) meta.animations = {};
+        if (!meta.skeletons) meta.skeletons = {};
 
         const stopRoot = {
             images: {},
@@ -207,7 +207,7 @@ class AssetManager {
         const geometries = AssetManager.getLibrary('geometry');
         for (let i = 0; i < geometries.length; i++) {
             const geometry = geometries[i];
-            if (! meta.geometries[geometry.uuid]) meta.geometries[geometry.uuid] = geometry.toJSON(meta);
+            if (!meta.geometries[geometry.uuid]) meta.geometries[geometry.uuid] = geometry.toJSON(meta);
 
             // // Shapes
             // if (geometry.parameters && geometry.parameters.shapes) {
@@ -215,7 +215,7 @@ class AssetManager {
             //     if (Array.isArray(shapes) !== true) shapes = [ shapes ];
             //     for (let i = 0, l = shapes.length; i < l; i++) {
             //         const shape = shapes[i];
-            //         if (! meta.shapes[shape.uuid]) meta.shapes[shape.uuid] = shape.toJSON(meta);
+            //         if (!meta.shapes[shape.uuid]) meta.shapes[shape.uuid] = shape.toJSON(meta);
             //     }
             // }
         }
@@ -224,21 +224,21 @@ class AssetManager {
         const materials = AssetManager.getLibrary('material');
         for (let i = 0; i < materials.length; i++) {
             const material = materials[i];
-            if (! meta.materials[material.uuid]) meta.materials[material.uuid] = material.toJSON(stopRoot);
+            if (!meta.materials[material.uuid]) meta.materials[material.uuid] = material.toJSON(stopRoot);
         }
 
         // Shapes
         const shapes = AssetManager.getLibrary('shape');
         for (let i = 0; i < shapes.length; i++) {
             const shape = shapes[i];
-            if (! meta.shapes[shape.uuid]) meta.shapes[shape.uuid] = shape.toJSON(stopRoot);
+            if (!meta.shapes[shape.uuid]) meta.shapes[shape.uuid] = shape.toJSON(stopRoot);
         }
 
         // Textures
         const textures = AssetManager.getLibrary('texture');
         for (let i = 0; i < textures.length; i++) {
             const texture = textures[i];
-            if (! meta.textures[texture.uuid]) meta.textures[texture.uuid] = texture.toJSON(meta);
+            if (!meta.textures[texture.uuid]) meta.textures[texture.uuid] = texture.toJSON(meta);
         }
 
         // Add 'meta' caches to 'json' as arrays

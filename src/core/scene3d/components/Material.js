@@ -167,15 +167,15 @@ class Material {
         if (this.enabled !== true) return;
 
         // Get material and geometry (if present)
-        if (! this.backend || ! this.backend.isMaterial) return;
+        if (!this.backend || !this.backend.isMaterial) return;
         const material = this.backend.clone();
         extendMaterial(material, this.toJSON());
 
         const geometryComponent = this.entity.getComponent('geometry');
-        if (! geometryComponent) return;
-        if (! geometryComponent.enabled) return;
+        if (!geometryComponent) return;
+        if (!geometryComponent.enabled) return;
         const geometry = geometryComponent.backend;
-        if (! geometry) return;
+        if (!geometry) return;
 
         // Create mesh
         if (this.style === 'points') {
@@ -236,12 +236,12 @@ class Material {
 /******************** EXTEND MATERIAL ********************/
 
 function extendMaterial(material, data = { style: 'basic', premultiplyAlpha: true }) {
-    if (! material || ! material.isMaterial) return;
+    if (!material || !material.isMaterial) return;
 
     let wantsOpaque = (data && data.opacity === 1.0 && data.map === undefined);
 
     // Standard Values
-    material.transparent = ! wantsOpaque;               // Opaque? Auto adjust 'transparent' (speeds rendering)
+    material.transparent = !wantsOpaque;                // Opaque? Auto adjust 'transparent' (speeds rendering)
     material.alphaTest = 0.01;                          // Save time rendering transparent pixels
     material.polygonOffset = true;                      // Helps Z-Fighting
     material.polygonOffsetFactor = 1;                   // Positive value pushes polygon further away

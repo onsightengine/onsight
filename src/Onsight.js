@@ -74,6 +74,6 @@ import './core/scene3d/components/Mesh.js';
 /******************** ENSURE SINGLE IMPORT ********************/
 
 if (typeof window !== 'undefined') {
-    if (window.__ONSIGHT__) console.warn(`Onsight v${window.__ONSIGHT__} already imported! Now importing v${VERSION}!`);
+    if (window.__ONSIGHT__) console.warn(`Onsight v${window.__ONSIGHT__} already imported, now importing v${VERSION}!`);
     else window.__ONSIGHT__ = VERSION;
 }

@@ -77,7 +77,7 @@ class Camera {
     }
 
     updateProjectionMatrix() {
-        if (! window.getRenderer()) return;
+        if (!window.getRenderer()) return;
 
         if (this.backend && this.backend.isCamera) {
             window.getRenderer().getSize(_renderSize);

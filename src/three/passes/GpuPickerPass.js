@@ -70,9 +70,9 @@ class GpuPickerPass extends Pass {
         function processItem(renderItem) {
             const object = renderItem.object;
 
-            if (! object || ! object.isObject3D) return;
-            if (! object.visible) return;
-            if (! ObjectUtils.allowSelection(object)) return;
+            if (!object || !object.isObject3D) return;
+            if (!object.visible) return;
+            if (!ObjectUtils.allowSelection(object)) return;
 
             const objId = object.id;
             const material = object.material; // renderItem.material;
@@ -103,7 +103,7 @@ class GpuPickerPass extends Pass {
                 (sprite << 6);
 
             let renderMaterial = _materialCache[index];
-            if (! renderMaterial) {
+            if (!renderMaterial) {
 
                 renderMaterial = new THREE.ShaderMaterial({
                     defines: { USE_MAP: '', USE_UV: '', USE_LOGDEPTHBUF: '', },

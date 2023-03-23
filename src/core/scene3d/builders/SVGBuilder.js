@@ -26,7 +26,7 @@ class SVGBuilder {
         paths.forEach((path) => {
             let fillColor = path.userData.style.fill;
             let fillOpacity = path.userData.style.fillOpacity;
-            if (! fillOpacity && fillOpacity !== 0) fillOpacity = 1;
+            if (!fillOpacity && fillOpacity !== 0) fillOpacity = 1;
 
             // Fills
             if (drawFills && fillColor !== undefined && fillColor !== 'none') {
@@ -116,7 +116,7 @@ class SVGBuilder {
             //
             // const strokeColor = path.userData.style.stroke;
             // const strokeOpacity = path.userData.style.strokeOpacity;
-            // if (! strokeOpacity && strokeOpacity !== 0) strokeOpacity = 1;
+            // if (!strokeOpacity && strokeOpacity !== 0) strokeOpacity = 1;
 
             // if (drawStrokes && strokeColor !== undefined && strokeColor !== 'none') {
             //     for (let j = 0; j < path.subPaths.length; j++) {

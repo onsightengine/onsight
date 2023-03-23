@@ -15,7 +15,7 @@ class EntityPool {
     }
 
     getEntity() {
-        if(! this.entities.length) this.expand();
+        if(!this.entities.length) this.expand();
         return this.entities.pop();
     }
 

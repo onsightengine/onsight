@@ -106,7 +106,7 @@ class MathUtils {
 
     /** Checks if 'number' is a valid number */
     static isNumber(number) {
-        return (number !== undefined && number !== null && typeof number === 'number' && ! Number.isNaN(number) && Number.isFinite(number));
+        return (number !== undefined && number !== null && typeof number === 'number' && !Number.isNaN(number) && Number.isFinite(number));
     }
 
     /******************** POLYGON ********************/

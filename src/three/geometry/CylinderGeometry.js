@@ -47,7 +47,7 @@ class CylinderGeometry extends THREE.BufferGeometry {
         // generate geometry
         generateTorso();
 
-        if (! openEnded) {
+        if (!openEnded) {
             if (radiusTop > 0) generateCap(true);
             if (radiusBottom > 0) generateCap(false);
         }

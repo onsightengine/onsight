@@ -51,8 +51,8 @@ class ObjectUtils {
 
     /** Completely deletes 'object' (including geomtries and materials), and all of it's children */
     static clearObject(object, removeFromParent = true) {
-        if (! object) return;
-        if (! object.isObject3D) return;
+        if (!object) return;
+        if (!object.isObject3D) return;
 
         if (object.geometry) object.geometry.dispose();
         if (object.material) ObjectUtils.clearMaterial(object.material);
@@ -73,7 +73,7 @@ class ObjectUtils {
         for (let i = 0, il = materials.length; i < il; i++) {
             const material = materials[i];
             Object.keys(material).forEach((prop) => { /* in case of map, bumpMap, normalMap, envMap, etc. */
-                if (! material[prop]) return;
+                if (!material[prop]) return;
                 if (typeof material[prop].dispose === 'function') material[prop].dispose();
             });
             if (material.dispose) material.dispose();
@@ -172,8 +172,8 @@ class ObjectUtils {
 
     /** Puts 'group' (object with children) children back into parent (usually a scene), deletes 'group' */
     static flattenGroup(group) {
-        if (! group) return;
-        if (! group.parent) return;
+        if (!group) return;
+        if (!group.parent) return;
         while (group.children) group.parent.attach(group.children[0]);
         ObjectUtils.clearObject(group, true);
     }

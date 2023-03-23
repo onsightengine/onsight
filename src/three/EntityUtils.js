@@ -59,7 +59,7 @@ class EntityUtils {
 
     /** Checks if entity contains Mesh */
     static containsMesh(entity, recursive = true) {
-        if (! entity.isEntity) {
+        if (!entity.isEntity) {
             console.warn(`EntityUtils.containsMesh: Object was not an Entity!`);
             return false;
         }

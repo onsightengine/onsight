@@ -35,8 +35,8 @@ class World3D {
                     uuid: scene.uuid,
                     order: this.order ++,
                 };
-                if (! this.startScene) this.startScene = scene.uuid;
-                if (! this.lastEditorScene) this.lastEditorScene = scene.uuid;
+                if (!this.startScene) this.startScene = scene.uuid;
+                if (!this.lastEditorScene) this.lastEditorScene = scene.uuid;
             }
         } else {
             console.error(`'World3D.addScene: Scene not of type 'Scene3D'`, scene);

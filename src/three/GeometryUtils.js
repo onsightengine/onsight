@@ -21,7 +21,7 @@ const _temp = new THREE.Vector3();
 class GeometryUtils {
 
     static addAttribute(geometry, attributeName = 'color', stride = 3, fill = 0) {
-        if (! geometry.getAttribute(attributeName)) {
+        if (!geometry.getAttribute(attributeName)) {
             let array = new Float32Array(geometry.attributes.position.count * stride).fill(fill)
 	        const attribute = new THREE.BufferAttribute(array, stride, true).setUsage(THREE.DynamicDrawUsage);
 	        geometry.setAttribute(attributeName, attribute);
@@ -31,8 +31,8 @@ class GeometryUtils {
 
     /** Converts mesh to be able to used custom colored triangles (painting) */
     static coloredMesh(mesh) {
-        if (! mesh.geometry) return mesh;
-        if (! mesh.material) return mesh;
+        if (!mesh.geometry) return mesh;
+        if (!mesh.material) return mesh;
 
         // MATERIAL
 
@@ -70,7 +70,7 @@ class GeometryUtils {
 
     /** Multiplies uv coordinates in geometry to repeat texture */
     static repeatTexture(geometry, s, t) {
-        if (! geometry) return;
+        if (!geometry) return;
         if (geometry.attributes && geometry.attributes.uv && geometry.attributes.uv.array) {
             for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
                 geometry.attributes.uv.array[i + 0] *= s;
@@ -82,7 +82,7 @@ class GeometryUtils {
 
     /** Flip uv coordinates */
     static uvFlip(geometry, x = true, y = true) {
-        if (! geometry || ! geometry.isBufferGeometry) return;
+        if (!geometry || !geometry.isBufferGeometry) return;
         if (geometry.attributes.uv === undefined) return;
 
         for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
@@ -255,12 +255,12 @@ class GeometryUtils {
         coords.length = 2 * geometry.attributes.position.array.length / 3;
 
         // Check for Existing UV Array
-        const hasUV = ! (geometry.attributes.uv === undefined);
-        if (! hasUV) geometry.addAttribute('uv', new THREE.Float32BufferAttribute(coords, 2));
+        const hasUV = !(geometry.attributes.uv === undefined);
+        if (!hasUV) geometry.addAttribute('uv', new THREE.Float32BufferAttribute(coords, 2));
 
         // Should we set, u, v, or both
-        const setU = (! hasUV || setCoords === 'u' || setCoords === 'uv');
-        const setV = (! hasUV || setCoords === 'v' || setCoords === 'uv');
+        const setU = (!hasUV || setCoords === 'u' || setCoords === 'uv');
+        const setV = (!hasUV || setCoords === 'v' || setCoords === 'uv');
 
         // Vertex Positions
         const pos = geometry.attributes.position.array;

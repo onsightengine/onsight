@@ -96,7 +96,7 @@ class Object3D extends THREE.Object3D {
     /******************** CUSOTM '.attach()' */
 
     safeAttach(object) {
-        if (! object || ! object.isObject3D) return;
+        if (!object || !object.isObject3D) return;
         object.getWorldQuaternion(_worldQuaternion);
         object.getWorldScale(_worldScale);
         object.getWorldPosition(_worldPosition);
@@ -113,7 +113,7 @@ class Object3D extends THREE.Object3D {
 
         // Should look at camera?
         const camera = window.activeCamera;
-        let lookAtCamera = this.lookAtCamera && camera && ! this.isScene;
+        let lookAtCamera = this.lookAtCamera && camera && !this.isScene;
         if (lookAtCamera && this.parent && this.parent.isObject3D) {
             this.traverseAncestors((parent) => {
                 if (parent.lookAtCamera) lookAtCamera = false;

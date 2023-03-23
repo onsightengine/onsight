@@ -91,7 +91,7 @@ class Geometry {
                 const points = [];
 
                 let latheShape = AssetManager.getAsset(data.shape);
-                if (! latheShape || latheShape.type !== 'Shape') {
+                if (!latheShape || latheShape.type !== 'Shape') {
                     for (let i = 0; i < 2.5; i += 0.1) {
                         points.push(new THREE.Vector2(Math.abs(Math.cos(i) * 0.4) + 0.2, i * 0.4));
                     }
@@ -132,7 +132,7 @@ class Geometry {
             case 'shape':
 
                 let shape = AssetManager.getAsset(data.shape);
-                if (! shape || shape.type !== 'Shape') {
+                if (!shape || shape.type !== 'Shape') {
                     shape = wedgeShape;
                 }
 
@@ -168,7 +168,7 @@ class Geometry {
             case 'tube':
 
                 let tubeShape = AssetManager.getAsset(data.shape);
-                if (! tubeShape || tubeShape.type !== 'Shape') {
+                if (!tubeShape || tubeShape.type !== 'Shape') {
                     tubeShape = circleShape
                 }
 
@@ -269,13 +269,13 @@ class Geometry {
     }
 
     enable() {
-        if (! this.entity) return;
+        if (!this.entity) return;
         const materialComponent = this.entity.getComponent('material');
         if (materialComponent !== undefined) materialComponent.refreshMesh();
     }
 
     disable() {
-        if (! this.entity) return;
+        if (!this.entity) return;
         const materialComponent = this.entity.getComponent('material');
         if (materialComponent !== undefined) materialComponent.refreshMesh();
     }

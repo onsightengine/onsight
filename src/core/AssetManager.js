@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { mergeBufferGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Strings } from '../utils/Strings.js';
 
 const _assets = {};
@@ -44,7 +44,7 @@ class AssetManager {
                 // console.log(`Trimming ${asset.constructor.name}`);
 
                 // Covert to BufferGeometry
-                const bufferGeometry = mergeBufferGeometries([ asset ]);
+                const bufferGeometry = mergeGeometries([ asset ]);
                 bufferGeometry.name = asset.name;
                 bufferGeometry.uuid = asset.uuid;
                 if (asset.dispose) asset.dispose();

@@ -444,7 +444,9 @@ class Entity3D extends Object3D {
         if (this.visible === false) json.object.visible = false;
         if (this.frustumCulled === false) json.object.frustumCulled = false;
         if (this.renderOrder !== 0) json.object.renderOrder = this.renderOrder;
-        if (JSON.stringify(this.userData) !== '{}') json.object.userData = this.userData;
+        if (JSON.stringify(this.userData) !== '{}') {
+            json.object.userData = (typeof structuredClone === 'function') ? structuredClone(this.userData) : JSON.parse(JSON.stringify(this.userData));
+        }
 
         // Child Entities
 

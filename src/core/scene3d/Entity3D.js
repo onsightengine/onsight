@@ -31,7 +31,7 @@ class Entity3D extends Object3D {
         this.lookAtCamera = false;              // implemented in ONE.Object3D.updateMatrix overload
 
         // Collections
-        this.components = [];                   // Geometry, material, audio, light, etc.
+        this.components = [];                   // geometry, material, audio, light, etc.
 
         // Flags
         this.setFlag(ENTITY_FLAGS.LOCKED, false);

@@ -106,7 +106,9 @@ class GpuPickerPass extends Pass {
             if (!renderMaterial) {
 
                 renderMaterial = new THREE.ShaderMaterial({
-                    defines: { USE_MAP: '', USE_UV: '', USE_LOGDEPTHBUF: '', },
+                    // NOTE: AUTO DETECTED IN THREE v151
+                    // defines: { USE_MAP: '', USE_UV: '', USE_LOGDEPTHBUF: '' },
+                    defines: {},
 
                     // For common Three.js shader uniforms, see:
                     //      https://github.com/mrdoob/three.js/blob/master/src/renderers/shaders/UniformsLib.js

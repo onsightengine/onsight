@@ -1,8 +1,7 @@
-import { VERSION, SCENE_TYPES, WORLD_TYPES } from '../constants.js';
+import { VERSION, WORLD_TYPES } from '../constants.js';
 
 import { AssetManager } from './AssetManager.js';
 import { MathUtils } from '../utils/MathUtils.js';
-import { Scene3D } from './scene3d/Scene3D.js';
 import { World3D } from './scene3d/World3D.js';
 
 class Project {
@@ -19,7 +18,6 @@ class Project {
 
         // Collections
         this.scripts = {};
-        this.scenes = {};
         this.worlds = {};
 
     }
@@ -37,6 +35,11 @@ class Project {
         return this;
     }
 
+    getFirstWorld() {
+        const worldList = Object.keys(this.worlds);
+        return (worldList.length > 0) ? this.worlds[worldList[0]] : null;
+    }
+
     getWorldByName(name) {
         return this.getWorldByProperty('name', name);
     }
@@ -52,60 +55,20 @@ class Project {
         }
     }
 
-    /******************** SCENE */
+    removeWorld(world) {
+        if (!world.isWorld) return;
 
-    addScene(scene) {
-        if (scene && SCENE_TYPES[scene.type]) {
-            if (this.scenes[scene.uuid]) {
-                console.warn(`Project.addScene: Scene ('${scene.name}') already added`, scene);
-            } else {
-                this.scenes[scene.uuid] = scene;
-            }
-        } else {
-            console.error(`Project.addScene: Scene type (${scene.type}) not a valid scene type`, scene);
-        }
-
-        return this;
-    }
-
-    getFirstScene() {
-        const sceneList = Object.keys(this.scenes);
-        return (sceneList.length > 0) ? this.scenes[sceneList[0]] : null;
-    }
-
-    getSceneByName(name) {
-        return this.getSceneByProperty('name', name);
-    }
-
-    getSceneByUuid(uuid) {
-        return this.scenes[uuid];
-    }
-
-    getSceneByProperty(property, value) {
-        for (const uuid in this.scenes) {
-            const scene = this.scenes[uuid];
-            if (scene[property] === value) return scene;
+        // Clear Scenes
+        const scenes = world.getScenes();
+        for (let i = scenes.length - 1; i >= 0; i--) {
+            world.removeScene(scenes[i]);
         }
     }
 
-    removeScene(scene) {
-        if (scene.isScene !== true) return;
-
-        // Clear Entities
-        const entities = scene.getEntities();
-        for (let i = entities.length - 1; i >= 0; i--) {
-            scene.removeEntity(entities[i], true);
-            entities[i].dispose();
-        }
-
-        // Remove from 'scenes'
-        delete this.scenes[scene.uuid];
-    }
-
-    traverseScenes(callback) {
-        for (let uuid in this.scenes) {
-            const scene = this.scenes[uuid];
-            scene.traverseEntities(callback);
+    traverseWorlds(callback) {
+        for (let uuid in this.worlds) {
+            const world = this.worlds[uuid];
+            world.traverseScenes(callback);
         }
     }
 
@@ -117,14 +80,17 @@ class Project {
         if (window.editor) activeScene = window.editor.viewport.scene;
 
         if (searchAllScenes) {
-            sceneList = Array.from(this.scenes);
+            for (let uuid in this.worlds) {
+                const world = this.worlds[uuid];
+                sceneList.concat(Array.from(world.getScenes()));
+            }
 
             // Put activeScene at front of sceneList
             const fromIndex = sceneList.indexOf(activeScene);
             const toIndex = 0;
             if (activeScene && fromIndex !== -1) {
-                arr.splice(fromIndex, 1);						// Remove activeScene from sceneList
-                arr.splice(toIndex, 0, activeScene);			// Place at front
+                sceneList.splice(fromIndex, 1);                 // Remove activeScene from sceneList
+                sceneList.splice(toIndex, 0, activeScene);      // Place at front
             }
         } else if (activeScene) {
             sceneList.push(activeScene);
@@ -158,11 +124,11 @@ class Project {
 
     clear() {
 
-        // Remove Scenes
-        const sceneIds = Object.keys(this.scenes);
-        for (let i = 0; i < sceneIds.length; i++) {
-            let scene = this.scenes[sceneIds[i]]
-            this.removeScene(scene);
+        // Remove Worlds
+        const worldIds = Object.keys(this.worlds);
+        for (let i = 0; i < worldIds.length; i++) {
+            const world = this.worlds[worldIds[i]]
+            this.removeWorld(world);
         }
 
         // Reset Properties
@@ -214,13 +180,6 @@ class Project {
             }
         }
 
-        // Scenes
-        for (let i = 0; i < json.scenes.length; i++) {
-            switch (json.scenes[i].object.type) {
-                case 'Scene3D': this.addScene(new Scene3D().fromJSON(json.scenes[i])); break;
-            }
-        }
-
         return this;
     }
 
@@ -242,19 +201,12 @@ class Project {
             uuid: this.uuid,
         };
         json.scripts = this.scripts;
-        json.scenes = [];
         json.worlds = [];
 
         // Add Worlds
         for (const uuid in this.worlds) {
             const world = this.worlds[uuid];
             json.worlds.push(world.toJSON());
-        }
-
-        // Add Scenes
-        for (const uuid in this.scenes) {
-            const scene = this.scenes[uuid];
-            json.scenes.push(scene.toJSON());
         }
 
         return json;

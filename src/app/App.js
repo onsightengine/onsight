@@ -70,7 +70,7 @@ class App {
             project.fromJSON(json, loadAssets);
 
             // Set Scene
-            this.scene = project.getFirstScene();
+            this.scene = project.getFirstWorld().getFirstScene();
 
             // // TEMP: Set Camera
             // this.setCamera(loader.parse(json.camera));

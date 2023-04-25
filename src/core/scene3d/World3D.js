@@ -1,4 +1,5 @@
 import { MathUtils } from '../../utils/MathUtils.js';
+import { Scene3D } from './Scene3D.js';
 
 /** Holds a collection of scenes */
 class World3D {
@@ -17,10 +18,9 @@ class World3D {
         // Properties, More
         this.order = 0;
         this.startScene = null;
-        this.lastEditorScene = null;
 
         // Collections
-        this.sceneNodes = {};
+        this.scenes = {};
 
     }
 
@@ -28,20 +28,64 @@ class World3D {
 
     addScene(scene) {
         if (scene && scene.type === 'Scene3D') {
-            if (this.sceneNodes[scene.uuid]) {
+            if (this.scenes[scene.uuid]) {
                 console.warn(`World3D.addScene: Scene ('${scene.name}') already added`, scene);
             } else {
-                this.sceneNodes[scene.uuid] = {
-                    uuid: scene.uuid,
-                    order: this.order ++,
-                };
+                scene.world = this;
+                this.scenes[scene.uuid] = scene;
                 if (!this.startScene) this.startScene = scene.uuid;
-                if (!this.lastEditorScene) this.lastEditorScene = scene.uuid;
             }
         } else {
             console.error(`'World3D.addScene: Scene not of type 'Scene3D'`, scene);
         }
+
         return this;
+    }
+
+    getFirstScene() {
+        const sceneList = Object.keys(this.scenes);
+        return (sceneList.length > 0) ? this.scenes[sceneList[0]] : null;
+    }
+
+    getScenes() {
+        return this.scenes;
+    }
+
+    getSceneByName(name) {
+        return this.getSceneByProperty('name', name);
+    }
+
+    getSceneByUuid(uuid) {
+        return this.scenes[uuid];
+    }
+
+    getSceneByProperty(property, value) {
+        for (const uuid in this.scenes) {
+            const scene = this.scenes[uuid];
+            if (scene[property] === value) return scene;
+        }
+    }
+
+    removeScene(scene) {
+        if (scene.isScene !== true) return;
+
+        // Clear Entities
+        const entities = scene.getEntities();
+        for (let i = entities.length - 1; i >= 0; i--) {
+            scene.removeEntity(entities[i], true);
+            entities[i].dispose();
+        }
+
+        // Remove from 'scenes'
+        scene.dispose();
+        delete this.scenes[scene.uuid];
+    }
+
+    traverseScenes(callback) {
+        for (let uuid in this.scenes) {
+            const scene = this.scenes[uuid];
+            scene.traverseEntities(callback);
+        }
     }
 
     /******************** JSON */
@@ -54,9 +98,14 @@ class World3D {
 
         this.order = data.order;
         this.startScene = data.startScene;
-        this.lastEditorScene = data.lastEditorScene;
 
-        this.sceneNodes = data.sceneNodes;
+        // Scenes
+        for (let i = 0; i < json.scenes.length; i++) {
+            switch (json.scenes[i].object.type) {
+                case 'Scene3D': this.addScene(new Scene3D().fromJSON(json.scenes[i])); break;
+            }
+        }
+
         return this;
     }
 
@@ -69,11 +118,15 @@ class World3D {
 
                 order: this.order,
                 startScene: this.startScene,
-                lastEditorScene: this.lastEditorScene,
-
-                sceneNodes: this.sceneNodes,
             }
         };
+
+        // Scenes
+        for (const uuid in this.scenes) {
+            const scene = this.scenes[uuid];
+            json.scenes.push(scene.toJSON());
+        }
+
         return json;
     }
 

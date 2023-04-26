@@ -16,8 +16,7 @@ class World3D {
         this.uuid = MathUtils.uuid();
 
         // Properties, More
-        this.order = 0;
-        this.startScene = null;
+        this.order = [];
 
         // Collections
         this.scenes = {};
@@ -26,14 +25,19 @@ class World3D {
 
     /******************** SCENE */
 
-    addScene(scene) {
+    addScene(scene, index = -1) {
         if (scene && scene.type === 'Scene3D') {
             if (this.scenes[scene.uuid]) {
                 console.warn(`World3D.addScene: Scene ('${scene.name}') already added`, scene);
             } else {
                 scene.world = this;
                 this.scenes[scene.uuid] = scene;
-                if (!this.startScene) this.startScene = scene.uuid;
+                if (index < 0) {
+                    this.order.push(scene.uuid);
+                } else {
+                    if (index > this.order.length) index = this.order.length;
+                    this.order.splice(index, 0, scene.uuid);
+                }
             }
         } else {
             console.error(`'World3D.addScene: Scene not of type 'Scene3D'`, scene);
@@ -96,9 +100,7 @@ class World3D {
 
         this.name = data.name;
         this.uuid = data.uuid;
-
-        this.order = data.order;
-        this.startScene = data.startScene;
+        this.order = JSON.parse(data.order);
 
         // Scenes
         for (let i = 0; i < json.scenes.length; i++) {
@@ -116,9 +118,7 @@ class World3D {
                 name: this.name,
                 type: this.type,
                 uuid: this.uuid,
-
-                order: this.order,
-                startScene: this.startScene,
+                order: JSON.stringify(this.order),
             }
         };
 

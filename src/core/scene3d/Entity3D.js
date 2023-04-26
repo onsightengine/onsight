@@ -258,7 +258,7 @@ class Entity3D extends Object3D {
     }
 
     traverseEntities(callback, recursive = true) {
-        callback(this);
+        if (typeof callback === 'function') callback(this);
 
         if (recursive) {
             for (let i = 0; i < this.children.length; i++) {

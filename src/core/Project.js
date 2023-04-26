@@ -65,10 +65,11 @@ class Project {
         }
     }
 
-    traverseWorlds(callback) {
+    traverseWorlds(callback, recursive = true) {
         for (let uuid in this.worlds) {
             const world = this.worlds[uuid];
-            world.traverseScenes(callback);
+            if (typeof callback === 'function') callback(world);
+            if (recursive) world.traverseScenes(callback);
         }
     }
 

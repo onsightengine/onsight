@@ -81,10 +81,11 @@ class World3D {
         delete this.scenes[scene.uuid];
     }
 
-    traverseScenes(callback) {
+    traverseScenes(callback, recursive = true) {
         for (let uuid in this.scenes) {
             const scene = this.scenes[uuid];
-            scene.traverseEntities(callback);
+            if (typeof callback === 'function') callback(scene);
+            if (recursive) scene.traverseEntities(callback);
         }
     }
 

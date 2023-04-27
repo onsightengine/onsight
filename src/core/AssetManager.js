@@ -117,7 +117,7 @@ class AssetManager {
             // console.info(data);
 
             // // Texture Properties
-            // newTexture.encoding = THREE.sRGBEncoding;
+            // newTexture.colorSpace = THREE.SRGBColorSpace;
             // newTexture.magFilter = THREE.NearestFilter;
             // newTexture.minFilter = THREE.NearestFilter;
             newTexture.premultiplyAlpha = true;

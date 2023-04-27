@@ -53,8 +53,10 @@ class GpuPickerPass extends Pass {
 
         // This is the 1x1 pixel render target we use to do the picking
         this.pickingTarget = new THREE.WebGLRenderTarget(1, 1, {
-            minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter,
-            format: THREE.RGBAFormat, encoding: THREE.LinearEncoding
+            minFilter: THREE.NearestFilter,
+            magFilter: THREE.NearestFilter,
+            format: THREE.RGBAFormat,
+            colorSpace: THREE.LinearSRGBColorSpace
         });
         this.pixelBuffer = new Uint8Array(4 * this.pickingTarget.width * this.pickingTarget.height); // RGBA is 4 channels
 

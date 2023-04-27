@@ -70,6 +70,16 @@ class World3D {
         }
     }
 
+    orderScene(sceneUuid, newIndex = -1) {
+        if (sceneUuid.isScene) sceneUuid = sceneUuid.uuid;
+        const fromIndex = this.order.indexOf(sceneUuid);
+        if (fromIndex < 0) return;
+        if (newIndex < 0) newIndex = 0;
+        if (newIndex > this.order.length - 1) newIndex = this.order.length - 1;
+        this.order.splice(fromIndex, 1);
+        this.order.splice(newIndex, 0, sceneUuid);
+    }
+
     removeScene(scene) {
         if (scene.isScene !== true) return;
 

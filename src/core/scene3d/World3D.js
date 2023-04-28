@@ -81,7 +81,7 @@ class World3D {
     }
 
     removeScene(scene) {
-        if (scene.isScene !== true) return;
+        if (!scene.isScene) return;
 
         // Clear Entities
         const entities = scene.getEntities();
@@ -92,6 +92,7 @@ class World3D {
 
         // Remove from 'scenes'
         scene.dispose();
+        this.order.splice(this.order.indexOf(scene.uuid), 1);
         delete this.scenes[scene.uuid];
     }
 

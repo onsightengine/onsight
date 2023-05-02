@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ObjectUtils } from '../../three/ObjectUtils.js';
+import { ObjectUtils } from '../../utils/three/ObjectUtils.js';
 
 // https://github.com/mrdoob/three.js/blob/master/src/core/Object3D.js
 

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { MathUtils } from '../utils/MathUtils.js';
-import { System } from '../utils/System.js';
+import { Maths } from '../Maths.js';
+import { System } from '../System.js';
 
 // allowSelection()         Check if object should be allowed to be interacted with in Editor
 // checkTransforms()        Compares array of objects to see if transforms are all the same
@@ -44,7 +44,7 @@ class ObjectUtils {
         array[0].getWorldQuaternion(_startQuaternion);
         for (let i = 1; i < array.length; i++) {
             array[i].getWorldQuaternion(_testQuaternion);
-            if (MathUtils.fuzzyQuaternion(_startQuaternion, _testQuaternion) === false) return false;
+            if (Maths.fuzzyQuaternion(_startQuaternion, _testQuaternion) === false) return false;
         }
         return true;
     }

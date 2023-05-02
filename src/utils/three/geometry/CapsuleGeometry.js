@@ -8,7 +8,7 @@
  */
 
 import * as THREE from 'three';
-import { MathUtils } from '../../utils/MathUtils.js';
+import { Maths } from '../../Maths.js';
 
 class CapsuleGeometry extends THREE.BufferGeometry {
 
@@ -32,8 +32,8 @@ class CapsuleGeometry extends THREE.BufferGeometry {
         radiusBottom = radiusBottom !== undefined ? radiusBottom : 1;
         height = height !== undefined ? height : 2;
 
-        radiusTop = MathUtils.clamp(radiusTop, 0.001, height);
-        radiusBottom = MathUtils.clamp(radiusBottom, 0.001, height);
+        radiusTop = Maths.clamp(radiusTop, 0.001, height);
+        radiusBottom = Maths.clamp(radiusBottom, 0.001, height);
         if (height < 0.001) height = 0.001;
 
         radialSegments = Math.floor(radialSegments) || 12;

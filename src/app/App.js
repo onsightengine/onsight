@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { APP_STATES, BACKENDS } from '../constants.js';
-import { CameraUtils } from '../three/CameraUtils.js';
-import { ObjectUtils } from '../three/ObjectUtils.js';
-import { Project } from '../core/Project.js';
+import { CameraUtils } from '../utils/three/CameraUtils.js';
+import { ObjectUtils } from '../utils/three/ObjectUtils.js';
+import { Project } from '../project/Project.js';
 import { System } from '../utils/System.js';
 
 // https://github.com/mrdoob/three.js/blob/dev/editor/js/libs/app.js

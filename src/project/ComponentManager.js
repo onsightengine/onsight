@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { MathUtils } from '../utils/MathUtils.js';
+import { Maths } from '../utils/Maths.js';
 import { Strings } from '../utils/Strings.js';
 import { System } from '../utils/System.js';
 
@@ -280,7 +280,7 @@ class ComponentManager {
                     data[schemaKey] = itemToInclude.default;
                 }
 
-                if (MathUtils.isNumber(data[schemaKey])) {
+                if (Maths.isNumber(data[schemaKey])) {
                     const min = itemToInclude['min'] ?? -Infinity;
                     const max = itemToInclude['max'] ??  Infinity;
                     if (data[schemaKey] < min) data[schemaKey] = min;

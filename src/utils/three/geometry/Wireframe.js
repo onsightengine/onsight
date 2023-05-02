@@ -7,7 +7,7 @@ import { Wireframe } from 'three/addons/lines/Wireframe.js';
 import { WireframeGeometry2 } from 'three/addons/lines/WireframeGeometry2.js';
 
 import { ObjectUtils } from '../ObjectUtils.js';
-import { Vectors } from '../../utils/Vectors.js';
+import { Vectors } from '../../Vectors.js';
 
 function setWireframeMaterialDefaults(material) {
     material.transparent = true;

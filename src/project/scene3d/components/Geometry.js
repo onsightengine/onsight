@@ -6,10 +6,10 @@ import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 
 import { AssetManager } from '../../AssetManager.js';
 import { ComponentManager } from '../../ComponentManager.js';
-import { CapsuleGeometry } from '../../../three/geometry/CapsuleGeometry.js';
-import { CylinderGeometry } from '../../../three/geometry/CylinderGeometry.js';
-import { GeometryUtils } from '../../../three/GeometryUtils.js';
-import { MathUtils } from '../../../utils/MathUtils.js';
+import { CapsuleGeometry } from '../../../utils/three/geometry/CapsuleGeometry.js';
+import { CylinderGeometry } from '../../../utils/three/geometry/CylinderGeometry.js';
+import { GeometryUtils } from '../../../utils/three/GeometryUtils.js';
+import { Maths } from '../../../utils/Maths.js';
 
 // https://github.com/Cloud9c/taro/blob/main/src/components/Geometry.js
 
@@ -61,8 +61,8 @@ class Geometry {
                 // geometry = new THREE.CapsuleGeometry(capRadius, capHeight, data.capSegments, data.radialSegments);
 
                 // Custom CapsuleGeometry
-                const capRadiusTop = MathUtils.clamp(data.radiusTop, 0.1, data.height) / 1.5;
-                const capRadiusBottom = MathUtils.clamp(data.radiusBottom, 0.1, data.height) / 1.5;
+                const capRadiusTop = Maths.clamp(data.radiusTop, 0.1, data.height) / 1.5;
+                const capRadiusBottom = Maths.clamp(data.radiusBottom, 0.1, data.height) / 1.5;
                 const capHeight = data.height / 1.5;
                 geometry = new CapsuleGeometry(
                     capRadiusTop, capRadiusBottom, capHeight,

@@ -11,65 +11,69 @@
 import { VERSION } from './constants.js';
 
 export * from './constants.js';
-export { CAMERA_SCALE, CAMERA_START_DISTANCE, CAMERA_START_HEIGHT } from './three/CameraUtils.js'
+export { CAMERA_SCALE, CAMERA_START_DISTANCE, CAMERA_START_HEIGHT } from './utils/three/CameraUtils.js'
 
-/******************** CLASSES ********************/
+/******************** CLASSES - APP ********************/
 
 // App
 export { App } from './app/App.js';
 export { EntityPool } from './app/EntityPool.js';
 
+/******************** CLASSES - Project  ********************/
+
 // Core
-export { AssetManager } from './core/AssetManager.js';
-export { ComponentManager } from './core/ComponentManager.js';
-export { Project } from './core/Project.js';
+export { AssetManager } from './project/AssetManager.js';
+export { ComponentManager } from './project/ComponentManager.js';
+export { Project } from './project/Project.js';
 
 // Core, Assets
-export { Script } from './core/assets/Script.js';
+export { Script } from './project/assets/Script.js';
 
 // Core, Scene3D
-export { Entity3D } from './core/scene3d/Entity3D.js';
-export { Object3D } from './core/scene3d/Object3D.js';
-export { Scene3D } from './core/scene3d/Scene3D.js';
-export { World3D } from './core/scene3d/World3D.js';
+export { Entity3D } from './project/scene3d/Entity3D.js';
+export { Object3D } from './project/scene3d/Object3D.js';
+export { Scene3D } from './project/scene3d/Scene3D.js';
+export { World3D } from './project/scene3d/World3D.js';
 
 // Core, Scene3D, Builders
-export { SVGBuilder } from './core/scene3d/builders/SVGBuilder.js';
+export { SVGBuilder } from './project/scene3d/builders/SVGBuilder.js';
+
+/******************** CLASSES - Utils  ********************/
 
 // Three
-export { CameraUtils } from './three/CameraUtils.js';
-export { EntityUtils } from './three/EntityUtils.js';
-export { GeometryUtils } from './three/GeometryUtils.js';
-export { ObjectUtils } from './three/ObjectUtils.js';
-export { RenderUtils } from './three/RenderUtils.js';
+export { CameraUtils } from './utils/three/CameraUtils.js';
+export { EntityUtils } from './utils/three/EntityUtils.js';
+export { GeometryUtils } from './utils/three/GeometryUtils.js';
+export { ObjectUtils } from './utils/three/ObjectUtils.js';
+export { RenderUtils } from './utils/three/RenderUtils.js';
 
 // Three, Geometry
-export { CapsuleGeometry } from './three/geometry/CapsuleGeometry.js';
-export { CylinderGeometry } from './three/geometry/CylinderGeometry.js';
-export { PrismGeometry } from './three/geometry/PrismGeometry.js';
-export { BasicLine, BasicWireBox, BasicWireframe } from './three/geometry/Wireframe.js';
-export { FatLine, FatWireBox, FatWireframe } from './three/geometry/Wireframe.js';
+export { CapsuleGeometry } from './utils/three/geometry/CapsuleGeometry.js';
+export { CylinderGeometry } from './utils/three/geometry/CylinderGeometry.js';
+export { PrismGeometry } from './utils/three/geometry/PrismGeometry.js';
+export { BasicLine, BasicWireBox, BasicWireframe } from './utils/three/geometry/Wireframe.js';
+export { FatLine, FatWireBox, FatWireframe } from './utils/three/geometry/Wireframe.js';
 
 // Three, Objects
-export { SkyObject } from './three/objects/SkyObject.js';
+export { SkyObject } from './utils/three/objects/SkyObject.js';
 
 // Three, Passes
-export { GpuPickerPass } from './three/passes/GpuPickerPass.js';
+export { GpuPickerPass } from './utils/three/passes/GpuPickerPass.js';
 
 // Utils
-export { MathUtils } from './utils/MathUtils.js';
+export { Maths } from './utils/Maths.js';
 export { Strings } from './utils/Strings.js';
 export { System } from './utils/System.js';
 export { Vectors } from './utils/Vectors.js';
 
 /******************** REGISTER COMPONENTS ********************/
 
-import './core/scene3d/components/Camera.js';
-import './core/scene3d/components/Geometry.js';
-import './core/scene3d/components/Light.js';
-import './core/scene3d/components/Material.js';
-import './core/scene3d/components/Mesh.js';
-// import './core/scene3d/components/Sprite.js';
+import './project/scene3d/components/Camera.js';
+import './project/scene3d/components/Geometry.js';
+import './project/scene3d/components/Light.js';
+import './project/scene3d/components/Material.js';
+import './project/scene3d/components/Mesh.js';
+// import './project/scene3d/components/Sprite.js';
 
 /******************** ENSURE SINGLE IMPORT ********************/
 

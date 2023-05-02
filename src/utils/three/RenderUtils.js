@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { CameraUtils } from './CameraUtils.js';
-import { MathUtils } from '../utils/MathUtils.js';
+import { Maths } from '../Maths.js';
 
 // offscreenRenderer()          Offscreen renderer to be shared across the app
 // renderGeometryToCanvas()     Render geometry to canvas, camera centered on geometry
@@ -16,7 +16,7 @@ class RenderUtils {
             _renderer.setClearColor(0xffffff, 0);
             _renderer.setSize(512, 512, false);
         }
-        if (MathUtils.isNumber(width) && MathUtils.isNumber(height)) {
+        if (Maths.isNumber(width) && Maths.isNumber(height)) {
             _renderer.setSize(width, height, false);
         }
         return _renderer;

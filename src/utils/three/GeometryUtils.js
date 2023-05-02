@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Vectors } from '../utils/Vectors.js';
+import { Vectors } from '../Vectors.js';
 
 // https://stackoverflow.com/questions/20774648/three-js-generate-uv-coordinate
 // https://stackoverflow.com/questions/34958072/programmatically-generate-simple-uv-mapping-for-models

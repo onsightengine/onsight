@@ -3,8 +3,8 @@ import * as THREE from 'three';
 
 import { AssetManager } from '../../AssetManager.js';
 import { ComponentManager } from '../../ComponentManager.js';
-import { GeometryUtils } from '../../../three/GeometryUtils.js';
-import { ObjectUtils } from '../../../three/ObjectUtils.js';
+import { GeometryUtils } from '../../../utils/three/GeometryUtils.js';
+import { ObjectUtils } from '../../../utils/three/ObjectUtils.js';
 import { System } from '../../../utils/System.js';
 
 // MeshBasicMaterial        not affected by lights

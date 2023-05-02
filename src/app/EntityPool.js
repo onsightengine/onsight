@@ -1,4 +1,4 @@
-import { Entity3D } from '../core/scene3d/Entity3D.js';
+import { Entity3D } from '../project/scene3d/Entity3D.js';
 
 // https://github.com/rare-earth/Square/blob/main/src/EntityPool.js
 

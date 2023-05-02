@@ -1,4 +1,4 @@
-import { MathUtils } from '../../utils/MathUtils.js';
+import { Maths } from '../../utils/Maths.js';
 import { Scene3D } from './Scene3D.js';
 
 /** Holds a collection of scenes */
@@ -13,7 +13,7 @@ class World3D {
         // Properties, Basic
         this.name = name;
         this.type = 'World3D';
-        this.uuid = MathUtils.uuid();
+        this.uuid = Maths.uuid();
 
         // Properties, More
         this.order = [];

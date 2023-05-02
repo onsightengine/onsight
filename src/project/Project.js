@@ -1,7 +1,7 @@
 import { VERSION, WORLD_TYPES } from '../constants.js';
 
 import { AssetManager } from './AssetManager.js';
-import { MathUtils } from '../utils/MathUtils.js';
+import { Maths } from '../utils/Maths.js';
 import { World3D } from './scene3d/World3D.js';
 
 class Project {
@@ -13,7 +13,7 @@ class Project {
 
         // Members
         this.name = name;
-        this.uuid = MathUtils.uuid();
+        this.uuid = Maths.uuid();
         this.type = 'Project';
 
         // Collections
@@ -134,7 +134,7 @@ class Project {
 
         // Reset Properties
         this.name = 'My Project';
-        this.uuid = MathUtils.uuid();
+        this.uuid = Maths.uuid();
 
     }
 

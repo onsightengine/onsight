@@ -224,7 +224,7 @@ class Entity3D extends Object3D {
     }
 
     getEntityById(id) {
-        return this.getEntityByProperty('id', id);
+        return this.getEntityByProperty('id', parseInt(id));
     }
 
     getEntityByName(name) {

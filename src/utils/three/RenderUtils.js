@@ -15,6 +15,7 @@ class RenderUtils {
             _renderer = new THREE.WebGLRenderer({ alpha: true /* transparent background */});
             _renderer.setClearColor(0xffffff, 0);
             _renderer.setSize(512, 512, false);
+            _renderer.outputColorSpace = THREE.LinearSRGBColorSpace; // NOTE: three 151->152
         }
         if (Maths.isNumber(width) && Maths.isNumber(height)) {
             _renderer.setSize(width, height, false);

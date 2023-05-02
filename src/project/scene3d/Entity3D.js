@@ -343,7 +343,6 @@ class Entity3D extends Object3D {
         const data = json.object;
 
         // Entity3D Properties
-
         this.uuid = data.uuid;
         if (data.name !== undefined) this.name = data.name;
 
@@ -353,7 +352,6 @@ class Entity3D extends Object3D {
         if (data.lookAtCamera !== undefined) this.lookAtCamera = data.lookAtCamera;
 
         // Object3D Properties
-
         if (data.position !== undefined) this.position.fromArray(data.position);
         if (data.rotation !== undefined) this.rotation.fromArray(data.rotation);
         if (data.scale !== undefined) this.scale.fromArray(data.scale);
@@ -367,13 +365,11 @@ class Entity3D extends Object3D {
         if (data.userData !== undefined) this.userData = data.userData;
 
         // Flags
-
         for (let key in json.object.flags) {
             this.setFlag(key, json.object.flags[key]);
         }
 
         // Components
-
         for (let i = 0; i < json.object.components.length; i++) {
             const componentData = json.object.components[i];
 
@@ -388,7 +384,6 @@ class Entity3D extends Object3D {
         }
 
         // Children
-
         if (data.entities !== undefined) {
             for (let i = 0; i < json.object.entities.length; i++) {
                 const entity = new Entity3D().fromJSON(json.object.entities[i]);
@@ -420,20 +415,17 @@ class Entity3D extends Object3D {
         }
 
         // Components
-
         for (let i = 0; i < this.components.length; i++) {
             json.object.components.push(this.components[i].toJSON());
         }
 
         // Entity3D Properties
-
         json.object.enabled = this.enabled;
         json.object.castShadow = this.castShadow;
         json.object.receiveShadow = this.receiveShadow;
         json.object.lookAtCamera = this.lookAtCamera;
 
         // Object3D Properties
-
         json.object.position  = this.position.toArray();
         json.object.rotation = this.rotation.toArray();
         json.object.scale = this.scale.toArray();
@@ -449,7 +441,6 @@ class Entity3D extends Object3D {
         }
 
         // Child Entities
-
         const childEntities = this.getEntities();
         if (childEntities.length > 0) {
             json.object.entities = [];

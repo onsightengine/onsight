@@ -22,6 +22,10 @@ class Scene3D extends Entity3D {
         this.overrideMaterial = null;
         this.autoUpdate = true;             // checked by the renderer
 
+        // Properties, Usage
+        this.start = 0;
+        this.end = -1;
+
         // Shadow Plane (added as Object3D, NOT saved)
         this.shadowPlane = new THREE.Mesh(
             new THREE.PlaneGeometry(100000, 100000),
@@ -41,6 +45,10 @@ class Scene3D extends Entity3D {
 
     fromJSON(json) {
         const data = json.object;
+
+        // Scene3D Properties
+        if (data.start !== undefined) this.start = data.start
+        if (data.end !== undefined) this.end = data.end
 
         // Scene Properties
         if (data.background !== undefined) {
@@ -70,9 +78,15 @@ class Scene3D extends Entity3D {
     }
 
     toJSON() {
+        // Entity3D Properties
         const json = super.toJSON();
 
+        // Scene Properties
         if (this.fog) json.object.fog = this.fog.toJSON();
+
+        // Scene3D Properties
+        json.object.start = this.start;
+        json.object.end = this.end;
 
         return json;
     }

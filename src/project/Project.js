@@ -55,14 +55,10 @@ class Project {
         }
     }
 
+    /** Removes world, does not call 'dispose()' on World!! */
     removeWorld(world) {
         if (!world.isWorld) return;
-
-        // Clear Scenes
-        const scenes = world.getScenes();
-        for (let i = scenes.length - 1; i >= 0; i--) {
-            world.removeScene(scenes[i]);
-        }
+        delete this.worlds[world.uuid];
     }
 
     traverseWorlds(callback, recursive = true) {

@@ -17,8 +17,8 @@ class World3D extends Entity3D {
 
     /******************** CHILDREN (SCENES) */
 
-    addEntity(scene, index = -1) {
-        return this.addScene(scene, index);
+    addEntity(entity, index = -1) {
+        return this.addScene(entity, index);
     }
 
     addScene(scene, index = -1) {
@@ -76,12 +76,16 @@ class World3D extends Entity3D {
         }
     }
 
-    removeScene(scene, forceDelete = false) {
+    removeEntity(entity) {
+        return this.removeScene(entity);
+    }
+
+    /** Removes scene, does not call 'dispose()' on Scene!! */
+    removeScene(scene) {
         if (!scene || !scene.isScene) return;
 
         // Remove scene (out of World, and Project)
         this.remove(scene);
-        scene.dispose();
     }
 
     traverseScenes(callback, recursive = true) {

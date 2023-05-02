@@ -13,6 +13,11 @@ class World3D extends Entity3D {
         // Properties, Basic
         this.name = name;
         this.type = 'World3D';
+
+        // Properties, Nodes
+        this.xPos = 0;
+        this.yPos = 0;
+
     }
 
     /******************** CHILDREN (SCENES) */
@@ -106,8 +111,8 @@ class World3D extends Entity3D {
         const data = json.object;
 
         // World Properties
-
-        // TODO
+        if (data.xPos !== undefined) this.xPos = data.xPos;
+        if (data.yPos !== undefined) this.yPos = data.yPos;
 
         // Entity3D Properties
         super.fromJSON(json);
@@ -116,12 +121,12 @@ class World3D extends Entity3D {
     }
 
     toJSON() {
-        // Start with Entity3D JSON
+        // Entity3D Properties
         const json = super.toJSON();
 
-        // World properties
-
-        // TODO
+        // World Properties
+        json.object.xPos = this.xPos;
+        json.object.yPos = this.yPos;
 
         return json;
     }

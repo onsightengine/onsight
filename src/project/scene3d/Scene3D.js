@@ -47,8 +47,8 @@ class Scene3D extends Entity3D {
         const data = json.object;
 
         // Scene3D Properties
-        if (data.start !== undefined) this.start = data.start
-        if (data.end !== undefined) this.end = data.end
+        if (data.start !== undefined) this.start = data.start;
+        if (data.end !== undefined) this.end = data.end;
 
         // Scene Properties
         if (data.background !== undefined) {

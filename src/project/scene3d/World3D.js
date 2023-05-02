@@ -1,10 +1,10 @@
-import { Maths } from '../../utils/Maths.js';
-import { Scene3D } from './Scene3D.js';
+import * as THREE from 'three';
+import { Entity3D } from './Entity3D.js';
 
-/** Holds a collection of scenes */
-class World3D {
+class World3D extends Entity3D {
 
     constructor(name = 'World 1') {
+        super();
 
         // Prototype
         this.isWorld = true;
@@ -13,94 +13,86 @@ class World3D {
         // Properties, Basic
         this.name = name;
         this.type = 'World3D';
-        this.uuid = Maths.uuid();
-
-        // Properties, More
-        this.order = [];
-
-        // Collections
-        this.scenes = {};
-
     }
 
-    /******************** SCENE */
+    /******************** CHILDREN (SCENES) */
+
+    addEntity(scene, index = -1) {
+        return this.addScene(scene, index);
+    }
 
     addScene(scene, index = -1) {
-        if (scene && scene.type === 'Scene3D') {
-            if (this.scenes[scene.uuid]) {
-                console.warn(`World3D.addScene: Scene ('${scene.name}') already added`, scene);
-            } else {
-                scene.world = this;
-                this.scenes[scene.uuid] = scene;
-                if (index < 0) {
-                    this.order.push(scene.uuid);
-                } else {
-                    if (index > this.order.length) index = this.order.length;
-                    this.order.splice(index, 0, scene.uuid);
-                }
-            }
-        } else {
-            console.error(`'World3D.addScene: Scene not of type 'Scene3D'`, scene);
+        if (!scene || !scene.isScene3D) return this;
+        if (index === undefined || index === null) index = -1;
+
+        // Check if already a child
+        if (this.children.indexOf(scene) !== -1) return this;
+
+        // Add Scene
+        this.add(scene);
+
+        // Preserve desired index
+        if (index !== -1) {
+            this.children.splice(index, 0, scene);
+            this.children.pop();
         }
 
         return this;
     }
 
     getFirstScene() {
-        const sceneList = Object.keys(this.scenes);
-        return (sceneList.length > 0) ? this.scenes[sceneList[0]] : null;
+        if (this.children.length > 0) return this.children[0];
     }
 
     getScenes() {
-        return this.scenes;
+        const filteredChildren = [];
+        const children = this.children;
+        for (let i = 0; i < children.length; i++) {
+            if (children[i].isScene) filteredChildren.push(children[i]);
+        }
+        return filteredChildren;
+    }
+
+    getSceneById(id) {
+        const scene = this.getEntityByProperty('id', id);
+        if (scene && scene.isScene) return scene;
     }
 
     getSceneByName(name) {
-        return this.getSceneByProperty('name', name);
+        const scene = this.getEntityByProperty('name', name);
+        if (scene && scene.isScene) return scene;
     }
 
     getSceneByUuid(uuid) {
-        return this.scenes[uuid];
+        const scene = this.getEntityByProperty('uuid', uuid);
+        if (scene && scene.isScene) return scene;
     }
 
     getSceneByProperty(property, value) {
-        for (const uuid in this.scenes) {
-            const scene = this.scenes[uuid];
+        const scenes = this.getScenes();
+        for (let i = 0, l = scenes.length; i < l; i++) {
+            const scene = scenes[i];
             if (scene[property] === value) return scene;
         }
     }
 
-    orderScene(sceneUuid, newIndex = -1) {
-        if (sceneUuid.isScene) sceneUuid = sceneUuid.uuid;
-        const fromIndex = this.order.indexOf(sceneUuid);
-        if (fromIndex < 0) return;
-        if (newIndex < 0) newIndex = 0;
-        if (newIndex > this.order.length - 1) newIndex = this.order.length - 1;
-        this.order.splice(fromIndex, 1);
-        this.order.splice(newIndex, 0, sceneUuid);
-    }
+    removeScene(scene, forceDelete = false) {
+        if (!scene || !scene.isScene) return;
 
-    removeScene(scene) {
-        if (!scene.isScene) return;
-
-        // Clear Entities
-        const entities = scene.getEntities();
-        for (let i = entities.length - 1; i >= 0; i--) {
-            scene.removeEntity(entities[i], true);
-            entities[i].dispose();
-        }
-
-        // Remove from 'scenes'
+        // Remove scene (out of World, and Project)
+        this.remove(scene);
         scene.dispose();
-        this.order.splice(this.order.indexOf(scene.uuid), 1);
-        delete this.scenes[scene.uuid];
     }
 
     traverseScenes(callback, recursive = true) {
-        for (let uuid in this.scenes) {
-            const scene = this.scenes[uuid];
-            if (typeof callback === 'function') callback(scene);
-            if (recursive) scene.traverseEntities(callback);
+        if (typeof callback === 'function') callback(this);
+
+        if (recursive) {
+            const scenes = this.getScenes();
+            for (let i = 0; i < scenes.length; i++) {
+                const scene = scenes[i];
+                scene.traverseEntities(callback, recursive);
+            }
         }
     }
 
@@ -109,35 +101,23 @@ class World3D {
     fromJSON(json) {
         const data = json.object;
 
-        this.name = data.name;
-        this.uuid = data.uuid;
-        this.order = JSON.parse(data.order);
+        // World Properties
 
-        // Scenes
-        for (let i = 0; i < json.scenes.length; i++) {
-            switch (json.scenes[i].object.type) {
-                case 'Scene3D': this.addScene(new Scene3D().fromJSON(json.scenes[i])); break;
-            }
-        }
+        // TODO
+
+        // Entity3D Properties
+        super.fromJSON(json);
 
         return this;
     }
 
     toJSON() {
-        const json = {
-            object: {
-                name: this.name,
-                type: this.type,
-                uuid: this.uuid,
-                order: JSON.stringify(this.order),
-            }
-        };
+        // Start with Entity3D JSON
+        const json = super.toJSON();
 
-        // Scenes
-        for (const uuid in this.scenes) {
-            const scene = this.scenes[uuid];
-            json.scenes.push(scene.toJSON());
-        }
+        // World properties
+
+        // TODO
 
         return json;
     }

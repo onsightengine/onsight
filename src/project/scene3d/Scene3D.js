@@ -15,9 +15,6 @@ class Scene3D extends Entity3D {
         this.name = name;
         this.type = 'Scene3D';
 
-        // Properties, Owner
-        this.world = null;
-
         // Properties, More (needed by THREE)
         this.background = null;
         this.environment = null;

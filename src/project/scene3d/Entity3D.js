@@ -235,12 +235,12 @@ class Entity3D extends Object3D {
         return this.getEntityByProperty('uuid', uuid);
     }
 
-    getEntityByProperty(name, value) {
-        if (this[name] === value) return this;
+    getEntityByProperty(property, value) {
+        if (this[property] === value) return this;
         const entities = this.getEntities();
         for (let i = 0, l = entities.length; i < l; i++) {
             const child = entities[i];
-            const entity = child.getEntityByProperty(name, value);
+            const entity = child.getEntityByProperty(property, value);
             if (entity) return entity;
         }
         return undefined;

@@ -17,7 +17,6 @@ class World3D extends Entity3D {
         // Properties, Nodes
         this.xPos = 0;
         this.yPos = 0;
-
     }
 
     /******************** CHILDREN (SCENES) */

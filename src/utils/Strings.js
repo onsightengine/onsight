@@ -36,6 +36,7 @@
 // addSpaces()      Adds spaces between 'CamelCaseWords' -> 'Camel Case Words'
 // capitalize()     Capitalizes the first letter of every word in a string
 // countDigits()    Counts number of digits in a number
+// escapeHTML()     Replaces special characters with html characters
 // nameFromUrl()    Returns name from file url
 
 class Strings {
@@ -57,6 +58,17 @@ class Strings {
     /** Counts number of digits in a number */
     static countDigits(number) {
         return parseFloat(number).toString().length;
+    }
+
+    /** Replaces special characters with html characters */
+    static escapeHTML(html) {
+        if (html == undefined) return html;
+        return html
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
     }
 
     /** Returns name from file url */

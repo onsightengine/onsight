@@ -73,6 +73,10 @@ class Project {
         }
     }
 
+    worldCount() {
+        return Object.keys(this.worlds).length;
+    }
+
     /******************** ENTITY */
 
     findEntityByUuid(uuid, searchAllScenes = false) {

@@ -235,10 +235,11 @@ class Entity3D extends Object3D {
         return this.getEntityByProperty('uuid', uuid);
     }
 
+    /** Recursively searches for a child Entity */
     getEntityByProperty(property, value) {
         if (this[property] === value) return this;
         const entities = this.getEntities();
-        for (let i = 0, l = entities.length; i < l; i++) {
+        for (let i = 0; i < entities.length; i++) {
             const child = entities[i];
             const entity = child.getEntityByProperty(property, value);
             if (entity) return entity;

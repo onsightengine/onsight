@@ -42,9 +42,7 @@ class App {
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setPixelRatio(1); //window.devicePixelRatio;
         renderer.shadowMap.enabled = true;
-        // renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        // renderer.toneMapping = THREE.ReinhardToneMapping;
-        renderer.useLegacyLights = false;
+        renderer.outputColorSpace = THREE.LinearSRGBColorSpace;     // NOTE: three 151->152
 
         // DOM
         this.dom = document.createElement('div');

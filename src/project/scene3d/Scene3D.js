@@ -41,6 +41,19 @@ class Scene3D extends Entity3D {
         this.add(this.shadowPlane);
     }
 
+    /******************** Copy */
+
+    copyEntity(source, recursive = true) {
+        // Backend ONE.Entity3D.copy()
+        super.copyEntity(source, recursive);
+
+        // Scene3D Properties
+        this.start = source.start;
+        this.end = source.end;
+
+        return this;
+    }
+
     /******************** JSON */
 
     fromJSON(json) {

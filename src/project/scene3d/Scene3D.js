@@ -8,7 +8,7 @@ class Scene3D extends Entity3D {
         super();
 
         // Prototype
-        this.isScene = true;                // Generic type (Scene), and also for THREE compatibility
+        this.isScene = true;                // generic type (Scene), and also for THREE compatibility
         this.isScene3D = true;
 
         // Properties, Basic

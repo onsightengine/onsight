@@ -75,23 +75,23 @@ class Project {
 
     /******************** ENTITY */
 
-    findEntityByUuid(uuid, searchAllScenes = false) {
-        let sceneList = [];
-        let activeScene = null;
-        if (window.editor) activeScene = window.editor.viewport.scene;
+    findEntityByUuid(uuid, searchAllWorlds = false) {
+        const activeScene = (editor && editor.viewport) ? editor.viewport.scene : null;
+        const sceneList = [];
 
-        if (searchAllScenes) {
+        if (searchAllWorlds) {
             for (let uuid in this.worlds) {
                 const world = this.worlds[uuid];
                 sceneList.concat(Array.from(world.getScenes()));
             }
 
             // Put activeScene at front of sceneList
-            const fromIndex = sceneList.indexOf(activeScene);
-            const toIndex = 0;
-            if (activeScene && fromIndex !== -1) {
-                sceneList.splice(fromIndex, 1);                 // Remove activeScene from sceneList
-                sceneList.splice(toIndex, 0, activeScene);      // Place at front
+            if (activeScene) {
+                const fromIndex = sceneList.indexOf(activeScene);
+                if (fromIndex !== -1) {
+                    sceneList.splice(fromIndex, 1);         // Remove activeScene from sceneList
+                    sceneList.splice(0, 0, activeScene);    // Place at front
+                }
             }
         } else if (activeScene) {
             sceneList.push(activeScene);

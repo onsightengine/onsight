@@ -17,9 +17,22 @@ class World3D extends Entity3D {
         // Properties, Nodes
         this.xPos = 0;
         this.yPos = 0;
+
+        // Properties, Scene
+        this.activeSceneUuid = undefined;
     }
 
     /******************** CHILDREN (SCENES) */
+
+    activeScene() {
+        return this.getSceneByUuid(this.activeSceneUuid);
+    }
+
+    setActiveScene(scene) {
+        if (scene && scene.uuid) {
+            this.activeSceneUuid = scene.uuid;
+        }
+    }
 
     addEntity(entity, index = -1) {
         return this.addScene(entity, index);
@@ -33,6 +46,7 @@ class World3D extends Entity3D {
         if (this.children.indexOf(scene) !== -1) return this;
 
         // Add Scene
+        if (this.getScenes().length === 0) this.setActiveScene(scene);
         this.add(scene);
 
         // Preserve desired index
@@ -112,6 +126,7 @@ class World3D extends Entity3D {
         // World Properties
         if (data.xPos !== undefined) this.xPos = data.xPos;
         if (data.yPos !== undefined) this.yPos = data.yPos;
+        if (data.activeSceneUuid !== undefined) this.activeSceneUuid = data.activeSceneUuid;
 
         // Entity3D Properties
         super.fromJSON(json);
@@ -126,6 +141,7 @@ class World3D extends Entity3D {
         // World Properties
         json.object.xPos = this.xPos;
         json.object.yPos = this.yPos;
+        json.object.activeSceneUuid = this.activeSceneUuid;
 
         return json;
     }

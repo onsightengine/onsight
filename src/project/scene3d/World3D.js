@@ -118,6 +118,21 @@ class World3D extends Entity3D {
         }
     }
 
+    /******************** Copy */
+
+    copyEntity(source, recursive = true) {
+        // Backend ONE.Entity3D.copy()
+        super.copyEntity(source, recursive);
+
+        // World3D Properties
+        this.xPos = source.xPos;
+        this.yPos = source.yPos;
+
+        // TODO: Acitve Scene?
+
+        return this;
+    }
+
     /******************** JSON */
 
     fromJSON(json) {

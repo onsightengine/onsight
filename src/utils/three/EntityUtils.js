@@ -66,13 +66,17 @@ class EntityUtils {
 
         let hasMesh = false;
         entity.traverseEntities((child) => {
+            let hasGeometry = false;
+            let hasMaterial = false;
             child.traverseComponents((component) => {
-                hasMesh = hasMesh || (component.type === 'geometry');
+                hasGeometry = hasGeometry || (component.type === 'geometry');
+                hasMaterial = hasMaterial || (component.type === 'material');
                 hasMesh = hasMesh || (component.type === 'mesh');
                 hasMesh = hasMesh || (component.type === 'sprite');
                 // hasMesh = hasMesh || (component.mesh && component.mesh.isMesh);
                 // hasMesh = hasMesh || (component.mesh && component.mesh.isPoints);
             });
+            hasMesh = hasMesh || (hasGeometry && hasMaterial);
         }, recursive);
         return hasMesh;
     }

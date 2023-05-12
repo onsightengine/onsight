@@ -198,9 +198,10 @@ class ComponentManager {
 
                 // Base Properties
                 data.base = {
-                    enabled: 	this.enabled,
-                    tag:		this.tag,
-                    type:		this.type,
+                    isComponent:    true,
+                    enabled:        this.enabled,
+                    tag:            this.tag,
+                    type:           this.type,
                 };
                 return data;
             }

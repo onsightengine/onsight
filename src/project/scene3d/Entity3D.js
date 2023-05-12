@@ -95,6 +95,11 @@ class Entity3D extends Object3D {
         return component;
     }
 
+    attachComponent(component) {
+        this.components.push(component);
+        if (this.enabled) component.enable();
+    }
+
     /** Get component by type (string, required) and tag (string, optional - in case of multiple components with type) */
     getComponent(type, tag /* optional */) {
         if (tag === undefined) return this.getComponentByProperty('type', type);
@@ -138,12 +143,12 @@ class Entity3D extends Object3D {
         return components;
     }
 
+    /** NOTE: Does not call dispose on component! */
     removeComponent(component) {
         let index = this.components.indexOf(component);
         if (index !== -1) {
             this.components.splice(index, 1);
             component.disable();
-            component.dispose();
         } else {
             console.warn(`Entity3D.removeComponent: Component ${component.uuid}, type '${component.type}' not found`);
         }
@@ -335,6 +340,7 @@ class Entity3D extends Object3D {
         while (this.components.length > 0) {
             const component = this.components[0];
             this.removeComponent(component);
+            component.dispose();
         }
     }
 

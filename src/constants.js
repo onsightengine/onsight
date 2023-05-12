@@ -1,21 +1,5 @@
 export const VERSION = '0.0.4';
 
-export const BACKENDS = {
-    RENDERER_3D: {
-        PIXI:       'PIXI',
-    },
-    PHYSICS_2D: {
-        MATTER:     'MATTER',
-    },
-    RENDERER_3D: {
-        THREE:      'THREE',
-    },
-    PHYSICS_3D: {
-        CANNON:     'CANNON',
-        RAPIER:     'RAPIER',
-    },
-}
-
 export const ENTITY_TYPES = {
     Entity2D:       'Entity2D',
     Entity3D:       'Entity3D',

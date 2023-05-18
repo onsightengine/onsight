@@ -14,7 +14,7 @@ class Script {
             '// Events - The following events are supported:\n' +
             '//\t\tkeydown, keyup, pointerdown, pointerup, pointermove\n\n' +
             '// Variables - The following globals are accessible to scripts:\n' +
-            '//\t\tthis (entity which owns the script), player, renderer, scene, camera'+
+            '//\t\tthis (entity which owns the script), app, renderer, scene, camera'+
             '\n\n\n' +
             '// Executed when the entity is loaded\n' +
             'function init() {\n\t\n}' +

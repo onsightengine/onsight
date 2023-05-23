@@ -57,7 +57,14 @@ class App {
     load(json, loadAssets = true) {
         // Load Project
         project.fromJSON(json, loadAssets);
-        scene = project.getFirstWorld().getFirstScene();
+
+        // Active World
+        const world = project.getFirstWorld();
+        scene = world.activeScene()
+        if (!scene || !scene.isScene) scene = world.getFirstScene();
+
+        console.log(world);
+        console.log(scene);;
 
         // // TEMP: Set Camera
         // camera = loader.parse(json.camera);

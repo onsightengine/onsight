@@ -391,16 +391,21 @@ class Entity3D extends Object3D {
         }
 
         // Children
-        if (data.entities !== undefined) {
-            for (let i = 0; i < json.object.entities.length; i++) {
-                const entity = new Entity3D().fromJSON(json.object.entities[i]);
-                this.add(entity);
-            }
-        }
+        this.loadChildren(json);
 
+        // Matrix
         this.updateMatrix();
 
         return this;
+    }
+
+    loadChildren(json) {
+        if (!json || !json.object || !json.object.entities) return;
+        for (let i = 0; i < json.object.entities.length; i++) {
+            const entityJSON = json.object.entities[i];
+            const entity = new Entity3D().fromJSON(entityJSON);
+            this.add(entity);
+        }
     }
 
     /** Coverts Entity to JSON, NOTE: Any NON-entity children (Object3D only) are NOT included! */

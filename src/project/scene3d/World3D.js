@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { Entity3D } from './Entity3D.js';
+import { Scene3D } from './Scene3D.js';
 
 class World3D extends Entity3D {
 
@@ -147,6 +148,20 @@ class World3D extends Entity3D {
         super.fromJSON(json);
 
         return this;
+    }
+
+    loadChildren(json) {
+        if (!json || !json.object || !json.object.entities) return;
+        for (let i = 0; i < json.object.entities.length; i++) {
+            const entityJSON = json.object.entities[i];
+            let entity = undefined;
+            if (entityJSON.object.type === 'Scene3D') {
+                entity = new Scene3D().fromJSON(entityJSON);
+            } else if (entityJSON.object.type === 'Entity3D') {
+                entity = new Entity3D().fromJSON(entityJSON);
+            }
+            if (entity) this.add(entity);
+        }
     }
 
     toJSON() {

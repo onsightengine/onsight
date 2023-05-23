@@ -3,6 +3,7 @@ import { APP_STATES } from '../constants.js';
 import { CameraUtils } from '../utils/three/CameraUtils.js';
 import { ObjectUtils } from '../utils/three/ObjectUtils.js';
 import { Project } from '../project/Project.js';
+import { SceneManager } from './SceneManager.js';
 import { System } from '../utils/System.js';
 
 // https://github.com/mrdoob/three.js/blob/dev/editor/js/libs/app.js
@@ -32,6 +33,9 @@ let time, startTime, prevTime;
 let renderer;
 let state = APP_STATES.STOPPED;
 
+// Game
+let distance = 0;
+
 class App {
 
     constructor() {
@@ -58,19 +62,12 @@ class App {
         // Load Project
         project.fromJSON(json, loadAssets);
 
-        // Active World
+        // Active World / Scene / Camera
         const world = project.getFirstWorld();
-        scene = world.activeScene()
-        if (!scene || !scene.isScene) scene = world.getFirstScene();
 
-        console.log(world);
-        console.log(scene);;
+        scene = world.activeScene().cloneEntity();
 
-        // // TEMP: Set Camera
-        // camera = loader.parse(json.camera);
-        camera = CameraUtils.createPerspective(500, 500, true);
-        camera.position.x = 0;
-        camera.position.y = 0;
+        camera = SceneManager.cameraFromScene(scene);
 
         // Scripts
         let scriptFunctions = '';

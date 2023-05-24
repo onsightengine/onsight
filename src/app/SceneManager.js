@@ -1,7 +1,14 @@
 import * as THREE from 'three';
 import { CameraUtils } from '../utils/three/CameraUtils.js';
 
+// CAMERA
+//  cameraFromScene()       Looks for a camera within a scene
+// ENTITY
+//  cloneEntities()         Copies entities from one scene to another
+
 class SceneManager {
+
+    /********** CAMERA */
 
     static cameraFromScene(scene) {
         // Look for Camera Component
@@ -22,6 +29,16 @@ class SceneManager {
             camera.position.y = 0;
         }
         return camera;
+    }
+
+    /********** ENTITY */
+
+    static cloneEntities(toScene, fromScene) {
+        const entities = fromScene.getEntities();
+        for (let i = 0; i < entities.length; i++) {
+            const entity = entities[i];
+            toScene.add(entity.cloneEntity());
+        }
     }
 
 }

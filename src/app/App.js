@@ -3,6 +3,7 @@ import { APP_STATES } from '../constants.js';
 import { CameraUtils } from '../utils/three/CameraUtils.js';
 import { ObjectUtils } from '../utils/three/ObjectUtils.js';
 import { Project } from '../project/Project.js';
+import { Scene3D } from '../project/scene3d/Scene3D.js';
 import { SceneManager } from './SceneManager.js';
 import { System } from '../utils/System.js';
 
@@ -62,11 +63,9 @@ class App {
         // Load Project
         project.fromJSON(json, loadAssets);
 
-        // Active World / Scene / Camera
-        const world = project.getFirstWorld();
-
-        scene = world.activeScene().cloneEntity();
-
+        // Active World/Scene/Camera
+        scene = new Scene3D();
+        SceneManager.cloneEntities(scene, project.getFirstWorld().activeScene());
         camera = SceneManager.cameraFromScene(scene);
 
         // Scripts

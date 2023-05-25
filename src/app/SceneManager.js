@@ -33,11 +33,12 @@ class SceneManager {
 
     /********** ENTITY */
 
-    static cloneEntities(toScene, fromScene) {
+    static cloneEntities(toScene, fromScene, offset) {
         const entities = fromScene.getEntities();
         for (let i = 0; i < entities.length; i++) {
-            const entity = entities[i];
-            toScene.add(entity.cloneEntity());
+            const entity = entities[i].cloneEntity();
+            if (offset) entity.position.add(offset);
+            toScene.add(entity);
         }
     }
 

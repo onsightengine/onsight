@@ -26,8 +26,10 @@ import { System } from '../utils/System.js';
 //  boolean         Option / Checkbox               false
 //  color           Color Selector                  0xffffff
 //
-//  asset           Asset (asset.uuid)              null
-//  map             Texture Map (texture.uuid)      null
+//      -- UUID TYPES --                                                NOTE(S)
+//  entity          Entity (entity.uuid)            null                Entity in the Project
+//  asset           Asset (asset.uuid)              null                Asset in the Project
+//  map             Texture Map (texture.uuid)      null                Asset in the Project, specifically a Texture Map
 //
 //      -- FORMATTING --
 //  divider         Inserts horizontal rule
@@ -124,6 +126,7 @@ class ComponentManager {
                         case 'slider':      property.default = 0;               break;
                         case 'boolean':     property.default = false;           break;
                         case 'color':       property.default = 0xffffff;        break;
+                        case 'entity':      property.default = null;            break;
                         case 'asset':       property.default = null;            break;
                         case 'map':         property.default = null;            break;
                         // --------- TODO: Below Needs Incorporate Inspector ---------

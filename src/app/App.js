@@ -12,26 +12,17 @@ import { System } from '../utils/System.js';
 
 // Scripts
 const scriptGlobals = 'app,renderer,scene,camera';
-const events = {
-    init: [],
-    update: [],
-    keydown: [],
-    keyup: [],
-    pointerdown: [],
-    pointerup: [],
-    pointermove: [],
-};
 
 // Properties
 const project = new Project();
 let app = null;
+let renderer = null;
 let scene = null;
 let camera = null;
 
 // Internal
 let requestId = null;
 let time, startTime, prevTime;
-let renderer;
 let state = APP_STATES.STOPPED;
 
 // Game
@@ -55,6 +46,17 @@ class App {
 
         // Globals
         app = this;
+
+        // Scripts
+        this.events = {
+            init: [],
+            update: [],
+            keydown: [],
+            keyup: [],
+            pointerdown: [],
+            pointerup: [],
+            pointermove: [],
+        };
     }
 
     /******************** LOAD */
@@ -71,7 +73,7 @@ class App {
         // Scripts
         let scriptFunctions = '';
         let scriptReturnObject = {};
-        for (let eventKey in events) {
+        for (let eventKey in app.events) {
             scriptFunctions += eventKey + ',';
             scriptReturnObject[eventKey] = eventKey;
         }
@@ -94,11 +96,11 @@ class App {
                     // Add functions to event dispatch handler
                     for (let name in functions) {
                         if (!functions[name]) continue;
-                        if (events[name] === undefined) {
+                        if (app.events[name] === undefined) {
                             console.warn(`App: Event type not supported ('${name}')`);
                             continue;
                         }
-                        events[name].push(functions[name].bind(object));
+                        app.events[name].push(functions[name].bind(object));
                     }
                 }
             }
@@ -106,7 +108,7 @@ class App {
         scene.traverse(loadScripts);
 
         // Call 'init()' functions
-        dispatch(events.init, arguments);
+        dispatch(app.events.init, arguments);
     }
 
     /******************** ANIMATE / RENDER */
@@ -120,7 +122,7 @@ class App {
 
             // Calls 'update()' functions
             if (state === APP_STATES.PLAYING) {
-                dispatch(events.update, { time: timePassed, delta: delta });
+                dispatch(app.events.update, { time: timePassed, delta: delta });
             }
         } catch (e) {
             console.error((e.message || e), (e.stack || ''));
@@ -177,8 +179,8 @@ class App {
         ObjectUtils.clearObject(camera);
         ObjectUtils.clearObject(scene);
 
-        for (let key in events) {
-            events[key].length = 0;
+        for (let key in app.events) {
+            app.events[key].length = 0;
         }
 
         if (requestId) {
@@ -226,11 +228,16 @@ export { App };
 
 /******************** INTERNAL ********************/
 
-function onKeyDown(event) { dispatch(events.keydown, event); }
-function onKeyUp(event) { dispatch(events.keyup, event); }
-function onPointerDown(event) { dispatch(events.pointerdown, event); }
-function onPointerUp(event) { dispatch(events.pointerup, event); }
-function onPointerMove(event) { dispatch(events.pointermove, event); }
+function onKeyDown(event) {
+    console.log(event);
+
+    dispatch(app.events.keydown, event);
+}
+
+function onKeyUp(event) { dispatch(app.events.keyup, event); }
+function onPointerDown(event) { dispatch(app.events.pointerdown, event); }
+function onPointerUp(event) { dispatch(app.events.pointerup, event); }
+function onPointerMove(event) { dispatch(app.events.pointermove, event); }
 
 function dispatch(array, event) {
     for (let i = 0, l = array.length; i < l; i++) {

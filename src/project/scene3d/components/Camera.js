@@ -135,6 +135,8 @@ Camera.config = {
         right: { type: 'number', default: 1, if: { style: [ 'orthographic' ] } },
         top: { type: 'number', default: 1, if: { style: [ 'orthographic' ] } },
         bottom: { type: 'number', default: -1, if: { style: [ 'orthographic' ] } },
+
+        follow: { type: 'entity' },
     },
     icon: ``,
     color: '#4B4886',

@@ -46,7 +46,9 @@ class AssetManager {
     }
 
     static getScripts(entityUUID) {
-        return _scripts[entityUUID];
+        const scripts = _scripts[entityUUID];
+        if (!scripts) return [];
+        return scripts;
     }
 
     static removeScript(entity, script) {

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { AssetManager } from '../project/AssetManager.js';
 import { CameraUtils } from '../utils/three/CameraUtils.js';
 
 // CAMERA
@@ -33,13 +34,55 @@ class SceneManager {
 
     /********** ENTITY */
 
-    static cloneEntities(toScene, fromScene, offset) {
-        const entities = fromScene.getEntities();
-        for (let i = 0; i < entities.length; i++) {
-            const entity = entities[i].cloneEntity();
-            if (offset) entity.position.add(offset);
-            toScene.add(entity);
+    static cloneEntities(app, renderer, camera, toScene, fromScene, offset) {
+        // Script Functions
+        const scriptGlobals = 'app,renderer,scene,camera';
+        let scriptFunctions = '';
+        let scriptReturnObject = {};
+        for (let eventKey in app.events) {
+            scriptFunctions += eventKey + ',';
+            scriptReturnObject[eventKey] = eventKey;
         }
+        scriptFunctions = scriptFunctions.replace(/.$/, '');                                // remove last comma
+        const scriptReturnString = JSON.stringify(scriptReturnObject).replace(/\"/g, '');   // remove all qoutes
+
+        // Copy Cloned Children
+        function copyScriptsAndChildren(toEntity, fromEntity) {
+            // Add Scripts
+            const scripts = AssetManager.getScripts(fromEntity.uuid);
+            for (let i = 0; i < scripts.length; i++) {
+                const script = scripts[i];
+                if (script.errors) {
+                    console.warn(`Entity '${fromEntity.name}' has errors in script '${script.name}'. Script will not be loaded!`);
+                } else {
+                    // Returns object that has script functions with proper 'this' bound, and access to globals
+                    const body = `${script.source} \n return ${scriptReturnString};`;
+                    const functions = (new Function(scriptGlobals, scriptFunctions, body).bind(toEntity))(app, renderer, toScene, camera);
+                    // Add functions to event dispatch handler
+                    for (let name in functions) {
+                        if (!functions[name]) continue;
+                        if (app.events[name] === undefined) {
+                            console.warn(`App: Event type not supported ('${name}')`);
+                            continue;
+                        }
+                        app.events[name].push(functions[name].bind(toEntity));
+                    }
+                }
+            }
+
+            // Add Children
+            const entities = fromEntity.getEntities();
+            for (let i = 0; i < entities.length; i++) {
+                const entity = entities[i];
+                // Clone
+                const clone = entity.cloneEntity(false /* recursive */);
+                if (offset) clone.position.add(offset);
+                copyScriptsAndChildren(clone, entity);
+                // Add to Parent
+                toEntity.add(clone);
+            }
+        }
+        copyScriptsAndChildren(toScene, fromScene);
     }
 
 }

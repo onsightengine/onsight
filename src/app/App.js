@@ -11,9 +11,6 @@ import { System } from '../utils/System.js';
 // https://github.com/mrdoob/three.js/blob/dev/editor/js/libs/app.js
 // https://github.com/Cloud9c/taro/blob/main/src/core/App.js
 
-// Scripts
-const scriptGlobals = 'app,renderer,scene,camera';
-
 // Properties
 const project = new Project();
 let app = null;
@@ -68,45 +65,8 @@ class App {
 
         // Active World/Scene/Camera
         scene = new Scene3D();
-        SceneManager.cloneEntities(scene, project.getFirstWorld().activeScene());
+        SceneManager.cloneEntities(app, renderer, camera, scene, project.getFirstWorld().activeScene());
         camera = SceneManager.cameraFromScene(scene);
-
-        // Scripts
-        let scriptFunctions = '';
-        let scriptReturnObject = {};
-        for (let eventKey in app.events) {
-            scriptFunctions += eventKey + ',';
-            scriptReturnObject[eventKey] = eventKey;
-        }
-        scriptFunctions = scriptFunctions.replace(/.$/, '');                                // remove last comma
-        const scriptReturnString = JSON.stringify(scriptReturnObject).replace(/\"/g, '');   // remove all qoutes
-
-        function loadScripts(object) {
-            const scripts = AssetManager.getScripts(object.uuid);
-            if (!scripts) return;
-            for (let i = 0; i < scripts.length; i++) {
-                const script = scripts[i];
-                if (script.errors) {
-                    console.warn(`Entity '${object.name}' has errors in script '${script.name}'. Script will not be loaded!`);
-
-                } else {
-                    // Returns object that has script functions with proper 'this' bound, and access to globals
-                    const body = `${script.source} \n return ${scriptReturnString};`;
-                    const functions = (new Function(scriptGlobals, scriptFunctions, body).bind(object))(app, renderer, scene, camera);
-
-                    // Add functions to event dispatch handler
-                    for (let name in functions) {
-                        if (!functions[name]) continue;
-                        if (app.events[name] === undefined) {
-                            console.warn(`App: Event type not supported ('${name}')`);
-                            continue;
-                        }
-                        app.events[name].push(functions[name].bind(object));
-                    }
-                }
-            }
-        }
-        scene.traverse(loadScripts);
 
         // Call 'init()' functions
         dispatch(app.events.init, arguments);
@@ -241,7 +201,7 @@ function onPointerUp(event) { dispatch(app.events.pointerup, event); }
 function onPointerMove(event) { dispatch(app.events.pointermove, event); }
 
 function dispatch(array, event) {
-    for (let i = 0, l = array.length; i < l; i++) {
+    for (let i = 0; i < array.length; i++) {
         array[i](event);
     }
 }

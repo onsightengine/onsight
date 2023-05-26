@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { APP_STATES } from '../constants.js';
+import { AssetManager } from '../project/AssetManager.js';
 import { CameraUtils } from '../utils/three/CameraUtils.js';
 import { ObjectUtils } from '../utils/three/ObjectUtils.js';
 import { Project } from '../project/Project.js';
@@ -81,7 +82,7 @@ class App {
         const scriptReturnString = JSON.stringify(scriptReturnObject).replace(/\"/g, '');   // remove all qoutes
 
         function loadScripts(object) {
-            const scripts = project.scripts[object.uuid];
+            const scripts = AssetManager.getScripts(object.uuid);
             if (!scripts) return;
             for (let i = 0; i < scripts.length; i++) {
                 const script = scripts[i];

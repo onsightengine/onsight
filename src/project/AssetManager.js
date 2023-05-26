@@ -3,7 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Strings } from '../utils/Strings.js';
 
 const _assets = {};
-const _scripts = {};
+let _scripts = {};
 const _textureCache = {};
 const _textureLoader = new THREE.TextureLoader();
 
@@ -13,6 +13,7 @@ class AssetManager {
         if (asset.isBufferGeometry) return 'geometry';
         if (asset.type === 'Shape') return 'shape';
         if (asset.isMaterial) return 'material';
+        if (asset.isScript) return 'script';
         if (asset.isTexture) return 'texture';
         return 'asset';
     }
@@ -20,16 +21,50 @@ class AssetManager {
     static getLibrary(type) {
         const library = [];
         for (const [uuid, asset] of Object.entries(_assets)) {
-            if (AssetManager.assetType(asset) === type) library.push(asset);
+            if (AssetManager.assetType(asset) === type) {
+                library.push(asset);
+            }
         }
         return library;
+    }
+
+    /******************** SCRIPTS */
+
+    static addScript(entity, script) {
+        const key = entity.uuid;
+        if (!_scripts[key]) _scripts[key] = [];
+        const index = _scripts[key].indexOf(script);
+        if (index === -1) {
+            _scripts[key].push(script);
+            return true;
+        }
+        return false;
+    }
+
+    static allScripts() {
+        return _scripts;
+    }
+
+    static getScripts(entityUUID) {
+        return _scripts[entityUUID];
+    }
+
+    static removeScript(entity, script) {
+        const key = entity.uuid;
+        if (_scripts[key]) {
+            const index = _scripts[key].indexOf(script);
+            if (index !== -1) {
+                _scripts[key].splice(index, 1);
+                return true;
+            }
+        }
+        return false;
     }
 
     /******************** ADD / GET / REMOVE */
 
     static addAsset(assetOrArray) {
         if (!assetOrArray) return;
-
         const assetArray = (Array.isArray(assetOrArray)) ? assetOrArray : [ assetOrArray ];
 
         for (let i = 0; i < assetArray.length; i++) {
@@ -65,7 +100,6 @@ class AssetManager {
 
     static removeAsset(assetOrArray, dispose = true) {
         if (!assetOrArray) return;
-
         const assetArray = (Array.isArray(assetOrArray)) ? assetOrArray : [ assetOrArray ];
 
         for (let i = 0; i < assetArray.length; i++) {
@@ -149,8 +183,14 @@ class AssetManager {
     /******************** JSON */
 
     static clear() {
+        // Assets
         for (let uuid in _assets) {
             AssetManager.removeAsset(_assets[uuid], true);
+        }
+
+        // Scripts
+        for (let uuid in _scripts) {
+            delete _scripts[uuid];
         }
     }
 
@@ -165,6 +205,9 @@ class AssetManager {
                 AssetManager.addAsset(asset);
             }
         }
+
+        // Load Scripts
+        _scripts = structuredClone(json.scripts);
 
         // Load Assets
 		const objectLoader = new THREE.ObjectLoader();
@@ -189,6 +232,7 @@ class AssetManager {
         const json = {};
 
         if (!meta) meta = {};
+        if (!meta.scripts) meta.scripts = {};
         if (!meta.shapes) meta.shapes = {};
         if (!meta.geometries) meta.geometries = {};
         if (!meta.images) meta.images = {};
@@ -202,6 +246,9 @@ class AssetManager {
             textures: {},
             materials: {},
         };
+
+        // Scripts
+        json.scripts = AssetManager.allScripts();
 
         // Geometries
         const geometries = AssetManager.getLibrary('geometry');

@@ -17,9 +17,7 @@ class Project {
         this.type = 'Project';
 
         // Collections
-        this.scripts = {};
         this.worlds = {};
-
     }
 
     /******************** WORLD */
@@ -105,22 +103,6 @@ class Project {
         return undefined;
     }
 
-    /******************** SCRIPT */
-
-    addScript(entity, script) {
-        const key = entity.uuid;
-        if (!this.scripts[key]) this.scripts[key] = [];
-        this.scripts[key].push(script);
-        return this;
-    }
-
-    removeScript(entity, script) {
-        const key = entity.uuid;
-        if (!this.scripts[key]) return;
-        const index = this.scripts[key].indexOf(script);
-        if (index !== -1) this.scripts[key].splice(index, 1);
-    }
-
     /******************** CLEAR */
 
     clear() {
@@ -165,19 +147,21 @@ class Project {
         this.clear();
 
         // Load Assets into AssetManager
-        if (loadAssets) AssetManager.fromJSON(json);
+        if (loadAssets) {
+            AssetManager.fromJSON(json);
+        }
 
         // Properties
         this.name = json.object.name;
         this.uuid = json.object.uuid;
 
-        // Scripts
-        this.scripts = json.scripts;
-
         // Worlds
         for (let i = 0; i < json.worlds.length; i++) {
             switch (json.worlds[i].object.type) {
-                case 'World3D': this.addWorld(new World3D().fromJSON(json.worlds[i])); break;
+                case 'World3D':
+                    const world = new World3D().fromJSON(json.worlds[i])
+                    this.addWorld(world);
+                    break;
             }
         }
 
@@ -201,7 +185,6 @@ class Project {
             type: this.type,
             uuid: this.uuid,
         };
-        json.scripts = this.scripts;
         json.worlds = [];
 
         // Add Worlds

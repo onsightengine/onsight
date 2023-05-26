@@ -9,6 +9,11 @@ import { CameraUtils } from '../utils/three/CameraUtils.js';
 
 class SceneManager {
 
+    static app = undefined;
+    static renderer = undefined;
+    static scene = undefined;
+    static camera = undefined;
+
     /********** CAMERA */
 
     static cameraFromScene(scene) {
@@ -36,7 +41,6 @@ class SceneManager {
 
     static copyEntity(app, renderer, scene, camera, to, from, offset) {
         // Script Functions
-        const scriptGlobals = 'app,renderer,scene,camera';
         let scriptFunctions = '';
         let scriptReturnObject = {};
         for (let eventKey in app.events) {
@@ -44,6 +48,8 @@ class SceneManager {
             scriptReturnObject[eventKey] = eventKey;
         }
         scriptFunctions = scriptFunctions.replace(/.$/, '');                                // remove last comma
+        const scriptGlobals = 'app,renderer,scene,camera';
+        const scriptParameters = scriptGlobals + ',' + scriptFunctions;
         const scriptReturnString = JSON.stringify(scriptReturnObject).replace(/\"/g, '');   // remove all qoutes
 
         // Copy Cloned Children
@@ -55,17 +61,20 @@ class SceneManager {
                 if (script.errors) {
                     console.warn(`Entity '${fromEntity.name}' has errors in script '${script.name}'. Script will not be loaded!`);
                 } else {
-                    // Returns object that has script functions with proper 'this' bound, and access to globals
+                    // Returns object holding script functions (with proper 'this' bound and access to globals)
                     const body = `${script.source} \n return ${scriptReturnString};`;
-                    const functions = (new Function(scriptGlobals, scriptFunctions, body).bind(toEntity))(app, renderer, scene, camera);
+                    const createFunctions = new Function(scriptParameters, body).bind(toEntity);
+                    const functionObject = createFunctions(app, renderer, scene, camera, /* functions provided by user... */);
                     // Add functions to event dispatch handler
-                    for (let name in functions) {
-                        if (!functions[name]) continue;
+                    for (let name in functionObject) {
                         if (app.events[name] === undefined) {
                             console.warn(`App: Event type not supported ('${name}')`);
                             continue;
                         }
-                        app.events[name].push(functions[name].bind(toEntity));
+                        const callback = functionObject[name];
+                        if (callback && typeof callback === 'function') {
+                            app.events[name].push(callback.bind(toEntity));
+                        }
                     }
                 }
             }

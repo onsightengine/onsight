@@ -49,6 +49,7 @@ class App {
         this.events = {
             init: [],
             update: [],
+            destroy: [],
             keydown: [],
             keyup: [],
             pointerdown: [],
@@ -59,17 +60,26 @@ class App {
 
     /******************** LOAD */
 
+    dispatch(array, event) {
+        for (let i = 0; i < array.length; i++) {
+            const callback = array[i];
+            if (callback && typeof callback === 'function') callback(event);
+        }
+    }
+
     load(json, loadAssets = true) {
         // Load Project
         project.fromJSON(json, loadAssets);
 
         // Active World/Scene/Camera
         scene = new Scene3D();
-        SceneManager.cloneEntities(app, renderer, camera, scene, project.getFirstWorld().activeScene());
+        const from = project.getFirstWorld().activeScene();
+        const to = scene;
+        SceneManager.copyEntity(app, renderer, scene, camera, to, from);
         camera = SceneManager.cameraFromScene(scene);
 
         // Call 'init()' functions
-        dispatch(app.events.init, arguments);
+        app.dispatch(app.events.init, arguments);
     }
 
     /******************** ANIMATE / RENDER */
@@ -83,7 +93,7 @@ class App {
 
             // Calls 'update()' functions
             if (state === APP_STATES.PLAYING) {
-                dispatch(app.events.update, { time: timePassed, delta: delta });
+                app.dispatch(app.events.update, { time: timePassed, delta: delta });
             }
         } catch (e) {
             console.error((e.message || e), (e.stack || ''));
@@ -121,11 +131,8 @@ class App {
     }
 
     pause() {
-        if (state === APP_STATES.PLAYING) {
-            state = APP_STATES.PAUSED;
-        } else if (state === APP_STATES.PAUSED) {
-            state = APP_STATES.PLAYING;
-        }
+        if (state === APP_STATES.PLAYING) state = APP_STATES.PAUSED;
+        else if (state === APP_STATES.PAUSED) state = APP_STATES.PLAYING;
     }
 
     stop() {
@@ -189,19 +196,8 @@ export { App };
 
 /******************** INTERNAL ********************/
 
-function onKeyDown(event) {
-    console.log(event);
-
-    dispatch(app.events.keydown, event);
-}
-
-function onKeyUp(event) { dispatch(app.events.keyup, event); }
-function onPointerDown(event) { dispatch(app.events.pointerdown, event); }
-function onPointerUp(event) { dispatch(app.events.pointerup, event); }
-function onPointerMove(event) { dispatch(app.events.pointermove, event); }
-
-function dispatch(array, event) {
-    for (let i = 0; i < array.length; i++) {
-        array[i](event);
-    }
-}
+function onKeyDown(event) { app.dispatch(app.events.keydown, event); }
+function onKeyUp(event) { app.dispatch(app.events.keyup, event); }
+function onPointerDown(event) { app.dispatch(app.events.pointerdown, event); }
+function onPointerUp(event) { app.dispatch(app.events.pointerup, event); }
+function onPointerMove(event) { app.dispatch(app.events.pointermove, event); }

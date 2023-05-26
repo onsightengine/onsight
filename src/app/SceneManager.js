@@ -34,7 +34,7 @@ class SceneManager {
 
     /********** ENTITY */
 
-    static cloneEntities(app, renderer, camera, toScene, fromScene, offset) {
+    static copyEntity(app, renderer, scene, camera, to, from, offset) {
         // Script Functions
         const scriptGlobals = 'app,renderer,scene,camera';
         let scriptFunctions = '';
@@ -57,7 +57,7 @@ class SceneManager {
                 } else {
                     // Returns object that has script functions with proper 'this' bound, and access to globals
                     const body = `${script.source} \n return ${scriptReturnString};`;
-                    const functions = (new Function(scriptGlobals, scriptFunctions, body).bind(toEntity))(app, renderer, toScene, camera);
+                    const functions = (new Function(scriptGlobals, scriptFunctions, body).bind(toEntity))(app, renderer, scene, camera);
                     // Add functions to event dispatch handler
                     for (let name in functions) {
                         if (!functions[name]) continue;
@@ -82,7 +82,7 @@ class SceneManager {
                 toEntity.add(clone);
             }
         }
-        copyScriptsAndChildren(toScene, fromScene);
+        copyScriptsAndChildren(to, from);
     }
 
 }

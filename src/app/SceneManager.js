@@ -10,13 +10,13 @@ import { CameraUtils } from '../utils/three/CameraUtils.js';
 class SceneManager {
 
     static app = undefined;
-    static renderer = undefined;
     static scene = undefined;
     static camera = undefined;
 
     /********** CAMERA */
 
     static cameraFromScene(scene) {
+        scene = scene ?? SceneManager.scene;
         // Look for Camera Component
         let camera = undefined;
         if (scene && scene.isEntity) {
@@ -39,11 +39,11 @@ class SceneManager {
 
     /********** ENTITY */
 
-    static copyEntity(app, renderer, scene, camera, to, from, offset) {
+    static copyEntity(to, from, offset) {
         // Script Functions
         let scriptFunctions = '';
         let scriptReturnObject = {};
-        for (let eventKey in app.events) {
+        for (let eventKey in SceneManager.app.events) {
             scriptFunctions += eventKey + ',';
             scriptReturnObject[eventKey] = eventKey;
         }
@@ -52,9 +52,8 @@ class SceneManager {
         const scriptParameters = scriptGlobals + ',' + scriptFunctions;
         const scriptReturnString = JSON.stringify(scriptReturnObject).replace(/\"/g, '');   // remove all qoutes
 
-        // Copy Cloned Children
-        function copyScriptsAndChildren(toEntity, fromEntity) {
-            // Add Scripts
+        // Add Scripts
+        function addScripts(toEntity, fromEntity) {
             const scripts = AssetManager.getScripts(fromEntity.uuid);
             for (let i = 0; i < scripts.length; i++) {
                 const script = scripts[i];
@@ -64,34 +63,38 @@ class SceneManager {
                     // Returns object holding script functions (with proper 'this' bound and access to globals)
                     const body = `${script.source} \n return ${scriptReturnString};`;
                     const createFunctions = new Function(scriptParameters, body).bind(toEntity);
-                    const functionObject = createFunctions(app, renderer, scene, camera, /* functions provided by user... */);
+                    const functionObject = createFunctions(SceneManager.app, SceneManager.app.renderer, SceneManager.scene, SceneManager.camera, /* functions provided by user... */);
                     // Add functions to event dispatch handler
                     for (let name in functionObject) {
-                        if (app.events[name] === undefined) {
+                        if (SceneManager.app.events[name] === undefined) {
                             console.warn(`App: Event type not supported ('${name}')`);
                             continue;
                         }
                         const callback = functionObject[name];
                         if (callback && typeof callback === 'function') {
-                            app.events[name].push(callback.bind(toEntity));
+                            SceneManager.app.events[name].push(callback.bind(toEntity));
                         }
                     }
                 }
             }
+        }
 
-            // Add Children
+        // Copy Cloned Children
+        function copyChildren(toEntity, fromEntity) {
             const entities = fromEntity.getEntities();
             for (let i = 0; i < entities.length; i++) {
                 const entity = entities[i];
-                // Clone
                 const clone = entity.cloneEntity(false /* recursive */);
                 if (offset) clone.position.add(offset);
-                copyScriptsAndChildren(clone, entity);
-                // Add to Parent
+                addScripts(clone, entity);
+                copyChildren(clone, entity);
                 toEntity.add(clone);
             }
         }
-        copyScriptsAndChildren(to, from);
+
+        // Initial Scene Copy
+        addScripts(to, from);
+        copyChildren(to, from);
     }
 
 }

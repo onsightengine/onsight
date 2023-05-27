@@ -11,39 +11,30 @@ import { System } from '../utils/System.js';
 // https://github.com/mrdoob/three.js/blob/dev/editor/js/libs/app.js
 // https://github.com/Cloud9c/taro/blob/main/src/core/App.js
 
-// Properties
-const project = new Project();
-let app = null;
-let renderer = null;
-let scene = null;
-let camera = null;
-
 // Internal
 let requestId = null;
 let time, startTime, prevTime;
 let state = APP_STATES.STOPPED;
 
-// Game
+///// TODO: Game
 let distance = 0;
+/////
 
 class App {
 
     constructor() {
-        // Properties
-        this.wantsScreenshot = false;
+        // Project
+        this.project = new Project();
 
         // Renderer
-        renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setPixelRatio(1); //window.devicePixelRatio;
-        renderer.shadowMap.enabled = true;
-        renderer.outputColorSpace = THREE.LinearSRGBColorSpace; // NOTE: three 151->152
+        this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.renderer.setPixelRatio(1); //window.devicePixelRatio;
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace; // NOTE: three 151->152
 
         // DOM
         this.dom = document.createElement('div');
-        this.dom.appendChild(renderer.domElement);
-
-        // Globals
-        app = this;
+        this.dom.appendChild(this.renderer.domElement);
 
         // Scripts
         this.events = {
@@ -56,6 +47,9 @@ class App {
             pointerup: [],
             pointermove: [],
         };
+
+        // Flags
+        this.wantsScreenshot = false;
     }
 
     /******************** LOAD */
@@ -69,17 +63,17 @@ class App {
 
     load(json, loadAssets = true) {
         // Load Project
-        project.fromJSON(json, loadAssets);
+        this.project.fromJSON(json, loadAssets);
 
         // Active World/Scene/Camera
-        scene = new Scene3D();
-        const from = project.getFirstWorld().activeScene();
-        const to = scene;
-        SceneManager.copyEntity(app, renderer, scene, camera, to, from);
-        camera = SceneManager.cameraFromScene(scene);
+        SceneManager.app = this;
+        SceneManager.scene = new Scene3D();
+        const source = this.project.getFirstWorld().activeScene();
+        SceneManager.copyEntity(SceneManager.scene, source, /* offset */);
+        SceneManager.camera = SceneManager.cameraFromScene();
 
         // Call 'init()' functions
-        app.dispatch(app.events.init, arguments);
+        SceneManager.app.dispatch(this.events.init, arguments);
     }
 
     /******************** ANIMATE / RENDER */
@@ -93,26 +87,26 @@ class App {
 
             // Calls 'update()' functions
             if (state === APP_STATES.PLAYING) {
-                app.dispatch(app.events.update, { time: timePassed, delta: delta });
+                SceneManager.app.dispatch(SceneManager.app.events.update, { time: timePassed, delta: delta });
             }
         } catch (e) {
             console.error((e.message || e), (e.stack || ''));
         }
 
-        window.activeCamera = camera;
-        renderer.render(scene, camera);
+        window.activeCamera = SceneManager.camera;
+        SceneManager.app.renderer.render(SceneManager.scene, SceneManager.camera);
 
         // Screenshot
-        if (app.wantsScreenshot) {
-            const filename = project.name + ' ' + new Date().toLocaleString() + '.png';
+        if (SceneManager.app.wantsScreenshot) {
+            const filename = this.project.name + ' ' + new Date().toLocaleString() + '.png';
             const strMime = 'image/png'; /* or 'image/jpeg' or 'image/webp' */
-            const imgData = renderer.domElement.toDataURL(strMime);
+            const imgData = this.renderer.domElement.toDataURL(strMime);
             System.saveImage(imgData, filename);
-            app.wantsScreenshot = false;
+            SceneManager.app.wantsScreenshot = false;
         }
 
         prevTime = time;
-        requestId = window.requestAnimationFrame(app.animate);
+        requestId = window.requestAnimationFrame(SceneManager.app.animate);
     }
 
     /******************** GAME STATE */
@@ -120,7 +114,7 @@ class App {
     play() {
         startTime = prevTime = performance.now();
         state = APP_STATES.PLAYING;
-        requestId = window.requestAnimationFrame(app.animate);
+        requestId = window.requestAnimationFrame(SceneManager.app.animate);
 
         // Add Event Listeners
         document.addEventListener('keydown', onKeyDown);
@@ -136,6 +130,7 @@ class App {
     }
 
     stop() {
+        if (state === APP_STATES.STOPPED) return;
         state = APP_STATES.STOPPED;
 
         document.removeEventListener('keydown', onKeyDown);
@@ -144,11 +139,11 @@ class App {
         document.removeEventListener('pointerup', onPointerUp);
         document.removeEventListener('pointermove', onPointerMove);
 
-        ObjectUtils.clearObject(camera);
-        ObjectUtils.clearObject(scene);
+        ObjectUtils.clearObject(SceneManager.camera);
+        ObjectUtils.clearObject(SceneManager.scene);
 
-        for (let key in app.events) {
-            app.events[key].length = 0;
+        for (let key in SceneManager.app.events) {
+            SceneManager.app.events[key].length = 0;
         }
 
         if (requestId) {
@@ -160,17 +155,17 @@ class App {
     /******************** GETTERS */
 
     appState() { return state; }
-    getRenderer() { return renderer; }
+    getRenderer() { return this.renderer; }
 
     /******************** SETTERS */
 
     setPixelRatio(pixelRatio) {
-        renderer.setPixelRatio(pixelRatio);
+        this.renderer.setPixelRatio(pixelRatio);
     }
 
     setSize(width, height) {
-        if (camera) CameraUtils.updateCamera(camera, width, height);
-        if (renderer) renderer.setSize(width, height);
+        if (SceneManager.camera) CameraUtils.updateCamera(SceneManager.camera, width, height);
+        if (this.renderer) this.renderer.setSize(width, height);
     }
 
     /******************** GAME HELPERS */
@@ -186,7 +181,7 @@ class App {
         const y = -((eventY / rect.height) * (rect.height * 2)) + rect.height;
 
         const vec = new THREE.Vector3(x, y, 0);
-        vec.unproject(camera);
+        vec.unproject(SceneManager.camera);
         return vec;
     }
 
@@ -196,8 +191,8 @@ export { App };
 
 /******************** INTERNAL ********************/
 
-function onKeyDown(event) { app.dispatch(app.events.keydown, event); }
-function onKeyUp(event) { app.dispatch(app.events.keyup, event); }
-function onPointerDown(event) { app.dispatch(app.events.pointerdown, event); }
-function onPointerUp(event) { app.dispatch(app.events.pointerup, event); }
-function onPointerMove(event) { app.dispatch(app.events.pointermove, event); }
+function onKeyDown(event) { SceneManager.app.dispatch(SceneManager.app.events.keydown, event); }
+function onKeyUp(event) { SceneManager.app.dispatch(SceneManager.app.events.keyup, event); }
+function onPointerDown(event) { SceneManager.app.dispatch(SceneManager.app.events.pointerdown, event); }
+function onPointerUp(event) { SceneManager.app.dispatch(SceneManager.app.events.pointerup, event); }
+function onPointerMove(event) { SceneManager.app.dispatch(SceneManager.app.events.pointermove, event); }

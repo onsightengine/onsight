@@ -63,8 +63,12 @@ class App {
         // Active World/Scene/Camera
         SceneManager.app = this;
         SceneManager.scene = new Scene3D();
-        const source = this.project.getFirstWorld().activeScene();
-        SceneManager.copyEntity(SceneManager.scene, source, /* offset */);
+        const fromScene = this.project.getFirstWorld().activeScene();
+        SceneManager.loadScripts(SceneManager.scene, fromScene);
+        SceneManager.copyChildren(SceneManager.scene, fromScene);
+        SceneManager.app.dispatch(SceneManager.app.events.init);
+
+
         SceneManager.camera = SceneManager.cameraFromScene();
     }
 

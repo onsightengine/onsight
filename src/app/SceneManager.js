@@ -39,6 +39,14 @@ class SceneManager {
 
     /********** ENTITY */
 
+    static addEntity() {
+
+    }
+
+    static removeEntity() {
+
+    }
+
     static copyEntity(to, from, offset) {
         // Script Functions
         let scriptFunctions = '';
@@ -72,7 +80,10 @@ class SceneManager {
                         }
                         const callback = functionObject[name];
                         if (callback && typeof callback === 'function') {
-                            SceneManager.app.events[name].push(callback.bind(toEntity));
+                            callback.bind(toEntity);
+                            callback.__entity = toEntity.uuid;
+                            console.log(callback.__entity);
+                            SceneManager.app.events[name].push(callback);
                         }
                     }
                 }
@@ -90,6 +101,11 @@ class SceneManager {
                 copyChildren(clone, entity);
                 toEntity.add(clone);
             }
+        }
+
+        function init() {
+            // Call 'init()' functions
+            SceneManager.app.dispatch(SceneManager.app.events.init);
         }
 
         // Initial Scene Copy

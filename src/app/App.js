@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { APP_STATES } from '../constants.js';
+import { APP_EVENTS, APP_STATES } from '../constants.js';
 import { AssetManager } from '../project/AssetManager.js';
 import { CameraUtils } from '../utils/three/CameraUtils.js';
 import { ObjectUtils } from '../utils/three/ObjectUtils.js';
@@ -14,7 +14,6 @@ import { System } from '../utils/System.js';
 // Internal
 let requestId = null;
 let time, startTime, prevTime;
-let state = APP_STATES.STOPPED;
 
 ///// TODO: Game
 let distance = 0;
@@ -37,18 +36,14 @@ class App {
         this.dom.appendChild(this.renderer.domElement);
 
         // Scripts
-        this.events = {
-            init: [],
-            update: [],
-            destroy: [],
-            keydown: [],
-            keyup: [],
-            pointerdown: [],
-            pointerup: [],
-            pointermove: [],
-        };
+        this.events = {};
+        for (let key in APP_EVENTS) {
+            const event = APP_EVENTS[key];
+            this.events[event] = [];
+        }
 
         // Flags
+        this.state = APP_STATES.STOPPED;
         this.wantsScreenshot = false;
     }
 
@@ -71,9 +66,6 @@ class App {
         const source = this.project.getFirstWorld().activeScene();
         SceneManager.copyEntity(SceneManager.scene, source, /* offset */);
         SceneManager.camera = SceneManager.cameraFromScene();
-
-        // Call 'init()' functions
-        SceneManager.app.dispatch(this.events.init, arguments);
     }
 
     /******************** ANIMATE / RENDER */
@@ -86,7 +78,7 @@ class App {
             const delta = time - prevTime;
 
             // Calls 'update()' functions
-            if (state === APP_STATES.PLAYING) {
+            if (SceneManager.app.state === APP_STATES.PLAYING) {
                 SceneManager.app.dispatch(SceneManager.app.events.update, { time: timePassed, delta: delta });
             }
         } catch (e) {
@@ -113,7 +105,7 @@ class App {
 
     play() {
         startTime = prevTime = performance.now();
-        state = APP_STATES.PLAYING;
+        this.state = APP_STATES.PLAYING;
         requestId = window.requestAnimationFrame(SceneManager.app.animate);
 
         // Add Event Listeners
@@ -125,13 +117,13 @@ class App {
     }
 
     pause() {
-        if (state === APP_STATES.PLAYING) state = APP_STATES.PAUSED;
-        else if (state === APP_STATES.PAUSED) state = APP_STATES.PLAYING;
+        if (this.state === APP_STATES.PLAYING) this.state = APP_STATES.PAUSED;
+        else if (this.state === APP_STATES.PAUSED) this.state = APP_STATES.PLAYING;
     }
 
     stop() {
-        if (state === APP_STATES.STOPPED) return;
-        state = APP_STATES.STOPPED;
+        if (this.state === APP_STATES.STOPPED) return;
+        this.state = APP_STATES.STOPPED;
 
         document.removeEventListener('keydown', onKeyDown);
         document.removeEventListener('keyup', onKeyUp);
@@ -151,11 +143,6 @@ class App {
             requestId = null;
         }
     }
-
-    /******************** GETTERS */
-
-    appState() { return state; }
-    getRenderer() { return this.renderer; }
 
     /******************** SETTERS */
 

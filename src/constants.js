@@ -26,3 +26,14 @@ export const APP_STATES = {
     PAUSED:         'paused',
     STOPPED:        'stopped',
 }
+
+export const APP_EVENTS = {
+    INIT:           'init',
+    UPDATE:         'update',
+    DESTROY:        'destroy',
+    KEYDOWN:        'keydown',
+    KEYUP:          'keyup',
+    POINTERDOWN:    'pointerdown',
+    POINTERUP:      'pointerup',
+    POINTERMOVE:    'pointermove',
+}

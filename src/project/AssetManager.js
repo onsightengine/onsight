@@ -9,6 +9,8 @@ const _textureLoader = new THREE.TextureLoader();
 
 class AssetManager {
 
+    /******************** LIBRARY */
+
     static assetType(asset) {
         if (asset.isBufferGeometry) return 'geometry';
         if (asset.type === 'Shape') return 'shape';

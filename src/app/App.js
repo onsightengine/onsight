@@ -68,7 +68,7 @@ class App {
         SceneManager.copyChildren(SceneManager.scene, fromScene);
         SceneManager.app.dispatch(SceneManager.app.events.init);
 
-
+        // Set Camera
         SceneManager.camera = SceneManager.cameraFromScene();
     }
 

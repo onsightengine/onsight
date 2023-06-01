@@ -33,6 +33,9 @@ class Entity3D extends Object3D {
         // Collections
         this.components = [];                   // geometry, material, audio, light, etc.
 
+        // Script(s)
+        this.scripts = [];                      // scripts
+
         // Flags
         this.setFlag(ENTITY_FLAGS.LOCKED, false);
 
@@ -393,6 +396,14 @@ class Entity3D extends Object3D {
         // Children
         this.loadChildren(json);
 
+        // Scripts
+        this.scripts = [];
+        if (json.object.scripts && Array.isArray(json.object.scripts)) {
+            for (let i = 0; i < json.object.scripts.length; i++) {
+                this.scripts.push(json.object.scripts[i]);
+            }
+        }
+
         // Matrix
         this.updateMatrix();
 
@@ -459,6 +470,12 @@ class Entity3D extends Object3D {
             for (let i = 0; i < childEntities.length; i++) {
                 json.object.entities.push(childEntities[i].toJSON());
             }
+        }
+
+        // Scripts
+        json.object.scripts = [];
+        for (let i = 0; i < this.scripts.length; i++) {
+            json.object.scripts.push(this.scripts[i]);
         }
 
         return json;

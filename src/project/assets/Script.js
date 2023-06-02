@@ -16,19 +16,27 @@ class Script {
         this.errors = false;
         if (format === SCRIPT_FORMAT.JAVASCRIPT) {
             this.source =
-                '// Code outside of events is immediately executed when the script is loaded\n' +
                 '//\n' +
-                '// Lifecycle:	init, update, destroy\n' +
-                '// Events:		keydown, keyup, pointerdown, pointerup, pointermove\n' +
-                '// Globals:		this (entity), app, renderer, scene, camera\n' +
-                '// Executed when the entity is loaded\n' +
+                '// Globals:            this (entity), app, renderer, scene, camera\n' +
+                '// Lifecycle Events:   init, update, destroy\n' +
+                '// Input Events:       keydown, keyup, pointerdown, pointerup, pointermove\n' +
+                '//\n' +
+                '\n' +
+                '// ... Code outside of events is executed when entity is loaded ... \n' +
+                '\n' +
+                '// "init()" is executed when the entity is loaded\n' +
                 'function init() {\n\n}\n' +
-                '// Executed before frame is rendered\n' +
-                '//	event.time: total elapsed time (in ms)\n' +
-                '//	event.delta: time since last frame (in ms)\n' +
+                '\n' +
+                '// "update()" is executed before each frame is rendered\n' +
+                '//     event.time: total elapsed time (in ms)\n' +
+                '//     event.delta: time since last frame (in ms)\n' +
                 'function update(event) {\n\n}\n' +
-                '// Example pointer event\n' +
-                'function pointermove(event) {\n\n}\n';
+                '\n' +
+                '// "destroy()" is executed right before the entity is removed\n' +
+                'function destroy() {\n\n}\n' +
+                '\n' +
+                '// Example Input Event\n' +
+                'function keydown(event) {\n\n}\n';
         }
     }
 

@@ -25,7 +25,7 @@ class Project {
     addWorld(world) {
         if (world && WORLD_TYPES[world.type]) {
             this.worlds[world.uuid] = world;
-            if (this.activeWorldUuid == null) this.activeWorldUuid = world.uuid;
+            if (this.activeWorldUUID == null) this.activeWorldUUID = world.uuid;
         } else {
             console.error(`Project.addWorld: World type (${world.type}) not a valid world type`, world);
         }
@@ -42,7 +42,7 @@ class Project {
         return this.getWorldByProperty('name', name);
     }
 
-    getWorldByUuid(uuid) {
+    getWorldByUUID(uuid) {
         return this.worlds[uuid];
     }
 
@@ -73,7 +73,7 @@ class Project {
 
     /******************** ENTITY */
 
-    findEntityByUuid(uuid, searchAllWorlds = false) {
+    findEntityByUUID(uuid, searchAllWorlds = false) {
         const activeScene = (editor && editor.viewport) ? editor.viewport.scene : null;
         const sceneList = [];
 

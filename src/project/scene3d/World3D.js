@@ -20,18 +20,18 @@ class World3D extends Entity3D {
         this.yPos = 0;
 
         // Properties, Scene
-        this.activeSceneUuid = undefined;
+        this.activeSceneUUID = undefined;
     }
 
     /******************** CHILDREN (SCENES) */
 
     activeScene() {
-        return this.getSceneByUuid(this.activeSceneUuid);
+        return this.getSceneByUUID(this.activeSceneUUID);
     }
 
     setActiveScene(scene) {
         if (scene && scene.uuid) {
-            this.activeSceneUuid = scene.uuid;
+            this.activeSceneUUID = scene.uuid;
         }
     }
 
@@ -82,7 +82,7 @@ class World3D extends Entity3D {
         if (scene && scene.isScene) return scene;
     }
 
-    getSceneByUuid(uuid) {
+    getSceneByUUID(uuid) {
         const scene = this.getEntityByProperty('uuid', uuid);
         if (scene && scene.isScene) return scene;
     }
@@ -142,7 +142,7 @@ class World3D extends Entity3D {
         // World Properties
         if (data.xPos !== undefined) this.xPos = data.xPos;
         if (data.yPos !== undefined) this.yPos = data.yPos;
-        if (data.activeSceneUuid !== undefined) this.activeSceneUuid = data.activeSceneUuid;
+        if (data.activeSceneUUID !== undefined) this.activeSceneUUID = data.activeSceneUUID;
 
         // Entity3D Properties
         super.fromJSON(json);
@@ -171,7 +171,7 @@ class World3D extends Entity3D {
         // World Properties
         json.object.xPos = this.xPos;
         json.object.yPos = this.yPos;
-        json.object.activeSceneUuid = this.activeSceneUuid;
+        json.object.activeSceneUUID = this.activeSceneUUID;
 
         return json;
     }

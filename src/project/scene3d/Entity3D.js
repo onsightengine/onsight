@@ -239,7 +239,7 @@ class Entity3D extends Object3D {
         return this.getEntityByProperty('name', name);
     }
 
-    getEntityByUuid(uuid) {
+    getEntityByUUID(uuid) {
         return this.getEntityByProperty('uuid', uuid);
     }
 

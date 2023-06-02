@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { Script } from './assets/Script.js';
 import { Strings } from '../utils/Strings.js';
 
 const _assets = {};
-let _scripts = {};
 const _textureCache = {};
 const _textureLoader = new THREE.TextureLoader();
 
@@ -30,41 +30,6 @@ class AssetManager {
         return library;
     }
 
-    /******************** SCRIPTS */
-
-    static addScript(entity, script) {
-        const key = entity.uuid;
-        if (!_scripts[key]) _scripts[key] = [];
-        const index = _scripts[key].indexOf(script);
-        if (index === -1) {
-            _scripts[key].push(script);
-            return true;
-        }
-        return false;
-    }
-
-    static allScripts() {
-        return _scripts;
-    }
-
-    static getScripts(entityUUID) {
-        const scripts = _scripts[entityUUID];
-        if (!scripts) return [];
-        return scripts;
-    }
-
-    static removeScript(entity, script) {
-        const key = entity.uuid;
-        if (_scripts[key]) {
-            const index = _scripts[key].indexOf(script);
-            if (index !== -1) {
-                _scripts[key].splice(index, 1);
-                return true;
-            }
-        }
-        return false;
-    }
-
     /******************** ADD / GET / REMOVE */
 
     static addAsset(assetOrArray) {
@@ -86,7 +51,7 @@ class AssetManager {
                 const bufferGeometry = mergeGeometries([ asset ]);
                 bufferGeometry.name = asset.name;
                 bufferGeometry.uuid = asset.uuid;
-                if (asset.dispose) asset.dispose();
+                if (typeof asset.dispose === 'function') asset.dispose();
                 asset = bufferGeometry;
             }
 
@@ -119,7 +84,7 @@ class AssetManager {
                 }
 
                 // Dispose, Remove
-                if (dispose && asset.dispose) asset.dispose();
+                if (dispose && typeof asset.dispose === 'function') asset.dispose();
                 delete _assets[asset.uuid];
             }
         }
@@ -191,11 +156,6 @@ class AssetManager {
         for (let uuid in _assets) {
             AssetManager.removeAsset(_assets[uuid], true);
         }
-
-        // Scripts
-        for (let uuid in _scripts) {
-            delete _scripts[uuid];
-        }
     }
 
     static fromJSON(json) {
@@ -211,7 +171,11 @@ class AssetManager {
         }
 
         // Load Scripts
-        _scripts = structuredClone(json.scripts);
+        const scripts = {};
+        for ( let i = 0, l = json.scripts.length; i < l; i++) {
+            const script = new Script().fromJSON(json.scripts[i]);
+            scripts[script.uuid ] = script;
+        }
 
         // Load Assets
 		const objectLoader = new THREE.ObjectLoader();
@@ -221,14 +185,12 @@ class AssetManager {
 		const images = objectLoader.parseImages(json.images);
 		const textures = objectLoader.parseTextures(json.textures, images);
 		const materials = objectLoader.parseMaterials(json.materials, textures);
-
         addLibraryToAssets(animations);
         addLibraryToAssets(shapes);
         addLibraryToAssets(geometries);
         addLibraryToAssets(images);
         addLibraryToAssets(textures);
         addLibraryToAssets(materials);
-
     }
 
     static toJSON(meta) {
@@ -252,13 +214,21 @@ class AssetManager {
         };
 
         // Scripts
-        json.scripts = AssetManager.allScripts();
+        const scripts = AssetManager.getLibrary('script');
+        for (let i = 0; i < scripts.length; i++) {
+            const script = scripts[i];
+            if (!script.uuid) continue;
+            if (meta.scripts[script.uuid]) continue;
+            meta.scripts[script.uuid] = script.toJSON();
+        }
 
         // Geometries
         const geometries = AssetManager.getLibrary('geometry');
         for (let i = 0; i < geometries.length; i++) {
             const geometry = geometries[i];
-            if (!meta.geometries[geometry.uuid]) meta.geometries[geometry.uuid] = geometry.toJSON(meta);
+            if (!geometry.uuid) continue;
+            if (meta.geometries[geometry.uuid]) continue;
+            meta.geometries[geometry.uuid] = geometry.toJSON(meta);
 
             // // Shapes
             // if (geometry.parameters && geometry.parameters.shapes) {
@@ -275,21 +245,27 @@ class AssetManager {
         const materials = AssetManager.getLibrary('material');
         for (let i = 0; i < materials.length; i++) {
             const material = materials[i];
-            if (!meta.materials[material.uuid]) meta.materials[material.uuid] = material.toJSON(stopRoot);
+            if (!material.uuid) continue;
+            if (meta.materials[material.uuid]) continue;
+            meta.materials[material.uuid] = material.toJSON(stopRoot);
         }
 
         // Shapes
         const shapes = AssetManager.getLibrary('shape');
         for (let i = 0; i < shapes.length; i++) {
             const shape = shapes[i];
-            if (!meta.shapes[shape.uuid]) meta.shapes[shape.uuid] = shape.toJSON(stopRoot);
+            if (!shape.uuid) continue;
+            if (meta.shapes[shape.uuid]) continue;
+            meta.shapes[shape.uuid] = shape.toJSON(stopRoot);
         }
 
         // Textures
         const textures = AssetManager.getLibrary('texture');
         for (let i = 0; i < textures.length; i++) {
             const texture = textures[i];
-            if (!meta.textures[texture.uuid]) meta.textures[texture.uuid] = texture.toJSON(meta);
+            if (!texture.uuid) continue;
+            if (meta.textures[texture.uuid]) continue
+            meta.textures[texture.uuid] = texture.toJSON(meta);
         }
 
         // Add 'meta' caches to 'json' as arrays

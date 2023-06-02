@@ -37,3 +37,8 @@ export const APP_EVENTS = {
     POINTERUP:      'pointerup',
     POINTERMOVE:    'pointermove',
 }
+
+export const SCRIPT_FORMAT = {
+    JAVASCRIPT:     'js',
+    PYTHON:         'python',
+}

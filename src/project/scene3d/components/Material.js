@@ -91,7 +91,6 @@ class Material {
         }
 
         // Generate Backend
-
         let material = undefined;
 
         switch (data.style) {
@@ -125,7 +124,6 @@ class Material {
         }
 
         // Modifiy Material
-
         if (material && material.isMaterial) {
 
             // NOTHING
@@ -135,7 +133,6 @@ class Material {
         }
 
         // Save Data / Backend
-
         this.backend = material;
         this.data = data;
         this.style = data.style;

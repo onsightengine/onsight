@@ -39,7 +39,6 @@ class Geometry {
         }
 
         // Generate Backend
-
         let geometry = undefined;
 
         switch (data.style) {
@@ -87,7 +86,6 @@ class Geometry {
                 break;
 
             case 'lathe':
-
                 const points = [];
 
                 let latheShape = AssetManager.getAsset(data.shape);
@@ -130,7 +128,6 @@ class Geometry {
                 break;
 
             case 'shape':
-
                 let shape = AssetManager.getAsset(data.shape);
                 if (!shape || shape.type !== 'Shape') {
                     shape = wedgeShape;
@@ -166,7 +163,6 @@ class Geometry {
                 break;
 
             case 'tube':
-
                 let tubeShape = AssetManager.getAsset(data.shape);
                 if (!tubeShape || tubeShape.type !== 'Shape') {
                     tubeShape = circleShape
@@ -198,9 +194,7 @@ class Geometry {
         }
 
         // Modifiy Geometry
-
         if (geometry && geometry.isBufferGeometry) {
-
             // Saved geometry type as Name
             const geometryName = geometry.constructor.name;
 
@@ -254,7 +248,6 @@ class Geometry {
         }
 
         // Save Data / Backend
-
         this.backend = geometry;
         this.data = data;
         this.style = data.style;
@@ -269,15 +262,17 @@ class Geometry {
     }
 
     enable() {
-        if (!this.entity) return;
-        const materialComponent = this.entity.getComponent('material');
-        if (materialComponent !== undefined) materialComponent.refreshMesh();
+        if (this.entity) {
+            const materialComponent = this.entity.getComponent('material');
+            if (materialComponent) materialComponent.refreshMesh();
+        }
     }
 
     disable() {
-        if (!this.entity) return;
-        const materialComponent = this.entity.getComponent('material');
-        if (materialComponent !== undefined) materialComponent.refreshMesh();
+        if (this.entity) {
+            const materialComponent = this.entity.getComponent('material');
+            if (materialComponent) materialComponent.refreshMesh();
+        }
     }
 
     toJSON() {

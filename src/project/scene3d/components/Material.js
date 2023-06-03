@@ -129,7 +129,7 @@ class Material {
             // NOTHING
 
         } else {
-            console.log('Error with material!');
+            // console.log('Error with material!');
         }
 
         // Save Data / Backend

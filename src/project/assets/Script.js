@@ -13,6 +13,8 @@ class Script {
 
         // Properties
         this.name ='New Script';
+        this.line = 0;
+        this.char = 0;
         this.errors = false;
         if (format === SCRIPT_FORMAT.JAVASCRIPT) {
             this.source =
@@ -43,6 +45,8 @@ class Script {
     fromJSON(json) {
         this.uuid = json.uuid;
         this.name = json.name;
+        this.line = json.line;
+        this.char = json.char;
         this.errors = json.errors;
         this.source = json.source;
     }

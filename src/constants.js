@@ -28,14 +28,14 @@ export const APP_STATES = {
 }
 
 export const APP_EVENTS = {
-    INIT:           'init',
-    UPDATE:         'update',
-    DESTROY:        'destroy',
-    KEYDOWN:        'keydown',
-    KEYUP:          'keyup',
-    POINTERDOWN:    'pointerdown',
-    POINTERUP:      'pointerup',
-    POINTERMOVE:    'pointermove',
+    init:           'init',
+    update:         'update',
+    destroy:        'destroy',
+    keydown:        'keydown',
+    keyup:          'keyup',
+    pointerdown:    'pointerdown',
+    pointerup:      'pointerup',
+    pointermove:    'pointermove',
 }
 
 export const SCRIPT_FORMAT = {

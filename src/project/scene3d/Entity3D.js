@@ -318,6 +318,11 @@ class Entity3D extends Object3D {
             if (component.enabled !== true) clonedComponent.disable();
         }
 
+        // Copy Scripts
+        if (Array.isArray(source.scripts)) {
+            this.scripts = [...source.scripts];
+        }
+
         // Copy Children
         if (recursive === true) {
             const entities = source.getEntities();
@@ -398,7 +403,7 @@ class Entity3D extends Object3D {
 
         // Scripts
         this.scripts = [];
-        if (json.object.scripts && Array.isArray(json.object.scripts)) {
+        if (Array.isArray(json.object.scripts)) {
             for (let i = 0; i < json.object.scripts.length; i++) {
                 this.scripts.push(json.object.scripts[i]);
             }

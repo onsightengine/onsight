@@ -16,8 +16,7 @@ for (let eventKey in APP_EVENTS) {
     scriptReturnObject[eventKey] = eventKey;
 }
 scriptFunctions = scriptFunctions.replace(/.$/, '');                                // remove last comma
-const scriptGlobals = 'app,renderer,scene,camera';
-const scriptParameters = scriptGlobals + ',' + scriptFunctions;
+const scriptParameters = 'app,renderer,scene,camera' + ',' + scriptFunctions;
 const scriptReturnString = JSON.stringify(scriptReturnObject).replace(/\"/g, '');   // remove all qoutes
 
 // Class
@@ -67,36 +66,43 @@ class SceneManager {
 
     // Add Scripts
     static loadScripts(toEntity, fromEntity) {
-        const scripts = AssetManager.getScripts(fromEntity.uuid);
-        for (let i = 0; i < scripts.length; i++) {
-            const script = scripts[i];
+        if (!Array.isArray(fromEntity.scripts)) return;
+        for (let i = 0; i < fromEntity.scripts.length; i++) {
+            // Find Script
+            const scriptUUID = fromEntity.scripts[i];
+            const script = AssetManager.getAsset(scriptUUID);
+            if (!script || !script.isScript) continue;
             if (script.errors) {
                 console.warn(`Entity '${fromEntity.name}' has errors in script '${script.name}'. Script will not be loaded!`);
                 continue;
             }
             // Returns object holding script functions (with proper 'this' bound and access to globals)
             const body = `${script.source} \n return ${scriptReturnString};`;
-            const createFunctions = new Function(scriptParameters, body).bind(toEntity);
-            const functionObject = createFunctions(SceneManager.app, SceneManager.app.renderer, SceneManager.scene, SceneManager.camera, /* functions provided by user... */);
+            const buildFunctionObject = new Function(scriptParameters, body).bind(toEntity);
+            const functions = buildFunctionObject(SceneManager.app, SceneManager.app.renderer, SceneManager.scene, SceneManager.camera, /* functions provided by user... */);
             // Add functions to event dispatch handler
-            for (let name in functionObject) {
+            for (let name in functions) {
                 if (APP_EVENTS[name] === undefined) {
                     console.warn(`App: Event type not supported ('${name}')`);
                     continue;
                 }
-                const callback = functionObject[name];
-                if (callback && typeof callback === 'function') {
-                    callback.bind(toEntity);
-                    callback.__entity = toEntity.uuid;
-                    console.log(callback.__entity);
-                    SceneManager.app.events[name].push(callback);
-                }
+                if (typeof functions[name] !== 'function') continue;
+                const callback = functions[name].bind(toEntity);
+                callback.__entity = toEntity.uuid;
+                SceneManager.app.events[name].push(callback);
             }
         }
     }
 
     static removeEntity() {
 
+    }
+
+    /********** SCENE */
+
+    static loadScene(toScene, fromScene) {
+        SceneManager.loadScripts(SceneManager.scene, fromScene);
+        SceneManager.copyChildren(SceneManager.scene, fromScene);
     }
 
 }

@@ -52,7 +52,7 @@ class App {
     dispatch(array, event) {
         for (let i = 0; i < array.length; i++) {
             const callback = array[i];
-            if (callback && typeof callback === 'function') callback(event);
+            if (typeof callback === 'function') callback(event);
         }
     }
 
@@ -64,8 +64,7 @@ class App {
         SceneManager.app = this;
         SceneManager.scene = new Scene3D();
         const fromScene = this.project.getFirstWorld().activeScene();
-        SceneManager.loadScripts(SceneManager.scene, fromScene);
-        SceneManager.copyChildren(SceneManager.scene, fromScene);
+        SceneManager.loadScene(SceneManager.scene, fromScene);
         SceneManager.app.dispatch(SceneManager.app.events.init);
 
         // Set Camera

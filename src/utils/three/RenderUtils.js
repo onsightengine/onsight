@@ -55,7 +55,7 @@ class RenderUtils {
     }
 
     /** Render material on a sphere to canvas */
-    static rendeMaterialToCanvas(canvas, material) {
+    static renderMaterialToCanvas(canvas, material) {
         const scene = new THREE.Scene();
         scene.add(new THREE.HemisphereLight(0xffffff, 0x202020, 1.5));
 

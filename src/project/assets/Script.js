@@ -4,7 +4,6 @@ import { Maths } from '../../utils/Maths.js';
 class Script {
 
     constructor(format = SCRIPT_FORMAT.JAVASCRIPT) {
-
         // Prototype
         this.isScript = true;
         this.type = 'Script';
@@ -49,6 +48,7 @@ class Script {
         this.char = json.char;
         this.errors = json.errors;
         this.source = json.source;
+        return this;
     }
 
     toJSON() {

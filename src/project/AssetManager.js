@@ -174,8 +174,9 @@ class AssetManager {
         const scripts = {};
         for ( let i = 0, l = json.scripts.length; i < l; i++) {
             const script = new Script().fromJSON(json.scripts[i]);
-            scripts[script.uuid ] = script;
+            scripts[script.uuid] = script;
         }
+        addLibraryToAssets(scripts);
 
         // Load Assets
 		const objectLoader = new THREE.ObjectLoader();

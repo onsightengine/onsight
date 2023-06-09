@@ -387,7 +387,7 @@ Material.config = {
 
         style: [
             { type: 'select', default: 'standard', promode: true, select: [ 'asset', 'basic', 'depth', 'lambert', 'matcap', 'normal', 'phong', 'physical', 'points', 'shader', 'standard', 'toon' ] },
-            { type: 'select', default: 'standard', select: [ 'basic', 'points', 'standard', 'toon' ] },
+            { type: 'select', default: 'standard', select: [ 'asset', 'basic', 'points', 'standard', 'toon' ] },
         ],
 
         // DIVIDER

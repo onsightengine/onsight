@@ -172,11 +172,13 @@ class AssetManager {
 
         // Load Scripts
         const scripts = {};
-        for ( let i = 0, l = json.scripts.length; i < l; i++) {
-            const script = new Script().fromJSON(json.scripts[i]);
-            scripts[script.uuid] = script;
+        if (json.scripts) {
+            for (let i = 0; i < json.scripts.length; i++) {
+                const script = new Script().fromJSON(json.scripts[i]);
+                scripts[script.uuid] = script;
+            }
+            addLibraryToAssets(scripts);
         }
-        addLibraryToAssets(scripts);
 
         // Load Assets
 		const objectLoader = new THREE.ObjectLoader();
@@ -277,7 +279,7 @@ class AssetManager {
                 delete data.metadata;
                 valueArray.push(data);
             }
-            if (valueArray.length > 0) json[library] = valueArray;
+            json[library] = valueArray;
         }
 
         return json;

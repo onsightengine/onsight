@@ -4,6 +4,7 @@ import { Maths } from '../Maths.js';
 
 // offscreenRenderer()          Offscreen renderer to be shared across the app
 // renderGeometryToCanvas()     Render geometry to canvas, camera centered on geometry
+// renderMaterialToCanvas()     Render material on a sphere to canvas
 // renderTextureToCanvas()      Render texture to canvas
 
 let _renderer;
@@ -45,6 +46,36 @@ class RenderUtils {
 
         // Cleanup
         material.dispose();
+
+        const context = canvas.getContext('2d');
+        if (context) {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.drawImage(renderer.domElement, 0, 0, canvas.width, canvas.height);
+        }
+    }
+
+    /** Render material on a sphere to canvas */
+    static rendeMaterialToCanvas(canvas, material) {
+        const scene = new THREE.Scene();
+        scene.add(new THREE.HemisphereLight(0xffffff, 0x202020, 1.5));
+
+        const camera = new THREE.PerspectiveCamera(50, canvas.width / canvas.height);
+        camera.position.set(0, 0, 1);
+
+        // Mesh
+        const geometry = new THREE.SphereGeometry();
+        const mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+
+        // Fit Camera
+        CameraUtils.fitCameraToObject(camera, mesh);
+
+        // Render
+        const renderer = RenderUtils.offscreenRenderer(canvas.width, canvas.height);
+        renderer.render(scene, camera);
+
+        // Cleanup
+        geometry.dispose();
 
         const context = canvas.getContext('2d');
         if (context) {

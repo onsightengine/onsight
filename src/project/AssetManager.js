@@ -4,14 +4,28 @@ import { Script } from './assets/Script.js';
 import { Strings } from '../utils/Strings.js';
 
 const _assets = {};
+const _prefabs = {};
 const _textureCache = {};
 const _textureLoader = new THREE.TextureLoader();
 
 class AssetManager {
 
-    /******************** LIBRARY */
+    /******************** MANAGER */
 
-    static assetType(asset) {
+    static clear() {
+        // Assets
+        for (let uuid in _assets) {
+            AssetManager.removeAsset(_assets[uuid], true);
+        }
+
+        //
+        // TODO: Clear Prefabs?
+        //
+    }
+
+    /******************** ASSETS */
+
+    static checkAssetType(asset) {
         if (asset.isBufferGeometry) return 'geometry';
         if (asset.type === 'Shape') return 'shape';
         if (asset.isMaterial) return 'material';
@@ -20,28 +34,13 @@ class AssetManager {
         return 'asset';
     }
 
-    static getLibrary(type) {
-        const library = [];
-        for (const [uuid, asset] of Object.entries(_assets)) {
-            if (AssetManager.assetType(asset) === type) {
-                library.push(asset);
-            }
-        }
-        return library;
-    }
-
-    /******************** ADD / GET / REMOVE */
-
     static addAsset(assetOrArray) {
         if (!assetOrArray) return;
         const assetArray = (Array.isArray(assetOrArray)) ? assetOrArray : [ assetOrArray ];
-
         for (let i = 0; i < assetArray.length; i++) {
             let asset = assetArray[i];
-
             // Ensure asset has a name
             if (!asset.name || asset.name === '') asset.name = asset.constructor.name;
-
             // Force 'BufferGeometry' type (strip ExtrudeGeometry, TextGeometry, etc...)
             if (asset.isBufferGeometry && asset.constructor.name !== 'BufferGeometry') {
                 // // DEBUG: Show fancy geometry type
@@ -54,12 +53,9 @@ class AssetManager {
                 if (typeof asset.dispose === 'function') asset.dispose();
                 asset = bufferGeometry;
             }
-
             // Add Asset
             _assets[asset.uuid] = asset;
         }
-
-        return assetOrArray;
     }
 
     static getAsset(uuid) {
@@ -67,14 +63,23 @@ class AssetManager {
         return _assets[uuid];
     }
 
+    /** Retrieve a collection of Assets by type */
+    static getLibrary(type) {
+        const library = [];
+        for (const [uuid, asset] of Object.entries(_assets)) {
+            if (AssetManager.checkAssetType(asset) === type) {
+                library.push(asset);
+            }
+        }
+        return library;
+    }
+
     static removeAsset(assetOrArray, dispose = true) {
         if (!assetOrArray) return;
         const assetArray = (Array.isArray(assetOrArray)) ? assetOrArray : [ assetOrArray ];
-
         for (let i = 0; i < assetArray.length; i++) {
             const asset = assetArray[i];
-
-            // Check if 'assets' has asset
+            // Remove if present
             if (_assets[asset.uuid]) {
                 // Remove textures from cache
                 if (asset.isTexture) {
@@ -82,10 +87,55 @@ class AssetManager {
                         if (_textureCache[url].uuid === asset.uuid) delete _textureCache[url];
                     }
                 }
-
                 // Dispose, Remove
                 if (dispose && typeof asset.dispose === 'function') asset.dispose();
                 delete _assets[asset.uuid];
+            }
+        }
+    }
+
+    /******************** PREFAB */
+
+    static addPrefab(prefabOrArray) {
+        if (!prefabOrArray) return;
+        const prefabArray = (Array.isArray(prefabOrArray)) ? prefabOrArray : [ prefabOrArray ];
+        for (let i = 0; i < prefabArray.length; i++) {
+            const prefab = prefabArray[i];
+            // Ensure prefab has a name
+            if (!prefab.name || prefab.name === '') prefab.name = prefab.constructor.name;
+            // Add prefab
+            _prefabs[prefab.uuid] = prefab;
+        }
+    }
+
+    static getPrefab(uuid) {
+        if (uuid && uuid.uuid) uuid = uuid.uuid;
+        return _prefabs[uuid];
+    }
+
+    /** Retrieve a collection of Prefabs by category */
+    static getCategory(category) {
+        const library = [];
+        for (const [uuid, prefab] of Object.entries(_prefabs)) {
+            if (!category) {
+                library.push(prefab);
+            } else if (prefab.category && prefab.category === category) {
+                library.push(prefab);
+            }
+        }
+        return library;
+    }
+
+    static removePrefab(prefabOrArray, dispose = true) {
+        if (!prefabOrArray) return;
+        const prefabArray = (Array.isArray(prefabOrArray)) ? prefabOrArray : [ prefabOrArray ];
+        for (let i = 0; i < prefabArray.length; i++) {
+            const prefab = prefabArray[i];
+            // Remove if present
+            if (_prefabs[prefab.uuid]) {
+                // Dispose, Remove
+                if (dispose && typeof prefab.dispose === 'function') prefab.dispose();
+                delete _prefabs[prefab.uuid];
             }
         }
     }
@@ -150,13 +200,6 @@ class AssetManager {
     }
 
     /******************** JSON */
-
-    static clear() {
-        // Assets
-        for (let uuid in _assets) {
-            AssetManager.removeAsset(_assets[uuid], true);
-        }
-    }
 
     static fromJSON(json) {
 

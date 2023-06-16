@@ -29,6 +29,9 @@ export { Project } from './project/Project.js';
 // Core, Assets
 export { Script } from './project/assets/Script.js';
 
+// Core, Assets, Scripts
+export { KeyControls } from './project/assets/scripts/KeyControls.js';
+
 // Core, Scene3D
 export { Entity3D } from './project/scene3d/Entity3D.js';
 export { Object3D } from './project/scene3d/Object3D.js';

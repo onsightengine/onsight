@@ -61,14 +61,12 @@ class App {
         this.project.fromJSON(json, loadAssets);
 
         // Active World/Scene/Camera
-        SceneManager.app = this;
-        SceneManager.scene = new Scene3D();
         const fromScene = this.project.getFirstWorld().activeScene();
+        SceneManager.app = this;
+        SceneManager.camera = SceneManager.cameraFromScene(fromScene);
+        SceneManager.scene = new Scene3D();
         SceneManager.loadScene(SceneManager.scene, fromScene);
         SceneManager.app.dispatch(SceneManager.app.events.init);
-
-        // Set Camera
-        SceneManager.camera = SceneManager.cameraFromScene();
     }
 
     /******************** ANIMATE / RENDER */

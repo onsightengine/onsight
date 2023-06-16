@@ -19,6 +19,9 @@ scriptFunctions = scriptFunctions.replace(/.$/, '');                            
 const scriptParameters = 'app,renderer,scene,camera' + ',' + scriptFunctions;
 const scriptReturnString = JSON.stringify(scriptReturnObject).replace(/\"/g, '');   // remove all qoutes
 
+// Temp
+const _position = new THREE.Vector3();
+
 // Class
 class SceneManager {
 
@@ -36,7 +39,11 @@ class SceneManager {
             scene.traverseEntities((entity) => {
                 entity.traverseComponents((component) => {
                     if (component.type === 'camera') {
-                        if (!camera) camera = component.backend;
+                        if (!camera) {
+                            camera = component.backend.clone();
+                            component.backend.getWorldPosition(_position);
+                            camera.position.copy(_position);
+                        }
                     }
                 })
             });
@@ -46,6 +53,7 @@ class SceneManager {
             camera = CameraUtils.createPerspective(500, 500, true);
             camera.position.x = 0;
             camera.position.y = 0;
+            camera.position.z = 6;
         }
         return camera;
     }

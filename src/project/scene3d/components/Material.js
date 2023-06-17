@@ -76,12 +76,13 @@ class Material {
                 }
             }
 
-            // Remove data not used in THREE materials
+            // Remove data not used in THREE materials (to avoid console warnings)
             delete parameters['base'];
             delete parameters['style'];
             delete parameters['edgeSize'];
             delete parameters['gradientSize'];
             delete parameters['premultiplyAlpha'];
+            delete parameters['useUv'];
 
             // Convert 'string' data to 'int'
             if (typeof parameters.blending === 'string') parameters.blending = blendingModes.indexOf(parameters.blending);
@@ -167,7 +168,10 @@ class Material {
 
         // Create mesh
         if (this.style === 'points') {
-            this.mesh = new THREE.Points(geometry, material);
+            const pointGeometry = geometry.clone();
+            if (!this.data['useUv']) pointGeometry.deleteAttribute('uv');
+            this.mesh = new THREE.Points(pointGeometry, material);
+            pointGeometry.dispose();
         } else {
             // Create Mesh
             this.mesh = new THREE.Mesh(geometry, material);
@@ -297,6 +301,7 @@ Material.config = {
 
         size: { type: 'slider', default: 0.05, min: 0, max: 1, if: { style: [ 'points' ] } },
         sizeAttenuation: { type: 'boolean', default: true, if: { style: [ 'points' ] } },
+        useUv: { type: 'boolean', default: false, if: { style: [ 'points' ] } },
 
         metalness: { type: 'slider', default: 0.1, min: 0.0, max: 1.0, if: { style: [ 'physical', 'standard' ] } },
         roughness: { type: 'slider', default: 1.0, min: 0.0, max: 1.0, if: { style: [ 'physical', 'standard' ] } },
@@ -319,7 +324,7 @@ Material.config = {
 
         // Standard Maps
         map: [
-            { type: 'map', if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'points', 'physical', 'standard' ] } },
+            { type: 'map', alias: 'texture', if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'points', 'physical', 'standard' ] } },
         ],
 
         matcap: { type: 'map', if: { style: [ 'matcap' ] } },

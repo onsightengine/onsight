@@ -26,6 +26,7 @@ class AssetManager {
     /******************** ASSETS */
 
     static checkAssetType(asset) {
+        if (!asset) return undefined;
         if (asset.isBufferGeometry) return 'geometry';
         if (asset.type === 'Shape') return 'shape';
         if (asset.isMaterial) return 'material';

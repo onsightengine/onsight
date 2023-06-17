@@ -295,10 +295,10 @@ Geometry.config = {
         style: [ { type: 'select', default: 'box', select: [ 'asset', 'box', 'capsule', 'circle', 'cone', 'cylinder', 'lathe', 'plane', 'platonicSolid', 'ring', 'roundedBox', 'shape', 'sphere', 'torus', 'torusKnot', 'tube' ] } ],
 
         // Asset UUID
-        asset: { type: 'asset', class: 'BufferGeometry', if: { style: [ 'asset' ] } },
+        asset: { type: 'asset', class: 'geometry', if: { style: [ 'asset' ] } },
 
         // Shape UUID
-        shape: { type: 'asset', class: 'Shape', if: { style: [ 'lathe', 'shape', 'tube' ] } },
+        shape: { type: 'asset', class: 'shape', if: { style: [ 'lathe', 'shape', 'tube' ] } },
 
         // DIVIDER
         styleDivider: { type: 'divider' },

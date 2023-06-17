@@ -284,7 +284,7 @@ Material.config = {
         styleDivider: { type: 'divider' },
         //
 
-        asset: { type: 'asset', class: 'Material', if: { style: [ 'asset' ] } },
+        asset: { type: 'asset', class: 'material', if: { style: [ 'asset' ] } },
 
         color: { type: 'color', if: { style: [ 'basic', 'lambert', 'matcap', 'phong', 'physical', 'points', 'standard' ] } },
         emissive: { type: 'color', default: 0x000000, promode: true, if: { style: [ 'lambert', 'phong', 'physical', 'standard' ] } },

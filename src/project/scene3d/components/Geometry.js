@@ -24,10 +24,6 @@ const wedgeShape = new THREE.Shape([
 class Geometry {
 
     init(data) {
-
-        // Copy / Clear Backend
-        this.dispose();
-
         // Passed in Geometry
         if (data.isBufferGeometry) {
             const assetUUID = data.uuid;
@@ -40,8 +36,8 @@ class Geometry {
 
         // Generate Backend
         let geometry = undefined;
-
         switch (data.style) {
+
             case 'asset':
                 const assetGeometry = AssetManager.getAsset(data.asset);
                 if (assetGeometry && assetGeometry.isBufferGeometry) {
@@ -191,10 +187,12 @@ class Geometry {
 
             default:
                 console.error('Geometry: Invalid geometry type ' + data.style);
+
         }
 
         // Modifiy Geometry
         if (geometry && geometry.isBufferGeometry) {
+
             // Saved geometry type as Name
             const geometryName = geometry.constructor.name;
 
@@ -250,15 +248,10 @@ class Geometry {
         // Save Data / Backend
         this.backend = geometry;
         this.data = data;
-        this.style = data.style;
     }
 
     dispose() {
-        const geometry = this.backend;
-        if (geometry && geometry.isBufferGeometry) {
-            this.backend.dispose();
-        }
-        this.backend = undefined;
+
     }
 
     enable() {
@@ -273,19 +266,6 @@ class Geometry {
             const materialComponent = this.entity.getComponent('material');
             if (materialComponent) materialComponent.refreshMesh();
         }
-    }
-
-    toJSON() {
-        const data = this.defaultData('style', this.style);
-
-        // Copy Existing 'data' Properties
-        for (let key in data) {
-            if (this.data[key] !== undefined) {
-                data[key] = this.data[key];
-            }
-        }
-
-        return data;
     }
 
 }

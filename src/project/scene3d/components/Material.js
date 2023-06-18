@@ -25,10 +25,6 @@ const depthPacking = [ 'BasicDepthPacking', 'RGBADepthPacking' ];
 class Material {
 
     init(data) {
-
-        // Copy / Clear Backend
-        this.dispose();
-
         // Params Object
         const parameters = {};
 
@@ -93,14 +89,15 @@ class Material {
 
         // Generate Backend
         let material = undefined;
-
         switch (data.style) {
+
             case 'asset':
                 const assetMaterial = AssetManager.getAsset(data.asset);
                 if (assetMaterial && assetMaterial.isMaterial) {
                     material = assetMaterial.clone();
                 }
                 break;
+
             case 'basic': material = new THREE.MeshBasicMaterial(parameters); break;
             case 'depth': material = new THREE.MeshDepthMaterial(parameters); break;
             case 'lambert': material = new THREE.MeshLambertMaterial(parameters); break;
@@ -111,15 +108,17 @@ class Material {
             case 'points': material = new THREE.PointsMaterial(parameters); break;
             case 'shader': material = new THREE.ShaderMaterial(parameters); break;
             case 'standard': material = new THREE.MeshStandardMaterial(parameters); break;
+
             default:
                 console.error(`Material: Invalid material type '${data.style}'`);
+
         }
 
         // Modifiy Material
         if (material && material.isMaterial) {
-
-            // NOTHING
-
+            //
+            // EMPTY FOR NOW
+            //
         } else {
             // console.log('Error with material!');
         }
@@ -127,15 +126,10 @@ class Material {
         // Save Data / Backend
         this.backend = material;
         this.data = data;
-        this.style = data.style;
     }
 
     dispose() {
-        const material = this.backend;
-        if (material && material.isMaterial) {
-            material.dispose();
-        }
-        this.backend = undefined;
+
     }
 
     enable() {
@@ -167,9 +161,9 @@ class Material {
         if (!geometry) return;
 
         // Create mesh
-        if (this.style === 'points') {
+        if (this.data && this.data.style === 'points') {
             const pointGeometry = geometry.clone();
-            if (!this.data['useUv']) pointGeometry.deleteAttribute('uv');
+            if (!this.data.useUv) pointGeometry.deleteAttribute('uv');
             this.mesh = new THREE.Points(pointGeometry, material);
             pointGeometry.dispose();
         } else {
@@ -199,28 +193,6 @@ class Material {
         // NOTE: Adding backend mesh into Project as Object3D only.
         //        Mesh will not be exported, shown in Outliner, etc.
         if (this.entity && this.mesh) this.entity.add(this.mesh);
-    }
-
-    toJSON() {
-        const data = this.defaultData('style', this.style);
-
-        // Copy Existing 'data' Properties
-        for (let key in data) {
-            if (this.data[key] !== undefined) {
-
-                // Save 'map' types (textures) as uuid only
-                if (this.data[key] && this.data[key].isTexture) {
-                    data[key] = this.data[key].uuid;
-
-                // All other data
-                } else {
-                    data[key] = this.data[key];
-                }
-
-            }
-        }
-
-        return data;
     }
 
 }

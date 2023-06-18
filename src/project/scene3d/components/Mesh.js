@@ -10,10 +10,12 @@ class Mesh {
     //
 
     init(data) {
-        // Reference to Backend
+
+        // Save Data / Backend
         this.backend = (data.isObject3D) ? data : new THREE.Object3D();
         this.backend.traverse((child) => { child.castShadow = this.entity.castShadow; });
         this.backend.traverse((child) => { child.receiveShadow = this.entity.receiveShadow; });
+        this.data = data;
     }
 
     dispose() {
@@ -26,10 +28,6 @@ class Mesh {
 
     disable() {
         if (this.entity && this.backend) this.entity.remove(this.backend);
-    }
-
-    toJSON() {
-
     }
 
 }

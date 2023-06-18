@@ -14,10 +14,16 @@ import { System } from '../utils/System.js';
 
 /******************** Property Types ********************/
 //
+//  NOTE: See 'test' component for examples of all property types
+//
 //  TYPE            DESCRIPTION                     DEFAULT             OPTIONS (DEFAULT)
+//
+//      -- FORMATTING --
+//  divider         Inserts horizontal rule
 //
 //      -- DATA TYPES --
 //  select          Dropdown                        null
+//
 //  number          Number Box                      0                   min (-inf), max (inf), step (1), unit (''), precision (3)
 //  int             Whole Number                    0                   min (-inf), max (inf), step (1), unit ('')
 //  angle           Degrees, converted to Radians   0                   min (-inf), max (inf), step (10), unit ('°'), precision (3)
@@ -27,12 +33,9 @@ import { System } from '../utils/System.js';
 //  color           Color Selector                  0xffffff
 //
 //      -- UUID TYPES --                                                NOTE(S)
-//  entity          Entity (entity.uuid)            null                Entity in the Project
-//  asset           Asset (asset.uuid)              null                Asset in the Project
+//  prefab          Prefab (prefab.uuid)            null                Prefab in the Project
+//  asset           Asset (asset.uuid)              null                Asset in the Project (geometry, material, script, shape)
 //  map             Texture Map (texture.uuid)      null                Asset in the Project, specifically a Texture Map
-//
-//      -- FORMATTING --
-//  divider         Inserts horizontal rule
 //
 //      -- BELOW: STILL NEED TO IMPLEMENT --
 //  !! scroller     Number Scroller Box             0
@@ -44,9 +47,6 @@ import { System } from '../utils/System.js';
 //  !! vector4      4 Numbers w/ Options            [ 0, 0, 0, 0 ]
 //
 //  !! string       String, Single, Multiline       ''
-//  !! shape        Vector Path (THREE.Shape)       null
-//
-//  !! script       Script                          ''
 //
 
 /******************** OPTIONS ********************/
@@ -126,7 +126,7 @@ class ComponentManager {
                         case 'slider':      property.default = 0;               break;
                         case 'boolean':     property.default = false;           break;
                         case 'color':       property.default = 0xffffff;        break;
-                        case 'entity':      property.default = null;            break;
+                        case 'prefab':      property.default = null;            break;
                         case 'asset':       property.default = null;            break;
                         case 'map':         property.default = null;            break;
                         // --------- TODO: Below Needs Incorporate Inspector ---------
@@ -137,8 +137,6 @@ class ComponentManager {
                         case 'vector3':     property.default = [ 0, 0, 0 ];     break;
                         case 'vector4':     property.default = [ 0, 0, 0, 0 ];  break;
                         case 'string':      property.default = '';              break;
-                        case 'shape':       property.default = null;            break;
-                        case 'script':      property.default = '';              break;
                         default:
                             console.warn(`ComponentManager.register(): Unknown property type: '${property.type}'`);
                             property.default = null;
@@ -172,11 +170,14 @@ class ComponentManager {
             }
 
             init(data) {
+                this.dispose();         // clear backend
                 super.init(data);
             }
 
             dispose() {
                 super.dispose();
+                if (this.backend && typeof this.backend.dispose === 'function') this.backend.dispose();
+                this.backend = undefined;
             }
 
             disable() {
@@ -206,6 +207,33 @@ class ComponentManager {
                     tag:            this.tag,
                     type:           this.type,
                 };
+                return data;
+            }
+
+            toJSON() {
+                let data;
+                if (this.data && this.data.style) {
+                    data = this.defaultData('style', this.data.style);
+                } else {
+                    data = this.defaultData();
+                }
+
+                // Copy existing 'data' properties
+                for (let key in data) {
+                    if (this.data[key] !== undefined) {
+
+                        // Save 'map' types (textures) as uuid only
+                        if (this.data[key] && this.data[key].isTexture) {
+                            data[key] = this.data[key].uuid;
+
+                        // All other data
+                        } else {
+                            data[key] = this.data[key];
+                        }
+
+                    }
+                }
+
                 return data;
             }
         }

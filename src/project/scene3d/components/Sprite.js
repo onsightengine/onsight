@@ -8,12 +8,6 @@ class Sprite {
     #material = undefined;
 
     init(data) {
-
-        // Copy / Clear Backend
-        this.dispose();
-
-        // Generate Backend
-
         // Make sure texture is in AssetManager
         let map = null, color = 0xffffff;
         if (data) {
@@ -27,23 +21,20 @@ class Sprite {
             }
         }
 
+        // Generate Backend
         const lookAtCamera = new Object3D();
         lookAtCamera.lookAtCamera = true;
         this.#material = new THREE.SpriteMaterial({ map: map, color: color });
         lookAtCamera.add(new THREE.Sprite(this.#material));
 
         // Save Data / Backend
-
         this.backend = lookAtCamera;
         this.data = data;
     }
 
     dispose() {
-        if (this.#material) {
-            this.#material.dispose();
-            this.#material = undefined;
-        }
-        this.backend = undefined;
+        if (this.#material && typeof this.#material.dispose === 'function') this.#material.dispose();
+        this.#material = undefined;
     }
 
     enable() {
@@ -52,28 +43,6 @@ class Sprite {
 
     disable() {
         if (this.entity && this.backend) this.entity.remove(this.backend);
-    }
-
-    toJSON() {
-        const data = this.defaultData();
-
-        // Copy Existing 'data' Properties
-        for (let key in data) {
-            if (this.data[key] !== undefined) {
-
-                // Save 'map' types (textures) as uuid only
-                if (this.data[key] && this.data[key].isTexture) {
-                    data[key] = this.data[key].uuid;
-
-                // All other data
-                } else {
-                    data[key] = this.data[key];
-                }
-
-            }
-        }
-
-        return data;
     }
 
 }

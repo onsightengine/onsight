@@ -8,12 +8,10 @@ const _renderSize = new THREE.Vector2(1, 1);
 class Camera {
 
     init(data) {
-
         // Generate Backend
-
         let camera = undefined;
-
         switch (data.style) {
+
             case 'perspective':
                 // Private Properties
                 this._tanFOV = Math.tan(((Math.PI / 180) * data.fov / 2));
@@ -46,22 +44,20 @@ class Camera {
 
             default:
                 console.error(`Camera.init: Invalid camera type '${data.style}'`);
+
         }
 
         // Modify Camera
-
         if (camera && camera.isCamera) {
             camera.position.set(0, 0, 0);
             camera.lookAt(0, 0, 0);
         } else {
-            console.log('Error with camera!');
+            // console.log('Error with camera!');
         }
 
         // Save Data / Backend
-
         this.backend = camera;
         this.data = data;
-        this.style = data.style;
     }
 
     dispose() {
@@ -103,19 +99,6 @@ class Camera {
         }
     }
 
-    toJSON() {
-        const data = this.defaultData('style', this.style);
-
-        // Copy Existing 'data' Properties
-        for (let key in data) {
-            if (this.data[key] !== undefined) {
-                data[key] = this.data[key];
-            }
-        }
-
-        return data;
-    }
-
 }
 
 Camera.config = {
@@ -135,8 +118,6 @@ Camera.config = {
         right: { type: 'number', default: 1, if: { style: [ 'orthographic' ] } },
         top: { type: 'number', default: 1, if: { style: [ 'orthographic' ] } },
         bottom: { type: 'number', default: -1, if: { style: [ 'orthographic' ] } },
-
-        follow: { type: 'entity' },
     },
     icon: ``,
     color: '#4B4886',

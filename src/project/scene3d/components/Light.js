@@ -19,15 +19,11 @@ class Light {
 
     init(data) {
 
-        // Copy / Clear Backend
-        this.dispose();
-
         // Generate Backend
-
         let light = undefined;
         let shadows = false;
-
         switch (data.style) {
+
             case 'ambient':
                 light = new THREE.AmbientLight(data.color, data.intensity);
                 // NO SHADOWS
@@ -56,10 +52,10 @@ class Light {
 
             default:
                 console.error(`Light: Invalid light type '${data.style}'`);
+
         }
 
         // Modify Light
-
         if (light && light.isLight) {
 
             // Zero position (some lights set starting position: DirectionalLight, HemisphereLight...)
@@ -82,23 +78,17 @@ class Light {
             }
 
         } else {
-            console.log('Error with light!');
+            // console.log('Error with light!');
         }
 
         // Save Data / Backend
-
         this.backend = light;
         this.data = data;
-        this.style = data.style;
     }
 
     dispose() {
         const light = this.backend;
-        if (light && light.isLight) {
-            if (light.shadow && light.shadow.map) light.shadow.map.dispose();
-            light.dispose();
-        }
-        this.backend = undefined;
+        if (light && light.shadow && light.shadow.map) light.shadow.map.dispose();
     }
 
     enable() {
@@ -107,19 +97,6 @@ class Light {
 
     disable() {
         if (this.entity && this.backend) this.entity.remove(this.backend);
-    }
-
-    toJSON() {
-        const data = this.defaultData('style', this.style);
-
-        // Copy Existing 'data' Properties
-        for (let key in data) {
-            if (this.data[key] !== undefined) {
-                data[key] = this.data[key];
-            }
-        }
-
-        return data;
     }
 
 }

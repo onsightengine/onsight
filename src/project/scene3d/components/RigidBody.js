@@ -26,7 +26,6 @@ class Rigidbody {
     }
 
     onMaterialLoad(key, json) {
-
         // // NOTE: Currently, 'extends THREE.EventDispatcher' is removed from 'Component' in ComponentManager.js
         // this.dispatchEvent({ type: 'load', material });
     }
@@ -37,13 +36,8 @@ class Rigidbody {
     }
 
     onError(event) {
-
         // // NOTE: Currently, 'extends THREE.EventDispatcher' is removed from 'Component' in ComponentManager.js
         // this.dispatchEvent({ type: 'error', event });
-    }
-
-    toJSON() {
-
     }
 
 }

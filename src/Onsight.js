@@ -77,6 +77,7 @@ import './project/scene3d/components/Geometry.js';
 import './project/scene3d/components/Light.js';
 import './project/scene3d/components/Material.js';
 import './project/scene3d/components/Mesh.js';
+import './project/scene3d/components/Test.js';
 // import './project/scene3d/components/Sprite.js';
 
 /******************** ENSURE SINGLE IMPORT ********************/

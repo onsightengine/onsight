@@ -33,8 +33,8 @@ import { System } from '../utils/System.js';
 //  color           Color Selector                  0xffffff
 //
 //      -- UUID TYPES --
-//  prefab          Prefab (prefab.uuid)            null
 //  asset           Asset (asset.uuid)              null                class: (all) or (geometry, material, script, shape, texture), etc.
+//  prefab          Prefab (prefab.uuid)            null
 //
 //      -- BELOW: STILL NEED TO IMPLEMENT --
 //  !! scroller     Number Scroller Box             0
@@ -128,8 +128,8 @@ class ComponentManager {
                         case 'slider':      property.default = 0;               break;
                         case 'boolean':     property.default = false;           break;
                         case 'color':       property.default = 0xffffff;        break;
-                        case 'prefab':      property.default = null;            break;
                         case 'asset':       property.default = null;            break;
+                        case 'prefab':      property.default = null;            break;
                         // --------- TODO: Below Needs Incorporate Inspector ---------
                         case 'scroller':    property.default = 0;               break;
                         case 'variable':    property.default = [ 0, 0 ];        break;

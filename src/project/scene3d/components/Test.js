@@ -43,7 +43,6 @@ Test.config = {
         ],
 
         assetDivider: { type: 'divider', if: { style: [ 'asset' ] } },
-
         asset: { type: 'asset', if: { style: [ 'asset' ] } },
         geometry: { type: 'asset', class: 'geometry', if: { style: [ 'asset' ] } },
         material: { type: 'asset', class: 'material', if: { style: [ 'asset' ] } },
@@ -51,8 +50,10 @@ Test.config = {
         shape: { type: 'asset', class: 'shape', if: { style: [ 'asset' ] } },
         texture: { type: 'asset', class: 'texture', if: { style: [ 'asset' ] } },
 
-        dataDivider: { type: 'divider', if: { style: [ 'example' ] } },
+        prefabDivider: { type: 'divider', if: { style: [ 'asset' ] } },
+        prefab: { type: 'prefab', if: { style: [ 'asset' ] } },
 
+        dataDivider: { type: 'divider', if: { style: [ 'example' ] } },
         select: { type: 'select', default: 'Zebra', select: exampleSelect, if: { style: [ 'example' ] } },
         number: { type: 'number', default: 0.05, min: 0, max: 1, if: { style: [ 'example' ] } },
         int: { type: 'int', default: 5, min: 3, max: 10, if: { style: [ 'example' ] } },

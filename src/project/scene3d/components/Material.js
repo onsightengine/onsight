@@ -48,7 +48,7 @@ class Material {
                 // Check if wants map (texture)
                 let checkType = Material.config.schema[key];
                 if (System.isIterable(checkType) && checkType.length > 0) checkType = checkType[0];
-                if (value && checkType && checkType.type === 'map') {
+                if (value && checkType && checkType.type === 'asset') {
 
                     // Make sure texture is in AssetManager
                     if (value.isTexture) {
@@ -296,34 +296,34 @@ Material.config = {
 
         // Standard Maps
         map: [
-            { type: 'map', alias: 'texture', if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'points', 'physical', 'standard' ] } },
+            { type: 'asset', class: 'texture', alias: 'texture', if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'points', 'physical', 'standard' ] } },
         ],
 
-        matcap: { type: 'map', if: { style: [ 'matcap' ] } },
+        matcap: { type: 'asset', class: 'texture', if: { style: [ 'matcap' ] } },
 
         // Surface Maps (see: https://market.pmnd.rs/material/stylized-crystal)
-        alphaMap: { type: 'map', promode: true, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'physical', 'points', 'standard' ] } },
-        bumpMap: { type: 'map', promode: true, if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard' ] } },
+        alphaMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'physical', 'points', 'standard' ] } },
+        bumpMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard' ] } },
         bumpScale: { type: 'slider', default: 1, min: 0, max: 2, promode: true, if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard' ] } },
-        clearcoatNormalMap: { type: 'map', promode: true, if: { style: [ 'physical' ] } },
+        clearcoatNormalMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'physical' ] } },
         clearcoatNormalScale: { type: 'vector2', default: [ 1, 1 ], promode: true, if: { style: [ 'physical' ] } },
-        displacementMap: { type: 'map', promode: true, if: { style: [ 'depth', 'matcap', 'normal', 'phong', 'physical', 'standard' ] } },
+        displacementMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'depth', 'matcap', 'normal', 'phong', 'physical', 'standard' ] } },
         displacementScale: { type: 'slider', default: 1, min: 0, max: 2, promode: true, if: { style: [ 'depth', 'matcap', 'normal', 'phong', 'physical', 'standard' ] } },
-        emissiveMap: { type: 'map', promode: true, if: { style: [ 'lambert', 'phong', 'physical', 'standard' ] } },
-        metalnessMap: { type: 'map', promode: true, if: { style: [ 'physical', 'standard' ] } },
-        roughnessMap: { type: 'map', promode: true, if: { style: [ 'physical', 'standard' ] } },
-        specularMap: { type: 'map', promode: true, if: { style: [ 'basic', 'lambert', 'phong' ] } },
-        thicknessMap: { type: 'map', promode: true, if: { style: [ 'physical' ] } },
-        transmissionMap: { type: 'map', promode: true, if: { style: [ 'physical' ] } },
+        emissiveMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'lambert', 'phong', 'physical', 'standard' ] } },
+        metalnessMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'physical', 'standard' ] } },
+        roughnessMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'physical', 'standard' ] } },
+        specularMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'basic', 'lambert', 'phong' ] } },
+        thicknessMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'physical' ] } },
+        transmissionMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'physical' ] } },
 
         // Light Maps
-        aoMap: { type: 'map', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard' ] } },
+        aoMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard' ] } },
         // aoMapIntensity: { type: 'slider', promode: true, default: 1, min: 0, max: 100, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard' ] } },
-        envMap: { type: 'map', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard' ] } },
+        envMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard' ] } },
         // envMapIntensity: { type: 'slider', default: 1, min: 0, max: 2, promode: true, if: { style: [ 'physical', 'standard' ] } },
-        lightMap: { type: 'map', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard' ] } },
+        lightMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard' ] } },
         // lightMapIntensity: { type: 'number', default: 1, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard' ] } },
-        normalMap: { type: 'map', if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard' ] } },
+        normalMap: { type: 'asset', class: 'texture', if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard' ] } },
         // normalScale: { type: 'vector2', default: [ 1, 1 ], promode: true, if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard' ] } },
 
         // Front / Back / Double

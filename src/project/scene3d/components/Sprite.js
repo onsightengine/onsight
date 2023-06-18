@@ -50,7 +50,7 @@ class Sprite {
 Sprite.config = {
     schema: {
         color: { type: 'color' },
-        map: { type: 'map' },
+        map: { type: 'asset', class: 'texture' },
     },
     multiple: true,
     icon: ``,

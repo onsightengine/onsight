@@ -44,11 +44,12 @@ Test.config = {
 
         assetDivider: { type: 'divider', if: { style: [ 'asset' ] } },
 
+        asset: { type: 'asset', if: { style: [ 'asset' ] } },
         geometry: { type: 'asset', class: 'geometry', if: { style: [ 'asset' ] } },
         material: { type: 'asset', class: 'material', if: { style: [ 'asset' ] } },
-        map: { type: 'map', alias: 'texture', if: { style: [ 'asset' ] } },
         script: { type: 'asset', class: 'script', if: { style: [ 'asset' ] } },
         shape: { type: 'asset', class: 'shape', if: { style: [ 'asset' ] } },
+        texture: { type: 'asset', class: 'texture', if: { style: [ 'asset' ] } },
 
         dataDivider: { type: 'divider', if: { style: [ 'example' ] } },
 

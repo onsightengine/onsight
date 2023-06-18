@@ -32,10 +32,9 @@ import { System } from '../utils/System.js';
 //  boolean         Option / Checkbox               false
 //  color           Color Selector                  0xffffff
 //
-//      -- UUID TYPES --                                                NOTE(S)
-//  prefab          Prefab (prefab.uuid)            null                Prefab in the Project
-//  asset           Asset (asset.uuid)              null                Asset in the Project (geometry, material, script, shape)
-//  map             Texture Map (texture.uuid)      null                Asset in the Project, specifically a Texture Map
+//      -- UUID TYPES --
+//  prefab          Prefab (prefab.uuid)            null
+//  asset           Asset (asset.uuid)              null                class: (all) or (geometry, material, script, shape, texture), etc.
 //
 //      -- BELOW: STILL NEED TO IMPLEMENT --
 //  !! scroller     Number Scroller Box             0
@@ -70,6 +69,9 @@ import { System } from '../utils/System.js';
 //  precision       Decimal precision of value
 //  unit            Display unit of number type ('°', 'px', etc.) in Inspector
 //  step            Mouse wheel / arrow key step of number when being changed in Inspector. See special step values below
+//
+//  ASSET OPTIONS
+//  class           If left out, any asset in project. Otherwise specifies which asset type to use (geometry, texture, etc.)
 //
 //  SPECIAL STEP VALUES (Number / Int / Angle / Slider)
 //  'any'           Applies to Slider only. Totally smooth, slider can be any value
@@ -128,7 +130,6 @@ class ComponentManager {
                         case 'color':       property.default = 0xffffff;        break;
                         case 'prefab':      property.default = null;            break;
                         case 'asset':       property.default = null;            break;
-                        case 'map':         property.default = null;            break;
                         // --------- TODO: Below Needs Incorporate Inspector ---------
                         case 'scroller':    property.default = 0;               break;
                         case 'variable':    property.default = [ 0, 0 ];        break;
@@ -222,7 +223,7 @@ class ComponentManager {
                 for (let key in data) {
                     if (this.data[key] !== undefined) {
 
-                        // Save 'map' types (textures) as uuid only
+                        // Make sure to save 'texture' as UUID only
                         if (this.data[key] && this.data[key].isTexture) {
                             data[key] = this.data[key].uuid;
 

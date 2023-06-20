@@ -28,8 +28,9 @@ import { System } from '../utils/System.js';
 //  number          Number Box                      0                   min (-inf), max (inf), step (1), unit (''), precision (3)
 //  int             Whole Number                    0                   min (-inf), max (inf), step (1), unit ('')
 //  angle           Degrees, converted to Radians   0                   min (-inf), max (inf), step (10), unit ('°'), precision (3)
-//  variable        Number with +/- Number          [ 0, 0 ]            min (-inf), max (inf), step (1)
 //  slider          Number Slider                   0                   min (-inf), max (inf), step ('any'), precision (2)
+//
+//  variable        Number with +/- Number          [ 0, 0 ]            min, max, step, unit, precision - min2, max2, step2, unit2, precision2
 //
 //  boolean         Option / Checkbox               false
 //  color           Color Selector                  0xffffff
@@ -126,8 +127,8 @@ class ComponentManager {
                         case 'number':      property.default = 0;               break;
                         case 'int':         property.default = 0;               break;
                         case 'angle':       property.default = 0;               break;
-                        case 'variable':    property.default = [ 0, 0 ];        break;
                         case 'slider':      property.default = 0;               break;
+                        case 'variable':    property.default = [ 0, 0 ];        break;
                         case 'boolean':     property.default = false;           break;
                         case 'color':       property.default = 0xffffff;        break;
                         case 'asset':       property.default = null;            break;

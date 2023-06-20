@@ -59,10 +59,7 @@ Test.config = {
         int: { type: 'int', default: 5, min: 3, max: 10, if: { style: [ 'example' ] } },
         angle: { type: 'angle', default: 2 * Math.PI, min: 0, max: 360, if: { style: [ 'example' ] } },
 
-        variable:  [
-            { type: 'number', default: 0.05, min: 0, max: 1, if: { style: [ 'example' ] } },
-            { type: 'number', default: 0.05, min: 0, max: 1, if: { style: [ 'example' ] } },
-        ],
+        variable: { type: 'variable', default: [ 0, 0 ], min: 0, max: 100, if: { style: [ 'example' ] } },
 
         slider: { type: 'slider', default: 0, min: 0, max: 9, step: 1, precision: 0, if: { style: [ 'example' ] } },
         boolean: { type: 'boolean', default: true, if: { style: [ 'example' ] } },

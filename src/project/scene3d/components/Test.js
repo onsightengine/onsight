@@ -42,7 +42,7 @@ Test.config = {
             { type: 'select', default: 'example', select: [ 'asset', 'example' ] },
         ],
 
-        assetDivider: { type: 'divider', if: { style: [ 'asset' ] } },
+        assetDivider: { type: 'layout', format: 'divider' , if: { style: [ 'asset' ] } },
         asset: { type: 'asset', if: { style: [ 'asset' ] } },
         geometry: { type: 'asset', class: 'geometry', if: { style: [ 'asset' ] } },
         material: { type: 'asset', class: 'material', if: { style: [ 'asset' ] } },
@@ -50,14 +50,20 @@ Test.config = {
         shape: { type: 'asset', class: 'shape', if: { style: [ 'asset' ] } },
         texture: { type: 'asset', class: 'texture', if: { style: [ 'asset' ] } },
 
-        prefabDivider: { type: 'divider', if: { style: [ 'asset' ] } },
+        prefabDivider: { type: 'layout', format: 'divider', if: { style: [ 'asset' ] } },
         prefab: { type: 'prefab', if: { style: [ 'asset' ] } },
 
-        dataDivider: { type: 'divider', if: { style: [ 'example' ] } },
+        dataDivider: { type: 'layout', format: 'divider', if: { style: [ 'example' ] } },
         select: { type: 'select', default: 'Zebra', select: exampleSelect, if: { style: [ 'example' ] } },
         number: { type: 'number', default: 0.05, min: 0, max: 1, if: { style: [ 'example' ] } },
         int: { type: 'int', default: 5, min: 3, max: 10, if: { style: [ 'example' ] } },
         angle: { type: 'angle', default: 2 * Math.PI, min: 0, max: 360, if: { style: [ 'example' ] } },
+
+        variable:  [
+            { type: 'number', default: 0.05, min: 0, max: 1, if: { style: [ 'example' ] } },
+            { type: 'number', default: 0.05, min: 0, max: 1, if: { style: [ 'example' ] } },
+        ],
+
         slider: { type: 'slider', default: 0, min: 0, max: 9, step: 1, precision: 0, if: { style: [ 'example' ] } },
         boolean: { type: 'boolean', default: true, if: { style: [ 'example' ] } },
         color: { type: 'color', default: 0xff0000, if: { style: [ 'example' ] } },

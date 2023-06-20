@@ -106,8 +106,7 @@ Light.config = {
         style: { type: 'select', default: 'ambient', select: [ 'ambient', 'directional', 'hemisphere', 'point', 'spot' ] },
 
         // DIVIDER
-        styleDivider: { type: 'divider' },
-        //
+        styleDivider: { type: 'layout', format: 'divider' },
 
         color: [
             { type: 'color', default: 0xffffff, if: { style: [ 'ambient', 'directional', 'point', 'spot' ] } },

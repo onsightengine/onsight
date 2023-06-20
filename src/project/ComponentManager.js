@@ -19,7 +19,8 @@ import { System } from '../utils/System.js';
 //  TYPE            DESCRIPTION                     DEFAULT             OPTIONS (DEFAULT)
 //
 //      -- FORMATTING --
-//  divider         Inserts horizontal rule
+//  layout          FORMAT                         Used for formatting / lyout only, use with the following options:
+//                  format: 'divider'              Inserts horizontal rule
 //
 //      -- DATA TYPES --
 //  select          Dropdown                        null
@@ -27,6 +28,7 @@ import { System } from '../utils/System.js';
 //  number          Number Box                      0                   min (-inf), max (inf), step (1), unit (''), precision (3)
 //  int             Whole Number                    0                   min (-inf), max (inf), step (1), unit ('')
 //  angle           Degrees, converted to Radians   0                   min (-inf), max (inf), step (10), unit ('°'), precision (3)
+//  variable        Number with +/- Number          [ 0, 0 ]            min (-inf), max (inf), step (1)
 //  slider          Number Slider                   0                   min (-inf), max (inf), step ('any'), precision (2)
 //
 //  boolean         Option / Checkbox               false
@@ -38,7 +40,6 @@ import { System } from '../utils/System.js';
 //
 //      -- BELOW: STILL NEED TO IMPLEMENT --
 //  !! scroller     Number Scroller Box             0
-//  !! variable     Number with +/- Number          [ 0, 0 ]
 //
 //  !! array        Array                           []
 //  !! vector2      2 Numbers w/ Options            [ 0, 0 ]
@@ -114,8 +115,8 @@ class ComponentManager {
 
                 if (property.type === undefined) {
                     console.warn(`ComponentManager.register(): All schema properties require a 'type' value`);
-                } else if (property.type === 'divider') {
-                    // NOTHING: Type is for formatting only!
+                } else if (property.type === 'layout') {
+                    // NOTHING: 'layout' type is for formatting only!
                     continue;
                 }
 
@@ -125,19 +126,19 @@ class ComponentManager {
                         case 'number':      property.default = 0;               break;
                         case 'int':         property.default = 0;               break;
                         case 'angle':       property.default = 0;               break;
+                        case 'variable':    property.default = [ 0, 0 ];        break;
                         case 'slider':      property.default = 0;               break;
                         case 'boolean':     property.default = false;           break;
                         case 'color':       property.default = 0xffffff;        break;
                         case 'asset':       property.default = null;            break;
                         case 'prefab':      property.default = null;            break;
                         // --------- TODO: Below Needs Incorporate Inspector ---------
-                        case 'scroller':    property.default = 0;               break;
-                        case 'variable':    property.default = [ 0, 0 ];        break;
                         case 'array':       property.default = [];              break;
                         case 'vector2':     property.default = [ 0, 0 ];        break;
                         case 'vector3':     property.default = [ 0, 0, 0 ];     break;
                         case 'vector4':     property.default = [ 0, 0, 0, 0 ];  break;
                         case 'string':      property.default = '';              break;
+                        case 'scroller':    property.default = 0;               break;
                         default:
                             console.warn(`ComponentManager.register(): Unknown property type: '${property.type}'`);
                             property.default = null;
@@ -298,7 +299,7 @@ class ComponentManager {
                 let item = itemArray[i];
 
                 // FORMATTING ONLY
-                if (item.type === 'divider') continue;
+                if (item.type === 'layout') continue;
 
                 // PROCESS 'IF' / 'NOT'
                 if (!ComponentManager.includeData(item, data)) continue;
@@ -348,7 +349,7 @@ class ComponentManager {
                 let item = itemArray[i];
 
                 // FORMATTING ONLY
-                if (item.type === 'divider') continue;
+                if (item.type === 'layout') continue;
 
                 // PROCESS 'IF' / 'NOT'
                 if (!ComponentManager.includeData(item, oldData, newData)) continue;

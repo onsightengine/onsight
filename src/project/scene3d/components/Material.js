@@ -253,8 +253,7 @@ Material.config = {
         ],
 
         // DIVIDER
-        styleDivider: { type: 'divider' },
-        //
+        styleDivider: { type: 'layout', format: 'divider' },
 
         asset: { type: 'asset', class: 'material', if: { style: [ 'asset' ] } },
 

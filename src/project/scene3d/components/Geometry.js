@@ -281,9 +281,9 @@ Geometry.config = {
         shape: { type: 'asset', class: 'shape', if: { style: [ 'lathe', 'shape', 'tube' ] } },
 
         // DIVIDER
-        styleDivider: { type: 'divider' },
-        //
+        styleDivider: { type: 'layout', format: 'divider' },
 
+        // Geometry
         polyhedron: [ { type: 'select', default: 'dodecahedron', select: [ 'dodecahedron', 'icosahedron', 'octahedron', 'tetrahedron' ], if: { style: [ 'platonicSolid' ] } } ],
 
         points: { type: 'shape', alias: 'points', default: null, if: { style: [ 'lathe' ] } },
@@ -393,8 +393,7 @@ Geometry.config = {
         closed: { type: 'boolean', default: true, if: { style: [ 'tube' ] } },
 
         // DIVIDER
-        modifierDivider: { type: 'divider' },
-        //
+        modifierDivider: { type: 'layout', format: 'divider' },
 
         // // Simplify
         // simplify: { type: 'slider', default: 1, min: 0, max: 1 },
@@ -407,8 +406,7 @@ Geometry.config = {
         // maxTriangles: { type: 'number', default: 25000, min: 1, promode: true },
 
         // DIVIDER
-        textureDivider: { type: 'divider' },
-        //
+        textureDivider: { type: 'layout', format: 'divider' },
 
         // Texture Mapping
         textureMapping: [

@@ -3,8 +3,8 @@ import { CameraUtils } from './CameraUtils.js';
 import { Maths } from '../Maths.js';
 
 // offscreenRenderer()          Offscreen renderer to be shared across the app
-// renderGeometryToCanvas()     Render geometry to canvas, camera centered on geometry
-// renderMaterialToCanvas()     Render material on a sphere to canvas
+// renderGeometryToCanvas()     Render geometry, material, or both
+// renderMeshToCanvas()         Render mesh to camera, camera centered on mesh
 // renderTextureToCanvas()      Render texture to canvas
 
 let _renderer;
@@ -24,48 +24,30 @@ class RenderUtils {
         return _renderer;
     }
 
-    /** Render geometry, camera centered on geometry */
-    static renderGeometryToCanvas(canvas, geometry, geometryColor = 0xffffff) {
-        const scene = new THREE.Scene();
-        scene.add(new THREE.HemisphereLight(0xffffff, 0x202020, 1.5));
-
-        const camera = new THREE.PerspectiveCamera(50, canvas.width / canvas.height);
-        camera.position.set(0, 0, 1);
-
+    /** Render geometry, material, or both */
+    static renderGeometryToCanvas(canvas, geometry, material, color = 0xffffff) {
         // Mesh
-        const material = new THREE.MeshStandardMaterial({ color: geometryColor });
-        const mesh = new THREE.Mesh(geometry, material);
-        scene.add(mesh);
-
-        // Fit Camera
-        CameraUtils.fitCameraToObject(camera, mesh);
+        const mat = material ?? new THREE.MeshStandardMaterial({ color: color });
+        const geo = geometry ?? new THREE.SphereGeometry();
+        const mesh = new THREE.Mesh(geo, mat);
 
         // Render
-        const renderer = RenderUtils.offscreenRenderer(canvas.width, canvas.height);
-        renderer.render(scene, camera);
+        RenderUtils.renderMeshToCanvas(canvas, mesh);
 
         // Cleanup
-        material.dispose();
-
-        const context = canvas.getContext('2d');
-        if (context) {
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            context.drawImage(renderer.domElement, 0, 0, canvas.width, canvas.height);
-        }
+        if (mesh && typeof mesh.dispose === 'function') mesh.dispose();
+        if (!material) mat.dispose();
+        if (!geometry) geo.dispose();
     }
 
-    /** Render material on a sphere to canvas */
-    static renderMaterialToCanvas(canvas, material) {
+    /** Render mesh to camera, camera centered on mesh */
+    static renderMeshToCanvas(canvas, mesh) {
         const scene = new THREE.Scene();
         scene.add(new THREE.HemisphereLight(0xffffff, 0x202020, 1.5));
+        scene.add(mesh);
 
         const camera = new THREE.PerspectiveCamera(50, canvas.width / canvas.height);
         camera.position.set(0, 0, 1);
-
-        // Mesh
-        const geometry = new THREE.SphereGeometry();
-        const mesh = new THREE.Mesh(geometry, material);
-        scene.add(mesh);
 
         // Fit Camera
         CameraUtils.fitCameraToObject(camera, mesh);
@@ -74,9 +56,7 @@ class RenderUtils {
         const renderer = RenderUtils.offscreenRenderer(canvas.width, canvas.height);
         renderer.render(scene, camera);
 
-        // Cleanup
-        geometry.dispose();
-
+        // Copy to canvas
         const context = canvas.getContext('2d');
         if (context) {
             context.clearRect(0, 0, canvas.width, canvas.height);

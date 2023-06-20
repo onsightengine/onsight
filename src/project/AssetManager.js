@@ -54,6 +54,8 @@ class AssetManager {
                 if (typeof asset.dispose === 'function') asset.dispose();
                 asset = bufferGeometry;
             }
+            // Mark entity as "Asset"
+            asset.isAsset = true;
             // Add Asset
             _assets[asset.uuid] = asset;
         }
@@ -104,6 +106,8 @@ class AssetManager {
             const prefab = prefabArray[i];
             // Ensure prefab has a name
             if (!prefab.name || prefab.name === '') prefab.name = prefab.constructor.name;
+            // Mark entity as "Prefab"
+            prefab.isPrefab = true;
             // Add prefab
             _prefabs[prefab.uuid] = prefab;
         }

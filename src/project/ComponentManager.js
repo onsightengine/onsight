@@ -19,8 +19,8 @@ import { System } from '../utils/System.js';
 //  TYPE            DESCRIPTION                     DEFAULT             OPTIONS (DEFAULT)
 //
 //      -- FORMATTING --
-//  layout          FORMAT                         Used for formatting / lyout only, use with the following options:
-//                  format: 'divider'              Inserts horizontal rule
+//  layout          FORMAT                          Used for formatting / lyout only, use with the following options:
+//                  format: 'divider'               Inserts horizontal rule
 //
 //      -- DATA TYPES --
 //  select          Dropdown                        null
@@ -30,8 +30,9 @@ import { System } from '../utils/System.js';
 //  angle           Degrees, converted to Radians   0                   min (-inf), max (inf), step (10), unit ('°'), precision (3)
 //  slider          Number Slider                   0                   min (-inf), max (inf), step ('any'), precision (2)
 //
-//  variable        Number with +/- Number          [ 0, 0 ]            min, max, step, unit, precision - min2, max2, step2, unit2, precision2
-//
+//  variable        Number with +/- Number          [ 0, 0 ]            min[], max[], step[], unit[], precision[]
+//  vector          Number Array                    [ 0 ]               size: array length, tint (false) - also min[], max[], step[], unit[], precision[]
+
 //  boolean         Option / Checkbox               false
 //  color           Color Selector                  0xffffff
 //
@@ -39,15 +40,10 @@ import { System } from '../utils/System.js';
 //  asset           Asset (asset.uuid)              null                class: (all) or (geometry, material, script, shape, texture), etc.
 //  prefab          Prefab (prefab.uuid)            null
 //
-//      -- BELOW: STILL NEED TO IMPLEMENT --
-//  !! scroller     Number Scroller Box             0
-//
-//  !! array        Array                           []
-//  !! vector2      2 Numbers w/ Options            [ 0, 0 ]
-//  !! vector3      3 Numbers w/ Options            [ 0, 0, 0 ]
-//  !! vector4      4 Numbers w/ Options            [ 0, 0, 0, 0 ]
-//
+//      -- BELOW: STILL NEED TO IMPLEMENT --//
 //  !! string       String, Single, Multiline       ''
+//  !! array
+//  !! scroller     Number Scroller Box             0
 //
 
 /******************** OPTIONS ********************/
@@ -65,15 +61,19 @@ import { System } from '../utils/System.js';
 //  promode         Only Show when 'promode' is enabled
 //  rebuild         Change of this property will cause a rebuild of the Inspector ('style' always rebuilds)
 //
-//  NUMERICAL OPTIONS
+//  NUMERICAL OPTIONS (can be array values for numArrays / variable)
 //  min             Minimum allowed value
 //  max             Maximum allowed value
 //  precision       Decimal precision of value
 //  unit            Display unit of number type ('°', 'px', etc.) in Inspector
 //  step            Mouse wheel / arrow key step of number when being changed in Inspector. See special step values below
 //
+//  VECTOR OPTIONS
+//  size            Length of array
+//  tint            When true number boxes are colorered (up to 4 boxes, axis colors)
+//
 //  ASSET OPTIONS
-//  class           If left out, any asset in project. Otherwise specifies which asset type to use (geometry, texture, etc.)
+//  class           If left out, can be any asset in project. Otherwise specifies which asset type to use (geometry, texture, etc.)
 //
 //  SPECIAL STEP VALUES (Number / Int / Angle / Slider)
 //  'any'           Applies to Slider only. Totally smooth, slider can be any value
@@ -129,17 +129,15 @@ class ComponentManager {
                         case 'angle':       property.default = 0;               break;
                         case 'slider':      property.default = 0;               break;
                         case 'variable':    property.default = [ 0, 0 ];        break;
+                        case 'vector':      property.default = [ 0 ];           break;
                         case 'boolean':     property.default = false;           break;
                         case 'color':       property.default = 0xffffff;        break;
                         case 'asset':       property.default = null;            break;
                         case 'prefab':      property.default = null;            break;
                         // --------- TODO: Below Needs Incorporate Inspector ---------
-                        case 'array':       property.default = [];              break;
-                        case 'vector2':     property.default = [ 0, 0 ];        break;
-                        case 'vector3':     property.default = [ 0, 0, 0 ];     break;
-                        case 'vector4':     property.default = [ 0, 0, 0, 0 ];  break;
-                        case 'string':      property.default = '';              break;
-                        case 'scroller':    property.default = 0;               break;
+                        case 'string':      property.default = '';              break;  // String, Single, Multiline
+                        case 'array':       property.default = [];              break;  // String Array
+                        case 'scroller':    property.default = 0;               break;  // Number Scroller Box
                         default:
                             console.warn(`ComponentManager.register(): Unknown property type: '${property.type}'`);
                             property.default = null;

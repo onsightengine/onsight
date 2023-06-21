@@ -232,10 +232,12 @@ class Geometry {
             }
 
             // Texture Wrapping Performed on Geometry
-            if (data.wrapS !== 1 || data.wrapT !== 1) {
-                const s = Math.max(data.wrapS, 0);
-                const t = Math.max(data.wrapT, 0);
-                GeometryUtils.repeatTexture(geometry, s, t);
+            if (Array.isArray(data.textureWrap)) {
+                if (data.textureWrap[0] !== 1 || data.textureWrap[1] !== 1) {
+                    const s = Math.max(data.textureWrap[0], 0);
+                    const t = Math.max(data.textureWrap[1], 0);
+                    GeometryUtils.repeatTexture(geometry, s, t);
+                }
             }
 
             // Set Name to Modified Geometry
@@ -415,8 +417,7 @@ Geometry.config = {
         ],
 
         // Texture Wrapping
-        wrapS: { type: 'number', alias: 'wrapX', default: 1, min: 0, step: 0.2, precision: 2 },
-        wrapT: { type: 'number', alias: 'wrapY', default: 1, min: 0, step: 0.2, precision: 2 },
+        textureWrap: { type: 'vector', size: 2, tint: false, default: [ 1, 1 ], min: 0, step: 0.2, precision: 2, label: [ 'X', 'Y' ] },
 
     },
     // EXAMPLE: Svg Icon for Inspector Tab (built in components have images built into Editor)

@@ -25,13 +25,13 @@ import { System } from '../utils/System.js';
 //      -- DATA TYPES --
 //  select          Dropdown                        null
 //
-//  number          Number Box                      0                   min (-inf), max (inf), step (1), unit (''), precision (3)
-//  int             Whole Number                    0                   min (-inf), max (inf), step (1), unit ('')
-//  angle           Degrees, converted to Radians   0                   min (-inf), max (inf), step (10), unit ('°'), precision (3)
+//  number          Number Box                      0                   min (-inf), max (inf), step (1), unit (''), label, precision (3)
+//  int             Whole Number                    0                   min (-inf), max (inf), step (1), unit (''), label
+//  angle           Degrees, converted to Radians   0                   min (-inf), max (inf), step (10), unit ('°'), label, precision (3)
 //  slider          Number Slider                   0                   min (-inf), max (inf), step ('any'), precision (2)
 //
 //  variable        Number with +/- Number          [ 0, 0 ]            min[], max[], step[], unit[], precision[]
-//  vector          Number Array                    [ 0 ]               size: array length, tint (false) - also min[], max[], step[], unit[], precision[]
+//  vector          Number Array                    [ 0 ]               size: array length, tint (false) - also min[], max[], step[], unit[], precision[], label[]
 
 //  boolean         Option / Checkbox               false
 //  color           Color Selector                  0xffffff
@@ -64,9 +64,10 @@ import { System } from '../utils/System.js';
 //  NUMERICAL OPTIONS (can be array values for numArrays / variable)
 //  min             Minimum allowed value
 //  max             Maximum allowed value
+//  step            Mouse wheel / arrow key step of number when being changed in Inspector. See special step values below
 //  precision       Decimal precision of value
 //  unit            Display unit of number type ('°', 'px', etc.) in Inspector
-//  step            Mouse wheel / arrow key step of number when being changed in Inspector. See special step values below
+//  label           Displays a decoration label for the number, i.e. 'X:' or 'H:'... Using this right aligns the input box!
 //
 //  VECTOR OPTIONS
 //  size            Length of array

@@ -35,15 +35,11 @@ import { System } from '../utils/System.js';
 
 //  boolean         Option / Checkbox               false
 //  color           Color Selector                  0xffffff
+//  string          String / Multiline?             ''                  rows (1)
 //
 //      -- UUID TYPES --
 //  asset           Asset (asset.uuid)              null                class: (all) or (geometry, material, script, shape, texture), etc.
 //  prefab          Prefab (prefab.uuid)            null
-//
-//      -- BELOW: STILL NEED TO IMPLEMENT --//
-//  !! string       String, Single, Multiline       ''
-//  !! array
-//  !! scroller     Number Scroller Box             0
 //
 
 /******************** OPTIONS ********************/
@@ -71,7 +67,10 @@ import { System } from '../utils/System.js';
 //
 //  VECTOR OPTIONS
 //  size            Length of array
-//  tint            When true number boxes are colorered (up to 4 boxes, axis colors)
+//  tint            When true, number boxes are colorered (up to 4 boxes, axis colors)
+//
+//  STRING OPTIONS
+//  rows            If value of > 1, specifies multiline text. Value describes desired default height when displayed.
 //
 //  ASSET OPTIONS
 //  class           If left out, can be any asset in project. Otherwise specifies which asset type to use (geometry, texture, etc.)
@@ -133,12 +132,9 @@ class ComponentManager {
                         case 'vector':      property.default = [ 0 ];           break;
                         case 'boolean':     property.default = false;           break;
                         case 'color':       property.default = 0xffffff;        break;
+                        case 'string':      property.default = '';              break;
                         case 'asset':       property.default = null;            break;
                         case 'prefab':      property.default = null;            break;
-                        // --------- TODO: Below Needs Incorporate Inspector ---------
-                        case 'string':      property.default = '';              break;  // String, Single, Multiline
-                        case 'array':       property.default = [];              break;  // String Array
-                        case 'scroller':    property.default = 0;               break;  // Number Scroller Box
                         default:
                             console.warn(`ComponentManager.register(): Unknown property type: '${property.type}'`);
                             property.default = null;

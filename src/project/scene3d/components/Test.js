@@ -59,6 +59,8 @@ Test.config = {
         slider: { type: 'slider', default: 0, min: 0, max: 9, step: 1, precision: 0, if: { style: [ 'basic' ] } },
         boolean: { type: 'boolean', default: true, if: { style: [ 'basic' ] } },
         color: { type: 'color', default: 0xff0000, if: { style: [ 'basic' ] } },
+        string: { type: 'string', if: { style: [ 'basic' ] } },
+        multiline: { type: 'string', rows: 4, if: { style: [ 'basic' ] } },
 
         numberArray: { type: 'vector', size: 1, if: { style: [ 'array' ] } },
         vector2: { type: 'vector', size: 2, tint: true, label: [ 'x', 'y' ], if: { style: [ 'array' ] } },

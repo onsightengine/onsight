@@ -55,6 +55,7 @@ class RenderUtils {
         // Render
         const renderer = RenderUtils.offscreenRenderer(canvas.width, canvas.height);
         renderer.render(scene, camera);
+        scene.remove(mesh);
 
         // Copy to canvas
         const context = canvas.getContext('2d');

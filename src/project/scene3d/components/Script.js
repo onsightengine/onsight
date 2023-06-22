@@ -1,0 +1,60 @@
+import { AssetManager } from '../../AssetManager.js';
+import { ComponentManager } from '../../ComponentManager.js';
+
+class Script {
+
+    init(data) {
+        // Passed in Script
+        if (data.isScript) {
+            const assetUUID = data.uuid;
+            AssetManager.addAsset(data);
+
+            // Build 'data'
+            data = this.defaultData();
+            data.asset = assetUUID;
+        }
+
+        // Generate Backend
+        const script = AssetManager.getAsset(data.asset);
+
+        // Add Variables
+        if (script && script.isScript) {
+
+        }
+
+        // Save Data / Backend
+        this.backend = geometry;
+        this.data = data;
+    }
+
+    dispose() {
+
+    }
+
+    enable() {
+
+    }
+
+    disable() {
+
+    }
+
+}
+
+Script.config = {
+    schema: {
+
+        asset: { type: 'asset', class: 'script', rebuild: true },
+
+        divider: { type: 'layout', format: 'divider' },
+
+        variables: { type: 'object', default: {} },
+
+    },
+    icon: ``,
+    color: '#6E6FFD',
+    width: '40%',
+    dependencies: [],
+};
+
+ComponentManager.register('script', Script);

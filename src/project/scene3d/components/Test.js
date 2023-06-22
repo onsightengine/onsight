@@ -66,7 +66,6 @@ Test.config = {
         vector2: { type: 'vector', size: 2, tint: true, label: [ 'x', 'y' ], if: { style: [ 'array' ] } },
         vector3: { type: 'vector', size: 3, tint: true, min: [ 1, 1, 1 ], max: [ 2, 2, 2 ], step: 0.1, precision: 2, if: { style: [ 'array' ] } },
         vector4: { type: 'vector', size: 4, tint: true, if: { style: [ 'array' ] } },
-        arrayDivider: { type: 'layout', format: 'divider', if: { style: [ 'array' ] } },
 
     },
     icon: ``,

@@ -86,7 +86,7 @@ class SceneManager {
             }
             // Returns object holding script functions (with proper 'this' bound and access to globals)
             const body = `${script.source} \n return ${scriptReturnString};`;
-            const buildFunctionObject = new Function(scriptParameters, body).bind(toEntity);
+            const buildFunctionObject = new Function(scriptParameters /* parameters */, body /* source */).bind(toEntity);
             const functions = buildFunctionObject(SceneManager.app, SceneManager.app.renderer, SceneManager.scene, SceneManager.camera, /* functions provided by user... */);
             // Add functions to event dispatch handler
             for (let name in functions) {
@@ -96,7 +96,6 @@ class SceneManager {
                 }
                 if (typeof functions[name] !== 'function') continue;
                 const callback = functions[name].bind(toEntity);
-                callback.__entity = toEntity.uuid;
                 SceneManager.app.events[name].push(callback);
             }
         }

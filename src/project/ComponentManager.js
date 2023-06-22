@@ -41,6 +41,9 @@ import { System } from '../utils/System.js';
 //  asset           Asset (asset.uuid)              null                class: (all) or (geometry, material, script, shape, texture), etc.
 //  prefab          Prefab (prefab.uuid)            null
 //
+//      -- OBJECT TYPES --
+//  object          Data object                     {}
+//
 
 /******************** OPTIONS ********************/
 //
@@ -78,6 +81,7 @@ import { System } from '../utils/System.js';
 //  SPECIAL STEP VALUES (Number / Int / Angle / Slider)
 //  'any'           Applies to Slider only. Totally smooth, slider can be any value
 //  'grid'          Align step to current editor 'grid' setting
+//
 
 const _registered = {};
 
@@ -135,6 +139,7 @@ class ComponentManager {
                         case 'string':      property.default = '';              break;
                         case 'asset':       property.default = null;            break;
                         case 'prefab':      property.default = null;            break;
+                        case 'object':      property.default = {};              break;
                         default:
                             console.warn(`ComponentManager.register(): Unknown property type: '${property.type}'`);
                             property.default = null;
@@ -280,7 +285,9 @@ class ComponentManager {
     static sanitizeData(type, data) {
 
         const ComponentClass = ComponentManager.registered(type);
-        const schema = (ComponentClass && ComponentClass.config) ? ComponentClass.config.schema : {};
+        if (!ComponentClass || !ComponentClass.config || !ComponentClass.config.schema) return;
+        const schema = ComponentClass.config.schema;
+        if (!System.isObject(schema)) return;
 
         // PARSE KEYS
         for (let schemaKey in schema) {
@@ -330,7 +337,9 @@ class ComponentManager {
     static stripData(type, oldData, newData) {
 
         const ComponentClass = ComponentManager.registered(type);
-        const schema = (ComponentClass && ComponentClass.config) ? ComponentClass.config.schema : {};
+        if (!ComponentClass || !ComponentClass.config || !ComponentClass.config.schema) return;
+        const schema = ComponentClass.config.schema;
+        if (!System.isObject(schema)) return;
 
         // PARSE KEYS
         for (let schemaKey in schema) {

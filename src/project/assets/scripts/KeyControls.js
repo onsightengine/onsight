@@ -10,7 +10,6 @@ class KeyControls extends Script {
         this.source =
 `
 let speed = 0.1;
-var test, home = 'angels';
 
 function keydown(event) {
 

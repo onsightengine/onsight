@@ -62,15 +62,14 @@ class SceneManager {
         for (let i = 0; i < children.length; i++) {
             const entity = children[i];
             const clone = entity.cloneEntity(false /* recursive */);
-            // SceneManager.loadScripts(clone, entity);
-            SceneManager.loadScriptComponents(clone, entity);
+            SceneManager.loadScriptsFromComponents(clone, entity);
             SceneManager.copyChildren(clone, entity);
             toEntity.add(clone);
         }
     }
 
     // Add Scripts
-    static loadScriptComponents(toEntity, fromEntity) {
+    static loadScriptsFromComponents(toEntity, fromEntity) {
         if (!fromEntity.components) return;
         for (let i = 0; i < fromEntity.components.length; i++) {
             const component = fromEntity.components[i];
@@ -106,35 +105,6 @@ class SceneManager {
         }
     }
 
-    // Add Scripts
-    static loadScripts(toEntity, fromEntity) {
-        if (!Array.isArray(fromEntity.scripts)) return;
-        for (let i = 0; i < fromEntity.scripts.length; i++) {
-            // Find Script
-            const scriptUUID = fromEntity.scripts[i];
-            const script = AssetManager.getAsset(scriptUUID);
-            if (!script || !script.isScript) continue;
-            if (script.errors) {
-                console.warn(`Entity '${fromEntity.name}' has errors in script '${script.name}'. Script will not be loaded!`);
-                continue;
-            }
-            // Returns object holding script functions (with proper 'this' bound and access to globals)
-            const body = `${script.source} \n return ${scriptReturnString};`;
-            const buildFunctionObject = new Function(scriptParameters /* parameters */, body /* source */).bind(toEntity);
-            const functions = buildFunctionObject(SceneManager.app, SceneManager.app.renderer, SceneManager.scene, SceneManager.camera, /* functions provided by user... */);
-            // Add functions to event dispatch handler
-            for (let name in functions) {
-                if (APP_EVENTS[name] === undefined) {
-                    console.warn(`App: Event type not supported ('${name}')`);
-                    continue;
-                }
-                if (typeof functions[name] !== 'function') continue;
-                const callback = functions[name].bind(toEntity);
-                SceneManager.app.events[name].push(callback);
-            }
-        }
-    }
-
     static removeEntity() {
 
     }
@@ -142,7 +112,6 @@ class SceneManager {
     /********** SCENE */
 
     static loadScene(toScene, fromScene) {
-        SceneManager.loadScripts(toScene, fromScene);
         SceneManager.copyChildren(toScene, fromScene);
     }
 

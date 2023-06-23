@@ -33,9 +33,6 @@ class Entity3D extends Object3D {
         // Collections
         this.components = [];                   // geometry, material, audio, light, etc.
 
-        // Script(s)
-        this.scripts = [];                      // scripts
-
         // Flags
         this.setFlag(ENTITY_FLAGS.LOCKED, false);
 
@@ -318,11 +315,6 @@ class Entity3D extends Object3D {
             if (component.enabled !== true) clonedComponent.disable();
         }
 
-        // Copy Scripts
-        if (Array.isArray(source.scripts)) {
-            this.scripts = [...source.scripts];
-        }
-
         // Copy Children
         if (recursive === true) {
             const entities = source.getEntities();
@@ -401,14 +393,6 @@ class Entity3D extends Object3D {
         // Children
         this.loadChildren(json);
 
-        // Scripts
-        this.scripts = [];
-        if (Array.isArray(json.object.scripts)) {
-            for (let i = 0; i < json.object.scripts.length; i++) {
-                this.scripts.push(json.object.scripts[i]);
-            }
-        }
-
         // Matrix
         this.updateMatrix();
 
@@ -475,12 +459,6 @@ class Entity3D extends Object3D {
             for (let i = 0; i < childEntities.length; i++) {
                 json.object.entities.push(childEntities[i].toJSON());
             }
-        }
-
-        // Scripts
-        json.object.scripts = [];
-        for (let i = 0; i < this.scripts.length; i++) {
-            json.object.scripts.push(this.scripts[i]);
         }
 
         return json;

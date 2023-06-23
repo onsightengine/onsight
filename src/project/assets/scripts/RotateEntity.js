@@ -1,0 +1,29 @@
+import { Script } from '../Script.js';
+
+class RotateEntity extends Script {
+
+    constructor() {
+		super();
+
+		this.name = 'Rotate Entity';
+
+        this.source =
+`
+let rotateX = 0;
+let rotateY = 0;
+let rotateZ = 0;
+
+function update(event) {
+
+	this.rotation.x += (rotateX * (Math.PI / 180));
+    this.rotation.y += (rotateY * (Math.PI / 180));
+    this.rotation.z += (rotateZ * (Math.PI / 180));
+
+}
+`;
+
+    }
+
+}
+
+export { RotateEntity };

@@ -32,6 +32,7 @@ export { Script } from './project/assets/Script.js';
 // Core, Assets, Scripts
 export { CameraFollow } from './project/assets/scripts/CameraFollow.js';
 export { KeyControls } from './project/assets/scripts/KeyControls.js';
+export { RotateEntity } from './project/assets/scripts/RotateEntity.js';
 
 // Core, Scene3D
 export { Entity3D } from './project/scene3d/Entity3D.js';

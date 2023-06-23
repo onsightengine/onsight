@@ -18,10 +18,6 @@ import { System } from '../utils/System.js';
 //
 //  TYPE            DESCRIPTION                     DEFAULT             OPTIONS (DEFAULT)
 //
-//      -- FORMATTING --
-//  layout          FORMAT                          Used for formatting / lyout only, use with the following options:
-//                  format: 'divider'               Inserts horizontal rule
-//
 //      -- DATA TYPES --
 //  select          Dropdown                        null
 //
@@ -44,8 +40,18 @@ import { System } from '../utils/System.js';
 //      -- OBJECT TYPES --
 //  object          Data object                     {}
 //
+//      -- FORMATTING --
+//  layout          FORMAT                          Used for formatting / lyout only, use with the following options:
+//                  format: 'divider'               Inserts horizontal rule
+//
 
 /******************** OPTIONS ********************/
+//
+//  INSPECTOR OPTIONS
+//  hide            Hide in Inspector if any of these conditions are met
+//  alias           Override a variable name to have custom string shown in Inspector
+//  promode         Only Show when 'promode' is enabled
+//  rebuild         Change of this property will cause a rebuild of the Inspector ('style' always rebuilds)
 //
 //  DATA OPTIONS
 //  type            Must be provided, data type, see above
@@ -54,12 +60,6 @@ import { System } from '../utils/System.js';
 //  not             Do not include property if these conditions are met
 //  default         Default value of item if none provided
 //
-//  INSPECTOR OPTIONS
-//  hide            Hide in Inspector if any of these conditions are met
-//  alias           Override a variable name to have custom string shown in Inspector
-//  promode         Only Show when 'promode' is enabled
-//  rebuild         Change of this property will cause a rebuild of the Inspector ('style' always rebuilds)
-//
 //  NUMERICAL OPTIONS (can be array values for numArrays / variable)
 //  min             Minimum allowed value
 //  max             Maximum allowed value
@@ -67,6 +67,10 @@ import { System } from '../utils/System.js';
 //  precision       Decimal precision of value
 //  unit            Display unit of number type ('°', 'px', etc.) in Inspector
 //  label           Displays a decoration label for the number, i.e. 'X:' or 'H:'... Using this right aligns the input box!
+//
+//  SPECIAL STEP VALUES (Number / Int / Angle / Slider)
+//  'any'           Applies to Slider only. Totally smooth, slider can be any value
+//  'grid'          Align step to current editor 'grid' setting
 //
 //  VECTOR OPTIONS
 //  size            Length of array
@@ -77,10 +81,6 @@ import { System } from '../utils/System.js';
 //
 //  ASSET OPTIONS
 //  class           If left out, can be any asset in project. Otherwise specifies which asset type to use (geometry, texture, etc.)
-//
-//  SPECIAL STEP VALUES (Number / Int / Angle / Slider)
-//  'any'           Applies to Slider only. Totally smooth, slider can be any value
-//  'grid'          Align step to current editor 'grid' setting
 //
 
 const _registered = {};
@@ -140,6 +140,7 @@ class ComponentManager {
                         case 'asset':       property.default = null;            break;
                         case 'prefab':      property.default = null;            break;
                         case 'object':      property.default = {};              break;
+                        case 'layout':      property.default = undefined;       break;
                         default:
                             console.warn(`ComponentManager.register(): Unknown property type: '${property.type}'`);
                             property.default = null;

@@ -23,7 +23,7 @@ class Script {
         }
 
         // Save Data / Backend
-        this.backend = geometry;
+        this.backend = undefined;
         this.data = data;
     }
 
@@ -44,7 +44,7 @@ class Script {
 Script.config = {
     schema: {
 
-        asset: { type: 'asset', class: 'script', rebuild: true },
+        script: { type: 'asset', class: 'script', rebuild: true },
 
         divider: { type: 'layout', format: 'divider' },
 

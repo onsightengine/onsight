@@ -34,8 +34,7 @@ import { System } from '../utils/System.js';
 //  string          String / Multiline?             ''                  rows (1)
 //
 //      -- UUID TYPES --
-//  asset           Asset (asset.uuid)              null                class: (all) or (geometry, material, script, shape, texture), etc.
-//  prefab          Prefab (prefab.uuid)            null
+//  asset           Asset (asset.uuid)              null                class: (all) or (geometry, material, script, shape, texture, prefab)
 //
 //      -- OBJECT TYPES --
 //  object          Data object                     {}
@@ -138,7 +137,6 @@ class ComponentManager {
                         case 'color':       property.default = 0xffffff;        break;
                         case 'string':      property.default = '';              break;
                         case 'asset':       property.default = null;            break;
-                        case 'prefab':      property.default = null;            break;
                         case 'object':      property.default = {};              break;
                         case 'layout':      property.default = undefined;       break;
                         default:

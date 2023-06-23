@@ -4,7 +4,6 @@ import { Script } from './assets/Script.js';
 import { Strings } from '../utils/Strings.js';
 
 const _assets = {};
-const _prefabs = {};
 const _textureCache = {};
 const _textureLoader = new THREE.TextureLoader();
 
@@ -15,23 +14,25 @@ class AssetManager {
     static clear() {
         // Assets
         for (let uuid in _assets) {
-            AssetManager.removeAsset(_assets[uuid], true);
-        }
+            const asset = _assets[uuid];
 
-        //
-        // TODO: Clear Prefabs?
-        //
+            // Don't clear prefabs for now
+            if (!asset.isEntity) {
+                AssetManager.removeAsset(_assets[uuid], true);
+            }
+        }
     }
 
     /******************** ASSETS */
 
-    static checkAssetType(asset) {
+    static checkType(asset) {
         if (!asset) return undefined;
         if (asset.isBufferGeometry) return 'geometry';
         if (asset.type === 'Shape') return 'shape';
         if (asset.isMaterial) return 'material';
         if (asset.isScript) return 'script';
         if (asset.isTexture) return 'texture';
+        if (asset.isEntity || asset.isPrefab) return 'prefab';
         return 'asset';
     }
 
@@ -40,8 +41,10 @@ class AssetManager {
         const assetArray = (Array.isArray(assetOrArray)) ? assetOrArray : [ assetOrArray ];
         for (let i = 0; i < assetArray.length; i++) {
             let asset = assetArray[i];
+
             // Ensure asset has a name
             if (!asset.name || asset.name === '') asset.name = asset.constructor.name;
+
             // Force 'BufferGeometry' type (strip ExtrudeGeometry, TextGeometry, etc...)
             if (asset.isBufferGeometry && asset.constructor.name !== 'BufferGeometry') {
                 // // DEBUG: Show fancy geometry type
@@ -54,8 +57,7 @@ class AssetManager {
                 if (typeof asset.dispose === 'function') asset.dispose();
                 asset = bufferGeometry;
             }
-            // Mark entity as "Asset"
-            asset.isAsset = true;
+
             // Add Asset
             _assets[asset.uuid] = asset;
         }
@@ -66,12 +68,16 @@ class AssetManager {
         return _assets[uuid];
     }
 
-    /** Retrieve a collection of Assets by type */
-    static getLibrary(type) {
+    /** Retrieve a collection of Asset sub types by Category */
+    static getLibrary(type, category) {
         const library = [];
         for (const [uuid, asset] of Object.entries(_assets)) {
-            if (AssetManager.checkAssetType(asset) === type) {
-                library.push(asset);
+            if (AssetManager.checkType(asset) === type) {
+                if (!category) {
+                    library.push(asset);
+                } else if (asset.category && asset.category === category) {
+                    library.push(asset);
+                }
             }
         }
         return library;
@@ -93,54 +99,6 @@ class AssetManager {
                 // Dispose, Remove
                 if (dispose && typeof asset.dispose === 'function') asset.dispose();
                 delete _assets[asset.uuid];
-            }
-        }
-    }
-
-    /******************** PREFAB */
-
-    static addPrefab(prefabOrArray) {
-        if (!prefabOrArray) return;
-        const prefabArray = (Array.isArray(prefabOrArray)) ? prefabOrArray : [ prefabOrArray ];
-        for (let i = 0; i < prefabArray.length; i++) {
-            const prefab = prefabArray[i];
-            // Ensure prefab has a name
-            if (!prefab.name || prefab.name === '') prefab.name = prefab.constructor.name;
-            // Mark entity as "Prefab"
-            prefab.isPrefab = true;
-            // Add prefab
-            _prefabs[prefab.uuid] = prefab;
-        }
-    }
-
-    static getPrefab(uuid) {
-        if (uuid && uuid.uuid) uuid = uuid.uuid;
-        return _prefabs[uuid];
-    }
-
-    /** Retrieve a collection of Prefabs by category */
-    static getCategory(category) {
-        const library = [];
-        for (const [uuid, prefab] of Object.entries(_prefabs)) {
-            if (!category) {
-                library.push(prefab);
-            } else if (prefab.category && prefab.category === category) {
-                library.push(prefab);
-            }
-        }
-        return library;
-    }
-
-    static removePrefab(prefabOrArray, dispose = true) {
-        if (!prefabOrArray) return;
-        const prefabArray = (Array.isArray(prefabOrArray)) ? prefabOrArray : [ prefabOrArray ];
-        for (let i = 0; i < prefabArray.length; i++) {
-            const prefab = prefabArray[i];
-            // Remove if present
-            if (_prefabs[prefab.uuid]) {
-                // Dispose, Remove
-                if (dispose && typeof prefab.dispose === 'function') prefab.dispose();
-                delete _prefabs[prefab.uuid];
             }
         }
     }
@@ -264,8 +222,13 @@ class AssetManager {
             materials: {},
         };
 
+        // Prefabs
+        //
+        // TODO!!!
+        //
+
         // Scripts
-        const scripts = AssetManager.getLibrary('script');
+        const scripts = AssetManager.getLibrary('asset', 'script');
         for (let i = 0; i < scripts.length; i++) {
             const script = scripts[i];
             if (!script.uuid) continue;
@@ -274,7 +237,7 @@ class AssetManager {
         }
 
         // Geometries
-        const geometries = AssetManager.getLibrary('geometry');
+        const geometries = AssetManager.getLibrary('asset', 'geometry');
         for (let i = 0; i < geometries.length; i++) {
             const geometry = geometries[i];
             if (!geometry.uuid) continue;
@@ -293,7 +256,7 @@ class AssetManager {
         }
 
         // Materials
-        const materials = AssetManager.getLibrary('material');
+        const materials = AssetManager.getLibrary('asset', 'material');
         for (let i = 0; i < materials.length; i++) {
             const material = materials[i];
             if (!material.uuid) continue;
@@ -302,7 +265,7 @@ class AssetManager {
         }
 
         // Shapes
-        const shapes = AssetManager.getLibrary('shape');
+        const shapes = AssetManager.getLibrary('asset', 'shape');
         for (let i = 0; i < shapes.length; i++) {
             const shape = shapes[i];
             if (!shape.uuid) continue;
@@ -311,7 +274,7 @@ class AssetManager {
         }
 
         // Textures
-        const textures = AssetManager.getLibrary('texture');
+        const textures = AssetManager.getLibrary('asset', 'texture');
         for (let i = 0; i < textures.length; i++) {
             const texture = textures[i];
             if (!texture.uuid) continue;

@@ -42,3 +42,10 @@ export const SCRIPT_FORMAT = {
     JAVASCRIPT:     'js',
     PYTHON:         'python',
 }
+
+export const REBUILD_TYPES = [
+    'geometry',
+    'material',
+    'shape',
+    'texture',
+]

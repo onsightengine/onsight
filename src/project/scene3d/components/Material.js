@@ -46,9 +46,9 @@ class Material {
                 parameters[key] = value;
 
                 // Check if wants map (texture)
-                let checkType = Material.config.schema[key];
-                if (System.isIterable(checkType) && checkType.length > 0) checkType = checkType[0];
-                if (value && checkType && checkType.type === 'asset') {
+                let variable = Material.config.schema[key];
+                if (System.isIterable(variable) && variable.length > 0) variable = variable[0];
+                if (value && variable && variable.type === 'asset') {
 
                     // Make sure texture is in AssetManager
                     if (value.isTexture) {

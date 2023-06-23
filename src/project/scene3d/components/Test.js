@@ -45,11 +45,14 @@ Test.config = {
         divider: { type: 'layout', format: 'divider' },
 
         asset: { type: 'asset', if: { style: [ 'asset' ] } },
+        assetDivider: { type: 'layout', format: 'divider' },
         geometry: { type: 'asset', class: 'geometry', if: { style: [ 'asset' ] } },
         material: { type: 'asset', class: 'material', if: { style: [ 'asset' ] } },
         script: { type: 'asset', class: 'script', if: { style: [ 'asset' ] } },
         shape: { type: 'asset', class: 'shape', if: { style: [ 'asset' ] } },
         texture: { type: 'asset', class: 'texture', if: { style: [ 'asset' ] } },
+        prefabDivider: { type: 'layout', format: 'divider' },
+        prefab: { type: 'asset', class: 'prefab', if: { style: [ 'asset' ] } },
 
         select: { type: 'select', default: 'Zebra', select: exampleSelect, if: { style: [ 'basic' ] } },
         number: { type: 'number', default: 0.05, min: 0, max: 1, label: 'test', if: { style: [ 'basic' ] } },

@@ -52,7 +52,7 @@ Script.config = {
 
     },
     icon: ``,
-    color: '#6E6FFD',
+    color: '#090B11',
     width: '40%',
     multiple: true,
     dependencies: [],

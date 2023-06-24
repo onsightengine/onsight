@@ -9,6 +9,7 @@ class Script {
         this.type = 'Script';
         this.uuid = Maths.uuid();
         this.format = format;
+        this.category = null;
 
         // Properties
         this.name ='New Script';
@@ -43,6 +44,8 @@ class Script {
 
     fromJSON(json) {
         this.uuid = json.uuid;
+        this.format = json.format;
+        this.category = json.category;
         this.name = json.name;
         this.line = json.line;
         this.char = json.char;

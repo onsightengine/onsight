@@ -11,7 +11,7 @@ class RotateEntity extends Script {
 `
 let rotateX = 0;
 let rotateY = 0;
-let rotateZ = 0;
+let rotateZ = -1;
 
 function update(event) {
 

@@ -161,6 +161,7 @@ class ComponentManager {
 
                 // Properties
                 this.enabled = true;
+                this.expanded = true;
                 this.tag = '';
                 this.type = type;
 
@@ -206,6 +207,7 @@ class ComponentManager {
                 data.base = {
                     isComponent:    true,
                     enabled:        this.enabled,
+                    expanded:       this.expanded,
                     tag:            this.tag,
                     type:           this.type,
                 };

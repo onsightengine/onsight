@@ -19,7 +19,7 @@ class Script {
         if (format === SCRIPT_FORMAT.JAVASCRIPT) {
             this.source =
                 '//\n' +
-                '// Globals:            this (entity), app, renderer, scene, camera\n' +
+                '// Globals:            entity ("this" in events), app, renderer, scene, camera\n' +
                 '// Lifecycle Events:   init, update, destroy\n' +
                 '// Input Events:       keydown, keyup, pointerdown, pointerup, pointermove\n' +
                 '//\n' +

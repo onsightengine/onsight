@@ -31,6 +31,7 @@ export { Script } from './project/assets/Script.js';
 
 // Core, Assets, Scripts
 export { CameraFollow } from './project/assets/scripts/CameraFollow.js';
+export { ColorChange } from './project/assets/scripts/ColorChange.js';
 export { KeyControls } from './project/assets/scripts/KeyControls.js';
 export { RotateEntity } from './project/assets/scripts/RotateEntity.js';
 

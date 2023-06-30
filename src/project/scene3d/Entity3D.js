@@ -100,6 +100,21 @@ class Entity3D extends Object3D {
         if (this.enabled) component.enable();
     }
 
+    updateComponent(type, data = {}, index = 0) {
+        const component = this.getComponentsWithProperties('type', type)[index];
+        if (!component || !component.isComponent) return;
+        component.update(data);
+    }
+
+    replaceComponent(type, data = {}, index = 0) {
+        const component = this.getComponentsWithProperties('type', type)[index];
+        if (!component || !component.isComponent) return;
+        ComponentManager.sanitizeData(type, data);
+        component.disable();
+        component.init(data);
+        component.enable();
+    }
+
     /** Get component by type (string, required) and tag (string, optional - in case of multiple components with type) */
     getComponent(type, tag /* optional */) {
         if (tag === undefined) return this.getComponentByProperty('type', type);

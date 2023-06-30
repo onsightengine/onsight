@@ -193,6 +193,15 @@ class ComponentManager {
                 super.enable();
             }
 
+            update(data) {
+                const newData = this.data ?? {};
+                Object.assign(newData, data);
+                ComponentManager.sanitizeData(this.type, newData);
+                this.disable();
+                this.init(newData);
+                this.enable();
+            }
+
             // Returns stored default schema (saved when Component was registered). Pass in starting data by key, value pair
             defaultData(/* key, value, key, value, etc. */) {
                 const data = {};
@@ -284,6 +293,7 @@ class ComponentManager {
 
     /** Build default data of 'type', remove any properties that should not be included */
     static sanitizeData(type, data) {
+        if (!data || typeof data !== 'object') data = {};
 
         const ComponentClass = ComponentManager.registered(type);
         if (!ComponentClass || !ComponentClass.config || !ComponentClass.config.schema) return;

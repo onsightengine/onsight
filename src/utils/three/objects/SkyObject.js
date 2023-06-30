@@ -17,7 +17,7 @@ class SkyObject extends THREE.Mesh {
             uniforms:       THREE.UniformsUtils.clone(shader.uniforms),
             side:           THREE.BackSide,
             depthTest:      false,
-            depthWrite:     false
+            depthWrite:     false,
         }));
 
         this.isSky = true;

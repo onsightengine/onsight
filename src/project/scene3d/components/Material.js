@@ -195,6 +195,10 @@ class Material {
         if (this.entity && this.mesh) this.entity.add(this.mesh);
     }
 
+    three() {
+        return (this.backend && this.backend.isMaterial) ? this.backend.clone() : undefined;
+    }
+
 }
 
 /******************** EXTEND MATERIAL ********************/

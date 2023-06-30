@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { CameraUtils } from './CameraUtils.js';
 import { Maths } from '../Maths.js';
+import { Renderer3D } from '../../Onsight.js';
 
 // offscreenRenderer()          Offscreen renderer to be shared across the app
 // renderGeometryToCanvas()     Render geometry, material, or both
@@ -13,7 +14,7 @@ class RenderUtils {
 
     static offscreenRenderer(width, height) {
         if (_renderer === undefined) {
-            _renderer = new THREE.WebGLRenderer({ alpha: true /* transparent background */});
+            _renderer = new Renderer3D({ alpha: true /* transparent background */});
             _renderer.setClearColor(0xffffff, 0);
             _renderer.setSize(512, 512, false);
             _renderer.outputColorSpace = THREE.LinearSRGBColorSpace; // NOTE: three 151->152

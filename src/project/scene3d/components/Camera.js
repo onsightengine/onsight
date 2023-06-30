@@ -99,6 +99,10 @@ class Camera {
         }
     }
 
+    three() {
+        return this.backend;
+    }
+
 }
 
 Camera.config = {

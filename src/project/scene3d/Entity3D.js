@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { ENTITY_FLAGS } from '../../constants.js';
 import { ComponentManager } from '../ComponentManager.js';
 import { EntityUtils } from '../../utils/three/EntityUtils.js';
-import { Object3D } from './Object3D.js';
 import { Strings } from '../../utils/Strings.js';
 
 // FLAGS
@@ -11,10 +10,30 @@ import { Strings } from '../../utils/Strings.js';
 // INTERNAL
 //  Object3D.userData.entityId      Used for transform controls to link a transform clone with original entity
 
-class Entity3D extends Object3D {
+const _m1 = new THREE.Matrix4();
+const _camPosition = new THREE.Vector3();
+const _camQuaternion = new THREE.Quaternion();
+const _camScale = new THREE.Vector3();
+const _lookQuaternion = new THREE.Quaternion();
+const _lookUpVector = new THREE.Vector3();
+const _objPosition = new THREE.Vector3();
+const _objScale = new THREE.Vector3();
+const _objQuaternion = new THREE.Quaternion();
+const _parentQuaternion = new THREE.Quaternion();
+const _parentQuaternionInv = new THREE.Quaternion();
+const _rotationDirection = new THREE.Euler();
+const _rotationQuaternion = new THREE.Quaternion();
+const _rotationQuaternionInv = new THREE.Quaternion();
+const _worldPosition = new THREE.Vector3();
+const _worldQuaternion = new THREE.Quaternion();
+const _worldScale = new THREE.Vector3();
+const _worldRotation = new THREE.Euler();
+
+class Entity3D extends THREE.Object3D {
 
     constructor(name = '') {
         super();
+        const self = this;
 
         // Prototype
         this.isEntity = true;
@@ -28,7 +47,7 @@ class Entity3D extends Object3D {
         this.enabled = true;
         this.castShadow = true;                 // inherited from THREE.Object3D
         this.receiveShadow = true;              // inherited from THREE.Object3D
-        this.lookAtCamera = false;              // implemented in ONE.Object3D.updateMatrix overload
+        this.lookAtCamera = false;              // implemented in updateMatrix() overload
 
         // Collections
         this.components = [];                   // geometry, material, audio, light, etc.
@@ -52,6 +71,115 @@ class Entity3D extends Object3D {
     setFlag(flag, value) {
         this.userData[flag] = value;
         return this;
+    }
+
+    /******************** UPDATE MATRIX */
+
+    updateMatrix() {
+        // Disable callbacks
+        const onRotationChange = this.rotation._onChangeCallback;
+        const onQuaternionChange = this.rotation._onChangeCallback;
+        this.rotation._onChange(() => {});
+        this.quaternion._onChange(() => {});
+
+        // Should look at camera?
+        const camera = window.activeCamera;
+        let lookAtCamera = Boolean(this.lookAtCamera && camera && !this.isScene);
+        if (lookAtCamera && this.parent && this.parent.isObject3D) {
+            this.traverseAncestors((parent) => {
+                if (parent.lookAtCamera) lookAtCamera = false;
+            });
+        }
+
+        // Use 'rotation' Property
+        if (!lookAtCamera) {
+            this.quaternion.setFromEuler(this.rotation, false);
+
+        // Look at Camera
+        } else {
+
+            // Subtract parent rotation
+            if (this.parent && this.parent.isObject3D) {
+                this.parent.getWorldQuaternion(_parentQuaternion, false /* ignoreBillboard */);
+                _parentQuaternionInv.copy(_parentQuaternion).invert();
+                this.quaternion.copy(_parentQuaternionInv);
+            } else {
+                this.quaternion.identity();
+            }
+
+            // // Match Camera Plane
+            // if (camera.isOrthographicCamera) {
+
+                // Gather Transform Data
+                camera.matrixWorld.decompose(_camPosition, _camQuaternion, _camScale);
+                _rotationQuaternion.setFromEuler(this.rotation, false);
+
+                // Apply Rotations
+                this.quaternion.multiply(_camQuaternion);                       // Start with rotate to camera
+                this.quaternion.multiply(_rotationQuaternion);                  // Add in 'rotation' property
+
+            // // Look Directly at Camera
+            // } else if (camera.isPerspectiveCamera) {
+            //
+            //      // Gather Transform Data
+            //      camera.matrixWorld.decompose(_camPosition, _camQuaternion, _camScale);
+            //      this.matrixWorld.decompose(_worldPosition, _worldQuaternion, _worldScale);
+            //      _rotationQuaternion.setFromEuler(this.rotation, false);
+            //
+            //     // // OPTION 1: Look at Camera
+            //     _lookUpVector.copy(camera.up).applyQuaternion(_camQuaternion);  // Rotate up vector by cam rotation
+            //     _m1.lookAt(_camPosition, _worldPosition, _lookUpVector);        // Create look at matrix
+            //     _lookQuaternion.setFromRotationMatrix(_m1);
+            //
+            //     // // OPTION 2: Only 'Y' Axis
+            //     // _rotationDirection.set(0, 0, 0);
+            //     // _rotationDirection.y = Math.atan2((_camPosition.x - _worldPosition.x), (_camPosition.z - _worldPosition.z));
+            //     // _lookQuaternion.setFromEuler(_rotationDirection, false);
+            //
+            //     // Apply Rotations
+            //     this.quaternion.copy(_lookQuaternion);                          // Start with rotate to camera
+            //     this.quaternion.multiply(_rotationQuaternion);                  // Add in 'rotation' property
+            //
+            // }
+        }
+
+        ///// ORIGINAL (same as THREE.Object3D.updateMatrix())
+        this.matrix.compose(this.position, this.quaternion, this.scale);
+        this.matrixWorldNeedsUpdate = true;
+        /////
+
+        // Restore callbacks
+        this.rotation._onChange(onRotationChange);
+        this.quaternion._onChange(onQuaternionChange);
+    }
+
+    /** Extracts World Quaternion without rotating to camera, good for Viewport Transform Group! :) */
+    getWorldQuaternion(targetQuaternion, ignoreBillboard = true) {
+        let beforeBillboard = this.lookAtCamera;
+        if (ignoreBillboard && beforeBillboard) {
+            this.lookAtCamera = false;
+        }
+        this.updateWorldMatrix(true, false);
+        this.matrixWorld.decompose(_objPosition, targetQuaternion, _objScale);
+        if (ignoreBillboard && beforeBillboard) {
+            this.lookAtCamera = true;
+            this.updateWorldMatrix(true, false);
+        }
+        return targetQuaternion;
+    }
+
+    /** Custom replacement for THREE.Object3D.attach() that accounts for Entity3D.lookAtCamera */
+
+    safeAttach(object) {
+        if (!object || !object.isObject3D) return;
+        object.getWorldQuaternion(_worldQuaternion);
+        object.getWorldScale(_worldScale);
+        object.getWorldPosition(_worldPosition);
+        object.removeFromParent();
+        object.rotation.copy(_worldRotation.setFromQuaternion(_worldQuaternion, undefined, false));
+        object.scale.copy(_worldScale);
+        object.position.copy(_worldPosition);
+        this.attach(object);
     }
 
     /******************** COMPONENTS */
@@ -291,17 +419,42 @@ class Entity3D extends Object3D {
 
     /******************** COPY / CLONE */
 
+    clone(recursive) {
+		return new this.constructor().copy(this, recursive);
+	}
+
+    copy(source, recursive = true) {
+        // THREE.Object3D.copy()
+        super.copy(source, false /* recursive */);
+
+        // Override copy of transform, update 'matrix'
+        this.position.copy(source.position);
+		this.rotation.copy(source.rotation);
+		this.scale.copy(source.scale);
+        this.lookAtCamera = source.lookAtCamera;
+        this.updateMatrix();
+
+        // Copy Children
+        if (recursive) {
+			for (let i = 0; i < source.children.length; i++) {
+                const clone = source.children[i].clone();
+				this.add(clone);
+			}
+		}
+
+        return this;
+    }
+
     cloneEntity(recursive = true) {
         return new this.constructor().copyEntity(this, recursive);
     }
 
     copyEntity(source, recursive = true) {
-
         // Remove Existing Children / Components
         this.dispose();
 
-        // Backend ONE.Object3D.copy()
-        super.copy(source, false /* recursive */);
+        // Standard Object3D Copy
+        this.copy(source, false /* recursive */);
 
         // Copy Properties, Basic
         this.name = source.name;

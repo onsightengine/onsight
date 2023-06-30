@@ -36,8 +36,9 @@ class SceneManager {
                 entity.traverseComponents((component) => {
                     if (component.type === 'camera') {
                         if (!camera) {
-                            camera = component.backend.clone();
-                            component.backend.getWorldPosition(_position);
+                            const componentCamera = component.three();
+                            camera = componentCamera.clone();
+                            componentCamera.getWorldPosition(_position);
                             camera.position.copy(_position);
                         }
                     }

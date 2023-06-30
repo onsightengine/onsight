@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { Object3D } from '../Object3D.js';
 import { AssetManager } from '../../AssetManager.js';
 import { ComponentManager } from '../../ComponentManager.js';
 
@@ -22,7 +21,7 @@ class Sprite {
         }
 
         // Generate Backend
-        const lookAtCamera = new Object3D();
+        const lookAtCamera = new THREE.Object3D();
         lookAtCamera.lookAtCamera = true;
         this.#material = new THREE.SpriteMaterial({ map: map, color: color });
         lookAtCamera.add(new THREE.Sprite(this.#material));
@@ -43,6 +42,10 @@ class Sprite {
 
     disable() {
         if (this.entity && this.backend) this.entity.remove(this.backend);
+    }
+
+    three() {
+        return this.backend;
     }
 
 }

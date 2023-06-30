@@ -9,7 +9,6 @@ import { System } from '../System.js';
 // computeBounds()          Finds bounding box of an object or array of objects
 // computeCenter()          Finds center point of an object or array of objects
 // containsObject()         Checks array to see if it has an object (by Object3D.uuid)
-// copyLocalTransform()     Copies local transform from one object to another
 // copyWorldTransform()     Copies world transform from one object to another
 // countGeometry()          Counts total geometris in an object or array of objects
 // flattenGroup()           Puts an object's children into parent, deletes original containing object
@@ -139,14 +138,6 @@ class ObjectUtils {
             }
         }
         return false;
-    }
-
-    /** Copies local transform from one object to another */
-    static copyLocalTransform(source, target, updateMatrix = true) {
-        source.updateMatrix();
-        source.matrix.decompose(target.position, _tempQuaternion, target.scale);
-        target.rotation.setFromQuaternion(_tempQuaternion, undefined, false);
-        if (updateMatrix) target.updateMatrix();
     }
 
     /** Copies world transform from one object to another */

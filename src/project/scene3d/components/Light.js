@@ -99,6 +99,10 @@ class Light {
         if (this.entity && this.backend) this.entity.remove(this.backend);
     }
 
+    three() {
+        return this.backend;
+    }
+
 }
 
 Light.config = {

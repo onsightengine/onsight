@@ -4,6 +4,7 @@ import { AssetManager } from '../project/AssetManager.js';
 import { CameraUtils } from '../utils/three/CameraUtils.js';
 import { ObjectUtils } from '../utils/three/ObjectUtils.js';
 import { Project } from '../project/Project.js';
+import { Renderer3D } from './Renderer3D.js';
 import { Scene3D } from '../project/scene3d/Scene3D.js';
 import { SceneManager } from './SceneManager.js';
 import { System } from '../utils/System.js';
@@ -26,7 +27,7 @@ class App {
         this.project = new Project();
 
         // Renderer
-        this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.renderer = new Renderer3D({ antialias: true });
         this.renderer.setPixelRatio(1); //window.devicePixelRatio;
         this.renderer.shadowMap.enabled = true;
         this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace; // NOTE: three 151->152
@@ -86,7 +87,6 @@ class App {
             console.error((e.message || e), (e.stack || ''));
         }
 
-        window.activeCamera = SceneManager.camera;
         SceneManager.app.renderer.render(SceneManager.scene, SceneManager.camera);
 
         // Screenshot

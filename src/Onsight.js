@@ -18,6 +18,8 @@ export { CAMERA_SCALE, CAMERA_START_DISTANCE, CAMERA_START_HEIGHT } from './util
 // App
 export { App } from './app/App.js';
 export { EntityPool } from './app/EntityPool.js';
+export { Renderer3D } from './app/Renderer3D.js';
+export { SceneManager } from './app/SceneManager.js'
 
 /******************** CLASSES - Project  ********************/
 
@@ -37,7 +39,6 @@ export { RotateEntity } from './project/assets/scripts/RotateEntity.js';
 
 // Core, Scene3D
 export { Entity3D } from './project/scene3d/Entity3D.js';
-export { Object3D } from './project/scene3d/Object3D.js';
 export { Scene3D } from './project/scene3d/Scene3D.js';
 export { World3D } from './project/scene3d/World3D.js';
 

@@ -271,7 +271,7 @@ class Geometry {
     }
 
     three() {
-        return (this.backend && this.backend.isBufferGeometry) ? this.backend.clone() : undefined;
+        return this.backend;
     }
 
 }

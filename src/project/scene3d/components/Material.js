@@ -196,7 +196,7 @@ class Material {
     }
 
     three() {
-        return (this.backend && this.backend.isMaterial) ? this.backend.clone() : undefined;
+        return this.backend;
     }
 
 }

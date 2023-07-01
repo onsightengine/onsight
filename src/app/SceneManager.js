@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { APP_EVENTS } from '../constants.js';
 import { AssetManager } from '../project/AssetManager.js';
 import { CameraUtils } from '../utils/three/CameraUtils.js';
+import { EntityUtils } from '../utils/three/EntityUtils.js';
 import { ObjectUtils } from '../utils/three/ObjectUtils.js';
 
 // Script Functions
@@ -31,7 +32,7 @@ class SceneManager {
     static cameraFromScene(scene) {
         scene = scene ?? SceneManager.scene;
         // Look for Camera Component
-        let component = ONE.EntityUtils.findCameraComponent(scene);
+        let component = EntityUtils.findCameraComponent(scene);
         if (component) {
             const componentCamera = component.three();
             if (componentCamera) {

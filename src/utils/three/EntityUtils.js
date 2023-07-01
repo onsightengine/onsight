@@ -109,10 +109,10 @@ class EntityUtils {
 
     /** Returns parent most entity that is not a Scene */
     static parentEntity(entity, immediateOnly = false) {
-        while (entity && entity.parent && (entity.parent.isScene !== true)) {
+        while (entity && entity.parent && !entity.parent.isScene) {
             entity = entity.parent;
             if (immediateOnly && entity.isEntity) {
-                if (entity.userData && entity.userData.flagIgnore === true) {
+                if (entity.userData && entity.userData.flagIgnore) {
                     // IGNORE
                 } else {
                     return entity;

@@ -22,21 +22,9 @@ class Script {
 
         }
 
-        // Save Data / Backend
+        // Save Backend / Data
         this.backend = undefined;
         this.data = data;
-    }
-
-    dispose() {
-
-    }
-
-    enable() {
-
-    }
-
-    disable() {
-
     }
 
 }

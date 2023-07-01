@@ -55,7 +55,7 @@ class Camera {
             // console.log('Error with camera!');
         }
 
-        // Save Data / Backend
+        // Save Backend / Data
         this.backend = camera;
         this.data = data;
     }
@@ -64,11 +64,11 @@ class Camera {
 
     }
 
-    enable() {
+    attach() {
         if (this.entity && this.backend) this.entity.add(this.backend);
     }
 
-    disable() {
+    detach() {
         if (this.entity && this.backend) this.entity.remove(this.backend);
     }
 

@@ -17,11 +17,11 @@ class Rigidbody {
 
     }
 
-    enable() {
+    attach() {
 
     }
 
-    disable() {
+    detach() {
 
     }
 

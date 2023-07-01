@@ -10,11 +10,11 @@ class Project {
 
         // Prototype
         this.isProject = true;
+        this.type = 'Project';
 
         // Members
         this.name = name;
         this.uuid = Maths.uuid();
-        this.type = 'Project';
 
         // Collections
         this.worlds = {};
@@ -174,20 +174,22 @@ class Project {
         const meta = {};
         const json = AssetManager.toJSON(meta);
 
-        // Project Properties
+        // Meta Data
         json.metadata = {
             type: 'Onsight',
             version: VERSION,
             generator: 'Onsight.Project.toJSON',
         };
+
+        // Project Properties
         json.object = {
-            name: this.name,
             type: this.type,
+            name: this.name,
             uuid: this.uuid,
         };
-        json.worlds = [];
 
-        // Add Worlds
+        // Worlds
+        json.worlds = [];
         for (const uuid in this.worlds) {
             const world = this.worlds[uuid];
             json.worlds.push(world.toJSON());

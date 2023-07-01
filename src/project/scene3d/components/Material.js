@@ -123,7 +123,7 @@ class Material {
             // console.log('Error with material!');
         }
 
-        // Save Data / Backend
+        // Save Backend / Data
         this.backend = material;
         this.data = data;
     }
@@ -132,11 +132,11 @@ class Material {
 
     }
 
-    enable() {
+    attach() {
         this.refreshMesh();
     }
 
-    disable() {
+    detach() {
         this.refreshMesh();
     }
 
@@ -147,7 +147,7 @@ class Material {
             ObjectUtils.clearObject(this.mesh);
             this.mesh = undefined;
         }
-        if (this.enabled !== true) return;
+        if (!this.attached) return;
 
         // Get material and geometry (if present)
         if (!this.backend || !this.backend.isMaterial) return;
@@ -156,7 +156,7 @@ class Material {
 
         const geometryComponent = this.entity.getComponent('geometry');
         if (!geometryComponent) return;
-        if (!geometryComponent.enabled) return;
+        if (!geometryComponent.attached) return;
         const geometry = geometryComponent.backend;
         if (!geometry) return;
 
@@ -190,8 +190,7 @@ class Material {
             }
         }
 
-        // NOTE: Adding backend mesh into Project as Object3D only.
-        //        Mesh will not be exported, shown in Outliner, etc.
+        // NOTE: Adding mesh into Project as Object3D only (mesh will not be exported, shown in Outliner, etc.)
         if (this.entity && this.mesh) this.entity.add(this.mesh);
     }
 

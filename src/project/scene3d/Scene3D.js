@@ -5,14 +5,11 @@ import { Entity3D } from './Entity3D.js';
 class Scene3D extends Entity3D {
 
     constructor(name = 'Start Scene') {
-        super();
+        super(name);
 
         // Prototype
         this.isScene = true;                // generic type (Scene), and also for THREE compatibility
         this.isScene3D = true;
-
-        // Properties, Basic
-        this.name = name;
         this.type = 'Scene3D';
 
         // Properties, More (needed by THREE)
@@ -26,7 +23,7 @@ class Scene3D extends Entity3D {
         this.start = 0;
         this.end = -1;
 
-        // Shadow Plane (added as Object3D, NOT saved)
+        // Shadow Plane (added as Object3D, NOT saved to JSON)
         this.shadowPlane = new THREE.Mesh(
             new THREE.PlaneGeometry(100000, 100000),
             new THREE.ShadowMaterial({ color: 0, transparent: true, opacity: 0.2, depthWrite: false })
@@ -44,7 +41,7 @@ class Scene3D extends Entity3D {
     /******************** Copy */
 
     copyEntity(source, recursive = true) {
-        // Backend ONE.Entity3D.copy()
+        // Entity3D.copy()
         super.copyEntity(source, recursive);
 
         // Scene3D Properties

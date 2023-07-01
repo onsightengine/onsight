@@ -10,11 +10,13 @@ class Mesh {
     //
 
     init(data) {
+        // Generate Backend
+        const mesh = (data.isObject3D) ? data : new THREE.Object3D();
+        mesh.traverse((child) => { child.castShadow = this.entity.castShadow; });
+        mesh.traverse((child) => { child.receiveShadow = this.entity.receiveShadow; });
 
         // Save Data / Backend
-        this.backend = (data.isObject3D) ? data : new THREE.Object3D();
-        this.backend.traverse((child) => { child.castShadow = this.entity.castShadow; });
-        this.backend.traverse((child) => { child.receiveShadow = this.entity.receiveShadow; });
+        this.backed = mesh;
         this.data = data;
     }
 
@@ -22,11 +24,11 @@ class Mesh {
 
     }
 
-    enable() {
+    attach() {
         if (this.entity && this.backend) this.entity.add(this.backend);
     }
 
-    disable() {
+    detach() {
         if (this.entity && this.backend) this.entity.remove(this.backend);
     }
 

@@ -94,7 +94,13 @@ class EntityUtils {
     static parentEntity(entity, immediateOnly = false) {
         while (entity && entity.parent && (entity.parent.isScene !== true)) {
             entity = entity.parent;
-            if (immediateOnly && entity.isEntity) return entity;
+            if (immediateOnly && entity.isEntity) {
+                if (entity.userData && entity.userData.flagIgnore === true) {
+                    // IGNORE
+                } else {
+                    return entity;
+                }
+            }
         }
         return entity;
     }

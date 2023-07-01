@@ -5,14 +5,11 @@ import { Scene3D } from './Scene3D.js';
 class World3D extends Entity3D {
 
     constructor(name = 'World 1') {
-        super();
+        super(name);
 
         // Prototype
         this.isWorld = true;
         this.isWorld3D = true;
-
-        // Properties, Basic
-        this.name = name;
         this.type = 'World3D';
 
         // Properties, Nodes
@@ -122,14 +119,16 @@ class World3D extends Entity3D {
     /******************** Copy */
 
     copyEntity(source, recursive = true) {
-        // Backend ONE.Entity3D.copy()
+        // Entity3D.copy()
         super.copyEntity(source, recursive);
 
         // World3D Properties
         this.xPos = source.xPos;
         this.yPos = source.yPos;
 
-        // TODO: Acitve Scene?
+        //
+        // TODO: Active Scene?
+        //
 
         return this;
     }

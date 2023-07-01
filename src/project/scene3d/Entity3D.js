@@ -33,20 +33,15 @@ class Entity3D extends THREE.Object3D {
 
     constructor(name = '') {
         super();
-        const self = this;
 
         // Prototype
         this.isEntity = true;
         this.isEntity3D = true;
+        this.type = 'Entity3D';
 
         // Properties, Basic
         this.name = name;
-        this.type = 'Entity3D';
-
-        // Properties, More
-        this.enabled = true;
-        this.castShadow = true;                 // inherited from THREE.Object3D
-        this.receiveShadow = true;              // inherited from THREE.Object3D
+        this.locked = false;                    // locked in Editor (do not allow selection, deletion, duplication, etc.)
         this.lookAtCamera = false;              // implemented in updateMatrix() overload
 
         // Collections
@@ -54,6 +49,10 @@ class Entity3D extends THREE.Object3D {
 
         // Flags
         this.setFlag(ENTITY_FLAGS.LOCKED, false);
+
+        // Enable Shadows by Default
+        this.castShadow = true;                 // inherited from THREE.Object3D
+        this.receiveShadow = true;              // inherited from THREE.Object3D
 
     } // end ctor
 
@@ -120,26 +119,26 @@ class Entity3D extends THREE.Object3D {
 
             // // Look Directly at Camera
             // } else if (camera.isPerspectiveCamera) {
-            //
-            //      // Gather Transform Data
-            //      camera.matrixWorld.decompose(_camPosition, _camQuaternion, _camScale);
-            //      this.matrixWorld.decompose(_worldPosition, _worldQuaternion, _worldScale);
-            //      _rotationQuaternion.setFromEuler(this.rotation, false);
-            //
+
+            //     // Gather Transform Data
+            //     camera.matrixWorld.decompose(_camPosition, _camQuaternion, _camScale);
+            //     this.matrixWorld.decompose(_worldPosition, _worldQuaternion, _worldScale);
+            //     _rotationQuaternion.setFromEuler(this.rotation, false);
+
             //     // // OPTION 1: Look at Camera
             //     _lookUpVector.copy(camera.up).applyQuaternion(_camQuaternion);  // Rotate up vector by cam rotation
             //     _m1.lookAt(_camPosition, _worldPosition, _lookUpVector);        // Create look at matrix
             //     _lookQuaternion.setFromRotationMatrix(_m1);
-            //
+
             //     // // OPTION 2: Only 'Y' Axis
             //     // _rotationDirection.set(0, 0, 0);
             //     // _rotationDirection.y = Math.atan2((_camPosition.x - _worldPosition.x), (_camPosition.z - _worldPosition.z));
             //     // _lookQuaternion.setFromEuler(_rotationDirection, false);
-            //
+
             //     // Apply Rotations
             //     this.quaternion.copy(_lookQuaternion);                          // Start with rotate to camera
             //     this.quaternion.multiply(_rotationQuaternion);                  // Add in 'rotation' property
-            //
+
             // }
         }
 
@@ -192,15 +191,11 @@ class Entity3D extends THREE.Object3D {
         // Config
         const config = ComponentClass.config;
 
-        // Create new component if 'multiple' allowed, or doesn't have component
+        // Create new component if 'multiple' allowed (or if doesn't already have component)
         let component = this.getComponent(type);
-        if (ComponentClass.config.multiple || component === undefined) {
+        if (!component || ComponentClass.config.multiple) {
             component = new ComponentClass();
             this.components.push(component);
-
-        // Otherwise overwrite existing component of type
-        } else {
-            component.disable();
         }
 
         // Check for and add Dependent Components
@@ -208,16 +203,19 @@ class Entity3D extends THREE.Object3D {
             const dependencies = config.dependencies;
             for (let i = 0, len = dependencies.length; i < len; i++) {
                 if (this.getComponent(dependencies[i]) === undefined) {
-                    this.addComponent(dependencies[i], {}, false);
+                    this.addComponent(dependencies[i], {}, false /* includeDependencies */);
                 }
             }
         }
 
-        // Initialize Component
-        component.entity = this;
+        // Sanitize Data
         ComponentManager.sanitizeData(type, data);
-        if (component.init) component.init(data);
-        if (this.enabled) component.enable();
+
+        // Initialize Component
+        component.detach();
+        component.entity = this;
+        component.init(data);
+        component.attach();
 
         // Return reference to newly added component
         return component;
@@ -225,7 +223,10 @@ class Entity3D extends THREE.Object3D {
 
     attachComponent(component) {
         this.components.push(component);
-        if (this.enabled) component.enable();
+        component.detach();
+        component.entity = this;
+        component.init(component.toJSON());
+        component.attach();
     }
 
     updateComponent(type, data = {}, index = 0) {
@@ -238,9 +239,9 @@ class Entity3D extends THREE.Object3D {
         const component = this.getComponentsWithProperties('type', type)[index];
         if (!component || !component.isComponent) return;
         ComponentManager.sanitizeData(type, data);
-        component.disable();
+        component.detach();
         component.init(data);
-        component.enable();
+        component.attach();
     }
 
     /** Get component by type (string, required) and tag (string, optional - in case of multiple components with type) */
@@ -291,7 +292,7 @@ class Entity3D extends THREE.Object3D {
         let index = this.components.indexOf(component);
         if (index !== -1) {
             this.components.splice(index, 1);
-            component.disable();
+            component.detach();
         } else {
             console.warn(`Entity3D.removeComponent: Component ${component.uuid}, type '${component.type}' not found`);
         }
@@ -301,9 +302,9 @@ class Entity3D extends THREE.Object3D {
     rebuildComponents() {
         for (let i = 0; i < this.components.length; i++) {
             const component = this.components[i];
-            component.disable();
+            component.detach();
             component.init(component.toJSON());
-            component.enable();
+            component.attach();
         }
     }
 
@@ -366,7 +367,10 @@ class Entity3D extends THREE.Object3D {
         const filteredChildren = [];
         const children = this.children;
         for (let i = 0; i < children.length; i++) {
-            if (children[i].isEntity3D) filteredChildren.push(children[i]);
+            const child = children[i];
+            if (child.isEntity3D && child.userData && child.userData.flagIgnore !== true) {
+                filteredChildren.push(child);
+            }
         }
         return filteredChildren;
     }
@@ -431,7 +435,8 @@ class Entity3D extends THREE.Object3D {
         this.position.copy(source.position);
 		this.rotation.copy(source.rotation);
 		this.scale.copy(source.scale);
-        this.lookAtCamera = source.lookAtCamera;
+        this.locked = source.locked;                    // Entity3D property, attempt to copy
+        this.lookAtCamera = source.lookAtCamera;        // Entity3D property, attempt to copy
         this.updateMatrix();
 
         // Copy Children
@@ -459,12 +464,6 @@ class Entity3D extends THREE.Object3D {
         // Copy Properties, Basic
         this.name = source.name;
 
-        // Copy Properties, More
-        this.enabled = source.enabled;
-        this.castShadow = source.castShadow;
-        this.receiveShadow = source.receiveShadow;
-        this.lookAtCamera = source.lookAtCamera;
-
         // Copy Flags
         for (let flag in ENTITY_FLAGS) {
             this.setFlag(ENTITY_FLAGS[flag], source.getFlag(ENTITY_FLAGS[flag]));
@@ -480,7 +479,6 @@ class Entity3D extends THREE.Object3D {
 
             // Copy Component Properties
             clonedComponent.tag = component.tag;
-            if (component.enabled !== true) clonedComponent.disable();
         }
 
         // Copy Children
@@ -518,19 +516,19 @@ class Entity3D extends THREE.Object3D {
         const data = json.object;
 
         // Entity3D Properties
-        this.uuid = data.uuid;
         if (data.name !== undefined) this.name = data.name;
-
-        if (data.enabled !== undefined) this.enabled = data.enabled;
-        if (data.castShadow !== undefined) this.castShadow = data.castShadow;
-        if (data.receiveShadow !== undefined) this.receiveShadow = data.receiveShadow;
+        if (data.locked !== undefined) this.locked = data.locked;
         if (data.lookAtCamera !== undefined) this.lookAtCamera = data.lookAtCamera;
 
         // Object3D Properties
+        if (data.uuid !== undefined) this.uuid = data.uuid;
+
         if (data.position !== undefined) this.position.fromArray(data.position);
         if (data.rotation !== undefined) this.rotation.fromArray(data.rotation);
         if (data.scale !== undefined) this.scale.fromArray(data.scale);
 
+        if (data.castShadow !== undefined) this.castShadow = data.castShadow;
+        if (data.receiveShadow !== undefined) this.receiveShadow = data.receiveShadow;
         if (data.matrixAutoUpdate !== undefined) this.matrixAutoUpdate = data.matrixAutoUpdate;
         if (data.layers !== undefined) this.layers.mask = data.layers;
 
@@ -553,7 +551,6 @@ class Entity3D extends THREE.Object3D {
                 const component = this.addComponent(componentData.base.type, componentData, false);
 
                 // Properties
-                if (componentData.enabled === false) component.disable();
                 component.tag = componentData.base.tag;
             }
         }
@@ -580,8 +577,8 @@ class Entity3D extends THREE.Object3D {
     toJSON() {
         const json = {
             object: {
-                name: this.name,
                 type: this.type,
+                name: this.name,
                 uuid: this.uuid,
 
                 components: [],
@@ -600,9 +597,7 @@ class Entity3D extends THREE.Object3D {
         }
 
         // Entity3D Properties
-        json.object.enabled = this.enabled;
-        json.object.castShadow = this.castShadow;
-        json.object.receiveShadow = this.receiveShadow;
+        json.object.locked = this.locked;
         json.object.lookAtCamera = this.lookAtCamera;
 
         // Object3D Properties
@@ -610,6 +605,8 @@ class Entity3D extends THREE.Object3D {
         json.object.rotation = this.rotation.toArray();
         json.object.scale = this.scale.toArray();
 
+        json.object.castShadow = this.castShadow;
+        json.object.receiveShadow = this.receiveShadow;
         json.object.matrixAutoUpdate = this.matrixAutoUpdate;
         json.object.layers = this.layers.mask;
 

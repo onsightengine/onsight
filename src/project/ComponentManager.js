@@ -158,12 +158,12 @@ class ComponentManager {
 
                 // Prototype
                 this.isComponent = true;
+                this.type = type;
 
                 // Properties
-                this.enabled = true;
+                this.attached = true;
                 this.expanded = true;
                 this.tag = '';
-                this.type = type;
 
                 // Owner
                 this.entity = null;
@@ -173,33 +173,38 @@ class ComponentManager {
             }
 
             init(data) {
-                this.dispose();         // clear backend
-                super.init(data);
+                this.dispose();
+                if (typeof super.init === 'function') super.init(data);
             }
 
             dispose() {
-                super.dispose();
+                if (typeof super.dispose === 'function') super.dispose();
                 if (this.backend && typeof this.backend.dispose === 'function') this.backend.dispose();
                 this.backend = undefined;
             }
 
-            disable() {
-                this.enabled = false;
-                super.disable();
+            attach() {
+                this.attached = true;
+                if (typeof super.attach === 'function') super.attach();
             }
 
-            enable() {
-                this.enabled = true;
-                super.enable();
+            detach() {
+                this.attached = false;
+                if (typeof super.detach === 'function') super.detach();
             }
 
             update(data) {
                 const newData = this.data ?? {};
                 Object.assign(newData, data);
                 ComponentManager.sanitizeData(this.type, newData);
-                this.disable();
+                this.detach();
                 this.init(newData);
-                this.enable();
+                this.attach();
+            }
+
+            three() {
+                if (typeof super.three === 'function') return super.three();
+                return undefined;
             }
 
             // Returns stored default schema (saved when Component was registered). Pass in starting data by key, value pair
@@ -215,7 +220,7 @@ class ComponentManager {
                 // Base Properties
                 data.base = {
                     isComponent:    true,
-                    enabled:        this.enabled,
+                    attached:       this.attached,
                     expanded:       this.expanded,
                     tag:            this.tag,
                     type:           this.type,

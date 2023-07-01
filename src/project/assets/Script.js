@@ -7,12 +7,12 @@ class Script {
         // Prototype
         this.isScript = true;
         this.type = 'Script';
-        this.uuid = Maths.uuid();
-        this.format = format;
-        this.category = null;
 
         // Properties
         this.name ='New Script';
+        this.uuid = Maths.uuid();
+        this.format = format;
+        this.category = null;
         this.line = 0;
         this.char = 0;
         this.errors = false;
@@ -43,19 +43,40 @@ class Script {
     }
 
     fromJSON(json) {
-        this.uuid = json.uuid;
-        this.format = json.format;
-        this.category = json.category;
-        this.name = json.name;
-        this.line = json.line;
-        this.char = json.char;
-        this.errors = json.errors;
-        this.source = json.source;
+        const data = json.object;
+
+        if (data.name !== undefined) this.name = json.name;
+        if (data.uuid !== undefined) this.uuid = json.uuid;
+
+        if (data.format !== undefined) this.format = json.format;
+        if (data.category !== undefined) this.category = json.category;
+
+        if (data.line !== undefined) this.line = json.line;
+        if (data.char !== undefined) this.char = json.char;
+        if (data.errors !== undefined) this.errors = json.errors;
+        if (data.source !== undefined) this.source = json.source;
+
         return this;
     }
 
     toJSON() {
-        return structuredClone(this);
+        const json = {
+            object: {
+                type: this.type,
+                name: this.name,
+                uuid: this.uuid,
+
+                format: this.format,
+                category: this.category,
+            }
+        };
+
+        json.object.line = this.line;
+        json.object.char = this.char;
+        json.object.errors = structuredClone(this.errors);
+        json.object.source = this.source;
+
+        return json;
     }
 
 }

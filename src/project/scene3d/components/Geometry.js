@@ -247,7 +247,7 @@ class Geometry {
             // console.log('Error with geometry!');
         }
 
-        // Save Data / Backend
+        // Save Backend / Data
         this.backend = geometry;
         this.data = data;
     }
@@ -256,14 +256,14 @@ class Geometry {
 
     }
 
-    enable() {
+    attach() {
         if (this.entity) {
             const materialComponent = this.entity.getComponent('material');
             if (materialComponent) materialComponent.refreshMesh();
         }
     }
 
-    disable() {
+    detach() {
         if (this.entity) {
             const materialComponent = this.entity.getComponent('material');
             if (materialComponent) materialComponent.refreshMesh();

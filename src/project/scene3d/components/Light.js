@@ -18,7 +18,6 @@ import { ComponentManager } from '../../ComponentManager.js';
 class Light {
 
     init(data) {
-
         // Generate Backend
         let light = undefined;
         let shadows = false;
@@ -81,7 +80,7 @@ class Light {
             // console.log('Error with light!');
         }
 
-        // Save Data / Backend
+        // Save Backend / Data
         this.backend = light;
         this.data = data;
     }
@@ -91,14 +90,13 @@ class Light {
         if (light && light.shadow && light.shadow.map) light.shadow.map.dispose();
     }
 
-    enable() {
+    attach() {
         if (this.entity && this.backend) this.entity.add(this.backend);
     }
 
-    disable() {
+    detach() {
         if (this.entity && this.backend) this.entity.remove(this.backend);
     }
-
     three() {
         return this.backend;
     }

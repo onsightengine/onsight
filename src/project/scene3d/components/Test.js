@@ -5,18 +5,13 @@ const exampleSelect = [ 'Apple', 'Banana', 'Cherry', 'Zebra', 'Red' ];
 class Test {
 
     init(data) {
-        // Clear Backend
-        //
-        // ...this.dispose() automatically called from ComponentManager
-        //
-
         // Generate Backend
         let test = undefined;
         //
         // ...CODE TO GENERATE BACKEND OBJECT3D
         //
 
-        // Save Data / Backend
+        // Save Backend / Data
         this.backend = test;
         this.data = data;
     }
@@ -25,12 +20,16 @@ class Test {
 
     }
 
-    enable() {
+    attach() {
         if (this.entity && this.backend) this.entity.add(this.backend);
     }
 
-    disable() {
+    detach() {
         if (this.entity && this.backend) this.entity.remove(this.backend);
+    }
+
+    three() {
+        return this.backend;
     }
 
 }

@@ -21,13 +21,13 @@ class Sprite {
         }
 
         // Generate Backend
-        const lookAtCamera = new THREE.Object3D();
-        lookAtCamera.lookAtCamera = true;
+        const sprite = new THREE.Object3D();
+        sprite.lookAtCamera = true;
         this.#material = new THREE.SpriteMaterial({ map: map, color: color });
-        lookAtCamera.add(new THREE.Sprite(this.#material));
+        sprite.add(new THREE.Sprite(this.#material));
 
-        // Save Data / Backend
-        this.backend = lookAtCamera;
+        // Save Backend / Data
+        this.backend = sprite;
         this.data = data;
     }
 
@@ -36,11 +36,11 @@ class Sprite {
         this.#material = undefined;
     }
 
-    enable() {
+    attach() {
         if (this.entity && this.backend) this.entity.add(this.backend);
     }
 
-    disable() {
+    detach() {
         if (this.entity && this.backend) this.entity.remove(this.backend);
     }
 

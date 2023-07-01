@@ -80,7 +80,7 @@ class GpuPickerPass extends Pass {
             const material = object.material; // renderItem.material;
             const geometry = object.geometry; // renderItem.geometry;
 
-            // THREE.Sprite implemented using custom Object3D.lookAtCamera parent
+            // NOTE: Sprites are implemented using custom Entity3D updateMatrix() / lookAtCamera
             // if (material.isSpriteMaterial) return;
 
             // Material Options

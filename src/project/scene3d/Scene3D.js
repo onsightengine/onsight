@@ -30,7 +30,6 @@ class Scene3D extends Entity3D {
         );
         this.shadowPlane.name = 'ShadowPlane';
         this.shadowPlane.userData.flagIgnore = true;
-        this.shadowPlane.userData.flagLocked = true;
         this.shadowPlane.rotation.x = - Math.PI / 2;
         this.shadowPlane.castShadow = false;
         this.shadowPlane.receiveShadow = true;

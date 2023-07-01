@@ -16,11 +16,6 @@ export const WORLD_TYPES = {
     World3D:        'World3D',
 };
 
-export const ENTITY_FLAGS = {
-    IGNORE:         'flagIgnore',
-    LOCKED:         'flagLocked',
-}
-
 export const APP_STATES = {
     PLAYING:        'playing',
     PAUSED:         'paused',

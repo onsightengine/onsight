@@ -84,9 +84,9 @@ class EntityUtils {
     /** Checks if entity is important and should be protected */
     static isImportant(entity) {
         let important = false;
-        important = important || entity.parent === null;                // Avoid deleting cameras / scenes
-        important = important || entity.isScene;                        // Avoid deleting scenes
-        important = important || entity.userData.flagLocked;            // Avoid entities with 'LOCKED' flag
+        important = important || entity.parent == null;     // Avoid deleting cameras / scenes
+        important = important || entity.isScene;            // Avoid deleting scenes
+        important = important || entity.isLocked;           // Avoid locked entities
         return important;
     }
 

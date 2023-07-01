@@ -29,10 +29,9 @@ class ObjectUtils {
 
     /** Check if object should be allowed to be interacted with in Editor */
     static allowSelection(object) {
-        let allowSelect = true;
+        let allowSelect = (!object.isLocked);
         if (object.userData) {
             if (object.userData.flagIgnore) allowSelect = false;
-            if (object.userData.flagLocked) allowSelect = false;
         }
         return allowSelect;
     }

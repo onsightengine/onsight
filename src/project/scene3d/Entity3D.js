@@ -1,13 +1,10 @@
 import * as THREE from 'three';
-import { ENTITY_FLAGS } from '../../constants.js';
 import { ComponentManager } from '../ComponentManager.js';
 import { EntityUtils } from '../../utils/three/EntityUtils.js';
 import { Strings } from '../../utils/Strings.js';
 
-// FLAGS
+// INTERNAL FLAGS
 //  Object3D.userData.flagIgnore    Ignore object during selction, focus, saving, etc. (for Editor)
-//  Object3D.userData.flagLocked    Locked in Editor (do not allow selection, deletion, or duplication)
-// INTERNAL
 //  Object3D.userData.entityId      Used for transform controls to link a transform clone with original entity
 
 const _m1 = new THREE.Matrix4();
@@ -41,14 +38,11 @@ class Entity3D extends THREE.Object3D {
 
         // Properties, Basic
         this.name = name;
-        this.locked = false;                    // locked in Editor (do not allow selection, deletion, duplication, etc.)
+        this.isLocked = false;                  // locked in Editor (do not allow selection, deletion, duplication, etc.)
         this.lookAtCamera = false;              // implemented in updateMatrix() overload
 
         // Collections
         this.components = [];                   // geometry, material, audio, light, etc.
-
-        // Flags
-        this.setFlag(ENTITY_FLAGS.LOCKED, false);
 
         // Enable Shadows by Default
         this.castShadow = true;                 // inherited from THREE.Object3D
@@ -61,15 +55,6 @@ class Entity3D extends THREE.Object3D {
     getReducedType() {
         if (this.isScene) return 'Scene';
         return (this.components.length === 1) ? Strings.capitalize(this.components[0].type.toLowerCase()) : 'Entity3D';
-    }
-
-    getFlag(flag) {
-        return Boolean(this.userData[flag]);
-    }
-
-    setFlag(flag, value) {
-        this.userData[flag] = value;
-        return this;
     }
 
     /******************** UPDATE MATRIX */
@@ -403,7 +388,7 @@ class Entity3D extends THREE.Object3D {
     removeEntity(entity, forceDelete = false) {
         if (!entity) return;
 
-        // Check for isScene, flags (BuiltIn, NoSelect, etc.)
+        // Check for Scene, Locked, etc
         if (!forceDelete && EntityUtils.isImportant(entity)) return;
 
         // Remove entity (i.e. out of Project)
@@ -435,7 +420,7 @@ class Entity3D extends THREE.Object3D {
         this.position.copy(source.position);
 		this.rotation.copy(source.rotation);
 		this.scale.copy(source.scale);
-        this.locked = source.locked;                    // Entity3D property, attempt to copy
+        this.isLocked = source.isLocked;                // Entity3D property, attempt to copy
         this.lookAtCamera = source.lookAtCamera;        // Entity3D property, attempt to copy
         this.updateMatrix();
 
@@ -463,11 +448,6 @@ class Entity3D extends THREE.Object3D {
 
         // Copy Properties, Basic
         this.name = source.name;
-
-        // Copy Flags
-        for (let flag in ENTITY_FLAGS) {
-            this.setFlag(ENTITY_FLAGS[flag], source.getFlag(ENTITY_FLAGS[flag]));
-        }
 
         // Copy Components
         const components = source.components;
@@ -517,7 +497,7 @@ class Entity3D extends THREE.Object3D {
 
         // Entity3D Properties
         if (data.name !== undefined) this.name = data.name;
-        if (data.locked !== undefined) this.locked = data.locked;
+        if (data.isLocked !== undefined) this.isLocked = data.isLocked;
         if (data.lookAtCamera !== undefined) this.lookAtCamera = data.lookAtCamera;
 
         // Object3D Properties
@@ -536,11 +516,6 @@ class Entity3D extends THREE.Object3D {
         if (data.frustumCulled !== undefined) this.frustumCulled = data.frustumCulled;
         if (data.renderOrder !== undefined) this.renderOrder = data.renderOrder;
         if (data.userData !== undefined) this.userData = data.userData;
-
-        // Flags
-        for (let key in json.object.flags) {
-            this.setFlag(key, json.object.flags[key]);
-        }
 
         // Components
         for (let i = 0; i < json.object.components.length; i++) {
@@ -580,16 +555,9 @@ class Entity3D extends THREE.Object3D {
                 type: this.type,
                 name: this.name,
                 uuid: this.uuid,
-
                 components: [],
-                flags: {},
             }
         };
-
-        // Flags
-        for (let key in ENTITY_FLAGS) {
-            json.object.flags[key] = this.getFlag(key);
-        }
 
         // Components
         for (let i = 0; i < this.components.length; i++) {
@@ -597,7 +565,7 @@ class Entity3D extends THREE.Object3D {
         }
 
         // Entity3D Properties
-        json.object.locked = this.locked;
+        json.object.isLocked = this.isLocked;
         json.object.lookAtCamera = this.lookAtCamera;
 
         // Object3D Properties

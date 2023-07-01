@@ -45,16 +45,16 @@ class Script {
     fromJSON(json) {
         const data = json.object;
 
-        if (data.name !== undefined) this.name = json.name;
-        if (data.uuid !== undefined) this.uuid = json.uuid;
+        if (data.name !== undefined) this.name = data.name;
+        if (data.uuid !== undefined) this.uuid = data.uuid;
 
-        if (data.format !== undefined) this.format = json.format;
-        if (data.category !== undefined) this.category = json.category;
+        if (data.format !== undefined) this.format = data.format;
+        if (data.category !== undefined) this.category = data.category;
 
-        if (data.line !== undefined) this.line = json.line;
-        if (data.char !== undefined) this.char = json.char;
-        if (data.errors !== undefined) this.errors = json.errors;
-        if (data.source !== undefined) this.source = json.source;
+        if (data.line !== undefined) this.line = data.line;
+        if (data.char !== undefined) this.char = data.char;
+        if (data.errors !== undefined) this.errors = data.errors;
+        if (data.source !== undefined) this.source = data.source;
 
         return this;
     }

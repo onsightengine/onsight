@@ -2,7 +2,7 @@
  * @description Onsight Engine
  * @about       Easy to use 2D / 3D JavaScript game engine.
  * @author      Stephens Nunnally <@stevinz>
- * @version     v0.0.5
+ * @version     v0.0.6
  * @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally
  * @source      https://github.com/onsightengine
  */
@@ -20,7 +20,7 @@ import { Pass } from 'three/addons/postprocessing/Pass.js';
 import { LoopSubdivision } from 'three-subdivide';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
-const VERSION = '0.0.5';
+const VERSION = '0.0.6';
 const ENTITY_TYPES = {
     Entity2D:       'Entity2D',
     Entity3D:       'Entity3D',
@@ -318,14 +318,14 @@ class Script$1 {
     }
     fromJSON(json) {
         const data = json.object;
-        if (data.name !== undefined) this.name = json.name;
-        if (data.uuid !== undefined) this.uuid = json.uuid;
-        if (data.format !== undefined) this.format = json.format;
-        if (data.category !== undefined) this.category = json.category;
-        if (data.line !== undefined) this.line = json.line;
-        if (data.char !== undefined) this.char = json.char;
-        if (data.errors !== undefined) this.errors = json.errors;
-        if (data.source !== undefined) this.source = json.source;
+        if (data.name !== undefined) this.name = data.name;
+        if (data.uuid !== undefined) this.uuid = data.uuid;
+        if (data.format !== undefined) this.format = data.format;
+        if (data.category !== undefined) this.category = data.category;
+        if (data.line !== undefined) this.line = data.line;
+        if (data.char !== undefined) this.char = data.char;
+        if (data.errors !== undefined) this.errors = data.errors;
+        if (data.source !== undefined) this.source = data.source;
         return this;
     }
     toJSON() {

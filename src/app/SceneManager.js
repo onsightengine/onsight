@@ -31,27 +31,21 @@ class SceneManager {
     static cameraFromScene(scene) {
         scene = scene ?? SceneManager.scene;
         // Look for Camera Component
-        let camera = undefined;
-        if (scene && scene.isEntity) {
-            scene.traverseEntities((entity) => {
-                entity.traverseComponents((component) => {
-                    if (component.type === 'camera') {
-                        if (!camera) {
-                            const componentCamera = component.three();
-                            camera = componentCamera.clone();
-                            ObjectUtils.copyWorldTransform(componentCamera, camera, true);
-                        }
-                    }
-                })
-            });
+        let component = ONE.EntityUtils.findCameraComponent(scene);
+        if (component) {
+            const componentCamera = component.three();
+            if (componentCamera) {
+                const camera = componentCamera.clone();
+                ObjectUtils.copyWorldTransform(componentCamera, camera, true);
+                return camera;
+            }
         }
+
         // No Camera Found
-        if (!camera) {
-            camera = CameraUtils.createPerspective(1024, 1024, true);
-            camera.position.x = 0;
-            camera.position.y = 0;
-            camera.position.z = 6;
-        }
+        const camera = CameraUtils.createPerspective(1024, 1024, true);
+        camera.position.x = 0;
+        camera.position.y = 0;
+        camera.position.z = 6;
         return camera;
     }
 

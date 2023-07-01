@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { APP_EVENTS } from '../constants.js';
 import { AssetManager } from '../project/AssetManager.js';
 import { CameraUtils } from '../utils/three/CameraUtils.js';
+import { ObjectUtils } from '../utils/three/ObjectUtils.js';
 
 // Script Functions
 let scriptFunctions = '';
@@ -38,8 +39,7 @@ class SceneManager {
                         if (!camera) {
                             const componentCamera = component.three();
                             camera = componentCamera.clone();
-                            componentCamera.getWorldPosition(_position);
-                            camera.position.copy(_position);
+                            ObjectUtils.copyWorldTransform(componentCamera, camera, true);
                         }
                     }
                 })
@@ -47,7 +47,7 @@ class SceneManager {
         }
         // No Camera Found
         if (!camera) {
-            camera = CameraUtils.createPerspective(500, 500, true);
+            camera = CameraUtils.createPerspective(1024, 1024, true);
             camera.position.x = 0;
             camera.position.y = 0;
             camera.position.z = 6;

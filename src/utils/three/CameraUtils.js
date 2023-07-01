@@ -61,10 +61,10 @@ class CameraUtils {
      * @param {Boolean} fixedSize Should camera maintain size no matter the height of the DOM element?
      * @returns Three.js camera object
      */
-    static createPerspective(camWidth, camHeight, fixedSize = true) {
+    static createPerspective(camWidth, camHeight, fixedSize = true, fov = 58.10) {
         // Create camera
         const camera = new THREE.PerspectiveCamera(
-            58.10,      // fov = Field Of View
+            fov,        // field of view
             1,          // aspect ratio (dummy value)
             0.01,       // near clipping plane
             1000,       // far clipping plane

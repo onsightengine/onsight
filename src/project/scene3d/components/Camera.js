@@ -24,6 +24,7 @@ class Camera {
 
                 // Build Object
                 camera = new THREE.PerspectiveCamera(data.fov, 1 /* data.aspect */, nearPersp, farPersp);
+                camera.fixedSize = data.fixedSize;
                 break;
 
             case 'orthographic':

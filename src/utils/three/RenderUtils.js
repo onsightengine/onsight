@@ -45,7 +45,6 @@ class RenderUtils {
     static renderMeshToCanvas(canvas, mesh) {
         const scene = new THREE.Scene();
         scene.add(new THREE.HemisphereLight(0xffffff, 0x202020, 1.5));
-        scene.add(mesh);
 
         const camera = new THREE.PerspectiveCamera(50, canvas.width / canvas.height);
         camera.position.set(0, 0, 1);
@@ -53,10 +52,17 @@ class RenderUtils {
         // Fit Camera
         CameraUtils.fitCameraToObject(camera, mesh);
 
+        // Add to Scene
+        const exsistingParent = mesh.parent;
+        scene.add(mesh);
+
         // Render
         const renderer = RenderUtils.offscreenRenderer(canvas.width, canvas.height);
         renderer.render(scene, camera);
+
+        // Replace parent
         scene.remove(mesh);
+        if (exsistingParent) exsistingParent.add(mesh);
 
         // Copy to canvas
         const context = canvas.getContext('2d');

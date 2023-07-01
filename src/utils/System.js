@@ -49,8 +49,8 @@ class System {
                 document.body.removeChild(link);
                 window.URL.revokeObjectURL(url);
             }, 0);
-        } catch (e) {
-            console.warn(e);
+        } catch (error) {
+            console.warn(error);
             return;
         }
     }

@@ -24,8 +24,10 @@ const _position = new THREE.Vector3();
 class SceneManager {
 
     static app = undefined;
-    static scene = undefined;
     static camera = undefined;
+    static project = undefined;
+    static renderer = undefined;
+    static scene = undefined;
 
     /********** CAMERA */
 
@@ -86,7 +88,7 @@ class SceneManager {
 
             // Returns object holding script functions (with proper 'this' bound and access to globals / script variables)
             const buildFunctionObject = new Function(scriptParameters /* parameters */, body /* source */).bind(toEntity);
-            const functions = buildFunctionObject(toEntity, SceneManager.app, SceneManager.app.renderer, SceneManager.scene, SceneManager.camera);
+            const functions = buildFunctionObject(toEntity, SceneManager.app, SceneManager.renderer, SceneManager.scene, SceneManager.camera);
 
             // Add functions to event dispatch handler
             for (let name in functions) {

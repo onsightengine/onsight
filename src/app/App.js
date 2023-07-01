@@ -19,9 +19,9 @@ import { System } from '../utils/System.js';
 
 // Game Loop
 let animationID = null;
-const animationClock = new Clock(false /* autostart */);
-const physicsClock = new Clock(false /* autostart */);
+const gameClock = new Clock(false /* autostart */);
 let physics;
+let time = 0;
 
 ///// TODO: Game Variables
 let distance = 0;
@@ -30,7 +30,7 @@ let framerate = 60;
 
 // Globals
 const _position = new THREE.Vector3();
-let boxes, spheres;
+let boxes, balls;
 
 class App {
 
@@ -93,6 +93,8 @@ class App {
         // Scene Manager
         SceneManager.app = this;
         SceneManager.camera = SceneManager.cameraFromScene(fromScene);
+        SceneManager.project = this.project;
+        SceneManager.renderer = this.renderer;
         SceneManager.scene = new Scene3D();
 
         // Load Scene
@@ -103,53 +105,50 @@ class App {
     /******************** ANIMATE / RENDER */
 
     animate() {
-        const delta = animationClock.getDeltaTime();
-        const total = animationClock.getElapsedTime();
-
-        // Call 'update()' functions (and catch errors)
         if (SceneManager.app.state === APP_STATES.PLAYING) {
-            try { SceneManager.app.dispatch(SceneManager.app.events.update, { time: total, delta: delta }); }
-            catch (e) { console.error((e.message || e), (e.stack || '')); }
+            // Delta / Time Elapsed
+            const delta = gameClock.getDeltaTime();
+            const total = gameClock.getElapsedTime();
+
+            // Debug
+            if (total > time) {
+                console.log(`Time: ${time}, FPS: ${gameClock.fps()}, Framerate: ${gameClock.averageDelta()}`);
+                time++;
+            }
+
+            // Call 'update()' functions, catch errors
+            if (SceneManager.app.state === APP_STATES.PLAYING) {
+                try { SceneManager.app.dispatch(SceneManager.app.events.update, { time: total, delta: delta }); }
+                catch (error) { console.error((error.message || error), (error.stack || '')); }
+            }
+
+            // Physics Update
+            let boxIndex = Math.floor(Math.random() * boxes.count);
+            let ballIndex = Math.floor(Math.random() * balls.count);
+            physics.setMeshPosition(boxes, _position.set(0, Math.random() + 1, 0), boxIndex);
+            physics.setMeshPosition(balls, _position.set(0, Math.random() + 1, 0), ballIndex);
+
+            // Step
+            if (delta > 0.01) {
+                physics.step(delta);
+            }
         }
 
         // Render
-        SceneManager.app.renderer.render(SceneManager.scene, SceneManager.camera);
+        SceneManager.renderer.render(SceneManager.scene, SceneManager.camera);
 
         // Screenshot
         if (SceneManager.app.wantsScreenshot) {
-            const filename = SceneManager.app.project.name + ' ' + new Date().toLocaleString() + '.png';
+            const filename = SceneManager.project.name + ' ' + new Date().toLocaleString() + '.png';
             const strMime = 'image/png'; /* or 'image/jpeg' or 'image/webp' */
-            const imgData = SceneManager.app.renderer.domElement.toDataURL(strMime);
+            const imgData = SceneManager.renderer.domElement.toDataURL(strMime);
             System.saveImage(imgData, filename);
             SceneManager.app.wantsScreenshot = false;
         }
 
         // New Frame
-        if (SceneManager.app.state === APP_STATES.PLAYING) {
+        if (SceneManager.app.state !== APP_STATES.STOPPED) {
             animationID = requestAnimationFrame(SceneManager.app.animate);
-        }
-    }
-
-    step() {
-        if (this.state !== APP_STATES.PLAYING) return;
-        const delta = physicsClock.getDeltaTime();
-
-        ///// TEMP: UPDATE MESHES
-        let index;
-        index = Math.floor(Math.random() * boxes.count);
-        _position.set(0, Math.random() + 1, 0);
-        physics.setMeshPosition(boxes, _position, index);
-        index = Math.floor(Math.random() * spheres.count);
-        _position.set(0, Math.random() + 1, 0);
-        physics.setMeshPosition(spheres, _position, index);
-        /////
-
-        if (delta > 0.001){
-            physics.step(delta);
-        }
-
-        if (this.state === APP_STATES.PLAYING) {
-            setTimeout(() => SceneManager.app.step(), 1000 / framerate);
         }
     }
 
@@ -190,23 +189,26 @@ class App {
 
 	    // SPHERES
         const geometrySphere = new THREE.IcosahedronGeometry(0.05, 4);
-        spheres = new THREE.InstancedMesh(geometrySphere, material, 400);
-        spheres.instanceMatrix.setUsage(THREE.DynamicDrawUsage); // will be updated every frame
-        spheres.castShadow = true;
-        spheres.receiveShadow = true;
-        scene.add(spheres);
+        balls = new THREE.InstancedMesh(geometrySphere, material, 400);
+        balls.instanceMatrix.setUsage(THREE.DynamicDrawUsage); // will be updated every frame
+        balls.castShadow = true;
+        balls.receiveShadow = true;
+        scene.add(balls);
 
-        for (let i = 0; i < spheres.count; i++) {
+        for (let i = 0; i < balls.count; i++) {
             matrix.setPosition(Math.random() - 0.5, Math.random() * 2, Math.random() - 0.5);
-            spheres.setMatrixAt(i, matrix);
-            spheres.setColorAt(i, color.setHex( 0xffffff * Math.random()));
+            balls.setMatrixAt(i, matrix);
+            balls.setColorAt(i, color.setHex( 0xffffff * Math.random()));
 
         }
-        physics.addMesh(spheres, 1);
+        physics.addMesh(balls, 1);
     }
 
     async play() {
-        if (this.state === APP_STATES.STOPPED) await this.init();
+        if (this.state === APP_STATES.STOPPED) {
+            await this.init();
+            gameClock.reset();
+        }
         this.state = APP_STATES.PAUSED;
 
         // Add Event Listeners
@@ -224,18 +226,17 @@ class App {
         switch(this.state) {
             case APP_STATES.PAUSED:
                 this.state = APP_STATES.PLAYING;
-                animationClock.start();
-                physicsClock.start();
-                SceneManager.app.animate();
-                SceneManager.app.step();
+                gameClock.start();
+                if (animationID == null) {
+                    animationID = requestAnimationFrame(SceneManager.app.animate);
+                }
                 break;
 
             case APP_STATES.PLAYING:
                 this.state = APP_STATES.PAUSED;
                 // FALL THROUGH...
             case APP_STATES.STOPPED:
-                animationClock.stop();
-                physicsClock.stop();
+                gameClock.stop();
                 break;
         }
     }
@@ -254,9 +255,9 @@ class App {
             cancelAnimationFrame(animationID);
             animationID = null;
         }
+        if (SceneManager.renderer) SceneManager.renderer.clear();
 
-        animationClock.stop();
-        physicsClock.stop();
+        gameClock.stop();
     }
 
     /******************** GAME HELPERS */

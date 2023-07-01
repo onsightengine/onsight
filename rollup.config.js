@@ -6,7 +6,7 @@
  * @source      https://github.com/onsightengine
  */
 
-import { VERSION } from './src/constants.js';              // Pull in version
+import { VERSION } from './src/constants.js';               // Pull in version
 import { terser } from 'rollup-plugin-terser';              // Remove comments, minify
 import { visualizer } from 'rollup-plugin-visualizer';      // Visualize
 import cleanup from 'rollup-plugin-cleanup';                // Remove comments, supports sourcemap
@@ -33,7 +33,7 @@ const builds = [
     { // Standard Build
         input: './src/Onsight.js',
         treeshake: false,
-        external: p => /^three/.test(p),
+        external: p => /^three/.test(p) || /^rapier/.test(p),
 
         plugins: [
             cleanup({
@@ -54,7 +54,7 @@ const builds = [
     { // Minified
         input: './src/Onsight.js',
         treeshake: false,
-        external: p => /^three/.test(p),
+        external: p => /^three/.test(p) || /^rapier/.test(p),
 
         plugins: [
             header(),
@@ -75,7 +75,7 @@ const builds = [
     { // Obfuscated
         input: './src/Onsight.js',
         treeshake: false,
-        external: p => /^three/.test(p),
+        external: p => /^three/.test(p) || /^rapier/.test(p),
 
         plugins: [
             obfuscator({ fileOptions: {}, globalOptions: {} }),

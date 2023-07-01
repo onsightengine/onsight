@@ -2,12 +2,13 @@
  * @description Onsight Engine
  * @about       Easy to use 2D / 3D JavaScript game engine.
  * @author      Stephens Nunnally <@stevinz>
- * @version     v0.0.4
- * @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally and Scidian Studios
+ * @version     v0.0.5
+ * @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally
  * @source      https://github.com/onsightengine
  */
 import * as THREE from 'three';
-import { mergeBufferGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import RAPIER from 'rapier';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 import { Line2 } from 'three/addons/lines/Line2.js';
 import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
@@ -19,22 +20,7 @@ import { Pass } from 'three/addons/postprocessing/Pass.js';
 import { LoopSubdivision } from 'three-subdivide';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
-const VERSION = '0.0.4';
-const BACKENDS = {
-    RENDERER_3D: {
-        PIXI:       'PIXI',
-    },
-    PHYSICS_2D: {
-        MATTER:     'MATTER',
-    },
-    RENDERER_3D: {
-        THREE:      'THREE',
-    },
-    PHYSICS_3D: {
-        CANNON:     'CANNON',
-        RAPIER:     'RAPIER',
-    },
-};
+const VERSION = '0.0.5';
 const ENTITY_TYPES = {
     Entity2D:       'Entity2D',
     Entity3D:       'Entity3D',
@@ -42,20 +28,37 @@ const ENTITY_TYPES = {
 const SCENE_TYPES = {
     Scene2D:        'Scene2D',
     Scene3D:        'Scene3D',
+    SceneUI:        'SceneUI',
 };
 const WORLD_TYPES = {
     World2D:        'World2D',
     World3D:        'World3D',
-};
-const ENTITY_FLAGS = {
-    IGNORE:         'flagIgnore',
-    LOCKED:         'flagLocked',
 };
 const APP_STATES = {
     PLAYING:        'playing',
     PAUSED:         'paused',
     STOPPED:        'stopped',
 };
+const APP_EVENTS = {
+    init:           'init',
+    update:         'update',
+    destroy:        'destroy',
+    keydown:        'keydown',
+    keyup:          'keyup',
+    pointerdown:    'pointerdown',
+    pointerup:      'pointerup',
+    pointermove:    'pointermove',
+};
+const SCRIPT_FORMAT = {
+    JAVASCRIPT:     'js',
+    PYTHON:         'python',
+};
+const REBUILD_TYPES = [
+    'geometry',
+    'material',
+    'shape',
+    'texture',
+];
 
 const CAMERA_SCALE = 0.01;
 const CAMERA_START_DISTANCE = 5;
@@ -63,7 +66,14 @@ const CAMERA_START_HEIGHT = 0;
 const _raycaster = new THREE.Raycaster();
 class CameraUtils {
     static createOrthographic(camWidth, camHeight, fitType = 'none', desiredSize = 0) {
-        const camera = new THREE.OrthographicCamera(0, 1, 1, 0, -1000, 1000);
+        const camera = new THREE.OrthographicCamera(
+            0,
+            1,
+            1,
+            0,
+            -1000,
+            1000
+        );
         camera.desiredSize = desiredSize;
         camera.fitType = fitType;
         camera.position.set(0, CAMERA_START_HEIGHT, CAMERA_START_DISTANCE);
@@ -71,9 +81,9 @@ class CameraUtils {
         CameraUtils.updateOrthographic(camera, camWidth, camHeight);
         return camera;
     }
-    static createPerspective(camWidth, camHeight, fixedSize = true) {
+    static createPerspective(camWidth, camHeight, fixedSize = true, fov = 58.10) {
         const camera = new THREE.PerspectiveCamera(
-            58.10,
+            fov,
             1,
             0.01,
             1000,
@@ -124,14 +134,14 @@ class CameraUtils {
         camera.updateProjectionMatrix();
     }
     static screenPoint(pointInWorld, camera) {
-        if (! camera || ! camera.isCamera) {
+        if (!camera || !camera.isCamera) {
             console.warn(`CameraUtils.screenPoint: No camera provided!`);
             return new THREE.Vector3();
         }
         return new THREE.Vector3.copy(pointInWorld).project(camera);
     }
     static worldPoint(pointOnScreen, camera, lookTarget = new THREE.Vector3(), facingPlane = 'xy') {
-        if (! camera || ! camera.isCamera) {
+        if (!camera || !camera.isCamera) {
             console.warn(`CameraUtils.worldPoint: No camera provided!`);
             return new THREE.Vector3();
         }
@@ -183,7 +193,7 @@ class CameraUtils {
 }
 
 const _lut = [ '00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '0a', '0b', '0c', '0d', '0e', '0f', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '1a', '1b', '1c', '1d', '1e', '1f', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '2a', '2b', '2c', '2d', '2e', '2f', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '3a', '3b', '3c', '3d', '3e', '3f', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49', '4a', '4b', '4c', '4d', '4e', '4f', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59', '5a', '5b', '5c', '5d', '5e', '5f', '60', '61', '62', '63', '64', '65', '66', '67', '68', '69', '6a', '6b', '6c', '6d', '6e', '6f', '70', '71', '72', '73', '74', '75', '76', '77', '78', '79', '7a', '7b', '7c', '7d', '7e', '7f', '80', '81', '82', '83', '84', '85', '86', '87', '88', '89', '8a', '8b', '8c', '8d', '8e', '8f', '90', '91', '92', '93', '94', '95', '96', '97', '98', '99', '9a', '9b', '9c', '9d', '9e', '9f', 'a0', 'a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7', 'a8', 'a9', 'aa', 'ab', 'ac', 'ad', 'ae', 'af', 'b0', 'b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'b8', 'b9', 'ba', 'bb', 'bc', 'bd', 'be', 'bf', 'c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9', 'ca', 'cb', 'cc', 'cd', 'ce', 'cf', 'd0', 'd1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8', 'd9', 'da', 'db', 'dc', 'dd', 'de', 'df', 'e0', 'e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7', 'e8', 'e9', 'ea', 'eb', 'ec', 'ed', 'ee', 'ef', 'f0', 'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'fa', 'fb', 'fc', 'fd', 'fe', 'ff' ];
-class MathUtils {
+class Maths {
     static radiansToDegrees(radians) {
         return radians * (180 / Math.PI);
     }
@@ -197,7 +207,7 @@ class MathUtils {
         return number;
     }
     static damp(x, y, lambda, dt) {
-	    return MathUtils.lerp(x, y, 1 - Math.exp(- lambda * dt));
+	    return Maths.lerp(x, y, 1 - Math.exp(- lambda * dt));
     }
     static lerp(x, y, t) {
 	    return (1 - t) * x + t * y;
@@ -210,14 +220,14 @@ class MathUtils {
         return ((a < (b + tolerance)) && (a > (b - tolerance)));
     }
     static fuzzyVector(a, b, tolerance = 0.001) {
-        if (MathUtils.fuzzyFloat(a.x, b.x, tolerance) === false) return false;
-        if (MathUtils.fuzzyFloat(a.y, b.y, tolerance) === false) return false;
-        if (MathUtils.fuzzyFloat(a.z, b.z, tolerance) === false) return false;
+        if (Maths.fuzzyFloat(a.x, b.x, tolerance) === false) return false;
+        if (Maths.fuzzyFloat(a.y, b.y, tolerance) === false) return false;
+        if (Maths.fuzzyFloat(a.z, b.z, tolerance) === false) return false;
         return true;
     }
     static fuzzyQuaternion(a, b, tolerance = 0.001) {
-        if (MathUtils.fuzzyVector(a, b, tolerance) === false) return false;
-        if (MathUtils.fuzzyFloat(a.w, b.w, tolerance) === false) return false;
+        if (Maths.fuzzyVector(a, b, tolerance) === false) return false;
+        if (Maths.fuzzyFloat(a.w, b.w, tolerance) === false) return false;
         return true;
     }
     static isPowerOfTwo(value) {
@@ -231,11 +241,11 @@ class MathUtils {
         return number.toString().split('.')[1].length || 0;
     }
     static isNumber(number) {
-        return (number !== undefined && number !== null && typeof number === 'number' && ! Number.isNaN(number) && Number.isFinite(number));
+        return (number !== undefined && number !== null && typeof number === 'number' && !Number.isNaN(number) && Number.isFinite(number));
     }
     static lineCollision(x1, y1, x2, y2, x3, y3, x4, y4) {
         let denom = ((y4 - y3) * (x2 - x1)) - ((x4 - x3) * (y2 - y1));
-        if (MathUtils.fuzzyFloat(denom, 0, 0.0000001)) return false;
+        if (Maths.fuzzyFloat(denom, 0, 0.0000001)) return false;
         let ua = (((x4 - x3) * (y1 - y3)) - ((y4 - y3) * (x1 - x3))) / denom;
         let ub = (((x2 - x1) * (y1 - y3)) - ((y2 - y1) * (x1 - x3))) / denom;
         if ((ua >= 0) && (ua <= 1) && (ub >= 0) && (ub <= 1)) {
@@ -244,10 +254,10 @@ class MathUtils {
         return false;
     }
     static lineRectCollision(x1, y1, x2, y2, left, top, right, down) {
-        const rectLeft =    MathUtils.lineCollision(x1, y1, x2, y2, left, top, left, down);
-        const rectRight =   MathUtils.lineCollision(x1, y1, x2, y2, right, top, right, down);
-        const rectTop =     MathUtils.lineCollision(x1, y1, x2, y2, left, top, right, top);
-        const rectDown =    MathUtils.lineCollision(x1, y1, x2, y2, left, down, right, down);
+        const rectLeft =    Maths.lineCollision(x1, y1, x2, y2, left, top, left, down);
+        const rectRight =   Maths.lineCollision(x1, y1, x2, y2, right, top, right, down);
+        const rectTop =     Maths.lineCollision(x1, y1, x2, y2, left, top, right, top);
+        const rectDown =    Maths.lineCollision(x1, y1, x2, y2, left, down, right, down);
         return (rectLeft || rectRight || rectTop || rectDown);
     }
     static randomFloat(min, max) {
@@ -270,6 +280,358 @@ class MathUtils {
     }
 }
 
+class Script$1 {
+    constructor(format = SCRIPT_FORMAT.JAVASCRIPT) {
+        this.isScript = true;
+        this.type = 'Script';
+        this.name ='New Script';
+        this.uuid = Maths.uuid();
+        this.format = format;
+        this.category = null;
+        this.line = 0;
+        this.char = 0;
+        this.errors = false;
+        if (format === SCRIPT_FORMAT.JAVASCRIPT) {
+            this.source =
+                '//\n' +
+                '// Globals:            entity ("this" in events), app, renderer, scene, camera\n' +
+                '// Lifecycle Events:   init, update, destroy\n' +
+                '// Input Events:       keydown, keyup, pointerdown, pointerup, pointermove\n' +
+                '//\n' +
+                '\n' +
+                '// ... Code outside of events is executed when entity is loaded ... \n' +
+                '\n' +
+                '// "init()" is executed when the entity is loaded\n' +
+                'function init() {\n\n}\n' +
+                '\n' +
+                '// "update()" is executed before each frame is rendered\n' +
+                '//     event.time: total elapsed time (in ms)\n' +
+                '//     event.delta: time since last frame (in ms)\n' +
+                'function update(event) {\n\n}\n' +
+                '\n' +
+                '// "destroy()" is executed right before the entity is removed\n' +
+                'function destroy() {\n\n}\n' +
+                '\n' +
+                '// Example Input Event\n' +
+                'function keydown(event) {\n\n}\n';
+        }
+    }
+    fromJSON(json) {
+        const data = json.object;
+        if (data.name !== undefined) this.name = json.name;
+        if (data.uuid !== undefined) this.uuid = json.uuid;
+        if (data.format !== undefined) this.format = json.format;
+        if (data.category !== undefined) this.category = json.category;
+        if (data.line !== undefined) this.line = json.line;
+        if (data.char !== undefined) this.char = json.char;
+        if (data.errors !== undefined) this.errors = json.errors;
+        if (data.source !== undefined) this.source = json.source;
+        return this;
+    }
+    toJSON() {
+        const json = {
+            object: {
+                type: this.type,
+                name: this.name,
+                uuid: this.uuid,
+                format: this.format,
+                category: this.category,
+            }
+        };
+        json.object.line = this.line;
+        json.object.char = this.char;
+        json.object.errors = structuredClone(this.errors);
+        json.object.source = this.source;
+        return json;
+    }
+}
+
+class Strings {
+    static addSpaces(string) {
+        return String(string).replace(/([A-Z])/g, ' $1').trim();
+    }
+    static capitalize(string) {
+        const words = String(string).split(' ');
+        for (let i = 0; i < words.length; i++) {
+            words[i] = words[i][0].toUpperCase() + words[i].substring(1);
+        }
+        return words.join(' ');
+    }
+    static countDigits(number) {
+        return parseFloat(number).toString().length;
+    }
+    static escapeHTML(html) {
+        if (html == undefined) return html;
+        return html
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+    static nameFromUrl(url, capitalize = true) {
+        let imageName = new String(url.replace(/^.*[\\\/]/, ''));
+        imageName = imageName.replace(/\.[^/.]+$/, "");
+        if (capitalize) imageName = Strings.capitalize(imageName);
+        return imageName;
+    }
+}
+
+const _assets = {};
+const _textureCache = {};
+const _textureLoader = new THREE.TextureLoader();
+class AssetManager {
+    static clear() {
+        for (let uuid in _assets) {
+            const asset = _assets[uuid];
+            if (!asset.isEntity) {
+                AssetManager.removeAsset(_assets[uuid], true);
+            }
+        }
+    }
+    static checkType(asset) {
+        if (!asset) return undefined;
+        if (asset.isBufferGeometry) return 'geometry';
+        if (asset.type === 'Shape') return 'shape';
+        if (asset.isMaterial) return 'material';
+        if (asset.isScript) return 'script';
+        if (asset.isTexture) return 'texture';
+        if (asset.isEntity || asset.isPrefab) return 'prefab';
+        return 'asset';
+    }
+    static addAsset(assetOrArray) {
+        if (!assetOrArray) return;
+        const assetArray = (Array.isArray(assetOrArray)) ? assetOrArray : [ assetOrArray ];
+        for (let i = 0; i < assetArray.length; i++) {
+            let asset = assetArray[i];
+            if (!asset.name || asset.name === '') asset.name = asset.constructor.name;
+            if (asset.isBufferGeometry && asset.constructor.name !== 'BufferGeometry') {
+                const bufferGeometry = mergeGeometries([ asset ]);
+                bufferGeometry.name = asset.name;
+                bufferGeometry.uuid = asset.uuid;
+                if (typeof asset.dispose === 'function') asset.dispose();
+                asset = bufferGeometry;
+            }
+            _assets[asset.uuid] = asset;
+        }
+    }
+    static getAsset(uuid) {
+        if (uuid && uuid.uuid) uuid = uuid.uuid;
+        return _assets[uuid];
+    }
+    static getLibrary(type, category) {
+        const library = [];
+        for (const [uuid, asset] of Object.entries(_assets)) {
+            if (AssetManager.checkType(asset) === type) {
+                if (!category) {
+                    library.push(asset);
+                } else if (asset.category && asset.category === category) {
+                    library.push(asset);
+                }
+            }
+        }
+        return library;
+    }
+    static removeAsset(assetOrArray, dispose = true) {
+        if (!assetOrArray) return;
+        const assetArray = (Array.isArray(assetOrArray)) ? assetOrArray : [ assetOrArray ];
+        for (let i = 0; i < assetArray.length; i++) {
+            const asset = assetArray[i];
+            if (_assets[asset.uuid]) {
+                if (asset.isTexture) {
+                    for (let url in _textureCache) {
+                        if (_textureCache[url].uuid === asset.uuid) delete _textureCache[url];
+                    }
+                }
+                if (dispose && typeof asset.dispose === 'function') asset.dispose();
+                delete _assets[asset.uuid];
+            }
+        }
+    }
+    static loadTexture(url, onLoad = undefined) {
+        if (!url || url === '') return null;
+        const resolvedUrl = THREE.DefaultLoadingManager.resolveURL(url);
+        if (_textureCache[resolvedUrl]) {
+            console.log(`AssetManager.loadTexture: Duplicate image!`);
+            return _textureCache[resolvedUrl];
+        }
+		const texture = _textureLoader.load(url, onTextureLoaded, onTextureLoadError);
+        _textureCache[resolvedUrl] = texture;
+        function onTextureLoaded(newTexture) {
+            newTexture.name = Strings.nameFromUrl(newTexture.image.src);
+            newTexture.premultiplyAlpha = true;
+            newTexture.wrapS = THREE.RepeatWrapping;
+            newTexture.wrapT = THREE.RepeatWrapping;
+            if (onLoad && typeof onLoad === 'function') onLoad(newTexture);
+        }
+        function onTextureLoadError() {
+            if (_textureCache[resolvedUrl] && _textureCache[resolvedUrl].isTexture) {
+                _textureCache[resolvedUrl].dispose();
+            }
+            delete _textureCache[resolvedUrl];
+        }
+		return texture;
+    }
+    static fromJSON(json) {
+        AssetManager.clear();
+        function addLibraryToAssets(library) {
+            for (const [uuid, asset] of Object.entries(library)) {
+                AssetManager.addAsset(asset);
+            }
+        }
+        const scripts = {};
+        if (json.scripts) {
+            for (let i = 0; i < json.scripts.length; i++) {
+                const script = new Script$1().fromJSON(json.scripts[i]);
+                scripts[script.uuid] = script;
+            }
+            addLibraryToAssets(scripts);
+        }
+		const objectLoader = new THREE.ObjectLoader();
+		const animations = objectLoader.parseAnimations(json.animations);
+		const shapes = objectLoader.parseShapes(json.shapes);
+		const geometries = objectLoader.parseGeometries(json.geometries, {});
+		const images = objectLoader.parseImages(json.images);
+		const textures = objectLoader.parseTextures(json.textures, images);
+		const materials = objectLoader.parseMaterials(json.materials, textures);
+        addLibraryToAssets(animations);
+        addLibraryToAssets(shapes);
+        addLibraryToAssets(geometries);
+        addLibraryToAssets(images);
+        addLibraryToAssets(textures);
+        addLibraryToAssets(materials);
+    }
+    static toJSON(meta) {
+        const json = {};
+        if (!meta) meta = {};
+        if (!meta.scripts) meta.scripts = {};
+        if (!meta.shapes) meta.shapes = {};
+        if (!meta.geometries) meta.geometries = {};
+        if (!meta.images) meta.images = {};
+        if (!meta.textures) meta.textures = {};
+        if (!meta.materials) meta.materials = {};
+        if (!meta.animations) meta.animations = {};
+        if (!meta.skeletons) meta.skeletons = {};
+        const stopRoot = {
+            images: {},
+            textures: {},
+            materials: {},
+        };
+        const scripts = AssetManager.getLibrary('script');
+        for (let i = 0; i < scripts.length; i++) {
+            const script = scripts[i];
+            if (!script.uuid) continue;
+            if (meta.scripts[script.uuid]) continue;
+            meta.scripts[script.uuid] = script.toJSON();
+        }
+        const geometries = AssetManager.getLibrary('geometry');
+        for (let i = 0; i < geometries.length; i++) {
+            const geometry = geometries[i];
+            if (!geometry.uuid) continue;
+            if (meta.geometries[geometry.uuid]) continue;
+            meta.geometries[geometry.uuid] = geometry.toJSON(meta);
+        }
+        const materials = AssetManager.getLibrary('material');
+        for (let i = 0; i < materials.length; i++) {
+            const material = materials[i];
+            if (!material.uuid) continue;
+            if (meta.materials[material.uuid]) continue;
+            meta.materials[material.uuid] = material.toJSON(stopRoot);
+        }
+        const shapes = AssetManager.getLibrary('shape');
+        for (let i = 0; i < shapes.length; i++) {
+            const shape = shapes[i];
+            if (!shape.uuid) continue;
+            if (meta.shapes[shape.uuid]) continue;
+            meta.shapes[shape.uuid] = shape.toJSON(stopRoot);
+        }
+        const textures = AssetManager.getLibrary('texture');
+        for (let i = 0; i < textures.length; i++) {
+            const texture = textures[i];
+            if (!texture.uuid) continue;
+            if (meta.textures[texture.uuid]) continue
+            meta.textures[texture.uuid] = texture.toJSON(meta);
+        }
+        for (const library in meta) {
+            const valueArray = [];
+            for (const key in meta[library]) {
+                const data = meta[library][key];
+                delete data.metadata;
+                valueArray.push(data);
+            }
+            json[library] = valueArray;
+        }
+        return json;
+    }
+}
+
+const _timer = (performance == null || typeof performance === 'undefined') ? Date : performance;
+class Clock {
+	#running = false;
+	#startTime = 0;
+	#elapsedTime = 0;
+	#lastChecked = 0;
+	#deltaCount = 0;
+	#frameTime = 0;
+	#frameCount = 0;
+	#lastFrameCount = 0;
+	constructor(autoStart = true, msRewind = 0) {
+		if (autoStart) this.start();
+		this.#startTime -= msRewind;
+		this.#lastChecked -= msRewind;
+	}
+	start() {
+		this.#startTime = _timer.now();
+		this.#lastChecked = this.#startTime;
+		this.#running = true;
+	}
+	stop() {
+		this.getDeltaTime();
+		this.#running = false;
+	}
+	reset() {
+		this.#startTime = _timer.now();
+		this.#lastChecked = this.#startTime;
+		this.#elapsedTime = 0;
+		this.#deltaCount = 0;
+	}
+	getElapsedTime() {
+		return this.#elapsedTime;
+	}
+	getDeltaTime() {
+		if (!this.#running) {
+			this.#lastFrameCount = 0;
+			return 0;
+		}
+        const newTime = _timer.now();
+        const dt = (newTime - this.#lastChecked) / 1000;
+        this.#lastChecked = newTime;
+        this.#elapsedTime += dt;
+		this.#deltaCount++;
+		this.#frameTime += dt;
+		this.#frameCount++;
+		if (this.#frameTime > 1) {
+			this.#lastFrameCount = this.#frameCount;
+			this.#frameTime = 0;
+			this.#frameCount = 0;
+		}
+		return dt;
+	}
+	isRunning() {
+		return this.#running;
+	}
+	count() {
+		return this.#deltaCount;
+	}
+	averageDelta() {
+		const frameRate = 1 / this.#lastFrameCount;
+		return Math.min(1, frameRate);
+	}
+	fps() {
+		return this.#lastFrameCount;
+	}
+}
+
 class System {
     static arrayFromArguments() {
         if (arguments.length === 1 && Array.isArray(arguments[0])) {
@@ -283,7 +645,7 @@ class System {
         return typeof obj[Symbol.iterator] === 'function';
     }
     static isObject(variable) {
-        return (typeof variable === 'object' && ! Array.isArray(variable) && variable !== null);
+        return (typeof variable === 'object' && !Array.isArray(variable) && variable !== null);
     }
     static save(url, filename) {
         try {
@@ -296,8 +658,8 @@ class System {
                 document.body.removeChild(link);
                 window.URL.revokeObjectURL(url);
             }, 0);
-        } catch (e) {
-            console.warn(e);
+        } catch (error) {
+            console.warn(error);
             return;
         }
     }
@@ -395,10 +757,9 @@ const _objRotation = new THREE.Euler();
 const _objScale$2 = new THREE.Vector3();
 class ObjectUtils {
     static allowSelection(object) {
-        let allowSelect = true;
+        let allowSelect = (!object.isLocked);
         if (object.userData) {
             if (object.userData.flagIgnore) allowSelect = false;
-            if (object.userData.flagLocked) allowSelect = false;
         }
         return allowSelect;
     }
@@ -407,13 +768,13 @@ class ObjectUtils {
         array[0].getWorldQuaternion(_startQuaternion);
         for (let i = 1; i < array.length; i++) {
             array[i].getWorldQuaternion(_testQuaternion);
-            if (MathUtils.fuzzyQuaternion(_startQuaternion, _testQuaternion) === false) return false;
+            if (Maths.fuzzyQuaternion(_startQuaternion, _testQuaternion) === false) return false;
         }
         return true;
     }
     static clearObject(object, removeFromParent = true) {
-        if (! object) return;
-        if (! object.isObject3D) return;
+        if (!object) return;
+        if (!object.isObject3D) return;
         if (object.geometry) object.geometry.dispose();
         if (object.material) ObjectUtils.clearMaterial(object.material);
         if (object.dispose) object.dispose();
@@ -429,7 +790,7 @@ class ObjectUtils {
         for (let i = 0, il = materials.length; i < il; i++) {
             const material = materials[i];
             Object.keys(material).forEach((prop) => {
-                if (! material[prop]) return;
+                if (!material[prop]) return;
                 if (typeof material[prop].dispose === 'function') material[prop].dispose();
             });
             if (material.dispose) material.dispose();
@@ -479,12 +840,6 @@ class ObjectUtils {
         }
         return false;
     }
-    static copyLocalTransform(source, target, updateMatrix = true) {
-        source.updateMatrix();
-        source.matrix.decompose(target.position, _tempQuaternion, target.scale);
-        target.rotation.setFromQuaternion(_tempQuaternion, undefined, false);
-        if (updateMatrix) target.updateMatrix();
-    }
     static copyWorldTransform(source, target, updateMatrix = true) {
         source.updateWorldMatrix(true, false);
         source.matrixWorld.decompose(target.position, _tempQuaternion, target.scale);
@@ -503,8 +858,8 @@ class ObjectUtils {
         return geometryCount;
     }
     static flattenGroup(group) {
-        if (! group) return;
-        if (! group.parent) return;
+        if (!group) return;
+        if (!group.parent) return;
         while (group.children) group.parent.attach(group.children[0]);
         ObjectUtils.clearObject(group, true);
     }
@@ -515,187 +870,11 @@ class ObjectUtils {
     }
 }
 
-class Strings {
-    static addSpaces(string) {
-        return String(string).replace(/([A-Z])/g, ' $1').trim();
-    }
-    static capitalize(string) {
-        const words = String(string).split(' ');
-        for (let i = 0; i < words.length; i++) {
-            words[i] = words[i][0].toUpperCase() + words[i].substring(1);
-        }
-        return words.join(' ');
-    }
-    static countDigits(number) {
-        return parseFloat(number).toString().length;
-    }
-    static nameFromUrl(url, capitalize = true) {
-        let imageName = new String(url.replace(/^.*[\\\/]/, ''));
-        imageName = imageName.replace(/\.[^/.]+$/, "");
-        if (capitalize) imageName = Strings.capitalize(imageName);
-        return imageName;
-    }
-}
-
-const _assets = {};
-const _scripts = {};
-const _textureCache = {};
-const _textureLoader = new THREE.TextureLoader();
-class AssetManager {
-    static assetType(asset) {
-        if (asset.isBufferGeometry) return 'geometry';
-        if (asset.type === 'Shape') return 'shape';
-        if (asset.isMaterial) return 'material';
-        if (asset.isTexture) return 'texture';
-        return 'asset';
-    }
-    static getLibrary(type) {
-        const library = [];
-        for (const [uuid, asset] of Object.entries(_assets)) {
-            if (AssetManager.assetType(asset) === type) library.push(asset);
-        }
-        return library;
-    }
-    static addAsset(assetOrArray) {
-        if (! assetOrArray) return;
-        const assetArray = (Array.isArray(assetOrArray)) ? assetOrArray : [ assetOrArray ];
-        for (let i = 0; i < assetArray.length; i++) {
-            let asset = assetArray[i];
-            if (! asset.name || asset.name === '') asset.name = asset.constructor.name;
-            if (asset.isBufferGeometry && asset.constructor.name !== 'BufferGeometry') {
-                const bufferGeometry = mergeBufferGeometries([ asset ]);
-                bufferGeometry.name = asset.name;
-                bufferGeometry.uuid = asset.uuid;
-                if (asset.dispose) asset.dispose();
-                asset = bufferGeometry;
-            }
-            _assets[asset.uuid] = asset;
-        }
-        return assetOrArray;
-    }
-    static getAsset(uuid) {
-        if (uuid && uuid.uuid) uuid = uuid.uuid;
-        return _assets[uuid];
-    }
-    static removeAsset(assetOrArray, dispose = true) {
-        if (! assetOrArray) return;
-        const assetArray = (Array.isArray(assetOrArray)) ? assetOrArray : [ assetOrArray ];
-        for (let i = 0; i < assetArray.length; i++) {
-            const asset = assetArray[i];
-            if (_assets[asset.uuid]) {
-                if (asset.isTexture) {
-                    for (let url in _textureCache) {
-                        if (_textureCache[url].uuid === asset.uuid) delete _textureCache[url];
-                    }
-                }
-                if (dispose && asset.dispose) asset.dispose();
-                delete _assets[asset.uuid];
-            }
-        }
-    }
-    static loadTexture(url, onLoad = undefined) {
-        if (! url || url === '') return null;
-        const resolvedUrl = THREE.DefaultLoadingManager.resolveURL(url);
-        if (_textureCache[resolvedUrl]) {
-            console.log(`AssetManager.loadTexture: Duplicate image!`);
-            return _textureCache[resolvedUrl];
-        }
-		const texture = _textureLoader.load(url, onTextureLoaded, onTextureLoadError);
-        _textureCache[resolvedUrl] = texture;
-        function onTextureLoaded(newTexture) {
-            newTexture.name = Strings.nameFromUrl(newTexture.image.src);
-            newTexture.premultiplyAlpha = true;
-            newTexture.wrapS = THREE.RepeatWrapping;
-            newTexture.wrapT = THREE.RepeatWrapping;
-            if (onLoad && typeof onLoad === 'function') onLoad(newTexture);
-        }
-        function onTextureLoadError() {
-            if (_textureCache[resolvedUrl] && _textureCache[resolvedUrl].isTexture) {
-                _textureCache[resolvedUrl].dispose();
-            }
-            delete _textureCache[resolvedUrl];
-        }
-		return texture;
-    }
-    static clear() {
-        for (let uuid in _assets) {
-            AssetManager.removeAsset(_assets[uuid], true);
-        }
-    }
-    static fromJSON(json) {
-        AssetManager.clear();
-        function addLibraryToAssets(library) {
-            for (const [uuid, asset] of Object.entries(library)) {
-                AssetManager.addAsset(asset);
-            }
-        }
-		const objectLoader = new THREE.ObjectLoader();
-		const animations = objectLoader.parseAnimations(json.animations);
-		const shapes = objectLoader.parseShapes(json.shapes);
-		const geometries = objectLoader.parseGeometries(json.geometries, {});
-		const images = objectLoader.parseImages(json.images);
-		const textures = objectLoader.parseTextures(json.textures, images);
-		const materials = objectLoader.parseMaterials(json.materials, textures);
-        addLibraryToAssets(animations);
-        addLibraryToAssets(shapes);
-        addLibraryToAssets(geometries);
-        addLibraryToAssets(images);
-        addLibraryToAssets(textures);
-        addLibraryToAssets(materials);
-    }
-    static toJSON(meta) {
-        const json = {};
-        if (! meta) meta = {};
-        if (! meta.shapes) meta.shapes = {};
-        if (! meta.geometries) meta.geometries = {};
-        if (! meta.images) meta.images = {};
-        if (! meta.textures) meta.textures = {};
-        if (! meta.materials) meta.materials = {};
-        if (! meta.animations) meta.animations = {};
-        if (! meta.skeletons) meta.skeletons = {};
-        const stopRoot = {
-            images: {},
-            textures: {},
-            materials: {},
-        };
-        const geometries = AssetManager.getLibrary('geometry');
-        for (let i = 0; i < geometries.length; i++) {
-            const geometry = geometries[i];
-            if (! meta.geometries[geometry.uuid]) meta.geometries[geometry.uuid] = geometry.toJSON(meta);
-        }
-        const materials = AssetManager.getLibrary('material');
-        for (let i = 0; i < materials.length; i++) {
-            const material = materials[i];
-            if (! meta.materials[material.uuid]) meta.materials[material.uuid] = material.toJSON(stopRoot);
-        }
-        const shapes = AssetManager.getLibrary('shape');
-        for (let i = 0; i < shapes.length; i++) {
-            const shape = shapes[i];
-            if (! meta.shapes[shape.uuid]) meta.shapes[shape.uuid] = shape.toJSON(stopRoot);
-        }
-        const textures = AssetManager.getLibrary('texture');
-        for (let i = 0; i < textures.length; i++) {
-            const texture = textures[i];
-            if (! meta.textures[texture.uuid]) meta.textures[texture.uuid] = texture.toJSON(meta);
-        }
-        for (const library in meta) {
-            const valueArray = [];
-            for (const key in meta[library]) {
-                const data = meta[library][key];
-                delete data.metadata;
-                valueArray.push(data);
-            }
-            if (valueArray.length > 0) json[library] = valueArray;
-        }
-        return json;
-    }
-}
-
 const _registered = {};
 class ComponentManager {
     static registered(type = '') {
         const ComponentClass = _registered[type];
-        if (! ComponentClass) console.warn(`ComponentManager.registered: Component '${type}' not registered'`);
+        if (!ComponentClass) console.warn(`ComponentManager.registered: Component '${type}' not registered'`);
         return ComponentClass;
     }
     static registeredTypes() {
@@ -704,8 +883,8 @@ class ComponentManager {
     static register(type = '', ComponentClass) {
         type = type.toLowerCase();
         if (_registered[type]) return console.warn(`ComponentManager.register: Component '${type}' already registered`);
-        if (! System.isObject(ComponentClass.config)) ComponentClass.config = {};
-        if (! System.isObject(ComponentClass.config.schema)) ComponentClass.config.schema = {};
+        if (!System.isObject(ComponentClass.config)) ComponentClass.config = {};
+        if (!System.isObject(ComponentClass.config.schema)) ComponentClass.config.schema = {};
         const schema = ComponentClass.config.schema;
         for (const key in schema) {
             const prop = Array.isArray(schema[key]) ? schema[key] : [ schema[key] ];
@@ -713,7 +892,7 @@ class ComponentManager {
                 const property = prop[i];
                 if (property.type === undefined) {
                     console.warn(`ComponentManager.register(): All schema properties require a 'type' value`);
-                } else if (property.type === 'divider') {
+                } else if (property.type === 'layout') {
                     continue;
                 }
                 if (property.default === undefined) {
@@ -723,19 +902,14 @@ class ComponentManager {
                         case 'int':         property.default = 0;               break;
                         case 'angle':       property.default = 0;               break;
                         case 'slider':      property.default = 0;               break;
+                        case 'variable':    property.default = [ 0, 0 ];        break;
+                        case 'vector':      property.default = [ 0 ];           break;
                         case 'boolean':     property.default = false;           break;
                         case 'color':       property.default = 0xffffff;        break;
-                        case 'asset':       property.default = null;            break;
-                        case 'map':         property.default = null;            break;
-                        case 'scroller':    property.default = 0;               break;
-                        case 'variable':    property.default = [ 0, 0 ];        break;
-                        case 'array':       property.default = [];              break;
-                        case 'vector2':     property.default = [ 0, 0 ];        break;
-                        case 'vector3':     property.default = [ 0, 0, 0 ];     break;
-                        case 'vector4':     property.default = [ 0, 0, 0, 0 ];  break;
                         case 'string':      property.default = '';              break;
-                        case 'shape':       property.default = null;            break;
-                        case 'script':      property.default = '';              break;
+                        case 'asset':       property.default = null;            break;
+                        case 'object':      property.default = {};              break;
+                        case 'layout':      property.default = undefined;       break;
                         default:
                             console.warn(`ComponentManager.register(): Unknown property type: '${property.type}'`);
                             property.default = null;
@@ -750,25 +924,41 @@ class ComponentManager {
             constructor() {
                 super();
                 this.isComponent = true;
-                this.enabled = true;
-                this.tag = '';
                 this.type = type;
+                this.attached = true;
+                this.expanded = true;
+                this.tag = '';
                 this.entity = null;
                 this.data = {};
             }
             init(data) {
-                super.init(data);
+                this.dispose();
+                if (typeof super.init === 'function') super.init(data);
             }
             dispose() {
-                super.dispose();
+                if (typeof super.dispose === 'function') super.dispose();
+                if (this.backend && typeof this.backend.dispose === 'function') this.backend.dispose();
+                this.backend = undefined;
             }
-            disable() {
-                this.enabled = false;
-                super.disable();
+            attach() {
+                this.attached = true;
+                if (typeof super.attach === 'function') super.attach();
             }
-            enable() {
-                this.enabled = true;
-                super.enable();
+            detach() {
+                this.attached = false;
+                if (typeof super.detach === 'function') super.detach();
+            }
+            update(data) {
+                const newData = this.data ?? {};
+                Object.assign(newData, data);
+                ComponentManager.sanitizeData(this.type, newData);
+                this.detach();
+                this.init(newData);
+                this.attach();
+            }
+            three() {
+                if (typeof super.three === 'function') return super.three();
+                return undefined;
             }
             defaultData() {
                 const data = {};
@@ -777,10 +967,30 @@ class ComponentManager {
                 }
                 ComponentManager.sanitizeData(this.type, data);
                 data.base = {
-                    enabled: 	this.enabled,
-                    tag:		this.tag,
-                    type:		this.type,
+                    isComponent:    true,
+                    attached:       this.attached,
+                    expanded:       this.expanded,
+                    tag:            this.tag,
+                    type:           this.type,
                 };
+                return data;
+            }
+            toJSON() {
+                let data;
+                if (this.data && this.data.style) {
+                    data = this.defaultData('style', this.data.style);
+                } else {
+                    data = this.defaultData();
+                }
+                for (let key in data) {
+                    if (this.data[key] !== undefined) {
+                        if (this.data[key] && this.data[key].isTexture) {
+                            data[key] = this.data[key].uuid;
+                        } else {
+                            data[key] = this.data[key];
+                        }
+                    }
+                }
                 return data;
             }
         }
@@ -795,7 +1005,7 @@ class ComponentManager {
                 check1 = check1 || (data1[key] === conditions[j]);
                 check2 = check2 || (data2 === undefined) ? true : (data2[key] === conditions[j]);
             }
-            if (! check1 || ! check2) return false;
+            if (!check1 || !check2) return false;
         }
         for (let key in item.not) {
             let conditions = item.not[key];
@@ -810,16 +1020,19 @@ class ComponentManager {
         return true;
     }
     static sanitizeData(type, data) {
+        if (!data || typeof data !== 'object') data = {};
         const ComponentClass = ComponentManager.registered(type);
-        const schema = (ComponentClass && ComponentClass.config) ? ComponentClass.config.schema : {};
+        if (!ComponentClass || !ComponentClass.config || !ComponentClass.config.schema) return;
+        const schema = ComponentClass.config.schema;
+        if (!System.isObject(schema)) return;
         for (let schemaKey in schema) {
             let itemArray = schema[schemaKey];
             if (System.isIterable(itemArray) !== true) itemArray = [ schema[schemaKey] ];
             let itemToInclude = undefined;
             for (let i = 0; i < itemArray.length; i++) {
                 let item = itemArray[i];
-                if (item.type === 'divider') continue;
-                if (! ComponentManager.includeData(item, data)) continue;
+                if (item.type === 'layout') continue;
+                if (!ComponentManager.includeData(item, data)) continue;
                 itemToInclude = item;
                 break;
             }
@@ -827,7 +1040,7 @@ class ComponentManager {
                 if (data[schemaKey] === undefined) {
                     data[schemaKey] = itemToInclude.default;
                 }
-                if (MathUtils.isNumber(data[schemaKey])) {
+                if (Maths.isNumber(data[schemaKey])) {
                     const min = itemToInclude['min'] ?? -Infinity;
                     const max = itemToInclude['max'] ??  Infinity;
                     if (data[schemaKey] < min) data[schemaKey] = min;
@@ -840,15 +1053,17 @@ class ComponentManager {
     }
     static stripData(type, oldData, newData) {
         const ComponentClass = ComponentManager.registered(type);
-        const schema = (ComponentClass && ComponentClass.config) ? ComponentClass.config.schema : {};
+        if (!ComponentClass || !ComponentClass.config || !ComponentClass.config.schema) return;
+        const schema = ComponentClass.config.schema;
+        if (!System.isObject(schema)) return;
         for (let schemaKey in schema) {
             let matchedConditions = false;
             let itemArray = schema[schemaKey];
             if (System.isIterable(itemArray) !== true) itemArray = [ schema[schemaKey] ];
             for (let i = 0; i < itemArray.length; i++) {
                 let item = itemArray[i];
-                if (item.type === 'divider') continue;
-                if (! ComponentManager.includeData(item, oldData, newData)) continue;
+                if (item.type === 'layout') continue;
+                if (!ComponentManager.includeData(item, oldData, newData)) continue;
                 matchedConditions = true;
                 break;
             }
@@ -895,31 +1110,53 @@ class EntityUtils {
         return false;
     }
     static containsMesh(entity, recursive = true) {
-        if (! entity.isEntity) {
+        if (!entity.isEntity) {
             console.warn(`EntityUtils.containsMesh: Object was not an Entity!`);
             return false;
         }
         let hasMesh = false;
         entity.traverseEntities((child) => {
+            let hasGeometry = false;
+            let hasMaterial = false;
             child.traverseComponents((component) => {
-                hasMesh = hasMesh || (component.type === 'geometry');
-                hasMesh = hasMesh || (component.type === 'mesh');
-                hasMesh = hasMesh || (component.type === 'sprite');
+                hasGeometry = hasGeometry || (component.type === 'geometry' && component.backend && component.backend.isBufferGeometry);
+                hasMaterial = hasMaterial || (component.type === 'material' && component.backend && component.backend.isMaterial);
+                hasMesh = hasMesh || (component.type === 'mesh' && component.backend && component.backend.isMesh);
             });
+            hasMesh = hasMesh || (hasGeometry && hasMaterial);
         }, recursive);
         return hasMesh;
     }
+    static findCameraComponent(entity) {
+        if (!entity || !entity.isEntity) return undefined;
+        let cameraComponent = undefined;
+        entity.traverseEntities((entity) => {
+            entity.traverseComponents((component) => {
+                if (component.type === 'camera') {
+                    cameraComponent = component;
+                    return cameraComponent;
+                }
+            });
+            if (cameraComponent) return cameraComponent;
+        });
+        return cameraComponent;
+    }
     static isImportant(entity) {
         let important = false;
-        important = important || entity.parent === null;
+        important = important || entity.parent == null;
         important = important || entity.isScene;
-        important = important || entity.userData.flagLocked;
+        important = important || entity.isLocked;
         return important;
     }
     static parentEntity(entity, immediateOnly = false) {
-        while (entity && entity.parent && (entity.parent.isScene !== true)) {
+        while (entity && entity.parent && !entity.parent.isScene) {
             entity = entity.parent;
-            if (immediateOnly && entity.isEntity) return entity;
+            if (immediateOnly && entity.isEntity) {
+                if (entity.userData && entity.userData.flagIgnore) {
+                } else {
+                    return entity;
+                }
+            }
         }
         return entity;
     }
@@ -966,36 +1203,54 @@ const _worldPosition = new THREE.Vector3();
 const _worldQuaternion = new THREE.Quaternion();
 const _worldScale = new THREE.Vector3();
 const _worldRotation = new THREE.Euler();
-class Object3D extends THREE.Object3D {
-    constructor() {
+class Entity3D extends THREE.Object3D {
+    constructor(name = '') {
         super();
-        this.isObject3DOverload = true;
-        const rotation = new THREE.Euler();
-        const quaternion = new THREE.Quaternion();
-        function onRotationChange() {  }
-        function onQuaternionChange() {  }
-        rotation._onChange(onRotationChange);
-        quaternion._onChange(onQuaternionChange);
-        Object.defineProperties(this, {
-            rotation: { configurable: true, enumerable: true, value: rotation },
-            quaternion: { configurable: true, enumerable: true, value: quaternion },
-        });
+        this.isEntity = true;
+        this.isEntity3D = true;
+        this.type = 'Entity3D';
+        this.name = name;
+        this.isLocked = false;
+        this.lookAtCamera = false;
+        this.components = [];
+        this.castShadow = true;
+        this.receiveShadow = true;
     }
-    clone(recursive) {
-		return new this.constructor().copy(this, recursive);
-	}
-    copy(source, recursive = true) {
-        super.copy(source, false );
-        ObjectUtils.copyLocalTransform(source, this, false );
-        this.lookAtCamera = source.lookAtCamera;
-        this.updateMatrix();
-        if (recursive === true) {
-			for (let i = 0; i < source.children.length; i++) {
-                const clone = source.children[i].clone();
-				this.add(clone);
-			}
-		}
-        return this;
+    getReducedType() {
+        if (this.isScene) return 'Scene';
+        return (this.components.length === 1) ? Strings.capitalize(this.components[0].type.toLowerCase()) : 'Entity3D';
+    }
+    updateMatrix() {
+        const onRotationChange = this.rotation._onChangeCallback;
+        const onQuaternionChange = this.rotation._onChangeCallback;
+        this.rotation._onChange(() => {});
+        this.quaternion._onChange(() => {});
+        const camera = window.activeCamera;
+        let lookAtCamera = Boolean(this.lookAtCamera && camera && !this.isScene);
+        if (lookAtCamera && this.parent && this.parent.isObject3D) {
+            this.traverseAncestors((parent) => {
+                if (parent.lookAtCamera) lookAtCamera = false;
+            });
+        }
+        if (!lookAtCamera) {
+            this.quaternion.setFromEuler(this.rotation, false);
+        } else {
+            if (this.parent && this.parent.isObject3D) {
+                this.parent.getWorldQuaternion(_parentQuaternion, false );
+                _parentQuaternionInv.copy(_parentQuaternion).invert();
+                this.quaternion.copy(_parentQuaternionInv);
+            } else {
+                this.quaternion.identity();
+            }
+                camera.matrixWorld.decompose(_camPosition, _camQuaternion, _camScale);
+                _rotationQuaternion.setFromEuler(this.rotation, false);
+                this.quaternion.multiply(_camQuaternion);
+                this.quaternion.multiply(_rotationQuaternion);
+        }
+        this.matrix.compose(this.position, this.quaternion, this.scale);
+        this.matrixWorldNeedsUpdate = true;
+        this.rotation._onChange(onRotationChange);
+        this.quaternion._onChange(onQuaternionChange);
     }
     getWorldQuaternion(targetQuaternion, ignoreBillboard = true) {
         let beforeBillboard = this.lookAtCamera;
@@ -1011,7 +1266,7 @@ class Object3D extends THREE.Object3D {
         return targetQuaternion;
     }
     safeAttach(object) {
-        if (! object || ! object.isObject3D) return;
+        if (!object || !object.isObject3D) return;
         object.getWorldQuaternion(_worldQuaternion);
         object.getWorldScale(_worldScale);
         object.getWorldPosition(_worldPosition);
@@ -1021,83 +1276,49 @@ class Object3D extends THREE.Object3D {
         object.position.copy(_worldPosition);
         this.attach(object);
     }
-    updateMatrix() {
-        const camera = window.activeCamera;
-        let lookAtCamera = this.lookAtCamera && camera && ! this.isScene;
-        if (lookAtCamera && this.parent && this.parent.isObject3D) {
-            this.traverseAncestors((parent) => {
-                if (parent.lookAtCamera) lookAtCamera = false;
-            });
-        }
-        if (lookAtCamera) {
-            if (this.parent && this.parent.isObject3D) {
-                this.parent.getWorldQuaternion(_parentQuaternion, false );
-                _parentQuaternionInv.copy(_parentQuaternion).invert();
-                this.quaternion.copy(_parentQuaternionInv);
-            } else {
-                this.quaternion.identity();
-            }
-                camera.matrixWorld.decompose(_camPosition, _camQuaternion, _camScale);
-                _rotationQuaternion.setFromEuler(this.rotation, false);
-                this.quaternion.multiply(_camQuaternion);
-                this.quaternion.multiply(_rotationQuaternion);
-        } else {
-            this.quaternion.setFromEuler(this.rotation, false);
-        }
-        this.matrix.compose(this.position, this.quaternion, this.scale);
-        this.matrixWorldNeedsUpdate = true;
-    }
-}
-
-class Entity3D extends Object3D {
-    constructor(name = '') {
-        super();
-        this.isEntity = true;
-        this.isEntity3D = true;
-        this.name = name;
-        this.type = 'Entity3D';
-        this.enabled = true;
-        this.castShadow = true;
-        this.receiveShadow = true;
-        this.lookAtCamera = false;
-        this.components = [];
-        this.setFlag(ENTITY_FLAGS.LOCKED, false);
-    }
-    getReducedType() {
-        if (this.isScene) return 'Scene';
-        return (this.components.length === 1) ? Strings.capitalize(this.components[0].type.toLowerCase()) : 'Entity3D';
-    }
-    getFlag(flag) {
-        return Boolean(this.userData[flag]);
-    }
-    setFlag(flag, value) {
-        this.userData[flag] = value;
-        return this;
-    }
     addComponent(type, data = {}, includeDependencies = true) {
         const ComponentClass = ComponentManager.registered(type);
         if (ComponentClass === undefined) return undefined;
         const config = ComponentClass.config;
         let component = this.getComponent(type);
-        if (ComponentClass.config.multiple || component === undefined) {
+        if (!component || ComponentClass.config.multiple) {
             component = new ComponentClass();
             this.components.push(component);
-        } else {
-            component.disable();
         }
         if (config.dependencies && includeDependencies) {
             const dependencies = config.dependencies;
             for (let i = 0, len = dependencies.length; i < len; i++) {
                 if (this.getComponent(dependencies[i]) === undefined) {
-                    this.addComponent(dependencies[i], {}, false);
+                    this.addComponent(dependencies[i], {}, false );
                 }
             }
         }
-        component.entity = this;
         ComponentManager.sanitizeData(type, data);
-        if (component.init) component.init(data);
-        if (this.enabled) component.enable();
+        component.detach();
+        component.entity = this;
+        component.init(data);
+        component.attach();
         return component;
+    }
+    attachComponent(component) {
+        this.components.push(component);
+        component.detach();
+        component.entity = this;
+        component.init(component.toJSON());
+        component.attach();
+    }
+    updateComponent(type, data = {}, index = 0) {
+        const component = this.getComponentsWithProperties('type', type)[index];
+        if (!component || !component.isComponent) return;
+        component.update(data);
+    }
+    replaceComponent(type, data = {}, index = 0) {
+        const component = this.getComponentsWithProperties('type', type)[index];
+        if (!component || !component.isComponent) return;
+        ComponentManager.sanitizeData(type, data);
+        component.detach();
+        component.init(data);
+        component.attach();
     }
     getComponent(type, tag ) {
         if (tag === undefined) return this.getComponentByProperty('type', type);
@@ -1137,8 +1358,7 @@ class Entity3D extends Object3D {
         let index = this.components.indexOf(component);
         if (index !== -1) {
             this.components.splice(index, 1);
-            component.disable();
-            component.dispose();
+            component.detach();
         } else {
             console.warn(`Entity3D.removeComponent: Component ${component.uuid}, type '${component.type}' not found`);
         }
@@ -1147,9 +1367,9 @@ class Entity3D extends Object3D {
     rebuildComponents() {
         for (let i = 0; i < this.components.length; i++) {
             const component = this.components[i];
-            component.disable();
+            component.detach();
             component.init(component.toJSON());
-            component.enable();
+            component.attach();
         }
     }
     traverseComponents(callback) {
@@ -1158,8 +1378,8 @@ class Entity3D extends Object3D {
         }
     }
     changeParent(newParent = undefined, newIndex = -1) {
-        if (! newParent) newParent = this.parent;
-        if (! newParent || ! newParent.isObject3D) return;
+        if (!newParent) newParent = this.parent;
+        if (!newParent || !newParent.isObject3D) return;
         const oldParent = this.parent;
         if (newIndex === -1 && oldParent) newIndex = oldParent.children.indexOf(this);
         newParent.safeAttach(this);
@@ -1169,7 +1389,7 @@ class Entity3D extends Object3D {
         }
     }
     addEntity(entity, index = -1, maintainWorldTransform = false) {
-        if (! entity || ! entity.isObject3D) return this;
+        if (!entity || !entity.isObject3D) return this;
         if (index === undefined || index === null) index = -1;
         if (this.children.indexOf(entity) !== -1) return this;
         if (maintainWorldTransform && entity.parent) {
@@ -1187,36 +1407,39 @@ class Entity3D extends Object3D {
         const filteredChildren = [];
         const children = this.children;
         for (let i = 0; i < children.length; i++) {
-            if (children[i].isEntity3D) filteredChildren.push(children[i]);
+            const child = children[i];
+            if (child.isEntity3D && child.userData && child.userData.flagIgnore !== true) {
+                filteredChildren.push(child);
+            }
         }
         return filteredChildren;
     }
     getEntityById(id) {
-        return this.getEntityByProperty('id', id);
+        return this.getEntityByProperty('id', parseInt(id));
     }
     getEntityByName(name) {
         return this.getEntityByProperty('name', name);
     }
-    getEntityByUuid(uuid) {
+    getEntityByUUID(uuid) {
         return this.getEntityByProperty('uuid', uuid);
     }
-    getEntityByProperty(name, value) {
-        if (this[name] === value) return this;
+    getEntityByProperty(property, value) {
+        if (this[property] === value) return this;
         const entities = this.getEntities();
-        for (let i = 0, l = entities.length; i < l; i++) {
+        for (let i = 0; i < entities.length; i++) {
             const child = entities[i];
-            const entity = child.getEntityByProperty(name, value);
+            const entity = child.getEntityByProperty(property, value);
             if (entity) return entity;
         }
         return undefined;
     }
     removeEntity(entity, forceDelete = false) {
-        if (! entity) return;
-        if (! forceDelete && EntityUtils.isImportant(entity)) return;
+        if (!entity) return;
+        if (!forceDelete && EntityUtils.isImportant(entity)) return;
         this.remove(entity);
     }
     traverseEntities(callback, recursive = true) {
-        callback(this);
+        if (typeof callback === 'function') callback(this);
         if (recursive) {
             for (let i = 0; i < this.children.length; i++) {
                 const child = this.children[i];
@@ -1224,26 +1447,37 @@ class Entity3D extends Object3D {
             }
         }
     }
+    clone(recursive) {
+		return new this.constructor().copy(this, recursive);
+	}
+    copy(source, recursive = true) {
+        super.copy(source, false );
+        this.position.copy(source.position);
+		this.rotation.copy(source.rotation);
+		this.scale.copy(source.scale);
+        this.isLocked = source.isLocked;
+        this.lookAtCamera = source.lookAtCamera;
+        this.updateMatrix();
+        if (recursive) {
+			for (let i = 0; i < source.children.length; i++) {
+                const clone = source.children[i].clone();
+				this.add(clone);
+			}
+		}
+        return this;
+    }
     cloneEntity(recursive = true) {
         return new this.constructor().copyEntity(this, recursive);
     }
     copyEntity(source, recursive = true) {
         this.dispose();
-        super.copy(source, false );
+        this.copy(source, false );
         this.name = source.name;
-        this.enabled = source.enabled;
-        this.castShadow = source.castShadow;
-        this.receiveShadow = source.receiveShadow;
-        this.lookAtCamera = source.lookAtCamera;
-        for (let flag in ENTITY_FLAGS) {
-            this.setFlag(ENTITY_FLAGS[flag], source.getFlag(ENTITY_FLAGS[flag]));
-        }
         const components = source.components;
         for (let i = 0; i < components.length; i++) {
             const component = components[i];
             const clonedComponent = this.addComponent(component.type, component.toJSON(), false);
             clonedComponent.tag = component.tag;
-            if (component.enabled !== true) clonedComponent.disable();
         }
         if (recursive === true) {
             const entities = source.getEntities();
@@ -1264,74 +1498,72 @@ class Entity3D extends Object3D {
         while (this.components.length > 0) {
             const component = this.components[0];
             this.removeComponent(component);
+            component.dispose();
         }
     }
     fromJSON(json) {
         const data = json.object;
-        this.uuid = data.uuid;
         if (data.name !== undefined) this.name = data.name;
-        if (data.enabled !== undefined) this.enabled = data.enabled;
-        if (data.castShadow !== undefined) this.castShadow = data.castShadow;
-        if (data.receiveShadow !== undefined) this.receiveShadow = data.receiveShadow;
+        if (data.isLocked !== undefined) this.isLocked = data.isLocked;
         if (data.lookAtCamera !== undefined) this.lookAtCamera = data.lookAtCamera;
+        if (data.uuid !== undefined) this.uuid = data.uuid;
         if (data.position !== undefined) this.position.fromArray(data.position);
         if (data.rotation !== undefined) this.rotation.fromArray(data.rotation);
         if (data.scale !== undefined) this.scale.fromArray(data.scale);
+        if (data.castShadow !== undefined) this.castShadow = data.castShadow;
+        if (data.receiveShadow !== undefined) this.receiveShadow = data.receiveShadow;
         if (data.matrixAutoUpdate !== undefined) this.matrixAutoUpdate = data.matrixAutoUpdate;
         if (data.layers !== undefined) this.layers.mask = data.layers;
         if (data.visible !== undefined) this.visible = data.visible;
         if (data.frustumCulled !== undefined) this.frustumCulled = data.frustumCulled;
         if (data.renderOrder !== undefined) this.renderOrder = data.renderOrder;
         if (data.userData !== undefined) this.userData = data.userData;
-        for (let key in json.object.flags) {
-            this.setFlag(key, json.object.flags[key]);
-        }
         for (let i = 0; i < json.object.components.length; i++) {
             const componentData = json.object.components[i];
             if (componentData && componentData.base && componentData.base.type) {
                 const component = this.addComponent(componentData.base.type, componentData, false);
-                if (componentData.enabled === false) component.disable();
                 component.tag = componentData.base.tag;
             }
         }
-        if (data.entities !== undefined) {
-            for (let i = 0; i < json.object.entities.length; i++) {
-                const entity = new Entity3D().fromJSON(json.object.entities[i]);
-                this.add(entity);
-            }
-        }
+        this.loadChildren(json);
         this.updateMatrix();
         return this;
+    }
+    loadChildren(json) {
+        if (!json || !json.object || !json.object.entities) return;
+        for (let i = 0; i < json.object.entities.length; i++) {
+            const entityJSON = json.object.entities[i];
+            const entity = new Entity3D().fromJSON(entityJSON);
+            this.add(entity);
+        }
     }
     toJSON() {
         const json = {
             object: {
-                name: this.name,
                 type: this.type,
+                name: this.name,
                 uuid: this.uuid,
                 components: [],
-                flags: {},
             }
         };
-        for (let key in ENTITY_FLAGS) {
-            json.object.flags[key] = this.getFlag(key);
-        }
         for (let i = 0; i < this.components.length; i++) {
             json.object.components.push(this.components[i].toJSON());
         }
-        json.object.enabled = this.enabled;
-        json.object.castShadow = this.castShadow;
-        json.object.receiveShadow = this.receiveShadow;
+        json.object.isLocked = this.isLocked;
         json.object.lookAtCamera = this.lookAtCamera;
         json.object.position  = this.position.toArray();
         json.object.rotation = this.rotation.toArray();
         json.object.scale = this.scale.toArray();
+        json.object.castShadow = this.castShadow;
+        json.object.receiveShadow = this.receiveShadow;
         json.object.matrixAutoUpdate = this.matrixAutoUpdate;
         json.object.layers = this.layers.mask;
         if (this.visible === false) json.object.visible = false;
         if (this.frustumCulled === false) json.object.frustumCulled = false;
         if (this.renderOrder !== 0) json.object.renderOrder = this.renderOrder;
-        if (JSON.stringify(this.userData) !== '{}') json.object.userData = this.userData;
+        if (JSON.stringify(this.userData) !== '{}') {
+            json.object.userData = (typeof structuredClone === 'function') ? structuredClone(this.userData) : JSON.parse(JSON.stringify(this.userData));
+        }
         const childEntities = this.getEntities();
         if (childEntities.length > 0) {
             json.object.entities = [];
@@ -1345,31 +1577,39 @@ class Entity3D extends Object3D {
 
 class Scene3D extends Entity3D {
     constructor(name = 'Start Scene') {
-        super();
+        super(name);
         this.isScene = true;
         this.isScene3D = true;
-        this.name = name;
         this.type = 'Scene3D';
         this.background = null;
         this.environment = null;
         this.fog = null;
         this.overrideMaterial = null;
         this.autoUpdate = true;
+        this.start = 0;
+        this.end = -1;
         this.shadowPlane = new THREE.Mesh(
             new THREE.PlaneGeometry(100000, 100000),
             new THREE.ShadowMaterial({ color: 0, transparent: true, opacity: 0.2, depthWrite: false })
         );
         this.shadowPlane.name = 'ShadowPlane';
         this.shadowPlane.userData.flagIgnore = true;
-        this.shadowPlane.userData.flagLocked = true;
         this.shadowPlane.rotation.x = - Math.PI / 2;
         this.shadowPlane.castShadow = false;
         this.shadowPlane.receiveShadow = true;
         this.shadowPlane.visible = false;
         this.add(this.shadowPlane);
     }
+    copyEntity(source, recursive = true) {
+        super.copyEntity(source, recursive);
+        this.start = source.start;
+        this.end = source.end;
+        return this;
+    }
     fromJSON(json) {
         const data = json.object;
+        if (data.start !== undefined) this.start = data.start;
+        if (data.end !== undefined) this.end = data.end;
         if (data.background !== undefined) {
             if (Number.isInteger(data.background)) {
                 this.background = new THREE.Color(data.background);
@@ -1395,61 +1635,124 @@ class Scene3D extends Entity3D {
     toJSON() {
         const json = super.toJSON();
         if (this.fog) json.object.fog = this.fog.toJSON();
+        json.object.start = this.start;
+        json.object.end = this.end;
         return json;
     }
 }
 
-class World3D {
+class World3D extends Entity3D {
     constructor(name = 'World 1') {
+        super(name);
         this.isWorld = true;
         this.isWorld3D = true;
-        this.name = name;
         this.type = 'World3D';
-        this.uuid = MathUtils.uuid();
-        this.order = 0;
-        this.startScene = null;
-        this.lastEditorScene = null;
-        this.sceneNodes = {};
+        this.xPos = 0;
+        this.yPos = 0;
+        this.activeSceneUUID = undefined;
     }
-    addScene(scene) {
-        if (scene && scene.type === 'Scene3D') {
-            if (this.sceneNodes[scene.uuid]) {
-                console.warn(`World3D.addScene: Scene ('${scene.name}') already added`, scene);
-            } else {
-                this.sceneNodes[scene.uuid] = {
-                    uuid: scene.uuid,
-                    order: this.order ++,
-                };
-                if (! this.startScene) this.startScene = scene.uuid;
-                if (! this.lastEditorScene) this.lastEditorScene = scene.uuid;
-            }
-        } else {
-            console.error(`'World3D.addScene: Scene not of type 'Scene3D'`, scene);
+    activeScene() {
+        return this.getSceneByUUID(this.activeSceneUUID);
+    }
+    setActiveScene(scene) {
+        if (scene && scene.uuid) {
+            this.activeSceneUUID = scene.uuid;
         }
+    }
+    addEntity(entity, index = -1) {
+        return this.addScene(entity, index);
+    }
+    addScene(scene, index = -1) {
+        if (!scene || !scene.isScene3D) return this;
+        if (index === undefined || index === null) index = -1;
+        if (this.children.indexOf(scene) !== -1) return this;
+        if (this.getScenes().length === 0) this.setActiveScene(scene);
+        this.add(scene);
+        if (index !== -1) {
+            this.children.splice(index, 0, scene);
+            this.children.pop();
+        }
+        return this;
+    }
+    getFirstScene() {
+        if (this.children.length > 0) return this.children[0];
+    }
+    getScenes() {
+        const filteredChildren = [];
+        const children = this.children;
+        for (let i = 0; i < children.length; i++) {
+            if (children[i].isScene) filteredChildren.push(children[i]);
+        }
+        return filteredChildren;
+    }
+    getSceneById(id) {
+        const scene = this.getEntityByProperty('id', id);
+        if (scene && scene.isScene) return scene;
+    }
+    getSceneByName(name) {
+        const scene = this.getEntityByProperty('name', name);
+        if (scene && scene.isScene) return scene;
+    }
+    getSceneByUUID(uuid) {
+        const scene = this.getEntityByProperty('uuid', uuid);
+        if (scene && scene.isScene) return scene;
+    }
+    getSceneByProperty(property, value) {
+        const scenes = this.getScenes();
+        for (let i = 0, l = scenes.length; i < l; i++) {
+            const scene = scenes[i];
+            if (scene[property] === value) return scene;
+        }
+    }
+    removeEntity(entity) {
+        return this.removeScene(entity);
+    }
+    removeScene(scene) {
+        if (!scene || !scene.isScene) return;
+        this.remove(scene);
+    }
+    traverseScenes(callback, recursive = true) {
+        if (typeof callback === 'function') callback(this);
+        if (recursive) {
+            const scenes = this.getScenes();
+            for (let i = 0; i < scenes.length; i++) {
+                const scene = scenes[i];
+                scene.traverseEntities(callback, recursive);
+            }
+        }
+    }
+    copyEntity(source, recursive = true) {
+        super.copyEntity(source, recursive);
+        this.xPos = source.xPos;
+        this.yPos = source.yPos;
         return this;
     }
     fromJSON(json) {
         const data = json.object;
-        this.name = data.name;
-        this.uuid = data.uuid;
-        this.order = data.order;
-        this.startScene = data.startScene;
-        this.lastEditorScene = data.lastEditorScene;
-        this.sceneNodes = data.sceneNodes;
+        if (data.xPos !== undefined) this.xPos = data.xPos;
+        if (data.yPos !== undefined) this.yPos = data.yPos;
+        if (data.activeSceneUUID !== undefined) this.activeSceneUUID = data.activeSceneUUID;
+        super.fromJSON(json);
         return this;
     }
-    toJSON() {
-        const json = {
-            object: {
-                name: this.name,
-                type: this.type,
-                uuid: this.uuid,
-                order: this.order,
-                startScene: this.startScene,
-                lastEditorScene: this.lastEditorScene,
-                sceneNodes: this.sceneNodes,
+    loadChildren(json) {
+        if (!json || !json.object || !json.object.entities) return;
+        for (let i = 0; i < json.object.entities.length; i++) {
+            const entityJSON = json.object.entities[i];
+            let entity = undefined;
+            if (entityJSON.object.type === 'Scene3D') {
+                entity = new Scene3D().fromJSON(entityJSON);
+            } else if (entityJSON.object.type === 'Entity3D') {
+                entity = new Entity3D().fromJSON(entityJSON);
             }
-        };
+            if (entity) this.add(entity);
+        }
+    }
+    toJSON() {
+        const json = super.toJSON();
+        json.object.xPos = this.xPos;
+        json.object.yPos = this.yPos;
+        json.object.activeSceneUUID = this.activeSceneUUID;
         return json;
     }
 }
@@ -1457,26 +1760,28 @@ class World3D {
 class Project {
     constructor(name = 'My Project') {
         this.isProject = true;
-        this.name = name;
-        this.uuid = MathUtils.uuid();
         this.type = 'Project';
-        this.scripts = {};
-        this.scenes = {};
+        this.name = name;
+        this.uuid = Maths.uuid();
         this.worlds = {};
     }
     addWorld(world) {
         if (world && WORLD_TYPES[world.type]) {
             this.worlds[world.uuid] = world;
-            if (this.activeWorldUuid == null) this.activeWorldUuid = world.uuid;
+            if (this.activeWorldUUID == null) this.activeWorldUUID = world.uuid;
         } else {
             console.error(`Project.addWorld: World type (${world.type}) not a valid world type`, world);
         }
         return this;
     }
+    getFirstWorld() {
+        const worldList = Object.keys(this.worlds);
+        return (worldList.length > 0) ? this.worlds[worldList[0]] : null;
+    }
     getWorldByName(name) {
         return this.getWorldByProperty('name', name);
     }
-    getWorldByUuid(uuid) {
+    getWorldByUUID(uuid) {
         return this.worlds[uuid];
     }
     getWorldByProperty(property, value) {
@@ -1485,60 +1790,34 @@ class Project {
             if (world[property] === value) return world;
         }
     }
-    addScene(scene) {
-        if (scene && SCENE_TYPES[scene.type]) {
-            if (this.scenes[scene.uuid]) {
-                console.warn(`Project.addScene: Scene ('${scene.name}') already added`, scene);
-            } else {
-                this.scenes[scene.uuid] = scene;
+    removeWorld(world) {
+        if (!world.isWorld) return;
+        delete this.worlds[world.uuid];
+    }
+    traverseWorlds(callback, recursive = true) {
+        for (let uuid in this.worlds) {
+            const world = this.worlds[uuid];
+            if (typeof callback === 'function') callback(world);
+            if (recursive) world.traverseScenes(callback, recursive);
+        }
+    }
+    worldCount() {
+        return Object.keys(this.worlds).length;
+    }
+    findEntityByUUID(uuid, searchAllWorlds = false) {
+        const activeScene = (editor && editor.viewport) ? editor.viewport.scene : null;
+        const sceneList = [];
+        if (searchAllWorlds) {
+            for (let uuid in this.worlds) {
+                const world = this.worlds[uuid];
+                sceneList.concat(Array.from(world.getScenes()));
             }
-        } else {
-            console.error(`Project.addScene: Scene type (${scene.type}) not a valid scene type`, scene);
-        }
-        return this;
-    }
-    getFirstScene() {
-        const sceneList = Object.keys(this.scenes);
-        return (sceneList.length > 0) ? this.scenes[sceneList[0]] : null;
-    }
-    getSceneByName(name) {
-        return this.getSceneByProperty('name', name);
-    }
-    getSceneByUuid(uuid) {
-        return this.scenes[uuid];
-    }
-    getSceneByProperty(property, value) {
-        for (const uuid in this.scenes) {
-            const scene = this.scenes[uuid];
-            if (scene[property] === value) return scene;
-        }
-    }
-    removeScene(scene) {
-        if (scene.isScene !== true) return;
-        const entities = scene.getEntities();
-        for (let i = entities.length - 1; i >= 0; i--) {
-            scene.removeEntity(entities[i], true);
-            entities[i].dispose();
-        }
-        delete this.scenes[scene.uuid];
-    }
-    traverseScenes(callback) {
-        for (let uuid in this.scenes) {
-            const scene = this.scenes[uuid];
-            scene.traverseEntities(callback);
-        }
-    }
-    findEntityByUuid(uuid, searchAllScenes = false) {
-        let sceneList = [];
-        let activeScene = null;
-        if (window.editor) activeScene = window.editor.viewport.scene;
-        if (searchAllScenes) {
-            sceneList = Array.from(this.scenes);
-            const fromIndex = sceneList.indexOf(activeScene);
-            const toIndex = 0;
-            if (activeScene && fromIndex !== -1) {
-                arr.splice(fromIndex, 1);
-                arr.splice(toIndex, 0, activeScene);
+            if (activeScene) {
+                const fromIndex = sceneList.indexOf(activeScene);
+                if (fromIndex !== -1) {
+                    sceneList.splice(fromIndex, 1);
+                    sceneList.splice(0, 0, activeScene);
+                }
             }
         } else if (activeScene) {
             sceneList.push(activeScene);
@@ -1549,26 +1828,14 @@ class Project {
         }
         return undefined;
     }
-    addScript(entity, script) {
-        const key = entity.uuid;
-        if (! this.scripts[key]) this.scripts[key] = [];
-        this.scripts[key].push(script);
-        return this;
-    }
-    removeScript(entity, script) {
-        const key = entity.uuid;
-        if (! this.scripts[key]) return;
-        const index = this.scripts[key].indexOf(script);
-        if (index !== -1) this.scripts[key].splice(index, 1);
-    }
     clear() {
-        const sceneIds = Object.keys(this.scenes);
-        for (let i = 0; i < sceneIds.length; i++) {
-            let scene = this.scenes[sceneIds[i]];
-            this.removeScene(scene);
+        const worldIds = Object.keys(this.worlds);
+        for (let i = 0; i < worldIds.length; i++) {
+            const world = this.worlds[worldIds[i]];
+            this.removeWorld(world);
         }
         this.name = 'My Project';
-        this.uuid = MathUtils.uuid();
+        this.uuid = Maths.uuid();
     }
     fromJSON(json, loadAssets = true) {
         const metaType = (json.metadata) ? json.metadata.type : 'Undefined';
@@ -1580,23 +1847,22 @@ class Project {
         if (metaVersion !== VERSION) {
             console.warn(`Project.fromJSON: Project saved in 'v${metaVersion}', attempting to load with 'v${VERSION}'`);
         }
-        if (! json.object || json.object.type !== this.type) {
+        if (!json.object || json.object.type !== this.type) {
             console.error(`Project.fromJSON: Save file corrupt, no 'Project' object found!`);
             return;
         }
         this.clear();
-        if (loadAssets) AssetManager.fromJSON(json);
+        if (loadAssets) {
+            AssetManager.fromJSON(json);
+        }
         this.name = json.object.name;
         this.uuid = json.object.uuid;
-        this.scripts = json.scripts;
         for (let i = 0; i < json.worlds.length; i++) {
             switch (json.worlds[i].object.type) {
-                case 'World3D': this.addWorld(new World3D().fromJSON(json.worlds[i])); break;
-            }
-        }
-        for (let i = 0; i < json.scenes.length; i++) {
-            switch (json.scenes[i].object.type) {
-                case 'Scene3D': this.addScene(new Scene3D().fromJSON(json.scenes[i])); break;
+                case 'World3D':
+                    const world = new World3D().fromJSON(json.worlds[i]);
+                    this.addWorld(world);
+                    break;
             }
         }
         return this;
@@ -1610,199 +1876,399 @@ class Project {
             generator: 'Onsight.Project.toJSON',
         };
         json.object = {
-            name: this.name,
             type: this.type,
+            name: this.name,
             uuid: this.uuid,
         };
-        json.scripts = this.scripts;
-        json.scenes = [];
         json.worlds = [];
         for (const uuid in this.worlds) {
             const world = this.worlds[uuid];
             json.worlds.push(world.toJSON());
         }
-        for (const uuid in this.scenes) {
-            const scene = this.scenes[uuid];
-            json.scenes.push(scene.toJSON());
-        }
         return json;
     }
 }
 
-class App {
-    constructor() {
-        const self = this;
-        this.backend = {};
-        this.backend.renderer = BACKENDS.RENDERER_3D.THREE;
-        this.backend.physics = BACKENDS.PHYSICS_3D.RAPIER;
-        let player = this;
-        let project = new Project();
-        let renderer;
-        let camera;
-        let scene;
-        let state = APP_STATES.STOPPED;
-        Object.defineProperty(self, 'scene', {
-            get: function() { return scene; },
-            set: function(value) { scene = value; }
-        });
-        this.width = 1;
-        this.height = 1;
-        this.wantsScreenshot = false;
-        renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setPixelRatio(1);
-        renderer.shadowMap.enabled = true;
-        this.dom = document.createElement('div');
-        this.dom.appendChild(renderer.domElement);
-        let scriptGlobals = 'player,renderer,scene,camera';
-        let events = {
-            init: [],
-            update: [],
-            keydown: [],
-            keyup: [],
-            pointerdown: [],
-            pointerup: [],
-            pointermove: [],
-        };
-        this.load = function(json, loadAssets = true) {
-            project.fromJSON(json, loadAssets);
-            this.scene = project.getFirstScene();
-            this.setCamera(CameraUtils.createPerspective(500, 500, true));
-            camera.position.x = 0;
-            camera.position.y = 0;
-            document.addEventListener('keydown', onKeyDown);
-            document.addEventListener('keyup', onKeyUp);
-            document.addEventListener('pointerdown', onPointerDown);
-            document.addEventListener('pointerup', onPointerUp);
-            document.addEventListener('pointermove', onPointerMove);
-            let scriptFunctions = '';
-            let scriptReturnObject = {};
-            for (let eventKey in events) {
-                scriptFunctions += eventKey + ',';
-                scriptReturnObject[eventKey] = eventKey;
-            }
-            scriptFunctions = scriptFunctions.replace(/.$/, '');
-            let scriptReturnString = JSON.stringify(scriptReturnObject).replace(/\"/g, '');
-            function loadScripts(object) {
-                const scripts = project.scripts[object.uuid];
-                if (scripts !== undefined && scripts.length > 0) {
-                    for (let i = 0, l = scripts.length; i < l; i++) {
-                        let script = scripts[i];
-                        if (script.errors) {
-                            console.warn(`Entity '${object.name}' has errors in script '${script.name}'. Script will not be loaded!`);
-                        } else {
-                            let body = `${script.source} \n return ${scriptReturnString};`;
-                            let functions = (new Function(scriptGlobals, scriptFunctions, body).bind(object))(player, renderer, scene, camera);
-                            for (let name in functions) {
-                                if (! functions[name]) continue;
-                                if (events[name] === undefined) {
-                                    console.warn(`App: Event type not supported ('${name}')`);
-                                    continue;
-                                }
-                                events[name].push(functions[name].bind(object));
-                            }
-                        }
-                    }
-                }
-            }
-            scene.traverse(loadScripts);
-            dispatch(events.init, arguments);
-        };
-        function dispatch(array, event) {
-            for (let i = 0, l = array.length; i < l; i++) {
-                array[i](event);
-            }
-        }
-        let requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
-                                    window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-        let cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame;
-        let requestId = null;
-        let time, startTime, prevTime;
-        function animate() {
-            time = performance.now();
-            try {
-                let timePassed = time - startTime;
-                let delta = time - prevTime;
-                if (state === APP_STATES.PLAYING) {
-                    dispatch(events.update, { time: timePassed, delta: delta });
-                }
-            } catch (e) {
-                console.error((e.message || e), (e.stack || ''));
-            }
+const _matrix = new THREE.Matrix4();
+const _quaternion = new THREE.Quaternion();
+const _scale = new THREE.Vector3(1, 1, 1);
+const _vector = new THREE.Vector3();
+const _zero = new THREE.Vector3();
+function getCollider(geometry) {
+	const parameters = geometry.parameters;
+	if (geometry.type === 'BoxGeometry') {
+		const sx = parameters.width !== undefined ? parameters.width / 2 : 0.5;
+		const sy = parameters.height !== undefined ? parameters.height / 2 : 0.5;
+		const sz = parameters.depth !== undefined ? parameters.depth / 2 : 0.5;
+		return RAPIER.ColliderDesc.cuboid(sx, sy, sz);
+	} else if (geometry.type === 'SphereGeometry' || geometry.type === 'IcosahedronGeometry') {
+		const radius = parameters.radius !== undefined ? parameters.radius : 1;
+		return RAPIER.ColliderDesc.ball(radius);
+	}
+	return null;
+}
+async function RapierPhysics(gravityX = 0, gravityY = -9.81, gravityZ = 0) {
+	await RAPIER.init();
+	const gravity = new THREE.Vector3(gravityX, gravityY, gravityZ);
+	const world = new RAPIER.World(gravity);
+	const meshes = [];
+	const meshMap = new WeakMap();
+	function addMesh(mesh, mass = 0, restitution = 0) {
+		const shape = getCollider(mesh.geometry);
+		if (!shape) return;
+		shape.setMass(mass);
+		shape.setRestitution(restitution);
+		const body = mesh.isInstancedMesh
+			? createInstancedBody(mesh, mass, shape)
+			: createBody(mesh.position, mesh.quaternion, mass, shape);
+		if (mass > 0) {
+			meshes.push(mesh);
+			meshMap.set(mesh, body);
+		}
+	}
+	function createInstancedBody(mesh, mass, shape) {
+		const array = mesh.instanceMatrix.array;
+		const bodies = [];
+		for (let i = 0; i < mesh.count; i++) {
+			const position = _vector.fromArray(array, i * 16 + 12);
+			bodies.push( createBody(position, null, mass, shape));
+		}
+		return bodies;
+	}
+	function createBody(position, quaternion, mass, shape) {
+		const desc = (mass > 0) ? RAPIER.RigidBodyDesc.dynamic() : RAPIER.RigidBodyDesc.fixed();
+		desc.setTranslation(...position);
+		if (quaternion) desc.setRotation(quaternion);
+		const body = world.createRigidBody(desc);
+		world.createCollider(shape, body);
+		return body;
+	}
+	function setMeshPosition(mesh, position, index = 0) {
+		let body = meshMap.get(mesh);
+		if (mesh.isInstancedMesh) body = body[index];
+		body.setAngvel(_zero);
+		body.setLinvel(_zero);
+		body.setTranslation(position);
+	}
+	function setMeshVelocity(mesh, velocity, index = 0) {
+		let body = meshMap.get(mesh);
+		if (mesh.isInstancedMesh) body = body[index];
+		body.setLinvel(velocity);
+	}
+	function step(dt) {
+		world.timestep = dt;
+		world.step();
+		for (let i = 0, l = meshes.length; i < l; i++) {
+			const mesh = meshes[i];
+			if (mesh.isInstancedMesh) {
+				const array = mesh.instanceMatrix.array;
+				const bodies = meshMap.get(mesh);
+				for (let j = 0; j < bodies.length; j++) {
+					const body = bodies[j];
+					const position = body.translation();
+					_quaternion.copy(body.rotation());
+					_matrix.compose(position, _quaternion, _scale).toArray(array, j * 16);
+				}
+				mesh.instanceMatrix.needsUpdate = true;
+				mesh.computeBoundingSphere();
+			} else {
+				const body = meshMap.get(mesh);
+				mesh.position.copy(body.translation());
+				mesh.quaternion.copy(body.rotation());
+			}
+		}
+	}
+	return {
+		addMesh: addMesh,
+		setMeshPosition: setMeshPosition,
+		setMeshVelocity: setMeshVelocity,
+		step: step,
+		world: world,
+	};
+}
+
+class Renderer3D extends THREE.WebGLRenderer {
+    constructor(parameters = {}) {
+        super(parameters);
+        const threeRender = this.render.bind(this);
+        this.render = function(scene, camera) {
             window.activeCamera = camera;
-            renderer.render(scene, camera);
-            if (self.wantsScreenshot === true) {
-                let filename = project.name + ' ' + new Date().toLocaleString() + '.png';
-                let strMime = 'image/png';
-                let imgData = renderer.domElement.toDataURL(strMime);
-                System.saveImage(imgData, filename);
-                self.wantsScreenshot = false;
-            }
-            prevTime = time;
-            requestId = requestAnimationFrame(animate);
-        }
-        this.play = function() {
-            startTime = prevTime = performance.now();
-            state = APP_STATES.PLAYING;
-            requestId = requestAnimationFrame(animate);
-        };
-        this.pause = function() {
-            if (state === APP_STATES.PLAYING) {
-                state = APP_STATES.PAUSED;
-            } else if (state === APP_STATES.PAUSED) {
-                state = APP_STATES.PLAYING;
-            }
-        };
-        this.stop = function() {
-            state = APP_STATES.STOPPED;
-            document.removeEventListener('keydown', onKeyDown);
-            document.removeEventListener('keyup', onKeyUp);
-            document.removeEventListener('pointerdown', onPointerDown);
-            document.removeEventListener('pointerup', onPointerUp);
-            document.removeEventListener('pointermove', onPointerMove);
-            ObjectUtils.clearObject(camera);
-            ObjectUtils.clearObject(scene);
-            for (let key in events) {
-                events[key].length = 0;
-            }
-            if (requestId) {
-                cancelAnimationFrame(requestId);
-                requestId = null;
-            }
-        };
-        function onKeyDown(event) { dispatch(events.keydown, event); }
-        function onKeyUp(event) { dispatch(events.keyup, event); }
-        function onPointerDown(event) { dispatch(events.pointerdown, event); }
-        function onPointerUp(event) { dispatch(events.pointerup, event); }
-        function onPointerMove(event) { dispatch(events.pointermove, event); }
-        this.getRenderer = function() {
-            return renderer;
-        };
-        this.appState = function() {
-            return state;
-        };
-        this.setCamera = function(value) {
-            camera = value;
-        };
-        this.setPixelRatio = function(pixelRatio) {
-            renderer.setPixelRatio(pixelRatio);
-        };
-        this.setSize = function(width, height) {
-            this.width = width;
-            this.height = height;
-            if (camera) CameraUtils.updateCamera(camera, width, height);
-            if (renderer) renderer.setSize(width, height);
-        };
-        this.gameCoordinates = function(fromEvent) {
-            const rect = this.dom.getBoundingClientRect();
-            let eventX = fromEvent.clientX - rect.left;
-            let eventY = fromEvent.clientY - rect.top;
-            let x =  ((eventX / rect.width ) * (rect.width * 2)) - rect.width;
-            let y = -((eventY / rect.height) * (rect.height * 2)) + rect.height;
-            let vec = new THREE.Vector3(x, y, 0);
-            vec.unproject(camera);
-            return vec;
+            threeRender(scene, camera);
         };
     }
+}
+
+let scriptFunctions = '';
+let scriptReturnObject = {};
+for (let eventKey in APP_EVENTS) {
+    scriptFunctions += eventKey + ',';
+    scriptReturnObject[eventKey] = eventKey;
+}
+scriptFunctions = scriptFunctions.replace(/.$/, '');
+const scriptGlobals = 'entity,app,renderer,scene,camera';
+const scriptParameters = scriptGlobals + ',' + scriptFunctions;
+const scriptReturnString = JSON.stringify(scriptReturnObject).replace(/\"/g, '');
+const _position$2 = new THREE.Vector3();
+class SceneManager {
+    static app = undefined;
+    static camera = undefined;
+    static project = undefined;
+    static renderer = undefined;
+    static scene = undefined;
+    static cameraFromScene(scene) {
+        scene = scene ?? SceneManager.scene;
+        let component = EntityUtils.findCameraComponent(scene);
+        if (component) {
+            const componentCamera = component.three();
+            if (componentCamera) {
+                const camera = componentCamera.clone();
+                ObjectUtils.copyWorldTransform(componentCamera, camera, true);
+                return camera;
+            }
+        }
+        const camera = CameraUtils.createPerspective(1024, 1024, true);
+        camera.position.x = 0;
+        camera.position.y = 0;
+        camera.position.z = 6;
+        return camera;
+    }
+    static copyChildren(toEntity, fromEntity) {
+        const children = fromEntity.getEntities();
+        for (let i = 0; i < children.length; i++) {
+            const entity = children[i];
+            const clone = entity.cloneEntity(false );
+            SceneManager.loadScriptsFromComponents(clone, entity);
+            SceneManager.copyChildren(clone, entity);
+            toEntity.add(clone);
+        }
+    }
+    static loadScriptsFromComponents(toEntity, fromEntity) {
+        if (!fromEntity.components) return;
+        for (let i = 0; i < fromEntity.components.length; i++) {
+            const component = fromEntity.components[i];
+            if (component.type !== 'script' || !component.data) continue;
+            const scriptUUID = component.data.script;
+            const script = AssetManager.getAsset(scriptUUID);
+            if (!script || !script.isScript) continue;
+            if (script.errors) { console.warn(`Entity '${fromEntity.name}' has errors in script '${script.name}'. Script will not be loaded!`); continue; }
+            let body = `${script.source}\n`;
+            for (let variable in component.data.variables) {
+                body = body + `if (typeof ${variable} !== 'undefined') ${variable} = ${component.data.variables[variable]};\n`;
+            }
+            body = body + `return ${scriptReturnString};`;
+            const buildFunctionObject = new Function(scriptParameters , body ).bind(toEntity);
+            const functions = buildFunctionObject(toEntity, SceneManager.app, SceneManager.renderer, SceneManager.scene, SceneManager.camera);
+            for (let name in functions) {
+                if (APP_EVENTS[name] === undefined) {
+                    console.warn(`App: Event type not supported ('${name}')`);
+                    continue;
+                }
+                if (typeof functions[name] !== 'function') continue;
+                const callback = functions[name].bind(toEntity);
+                SceneManager.app.events[name].push(callback);
+            }
+        }
+    }
+    static removeEntity() {
+    }
+    static loadScene(toScene, fromScene) {
+        SceneManager.copyChildren(toScene, fromScene);
+    }
+}
+
+let animationID = null;
+const gameClock = new Clock(false );
+let physics;
+let time = 0;
+let distance = 0;
+let framerate = 60;
+const _position$1 = new THREE.Vector3();
+let boxes, balls;
+class App {
+    constructor() {
+        this.project = new Project();
+        this.renderer = new Renderer3D({ antialias: true });
+        this.renderer.setPixelRatio(1);
+        this.renderer.useLegacyLights = true;
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+        this.dom = document.createElement('div');
+        this.dom.appendChild(this.renderer.domElement);
+        this.events = {};
+        for (let key in APP_EVENTS) {
+            const event = APP_EVENTS[key];
+            this.events[event] = [];
+        }
+        this.state = APP_STATES.STOPPED;
+        this.wantsScreenshot = false;
+    }
+    dispatch(array, event) {
+        for (let i = 0; i < array.length; i++) {
+            const callback = array[i];
+            if (typeof callback === 'function') callback(event);
+        }
+    }
+    dispose() {
+        ObjectUtils.clearObject(SceneManager.camera);
+        ObjectUtils.clearObject(SceneManager.scene);
+        for (let key in SceneManager.app.events) {
+            SceneManager.app.events[key].length = 0;
+        }
+        if (physics) {
+            physics.world.free();
+        }
+    }
+    load(json, loadAssets = true) {
+        this.project.fromJSON(json, loadAssets);
+        const fromScene = this.project.getFirstWorld().activeScene();
+        SceneManager.app = this;
+        SceneManager.camera = SceneManager.cameraFromScene(fromScene);
+        SceneManager.project = this.project;
+        SceneManager.renderer = this.renderer;
+        SceneManager.scene = new Scene3D();
+        SceneManager.loadScene(SceneManager.scene, fromScene);
+        SceneManager.app.dispatch(SceneManager.app.events.init);
+    }
+    animate() {
+        if (SceneManager.app.state === APP_STATES.PLAYING) {
+            const delta = gameClock.getDeltaTime();
+            const total = gameClock.getElapsedTime();
+            if (SceneManager.app.state === APP_STATES.PLAYING) {
+                try { SceneManager.app.dispatch(SceneManager.app.events.update, { time: total, delta: delta }); }
+                catch (error) { console.error((error.message || error), (error.stack || '')); }
+            }
+            let boxIndex = Math.floor(Math.random() * boxes.count);
+            let ballIndex = Math.floor(Math.random() * balls.count);
+            physics.setMeshPosition(boxes, _position$1.set(0, Math.random() + 1, 0), boxIndex);
+            physics.setMeshPosition(balls, _position$1.set(0, Math.random() + 1, 0), ballIndex);
+            if (delta > 0.01) {
+                physics.step(delta);
+            }
+        }
+        SceneManager.renderer.render(SceneManager.scene, SceneManager.camera);
+        if (SceneManager.app.wantsScreenshot) {
+            const filename = SceneManager.project.name + ' ' + new Date().toLocaleString() + '.png';
+            const strMime = 'image/png';
+            const imgData = SceneManager.renderer.domElement.toDataURL(strMime);
+            System.saveImage(imgData, filename);
+            SceneManager.app.wantsScreenshot = false;
+        }
+        if (SceneManager.app.state !== APP_STATES.STOPPED) {
+            animationID = requestAnimationFrame(SceneManager.app.animate);
+        }
+    }
+    async init() {
+        physics = await RapierPhysics();
+        const scene = SceneManager.scene;
+        const material = new THREE.MeshLambertMaterial();
+        const matrix = new THREE.Matrix4();
+        const color = new THREE.Color();
+        const floor = new THREE.Mesh(
+            new THREE.BoxGeometry(10, 5, 10),
+            new THREE.ShadowMaterial({ color: 0x444444 }),
+        );
+        floor.position.y = - 2.5;
+        floor.receiveShadow = true;
+        scene.add(floor);
+        physics.addMesh(floor);
+        const geometryBox = new THREE.BoxGeometry(0.075, 0.075, 0.075);
+        boxes = new THREE.InstancedMesh(geometryBox, material, 400);
+        boxes.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        boxes.castShadow = true;
+        boxes.receiveShadow = true;
+        scene.add(boxes);
+        for (let i = 0; i < boxes.count; i++) {
+            matrix.setPosition(Math.random() - 0.5, Math.random() * 2, Math.random() - 0.5);
+            boxes.setMatrixAt(i, matrix );
+            boxes.setColorAt(i, color.setHex(0xffffff * Math.random()));
+        }
+        physics.addMesh(boxes, 1);
+        const geometrySphere = new THREE.IcosahedronGeometry(0.05, 4);
+        balls = new THREE.InstancedMesh(geometrySphere, material, 400);
+        balls.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        balls.castShadow = true;
+        balls.receiveShadow = true;
+        scene.add(balls);
+        for (let i = 0; i < balls.count; i++) {
+            matrix.setPosition(Math.random() - 0.5, Math.random() * 2, Math.random() - 0.5);
+            balls.setMatrixAt(i, matrix);
+            balls.setColorAt(i, color.setHex( 0xffffff * Math.random()));
+        }
+        physics.addMesh(balls, 1);
+    }
+    async play() {
+        if (this.state === APP_STATES.STOPPED) {
+            await this.init();
+            gameClock.reset();
+        }
+        this.state = APP_STATES.PAUSED;
+        document.addEventListener('keydown', onKeyDown);
+        document.addEventListener('keyup', onKeyUp);
+        document.addEventListener('pointerdown', onPointerDown);
+        document.addEventListener('pointerup', onPointerUp);
+        document.addEventListener('pointermove', onPointerMove);
+        this.pause();
+    }
+    pause() {
+        switch(this.state) {
+            case APP_STATES.PAUSED:
+                this.state = APP_STATES.PLAYING;
+                gameClock.start();
+                if (animationID == null) {
+                    animationID = requestAnimationFrame(SceneManager.app.animate);
+                }
+                break;
+            case APP_STATES.PLAYING:
+                this.state = APP_STATES.PAUSED;
+            case APP_STATES.STOPPED:
+                gameClock.stop();
+                break;
+        }
+    }
+    stop() {
+        if (this.state === APP_STATES.STOPPED) return;
+        this.state = APP_STATES.STOPPED;
+        document.removeEventListener('keydown', onKeyDown);
+        document.removeEventListener('keyup', onKeyUp);
+        document.removeEventListener('pointerdown', onPointerDown);
+        document.removeEventListener('pointerup', onPointerUp);
+        document.removeEventListener('pointermove', onPointerMove);
+        if (animationID) {
+            cancelAnimationFrame(animationID);
+            animationID = null;
+        }
+        if (SceneManager.renderer) SceneManager.renderer.clear();
+        gameClock.stop();
+    }
+    setSize(width, height) {
+        if (SceneManager.camera) CameraUtils.updateCamera(SceneManager.camera, width, height);
+        if (this.renderer) this.renderer.setSize(width, height);
+    }
+    gameCoordinates(fromEvent) {
+        const rect = this.dom.getBoundingClientRect();
+        const eventX = fromEvent.clientX - rect.left;
+        const eventY = fromEvent.clientY - rect.top;
+        const x =  ((eventX / rect.width ) * (rect.width * 2)) - rect.width;
+        const y = -((eventY / rect.height) * (rect.height * 2)) + rect.height;
+        const vec = new THREE.Vector3(x, y, 0);
+        vec.unproject(SceneManager.camera);
+        return vec;
+    }
+}
+function onKeyDown(event) {
+    SceneManager.app.dispatch(SceneManager.app.events.keydown, event);
+}
+function onKeyUp(event) {
+    SceneManager.app.dispatch(SceneManager.app.events.keyup, event);
+}
+function onPointerDown(event) {
+    SceneManager.app.dispatch(SceneManager.app.events.pointerdown, event);
+}
+function onPointerUp(event) {
+    SceneManager.app.dispatch(SceneManager.app.events.pointerup, event);
+}
+function onPointerMove(event) {
+    SceneManager.app.dispatch(SceneManager.app.events.pointermove, event);
 }
 
 class EntityPool {
@@ -1815,7 +2281,7 @@ class EntityPool {
         return this.entities.splice(0, n);
     }
     getEntity() {
-        if(! this.entities.length) this.expand();
+        if(!this.entities.length) this.expand();
         return this.entities.pop();
     }
     recycle(entity) {
@@ -1829,29 +2295,86 @@ class EntityPool {
     }
 }
 
-class Script {
+class CameraFollow extends Script$1 {
     constructor() {
-        this.isScript = true;
-        this.type = 'Script';
-        this.name ='New Script';
-        this.errors = false;
+		super();
+		this.name = 'Camera Follow';
         this.source =
-            '// Code outside of lifecycle and event listeners is immediately executed when the script is loaded\n\n' +
-            '// Events - The following events are supported:\n' +
-            '//\t\tkeydown, keyup, pointerdown, pointerup, pointermove\n\n' +
-            '// Variables - The following globals are accessible to scripts:\n' +
-            '//\t\tthis (entity which owns the script), player, renderer, scene, camera'+
-            '\n\n\n' +
-            '// Executed when the entity is loaded\n' +
-            'function init() {\n\t\n}' +
-            '\n\n\n' +
-            '// Executed right before a frame is going to be rendered\n' +
-            '// - event.time: total elapsed time, in milliseconds\n' +
-            '// - event.delta: time since last frame, in milliseconds\n' +
-            'function update(event) {\n\t\n}' +
-            '\n\n\n' +
-            '// Example pointer event\n' +
-            'function pointermove(event) {\n\t\n}';
+`
+function update(event) {
+
+	camera.position.x = this.position.x;
+    camera.position.y = this.position.y;
+    camera.position.z = this.position.z + 6;
+
+}
+`;
+    }
+}
+
+class ColorChange extends Script$1 {
+    constructor() {
+		super();
+		this.name = 'Color Change';
+        this.source =
+`
+let color = '0xff0000';
+
+function init() {
+
+	this.updateComponent('material', { color: Number(color) });
+
+}
+
+function pointerdown() {
+
+	const clr = new THREE.Color(Math.random(), Math.random(), Math.random());
+    this.replaceComponent('material', { color: clr });
+
+}
+`;
+    }
+}
+
+class KeyControls extends Script$1 {
+    constructor() {
+		super();
+		this.name = 'Key Controls';
+        this.source =
+`
+let speed = 0.1;
+
+function keydown(event) {
+
+	if (event.key === 'ArrowLeft') this.position.x -= speed;
+	if (event.key === 'ArrowRight') this.position.x += speed;
+
+    if (event.key === 'ArrowUp') this.position.y += speed;
+	if (event.key === 'ArrowDown') this.position.y -= speed;
+
+}
+`;
+    }
+}
+
+class RotateEntity extends Script$1 {
+    constructor() {
+		super();
+		this.name = 'Rotate Entity';
+        this.source =
+`
+let rotateX = 0;
+let rotateY = 0;
+let rotateZ = -1;
+
+function update(event) {
+
+	this.rotation.x += (rotateX * (Math.PI / 180));
+    this.rotation.y += (rotateY * (Math.PI / 180));
+    this.rotation.z += (rotateZ * (Math.PI / 180));
+
+}
+`;
     }
 }
 
@@ -1862,9 +2385,9 @@ class Vectors {
         vec3.z = Math.abs(vec3.z);
     }
     static noZero(vec3, min = 0.001) {
-        if (MathUtils.fuzzyFloat(vec3.x, 0, min)) vec3.x = (vec3.x < 0) ? (min * -1) : min;
-		if (MathUtils.fuzzyFloat(vec3.y, 0, min)) vec3.y = (vec3.y < 0) ? (min * -1) : min;
-		if (MathUtils.fuzzyFloat(vec3.z, 0, min)) vec3.z = (vec3.z < 0) ? (min * -1) : min;
+        if (Maths.fuzzyFloat(vec3.x, 0, min)) vec3.x = (vec3.x < 0) ? (min * -1) : min;
+		if (Maths.fuzzyFloat(vec3.y, 0, min)) vec3.y = (vec3.y < 0) ? (min * -1) : min;
+		if (Maths.fuzzyFloat(vec3.z, 0, min)) vec3.z = (vec3.z < 0) ? (min * -1) : min;
     }
     static printOut(vec3, name = '') {
         if (name !== '') name += ' - ';
@@ -1888,7 +2411,7 @@ const _vertex = [ new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3() 
 const _temp = new THREE.Vector3();
 class GeometryUtils {
     static addAttribute(geometry, attributeName = 'color', stride = 3, fill = 0) {
-        if (! geometry.getAttribute(attributeName)) {
+        if (!geometry.getAttribute(attributeName)) {
             let array = new Float32Array(geometry.attributes.position.count * stride).fill(fill);
 	        const attribute = new THREE.BufferAttribute(array, stride, true).setUsage(THREE.DynamicDrawUsage);
 	        geometry.setAttribute(attributeName, attribute);
@@ -1896,8 +2419,8 @@ class GeometryUtils {
         return geometry;
     }
     static coloredMesh(mesh) {
-        if (! mesh.geometry) return mesh;
-        if (! mesh.material) return mesh;
+        if (!mesh.geometry) return mesh;
+        if (!mesh.material) return mesh;
         let material = mesh.material;
         if (Array.isArray(material) !== true) material = [ mesh.material ];
         for (let i = 0; i < material.length; i++) {
@@ -1920,7 +2443,7 @@ class GeometryUtils {
         }
     }
     static repeatTexture(geometry, s, t) {
-        if (! geometry) return;
+        if (!geometry) return;
         if (geometry.attributes && geometry.attributes.uv && geometry.attributes.uv.array) {
             for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
                 geometry.attributes.uv.array[i + 0] *= s;
@@ -1930,7 +2453,7 @@ class GeometryUtils {
         }
     }
     static uvFlip(geometry, x = true, y = true) {
-        if (! geometry || ! geometry.isBufferGeometry) return;
+        if (!geometry || !geometry.isBufferGeometry) return;
         if (geometry.attributes.uv === undefined) return;
         for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
             let u = geometry.attributes.uv.array[i + 0];
@@ -2052,10 +2575,10 @@ class GeometryUtils {
         }
         const coords = [];
         coords.length = 2 * geometry.attributes.position.array.length / 3;
-        const hasUV = ! (geometry.attributes.uv === undefined);
-        if (! hasUV) geometry.addAttribute('uv', new THREE.Float32BufferAttribute(coords, 2));
-        const setU = (! hasUV || setCoords === 'u' || setCoords === 'uv');
-        const setV = (! hasUV || setCoords === 'v' || setCoords === 'uv');
+        const hasUV = !(geometry.attributes.uv === undefined);
+        if (!hasUV) geometry.addAttribute('uv', new THREE.Float32BufferAttribute(coords, 2));
+        const setU = (!hasUV || setCoords === 'u' || setCoords === 'uv');
+        const setV = (!hasUV || setCoords === 'v' || setCoords === 'uv');
         const pos = geometry.attributes.position.array;
         for (let vi = 0; vi < geometry.attributes.position.array.length; vi += 9) {
             _vertex[0].set(pos[vi + 0], pos[vi + 1], pos[vi + 2]);
@@ -2129,7 +2652,7 @@ class SVGBuilder {
         paths.forEach((path) => {
             let fillColor = path.userData.style.fill;
             let fillOpacity = path.userData.style.fillOpacity;
-            if (! fillOpacity && fillOpacity !== 0) fillOpacity = 1;
+            if (!fillOpacity && fillOpacity !== 0) fillOpacity = 1;
             if (drawFills && fillColor !== undefined && fillColor !== 'none') {
                 const shapes = SVGLoader.createShapes(path);
                 shapes.forEach((shape) => {
@@ -2209,27 +2732,37 @@ let _renderer$1;
 class RenderUtils {
     static offscreenRenderer(width, height) {
         if (_renderer$1 === undefined) {
-            _renderer$1 = new THREE.WebGLRenderer({ alpha: true });
+            _renderer$1 = new Renderer3D({ alpha: true });
             _renderer$1.setClearColor(0xffffff, 0);
             _renderer$1.setSize(512, 512, false);
+            _renderer$1.outputColorSpace = THREE.LinearSRGBColorSpace;
         }
-        if (MathUtils.isNumber(width) && MathUtils.isNumber(height)) {
+        if (Maths.isNumber(width) && Maths.isNumber(height)) {
             _renderer$1.setSize(width, height, false);
         }
         return _renderer$1;
     }
-    static renderGeometryToCanvas(canvas, geometry, geometryColor = 0xffffff) {
+    static renderGeometryToCanvas(canvas, geometry, material, color = 0xffffff) {
+        const mat = material ?? new THREE.MeshStandardMaterial({ color: color });
+        const geo = geometry ?? new THREE.SphereGeometry();
+        const mesh = new THREE.Mesh(geo, mat);
+        RenderUtils.renderMeshToCanvas(canvas, mesh);
+        if (mesh && typeof mesh.dispose === 'function') mesh.dispose();
+        if (!material) mat.dispose();
+        if (!geometry) geo.dispose();
+    }
+    static renderMeshToCanvas(canvas, mesh) {
         const scene = new THREE.Scene();
         scene.add(new THREE.HemisphereLight(0xffffff, 0x202020, 1.5));
         const camera = new THREE.PerspectiveCamera(50, canvas.width / canvas.height);
         camera.position.set(0, 0, 1);
-        const material = new THREE.MeshStandardMaterial({ color: geometryColor });
-        const mesh = new THREE.Mesh(geometry, material);
-        scene.add(mesh);
         CameraUtils.fitCameraToObject(camera, mesh);
+        const exsistingParent = mesh.parent;
+        scene.add(mesh);
         const renderer = RenderUtils.offscreenRenderer(canvas.width, canvas.height);
         renderer.render(scene, camera);
-        material.dispose();
+        scene.remove(mesh);
+        if (exsistingParent) exsistingParent.add(mesh);
         const context = canvas.getContext('2d');
         if (context) {
             context.clearRect(0, 0, canvas.width, canvas.height);
@@ -2287,8 +2820,8 @@ class CapsuleGeometry extends THREE.BufferGeometry {
         radiusTop = radiusTop !== undefined ? radiusTop : 1;
         radiusBottom = radiusBottom !== undefined ? radiusBottom : 1;
         height = height !== undefined ? height : 2;
-        radiusTop = MathUtils.clamp(radiusTop, 0.001, height);
-        radiusBottom = MathUtils.clamp(radiusBottom, 0.001, height);
+        radiusTop = Maths.clamp(radiusTop, 0.001, height);
+        radiusBottom = Maths.clamp(radiusBottom, 0.001, height);
         if (height < 0.001) height = 0.001;
         radialSegments = Math.floor(radialSegments) || 12;
         heightSegments = Math.floor(heightSegments) || 1;
@@ -2513,7 +3046,7 @@ class CylinderGeometry extends THREE.BufferGeometry {
         const halfHeight = height / 2;
         let groupStart = 0;
         generateTorso();
-        if (! openEnded) {
+        if (!openEnded) {
             if (radiusTop > 0) generateCap(true);
             if (radiusBottom > 0) generateCap(false);
         }
@@ -2979,7 +3512,7 @@ class SkyObject extends THREE.Mesh {
             uniforms:       THREE.UniformsUtils.clone(shader.uniforms),
             side:           THREE.BackSide,
             depthTest:      false,
-            depthWrite:     false
+            depthWrite:     false,
         }));
         this.isSky = true;
         this.baseScale = SCALE;
@@ -3070,8 +3603,10 @@ class GpuPickerPass extends Pass {
         _emptyScene = new THREE.Scene();
         _emptyScene.onAfterRender = renderList;
         this.pickingTarget = new THREE.WebGLRenderTarget(1, 1, {
-            minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter,
-            format: THREE.RGBAFormat, encoding: THREE.LinearEncoding
+            minFilter: THREE.NearestFilter,
+            magFilter: THREE.NearestFilter,
+            format: THREE.RGBAFormat,
+            colorSpace: THREE.LinearSRGBColorSpace
         });
         this.pixelBuffer = new Uint8Array(4 * this.pickingTarget.width * this.pickingTarget.height);
         function renderList() {
@@ -3082,9 +3617,9 @@ class GpuPickerPass extends Pass {
         }
         function processItem(renderItem) {
             const object = renderItem.object;
-            if (! object || ! object.isObject3D) return;
-            if (! object.visible) return;
-            if (! ObjectUtils.allowSelection(object)) return;
+            if (!object || !object.isObject3D) return;
+            if (!object.visible) return;
+            if (!ObjectUtils.allowSelection(object)) return;
             const objId = object.id;
             const material = object.material;
             const geometry = object.geometry;
@@ -3107,9 +3642,9 @@ class GpuPickerPass extends Pass {
                 (doubleSide << 5) |
                 (sprite << 6);
             let renderMaterial = _materialCache[index];
-            if (! renderMaterial) {
+            if (!renderMaterial) {
                 renderMaterial = new THREE.ShaderMaterial({
-                    defines: { USE_MAP: '', USE_UV: '', USE_LOGDEPTHBUF: '', },
+                    defines: { USE_UV: '', USE_LOGDEPTHBUF: '' },
                     vertexShader: THREE.ShaderChunk.meshbasic_vert,
                     fragmentShader: `
                         #include <common>
@@ -3220,6 +3755,7 @@ class Camera {
                 let farPersp = (data.farPersp == 0) ? 0.00001 : data.farPersp;
                 if (farPersp === nearPersp) farPersp += 0.001;
                 camera = new THREE.PerspectiveCamera(data.fov, 1 , nearPersp, farPersp);
+                camera.fixedSize = data.fixedSize;
                 break;
             case 'orthographic':
                 let nearOrtho = data.nearOrtho;
@@ -3240,22 +3776,20 @@ class Camera {
             camera.position.set(0, 0, 0);
             camera.lookAt(0, 0, 0);
         } else {
-            console.log('Error with camera!');
         }
         this.backend = camera;
         this.data = data;
-        this.style = data.style;
     }
     dispose() {
     }
-    enable() {
+    attach() {
         if (this.entity && this.backend) this.entity.add(this.backend);
     }
-    disable() {
+    detach() {
         if (this.entity && this.backend) this.entity.remove(this.backend);
     }
     updateProjectionMatrix() {
-        if (! window.getRenderer()) return;
+        if (!window.getRenderer()) return;
         if (this.backend && this.backend.isCamera) {
             window.getRenderer().getSize(_renderSize);
             let width = _renderSize.x;
@@ -3274,14 +3808,8 @@ class Camera {
             this.backend.updateProjectionMatrix();
         }
     }
-    toJSON() {
-        const data = this.defaultData('style', this.style);
-        for (let key in data) {
-            if (this.data[key] !== undefined) {
-                data[key] = this.data[key];
-            }
-        }
-        return data;
+    three() {
+        return this.backend;
     }
 }
 Camera.config = {
@@ -3312,7 +3840,6 @@ const wedgeShape = new THREE.Shape([
 ]);
 class Geometry {
     init(data) {
-        this.dispose();
         if (data.isBufferGeometry) {
             const assetUUID = data.uuid;
             AssetManager.addAsset(data);
@@ -3331,8 +3858,8 @@ class Geometry {
                 geometry = new THREE.BoxGeometry(data.width, data.height, data.depth, data.widthSegments, data.heightSegments, data.depthSegments);
                 break;
             case 'capsule':
-                const capRadiusTop = MathUtils.clamp(data.radiusTop, 0.1, data.height) / 1.5;
-                const capRadiusBottom = MathUtils.clamp(data.radiusBottom, 0.1, data.height) / 1.5;
+                const capRadiusTop = Maths.clamp(data.radiusTop, 0.1, data.height) / 1.5;
+                const capRadiusBottom = Maths.clamp(data.radiusBottom, 0.1, data.height) / 1.5;
                 const capHeight = data.height / 1.5;
                 geometry = new CapsuleGeometry(
                     capRadiusTop, capRadiusBottom, capHeight,
@@ -3353,7 +3880,7 @@ class Geometry {
             case 'lathe':
                 const points = [];
                 let latheShape = AssetManager.getAsset(data.shape);
-                if (! latheShape || latheShape.type !== 'Shape') {
+                if (!latheShape || latheShape.type !== 'Shape') {
                     for (let i = 0; i < 2.5; i += 0.1) {
                         points.push(new THREE.Vector2(Math.abs(Math.cos(i) * 0.4) + 0.2, i * 0.4));
                     }
@@ -3386,7 +3913,7 @@ class Geometry {
                 break;
             case 'shape':
                 let shape = AssetManager.getAsset(data.shape);
-                if (! shape || shape.type !== 'Shape') {
+                if (!shape || shape.type !== 'Shape') {
                     shape = wedgeShape;
                 }
                 const options = {
@@ -3412,7 +3939,7 @@ class Geometry {
                 break;
             case 'tube':
                 let tubeShape = AssetManager.getAsset(data.shape);
-                if (! tubeShape || tubeShape.type !== 'Shape') {
+                if (!tubeShape || tubeShape.type !== 'Shape') {
                     tubeShape = circleShape;
                 }
                 const path3D = new THREE.CurvePath();
@@ -3454,51 +3981,43 @@ class Geometry {
             } else if (data.textureMapping === 'sphere') {
                 geometry = GeometryUtils.uvMapSphere(geometry);
             }
-            if (data.wrapS !== 1 || data.wrapT !== 1) {
-                const s = Math.max(data.wrapS, 0);
-                const t = Math.max(data.wrapT, 0);
-                GeometryUtils.repeatTexture(geometry, s, t);
+            if (Array.isArray(data.textureWrap)) {
+                if (data.textureWrap[0] !== 1 || data.textureWrap[1] !== 1) {
+                    const s = Math.max(data.textureWrap[0], 0);
+                    const t = Math.max(data.textureWrap[1], 0);
+                    GeometryUtils.repeatTexture(geometry, s, t);
+                }
             }
             geometry.name = geometryName;
         } else {
         }
         this.backend = geometry;
         this.data = data;
-        this.style = data.style;
     }
     dispose() {
-        const geometry = this.backend;
-        if (geometry && geometry.isBufferGeometry) {
-            this.backend.dispose();
+    }
+    attach() {
+        if (this.entity) {
+            const materialComponent = this.entity.getComponent('material');
+            if (materialComponent) materialComponent.refreshMesh();
         }
-        this.backend = undefined;
     }
-    enable() {
-        if (! this.entity) return;
-        const materialComponent = this.entity.getComponent('material');
-        if (materialComponent !== undefined) materialComponent.refreshMesh();
-    }
-    disable() {
-        if (! this.entity) return;
-        const materialComponent = this.entity.getComponent('material');
-        if (materialComponent !== undefined) materialComponent.refreshMesh();
-    }
-    toJSON() {
-        const data = this.defaultData('style', this.style);
-        for (let key in data) {
-            if (this.data[key] !== undefined) {
-                data[key] = this.data[key];
-            }
+    detach() {
+        if (this.entity) {
+            const materialComponent = this.entity.getComponent('material');
+            if (materialComponent) materialComponent.refreshMesh();
         }
-        return data;
+    }
+    three() {
+        return this.backend;
     }
 }
 Geometry.config = {
     schema: {
         style: [ { type: 'select', default: 'box', select: [ 'asset', 'box', 'capsule', 'circle', 'cone', 'cylinder', 'lathe', 'plane', 'platonicSolid', 'ring', 'roundedBox', 'shape', 'sphere', 'torus', 'torusKnot', 'tube' ] } ],
-        asset: { type: 'asset', class: 'BufferGeometry', if: { style: [ 'asset' ] } },
-        shape: { type: 'asset', class: 'Shape', if: { style: [ 'lathe', 'shape', 'tube' ] } },
-        styleDivider: { type: 'divider' },
+        asset: { type: 'asset', class: 'geometry', if: { style: [ 'asset' ] } },
+        shape: { type: 'asset', class: 'shape', if: { style: [ 'lathe', 'shape', 'tube' ] } },
+        styleDivider: { type: 'layout', format: 'divider' },
         polyhedron: [ { type: 'select', default: 'dodecahedron', select: [ 'dodecahedron', 'icosahedron', 'octahedron', 'tetrahedron' ], if: { style: [ 'platonicSolid' ] } } ],
         points: { type: 'shape', alias: 'points', default: null, if: { style: [ 'lathe' ] } },
         shapes: { type: 'shape', alias: 'shape', default: null, if: { style: [ 'shape' ] } },
@@ -3585,18 +4104,17 @@ Geometry.config = {
         p: { type: 'number', default: 2, min: 1, max: 128, if: { style: [ 'torusKnot' ] } },
         q: { type: 'number', default: 3, min: 1, max: 128, if: { style: [ 'torusKnot' ] } },
         closed: { type: 'boolean', default: true, if: { style: [ 'tube' ] } },
-        modifierDivider: { type: 'divider' },
+        modifierDivider: { type: 'layout', format: 'divider' },
         subdivide: { type: 'slider', default: 0, min: 0, max: 3, step: 1, precision: 0, rebuild: true },
         edgeSplit: { type: 'boolean', default: false, hide: { subdivide: [ 0 ] } },
         uvSmooth: { type: 'boolean', default: false, promode: true, hide: { subdivide: [ 0 ] } },
         flatOnly: { type: 'boolean', default: false, promode: true, hide: { subdivide: [ 0 ] } },
-        textureDivider: { type: 'divider' },
+        textureDivider: { type: 'layout', format: 'divider' },
         textureMapping: [
             { type: 'select', default: 'cube', select: [ 'none', 'cube', 'sphere' ], if: { style: [ 'shape' ] } },
             { type: 'select', default: 'none', select: [ 'none', 'cube', 'sphere' ], not: { style: [ 'shape' ] } },
         ],
-        wrapS: { type: 'number', alias: 'wrapX', default: 1, min: 0, step: 0.2, precision: 2 },
-        wrapT: { type: 'number', alias: 'wrapY', default: 1, min: 0, step: 0.2, precision: 2 },
+        textureWrap: { type: 'vector', size: 2, tint: false, default: [ 1, 1 ], min: 0, step: 0.2, precision: 2, label: [ 'X', 'Y' ] },
     },
     icon: ``,
     color: 'rgb(255, 113, 0)',
@@ -3606,7 +4124,6 @@ ComponentManager.register('geometry', Geometry);
 
 class Light {
     init(data) {
-        this.dispose();
         let light = undefined;
         let shadows = false;
         switch (data.style) {
@@ -3649,40 +4166,28 @@ class Light {
                 light.shadow.camera.updateProjectionMatrix();
             }
         } else {
-            console.log('Error with light!');
         }
         this.backend = light;
         this.data = data;
-        this.style = data.style;
     }
     dispose() {
         const light = this.backend;
-        if (light && light.isLight) {
-            if (light.shadow && light.shadow.map) light.shadow.map.dispose();
-            light.dispose();
-        }
-        this.backend = undefined;
+        if (light && light.shadow && light.shadow.map) light.shadow.map.dispose();
     }
-    enable() {
+    attach() {
         if (this.entity && this.backend) this.entity.add(this.backend);
     }
-    disable() {
+    detach() {
         if (this.entity && this.backend) this.entity.remove(this.backend);
     }
-    toJSON() {
-        const data = this.defaultData('style', this.style);
-        for (let key in data) {
-            if (this.data[key] !== undefined) {
-                data[key] = this.data[key];
-            }
-        }
-        return data;
+    three() {
+        return this.backend;
     }
 }
 Light.config = {
     schema: {
         style: { type: 'select', default: 'ambient', select: [ 'ambient', 'directional', 'hemisphere', 'point', 'spot' ] },
-        styleDivider: { type: 'divider' },
+        styleDivider: { type: 'layout', format: 'divider' },
         color: [
             { type: 'color', default: 0xffffff, if: { style: [ 'ambient', 'directional', 'point', 'spot' ] } },
             { type: 'color', alias: 'skyColor', default: 0x80ffff, if: { style: [ 'hemisphere' ] } },
@@ -3710,7 +4215,6 @@ const sides = [ 'FrontSide', 'BackSide', 'DoubleSide' ];
 const depthPacking = [ 'BasicDepthPacking', 'RGBADepthPacking' ];
 class Material {
     init(data) {
-        this.dispose();
         const parameters = {};
         if (data.isMaterial) {
             const assetUUID = data.uuid;
@@ -3721,9 +4225,9 @@ class Material {
             for (const key in data) {
                 const value = data[key];
                 parameters[key] = value;
-                let checkType = Material.config.schema[key];
-                if (System.isIterable(checkType) && checkType.length > 0) checkType = checkType[0];
-                if (value && checkType && checkType.type === 'map') {
+                let variable = Material.config.schema[key];
+                if (System.isIterable(variable) && variable.length > 0) variable = variable[0];
+                if (value && variable && variable.type === 'asset') {
                     if (value.isTexture) {
                         AssetManager.addAsset(value);
                     } else {
@@ -3741,6 +4245,7 @@ class Material {
             delete parameters['edgeSize'];
             delete parameters['gradientSize'];
             delete parameters['premultiplyAlpha'];
+            delete parameters['useUv'];
             if (typeof parameters.blending === 'string') parameters.blending = blendingModes.indexOf(parameters.blending);
             if (typeof parameters.side === 'string') parameters.side = sides.indexOf(parameters.side);
             if (parameters.depthPacking === 'BasicDepthPacking') parameters.depthPacking = THREE.BasicDepthPacking;
@@ -3764,37 +4269,21 @@ class Material {
             case 'points': material = new THREE.PointsMaterial(parameters); break;
             case 'shader': material = new THREE.ShaderMaterial(parameters); break;
             case 'standard': material = new THREE.MeshStandardMaterial(parameters); break;
-            case 'toon':
-                material = new THREE.MeshToonMaterial(parameters);
-                data.gradientSize = Math.min(Math.max(data.gradientSize, 1), 16);
-                const format = (getRenderer().capabilities.isWebGL2) ? THREE.RedFormat : THREE.LuminanceFormat;
-                const colors = new Uint8Array(data.gradientSize + 2);
-                for (let c = 0; c <= colors.length; c++) colors[c] = (c / colors.length) * 256;
-                material.gradientMap = new THREE.DataTexture(colors, colors.length, 1, format);
-                material.gradientMap.needsUpdate = true;
-                break;
             default:
                 console.error(`Material: Invalid material type '${data.style}'`);
         }
         if (material && material.isMaterial) {
         } else {
-            console.log('Error with material!');
         }
         this.backend = material;
         this.data = data;
-        this.style = data.style;
     }
     dispose() {
-        const material = this.backend;
-        if (material && material.isMaterial) {
-            material.dispose();
-        }
-        this.backend = undefined;
     }
-    enable() {
+    attach() {
         this.refreshMesh();
     }
-    disable() {
+    detach() {
         this.refreshMesh();
     }
     refreshMesh() {
@@ -3803,17 +4292,20 @@ class Material {
             ObjectUtils.clearObject(this.mesh);
             this.mesh = undefined;
         }
-        if (this.enabled !== true) return;
-        if (! this.backend || ! this.backend.isMaterial) return;
+        if (!this.attached) return;
+        if (!this.backend || !this.backend.isMaterial) return;
         const material = this.backend.clone();
         extendMaterial(material, this.toJSON());
         const geometryComponent = this.entity.getComponent('geometry');
-        if (! geometryComponent) return;
-        if (! geometryComponent.enabled) return;
+        if (!geometryComponent) return;
+        if (!geometryComponent.attached) return;
         const geometry = geometryComponent.backend;
-        if (! geometry) return;
-        if (this.style === 'points') {
-            this.mesh = new THREE.Points(geometry, material);
+        if (!geometry) return;
+        if (this.data && this.data.style === 'points') {
+            const pointGeometry = geometry.clone();
+            if (!this.data.useUv) pointGeometry.deleteAttribute('uv');
+            this.mesh = new THREE.Points(pointGeometry, material);
+            pointGeometry.dispose();
         } else {
             this.mesh = new THREE.Mesh(geometry, material);
             this.mesh.castShadow = this.entity.castShadow;
@@ -3834,113 +4326,18 @@ class Material {
         }
         if (this.entity && this.mesh) this.entity.add(this.mesh);
     }
-    toJSON() {
-        const data = this.defaultData('style', this.style);
-        for (let key in data) {
-            if (this.data[key] !== undefined) {
-                if (this.data[key] && this.data[key].isTexture) {
-                    data[key] = this.data[key].uuid;
-                } else {
-                    data[key] = this.data[key];
-                }
-            }
-        }
-        return data;
+    three() {
+        return this.backend;
     }
 }
 function extendMaterial(material, data = { style: 'basic', premultiplyAlpha: true }) {
-    if (! material || ! material.isMaterial) return;
+    if (!material || !material.isMaterial) return;
     let wantsOpaque = (data && data.opacity === 1.0 && data.map === undefined);
-    material.transparent = ! wantsOpaque;
+    material.transparent = !wantsOpaque;
     material.alphaTest = 0.01;
     material.polygonOffset = true;
     material.polygonOffsetFactor = 1;
     material.onBeforeCompile = function(shader) {
-        if (data.style === 'toon') {
-            shader.uniforms = THREE.UniformsUtils.merge([
-                shader.uniforms, {
-                    uBitDepth: { value: data.gradientSize ?? 4},
-                    uEdgeSize: { value: data.edgeSize ?? 6 },
-                    uTextureWidth: { value: 100.0 },
-                    uTextureHeight: { value: 100.0 },
-                },
-            ]);
-            if (material.map && material.map.isTexture) {
-                shader.uniforms.uTextureWidth.value = material.map.image.width;
-                shader.uniforms.uTextureHeight.value = material.map.image.height;
-            }
-            shader.fragmentShader = shader.fragmentShader.replace(
-                '#include <common>',
-                [ 	'#include <common>',
-                    '',
-                    'uniform float uBitDepth;',
-                    'uniform float uEdgeSize;',
-                    'uniform float uTextureWidth;',
-                    'uniform float uTextureHeight;',
-                    '',
-                    'vec3 rgbToHsv(vec3 c) {',
-                    '   vec4  K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);',
-                    '   vec4  p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));',
-                    '   vec4  q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));',
-                    '   float d = q.x - min(q.w, q.y);',
-                    '   float e = 1.0e-10;',
-                    '   return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);',
-                    '}',
-                    'vec3 hsvToRgb(vec3 c) {',
-                    '   vec4  K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);',
-                    '   vec3  p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);',
-                    '   return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);',
-                    '}',
-                    '',
-                    'float avgIntensity(vec4 pix) {',
-                    '   return (pix.r + pix.g + pix.b) / 3.0;',
-                    '}',
-                ].join('\n')
-            );
-            shader.fragmentShader = shader.fragmentShader.replace(
-                '#include <color_fragment>',
-                [	'#include <color_fragment>',
-                    'vec3 original_color = diffuseColor.rgb;',
-                    'vec3 v_hsv = rgbToHsv(original_color.rgb);',
-                    'float amt = 1.0 / (uBitDepth + 8.0);',
-                    'float hueIncrease = 1.05;',
-                    'float satIncrease = 1.10;',
-                    'float vibIncrease = 1.75;',
-                    'v_hsv.x = clamp(amt * (floor(v_hsv.x / amt) * hueIncrease), 0.0, 1.0);',
-                    'v_hsv.y = clamp(amt * (floor(v_hsv.y / amt) * satIncrease), 0.0, 1.0);',
-                    'v_hsv.z = clamp(amt * (floor(v_hsv.z / amt) * vibIncrease), 0.0, 1.0);',
-                    '#ifdef USE_MAP',
-                    '   vec2 coords = vUv;',
-                    '   float dxtex = 1.0 / uTextureWidth;',
-                    '   float dytex = 1.0 / uTextureHeight;',
-                    '   float edge_thres  = 0.15;',
-                    '   float edge_thres2 = uEdgeSize;',
-                    '   float pix[9];',
-                    '   int   k = -1;',
-                    '   float delta;',
-                    '   for (int i = -1; i < 2; i++) {',
-                    '       for (int j = -1; j < 2; j++) {',
-                    '           k++;',
-                    '           vec2 sampleCoords = vec2(coords.x + (float(i) * dxtex), coords.y + (float(j) * dytex));',
-                    '           vec4 texSample = texture2D(map, sampleCoords);',
-                    '           pix[k] = avgIntensity(texSample);',
-                    '       }',
-                    '   }',
-                    '   delta = (abs(pix[1] - pix[7]) + abs(pix[5] - pix[3]) + abs(pix[0] - pix[8]) + abs(pix[2] - pix[6]) ) / 4.0;',
-                    '   float edg = clamp(edge_thres2 * delta, 0.0, 1.0);',
-                    '   vec3 v_rgb = (edg >= edge_thres) ? vec3(0.0) : hsvToRgb(v_hsv.xyz);',
-                    '#else',
-                    '   vec3 v_rgb = hsvToRgb(v_hsv.xyz);',
-                    '#endif',
-                    'diffuseColor.rgb = vec3(v_rgb.x, v_rgb.y, v_rgb.z);',
-                    'float bit_depth = uBitDepth;',
-                    'float bitR = floor(diffuseColor.r * bit_depth);',
-                    'float bitG = floor(diffuseColor.g * bit_depth);',
-                    'float bitB = floor(diffuseColor.b * bit_depth);',
-                    'diffuseColor.rgb = vec3(bitR, bitG, bitB) / bit_depth;',
-                ].join('\n')
-            );
-        }
         if (data.premultiplyAlpha && shader.fragmentShader) {
             shader.fragmentShader = shader.fragmentShader.replace(
                 '#include <premultiplied_alpha_fragment>',
@@ -3963,25 +4360,24 @@ function extendMaterial(material, data = { style: 'basic', premultiplyAlpha: tru
 Material.config = {
     schema: {
         style: [
-            { type: 'select', default: 'standard', promode: true, select: [ 'asset', 'basic', 'depth', 'lambert', 'matcap', 'normal', 'phong', 'physical', 'points', 'shader', 'standard', 'toon' ] },
-            { type: 'select', default: 'standard', select: [ 'basic', 'points', 'standard', 'toon' ] },
+            { type: 'select', default: 'standard', promode: true, select: [ 'asset', 'basic', 'depth', 'lambert', 'matcap', 'normal', 'phong', 'physical', 'points', 'shader', 'standard' ] },
+            { type: 'select', default: 'standard', select: [ 'asset', 'basic', 'points', 'standard' ] },
         ],
-        styleDivider: { type: 'divider' },
-        asset: { type: 'asset', class: 'Material', if: { style: [ 'asset' ] } },
-        color: { type: 'color', if: { style: [ 'basic', 'lambert', 'matcap', 'phong', 'physical', 'points', 'standard', 'toon' ] } },
-        emissive: { type: 'color', default: 0x000000, promode: true, if: { style: [ 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
-        emissiveIntensity: { type: 'slider', default: 1, min: 0, max: 2, promode: true, if: { style: [ 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
-        opacity: { type: 'slider', default: 1.0, min: 0.0, max: 1.0, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'normal', 'phong', 'physical', 'points', 'standard', 'toon' ] } },
-        depthTest: { type: 'boolean', default: true, promode: true, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
-        depthWrite: { type: 'boolean', default: true, promode: true, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
+        styleDivider: { type: 'layout', format: 'divider' },
+        asset: { type: 'asset', class: 'material', if: { style: [ 'asset' ] } },
+        color: { type: 'color', if: { style: [ 'basic', 'lambert', 'matcap', 'phong', 'physical', 'points', 'standard' ] } },
+        emissive: { type: 'color', default: 0x000000, promode: true, if: { style: [ 'lambert', 'phong', 'physical', 'standard' ] } },
+        emissiveIntensity: { type: 'slider', default: 1, min: 0, max: 2, promode: true, if: { style: [ 'lambert', 'phong', 'physical', 'standard' ] } },
+        opacity: { type: 'slider', default: 1.0, min: 0.0, max: 1.0, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'normal', 'phong', 'physical', 'points', 'standard' ] } },
+        depthTest: { type: 'boolean', default: true, promode: true, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'normal', 'phong', 'physical', 'standard' ] } },
+        depthWrite: { type: 'boolean', default: true, promode: true, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'normal', 'phong', 'physical', 'standard' ] } },
         flatShading: { type: 'boolean', default: false, if: { style: [ 'phong', 'physical', 'standard', 'normal', 'matcap' ] } },
-        premultiplyAlpha: { type: 'boolean', default: true, promode: true, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'normal', 'phong', 'physical', 'points', 'standard', 'toon' ] } },
-        wireframe: { type: 'boolean', default: false, if: { style: [ 'basic', 'depth', 'lambert', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
-        vertexColors: { type: 'boolean', default: false, promode: true, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
+        premultiplyAlpha: { type: 'boolean', default: true, promode: true, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'normal', 'phong', 'physical', 'points', 'standard' ] } },
+        wireframe: { type: 'boolean', default: false, if: { style: [ 'basic', 'depth', 'lambert', 'normal', 'phong', 'physical', 'standard' ] } },
+        vertexColors: { type: 'boolean', default: false, promode: true, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'normal', 'phong', 'physical', 'standard' ] } },
         size: { type: 'slider', default: 0.05, min: 0, max: 1, if: { style: [ 'points' ] } },
         sizeAttenuation: { type: 'boolean', default: true, if: { style: [ 'points' ] } },
-        edgeSize: { type: 'slider', default: 6, min: 0, max: 10, step: 1, precision: 0, if: { style: [ 'toon' ] } },
-        gradientSize: { type: 'slider', default: 4, min: 1, max: 16, step: 1, precision: 0, if: { style: [ 'toon' ] } },
+        useUv: { type: 'boolean', default: false, if: { style: [ 'points' ] } },
         metalness: { type: 'slider', default: 0.1, min: 0.0, max: 1.0, if: { style: [ 'physical', 'standard' ] } },
         roughness: { type: 'slider', default: 1.0, min: 0.0, max: 1.0, if: { style: [ 'physical', 'standard' ] } },
         specular: { type: 'color', default: 0x111111, if: { style: [ 'phong' ] } },
@@ -3998,27 +4394,27 @@ Material.config = {
         transmission: { type: 'slider', default: 0.0, min: 0.0, max: 1.0, if: { style: [ 'physical' ] } },
         depthPacking: { type: 'select', default: 'BasicDepthPacking', select: depthPacking, if: { style: [ 'depth' ] } },
         map: [
-            { type: 'map', if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'points', 'physical', 'standard', 'toon' ] } },
+            { type: 'asset', class: 'texture', alias: 'texture', if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'points', 'physical', 'standard' ] } },
         ],
-        matcap: { type: 'map', if: { style: [ 'matcap' ] } },
-        alphaMap: { type: 'map', promode: true, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'physical', 'points', 'standard', 'toon' ] } },
-        bumpMap: { type: 'map', promode: true, if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
-        bumpScale: { type: 'slider', default: 1, min: 0, max: 2, promode: true, if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
-        clearcoatNormalMap: { type: 'map', promode: true, if: { style: [ 'physical' ] } },
+        matcap: { type: 'asset', class: 'texture', if: { style: [ 'matcap' ] } },
+        alphaMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'phong', 'physical', 'points', 'standard' ] } },
+        bumpMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard' ] } },
+        bumpScale: { type: 'slider', default: 1, min: 0, max: 2, promode: true, if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard' ] } },
+        clearcoatNormalMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'physical' ] } },
         clearcoatNormalScale: { type: 'vector2', default: [ 1, 1 ], promode: true, if: { style: [ 'physical' ] } },
-        displacementMap: { type: 'map', promode: true, if: { style: [ 'depth', 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
-        displacementScale: { type: 'slider', default: 1, min: 0, max: 2, promode: true, if: { style: [ 'depth', 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
-        emissiveMap: { type: 'map', promode: true, if: { style: [ 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
-        metalnessMap: { type: 'map', promode: true, if: { style: [ 'physical', 'standard' ] } },
-        roughnessMap: { type: 'map', promode: true, if: { style: [ 'physical', 'standard' ] } },
-        specularMap: { type: 'map', promode: true, if: { style: [ 'basic', 'lambert', 'phong' ] } },
-        thicknessMap: { type: 'map', promode: true, if: { style: [ 'physical' ] } },
-        transmissionMap: { type: 'map', promode: true, if: { style: [ 'physical' ] } },
-        aoMap: { type: 'map', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
-        envMap: { type: 'map', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard' ] } },
-        lightMap: { type: 'map', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard', 'toon' ] } },
-        normalMap: { type: 'map', if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
-        side: { type: 'select', default: 'FrontSide', select: sides, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'normal', 'phong', 'physical', 'standard', 'toon' ] } },
+        displacementMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'depth', 'matcap', 'normal', 'phong', 'physical', 'standard' ] } },
+        displacementScale: { type: 'slider', default: 1, min: 0, max: 2, promode: true, if: { style: [ 'depth', 'matcap', 'normal', 'phong', 'physical', 'standard' ] } },
+        emissiveMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'lambert', 'phong', 'physical', 'standard' ] } },
+        metalnessMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'physical', 'standard' ] } },
+        roughnessMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'physical', 'standard' ] } },
+        specularMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'basic', 'lambert', 'phong' ] } },
+        thicknessMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'physical' ] } },
+        transmissionMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'physical' ] } },
+        aoMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard' ] } },
+        envMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard' ] } },
+        lightMap: { type: 'asset', class: 'texture', promode: true, if: { style: [ 'basic', 'lambert', 'phong', 'physical', 'standard' ] } },
+        normalMap: { type: 'asset', class: 'texture', if: { style: [ 'matcap', 'normal', 'phong', 'physical', 'standard' ] } },
+        side: { type: 'select', default: 'FrontSide', select: sides, if: { style: [ 'basic', 'depth', 'lambert', 'matcap', 'normal', 'phong', 'physical', 'standard' ] } },
     },
     icon: ``,
     color: 'rgb(165, 243, 0)',
@@ -4028,19 +4424,22 @@ ComponentManager.register('material', Material);
 
 class Mesh {
     init(data) {
-        this.backend = (data.isObject3D) ? data : new THREE.Object3D();
-        this.backend.traverse((child) => { child.castShadow = this.entity.castShadow; });
-        this.backend.traverse((child) => { child.receiveShadow = this.entity.receiveShadow; });
+        const mesh = (data.isObject3D) ? data : new THREE.Object3D();
+        mesh.traverse((child) => { child.castShadow = this.entity.castShadow; });
+        mesh.traverse((child) => { child.receiveShadow = this.entity.receiveShadow; });
+        this.backed = mesh;
+        this.data = data;
     }
     dispose() {
     }
-    enable() {
+    attach() {
         if (this.entity && this.backend) this.entity.add(this.backend);
     }
-    disable() {
+    detach() {
         if (this.entity && this.backend) this.entity.remove(this.backend);
     }
-    toJSON() {
+    three() {
+        return this.backend;
     }
 }
 Mesh.config = {
@@ -4050,9 +4449,93 @@ Mesh.config = {
 };
 ComponentManager.register('mesh', Mesh);
 
+class Script {
+    init(data) {
+        if (data.isScript) {
+            const assetUUID = data.uuid;
+            AssetManager.addAsset(data);
+            data = this.defaultData();
+            data.asset = assetUUID;
+        }
+        const script = AssetManager.getAsset(data.asset);
+        if (script && script.isScript) {
+        }
+        this.backend = undefined;
+        this.data = data;
+    }
+}
+Script.config = {
+    schema: {
+        script: { type: 'asset', class: 'script', rebuild: true },
+        divider: { type: 'layout', format: 'divider' },
+        variables: { type: 'object', default: {} },
+    },
+    icon: ``,
+    color: '#090B11',
+    width: '40%',
+    multiple: true,
+    dependencies: [],
+};
+ComponentManager.register('script', Script);
+
+const exampleSelect = [ 'Apple', 'Banana', 'Cherry', 'Zebra', 'Red' ];
+class Test {
+    init(data) {
+        let test = undefined;
+        this.backend = test;
+        this.data = data;
+    }
+    dispose() {
+    }
+    attach() {
+        if (this.entity && this.backend) this.entity.add(this.backend);
+    }
+    detach() {
+        if (this.entity && this.backend) this.entity.remove(this.backend);
+    }
+    three() {
+        return this.backend;
+    }
+}
+Test.config = {
+    schema: {
+        style: [
+            { type: 'select', default: 'basic', select: [ 'asset', 'basic', 'array' ] },
+        ],
+        divider: { type: 'layout', format: 'divider' },
+        asset: { type: 'asset', if: { style: [ 'asset' ] } },
+        assetDivider: { type: 'layout', format: 'divider' },
+        geometry: { type: 'asset', class: 'geometry', if: { style: [ 'asset' ] } },
+        material: { type: 'asset', class: 'material', if: { style: [ 'asset' ] } },
+        script: { type: 'asset', class: 'script', if: { style: [ 'asset' ] } },
+        shape: { type: 'asset', class: 'shape', if: { style: [ 'asset' ] } },
+        texture: { type: 'asset', class: 'texture', if: { style: [ 'asset' ] } },
+        prefabDivider: { type: 'layout', format: 'divider' },
+        prefab: { type: 'asset', class: 'prefab', if: { style: [ 'asset' ] } },
+        select: { type: 'select', default: 'Zebra', select: exampleSelect, if: { style: [ 'basic' ] } },
+        number: { type: 'number', default: 0.05, min: 0, max: 1, label: 'test', if: { style: [ 'basic' ] } },
+        int: { type: 'int', default: 5, min: 3, max: 10, if: { style: [ 'basic' ] } },
+        angle: { type: 'angle', default: 2 * Math.PI, min: 0, max: 360, if: { style: [ 'basic' ] } },
+        variable: { type: 'variable', default: [ 0, 0 ], min: 0, max: 100, if: { style: [ 'basic' ] } },
+        slider: { type: 'slider', default: 0, min: 0, max: 9, step: 1, precision: 0, if: { style: [ 'basic' ] } },
+        boolean: { type: 'boolean', default: true, if: { style: [ 'basic' ] } },
+        color: { type: 'color', default: 0xff0000, if: { style: [ 'basic' ] } },
+        string: { type: 'string', if: { style: [ 'basic' ] } },
+        multiline: { type: 'string', rows: 4, if: { style: [ 'basic' ] } },
+        numberArray: { type: 'vector', size: 1, if: { style: [ 'array' ] } },
+        vector2: { type: 'vector', size: 2, tint: true, label: [ 'x', 'y' ], if: { style: [ 'array' ] } },
+        vector3: { type: 'vector', size: 3, tint: true, min: [ 1, 1, 1 ], max: [ 2, 2, 2 ], step: 0.1, precision: 2, if: { style: [ 'array' ] } },
+        vector4: { type: 'vector', size: 4, tint: true, if: { style: [ 'array' ] } },
+    },
+    icon: ``,
+    color: 'rgb(128, 128, 128)',
+    dependencies: [],
+};
+ComponentManager.register('test', Test);
+
 if (typeof window !== 'undefined') {
-    if (window.__ONSIGHT__) console.warn(`Onsight v${window.__ONSIGHT__} already imported! Now importing v${VERSION}!`);
+    if (window.__ONSIGHT__) console.warn(`Onsight v${window.__ONSIGHT__} already imported, now importing v${VERSION}!`);
     else window.__ONSIGHT__ = VERSION;
 }
 
-export { APP_STATES, App, AssetManager, BACKENDS, BasicLine, BasicWireBox, BasicWireframe, CAMERA_SCALE, CAMERA_START_DISTANCE, CAMERA_START_HEIGHT, CameraUtils, CapsuleGeometry, ComponentManager, CylinderGeometry, ENTITY_FLAGS, ENTITY_TYPES, Entity3D, EntityPool, EntityUtils, FatLine, FatWireBox, FatWireframe, GeometryUtils, GpuPickerPass, MathUtils, Object3D, ObjectUtils, PrismGeometry, Project, RenderUtils, SCENE_TYPES, SVGBuilder, Scene3D, Script, SkyObject, Strings, System, VERSION, Vectors, WORLD_TYPES, World3D };
+export { APP_EVENTS, APP_STATES, App, AssetManager, BasicLine, BasicWireBox, BasicWireframe, CAMERA_SCALE, CAMERA_START_DISTANCE, CAMERA_START_HEIGHT, CameraFollow, CameraUtils, CapsuleGeometry, Clock, ColorChange, ComponentManager, CylinderGeometry, ENTITY_TYPES, Entity3D, EntityPool, EntityUtils, FatLine, FatWireBox, FatWireframe, GeometryUtils, GpuPickerPass, KeyControls, Maths, ObjectUtils, PrismGeometry, Project, REBUILD_TYPES, RenderUtils, Renderer3D, RotateEntity, SCENE_TYPES, SCRIPT_FORMAT, SVGBuilder, Scene3D, SceneManager, Script$1 as Script, SkyObject, Strings, System, VERSION, Vectors, WORLD_TYPES, World3D };

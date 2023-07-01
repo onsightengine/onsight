@@ -228,7 +228,7 @@ class AssetManager {
         //
 
         // Scripts
-        const scripts = AssetManager.getLibrary('asset', 'script');
+        const scripts = AssetManager.getLibrary('script');
         for (let i = 0; i < scripts.length; i++) {
             const script = scripts[i];
             if (!script.uuid) continue;
@@ -237,7 +237,7 @@ class AssetManager {
         }
 
         // Geometries
-        const geometries = AssetManager.getLibrary('asset', 'geometry');
+        const geometries = AssetManager.getLibrary('geometry');
         for (let i = 0; i < geometries.length; i++) {
             const geometry = geometries[i];
             if (!geometry.uuid) continue;
@@ -256,7 +256,7 @@ class AssetManager {
         }
 
         // Materials
-        const materials = AssetManager.getLibrary('asset', 'material');
+        const materials = AssetManager.getLibrary('material');
         for (let i = 0; i < materials.length; i++) {
             const material = materials[i];
             if (!material.uuid) continue;
@@ -265,7 +265,7 @@ class AssetManager {
         }
 
         // Shapes
-        const shapes = AssetManager.getLibrary('asset', 'shape');
+        const shapes = AssetManager.getLibrary('shape');
         for (let i = 0; i < shapes.length; i++) {
             const shape = shapes[i];
             if (!shape.uuid) continue;
@@ -274,7 +274,7 @@ class AssetManager {
         }
 
         // Textures
-        const textures = AssetManager.getLibrary('asset', 'texture');
+        const textures = AssetManager.getLibrary('texture');
         for (let i = 0; i < textures.length; i++) {
             const texture = textures[i];
             if (!texture.uuid) continue;

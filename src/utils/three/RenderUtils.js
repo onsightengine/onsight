@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { CameraUtils } from './CameraUtils.js';
 import { Maths } from '../Maths.js';
-import { Renderer3D } from '../../Onsight.js';
+import { Renderer3D } from '../../app/Renderer3D.js';
 
 // offscreenRenderer()          Offscreen renderer to be shared across the app
 // renderGeometryToCanvas()     Render geometry, material, or both

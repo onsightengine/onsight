@@ -110,11 +110,11 @@ class App {
             const delta = gameClock.getDeltaTime();
             const total = gameClock.getElapsedTime();
 
-            // Debug
-            if (total > time) {
-                console.log(`Time: ${time}, FPS: ${gameClock.fps()}, Framerate: ${gameClock.averageDelta()}`);
-                time++;
-            }
+            // // Debug
+            // if (total > time) {
+            //     console.log(`Time: ${time}, FPS: ${gameClock.fps()}, Framerate: ${gameClock.averageDelta()}`);
+            //     time++;
+            // }
 
             // Call 'update()' functions, catch errors
             if (SceneManager.app.state === APP_STATES.PLAYING) {

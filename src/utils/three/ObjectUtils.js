@@ -145,7 +145,10 @@ class ObjectUtils {
         source.matrixWorld.decompose(target.position, _tempQuaternion, target.scale);
         target.rotation.setFromQuaternion(_tempQuaternion, undefined, false);
         target.quaternion.setFromEuler(target.rotation, false);
-        if (updateMatrix) target.updateMatrix();
+        if (updateMatrix) {
+            target.updateMatrix();
+            target.updateMatrixWorld(true /* force */);
+        }
     }
 
     /** Counts total geometries in an object or array of objects */

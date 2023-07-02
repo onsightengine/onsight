@@ -280,6 +280,92 @@ class Maths {
     }
 }
 
+class Renderer3D extends THREE.WebGLRenderer {
+    constructor(parameters = {}) {
+        super(parameters);
+        const threeRender = this.render.bind(this);
+        this.render = function(scene, camera) {
+            window.activeCamera = camera;
+            threeRender(scene, camera);
+        };
+    }
+}
+
+let _renderer$1;
+class RenderUtils {
+    static offscreenRenderer(width, height) {
+        if (_renderer$1 === undefined) {
+            _renderer$1 = new Renderer3D({ alpha: true });
+            _renderer$1.setClearColor(0xffffff, 0);
+            _renderer$1.setSize(512, 512, false);
+            _renderer$1.outputColorSpace = THREE.LinearSRGBColorSpace;
+        }
+        if (Maths.isNumber(width) && Maths.isNumber(height)) {
+            _renderer$1.setSize(width, height, false);
+        }
+        return _renderer$1;
+    }
+    static renderGeometryToCanvas(canvas, geometry, material, color = 0xffffff) {
+        const mat = material ?? new THREE.MeshStandardMaterial({ color: color });
+        const geo = geometry ?? new THREE.SphereGeometry();
+        const mesh = new THREE.Mesh(geo, mat);
+        RenderUtils.renderMeshToCanvas(canvas, mesh);
+        if (mesh && typeof mesh.dispose === 'function') mesh.dispose();
+        if (!material) mat.dispose();
+        if (!geometry) geo.dispose();
+    }
+    static renderMeshToCanvas(canvas, mesh) {
+        const scene = new THREE.Scene();
+        scene.add(new THREE.HemisphereLight(0xffffff, 0x202020, 1.5));
+        const camera = new THREE.PerspectiveCamera(50, canvas.width / canvas.height);
+        camera.position.set(0, 0, 1);
+        CameraUtils.fitCameraToObject(camera, mesh);
+        const exsistingParent = mesh.parent;
+        scene.add(mesh);
+        const renderer = RenderUtils.offscreenRenderer(canvas.width, canvas.height);
+        renderer.render(scene, camera);
+        scene.remove(mesh);
+        if (exsistingParent) exsistingParent.add(mesh);
+        const context = canvas.getContext('2d');
+        if (context) {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.drawImage(renderer.domElement, 0, 0, canvas.width, canvas.height);
+        }
+    }
+    static renderTextureToCanvas(canvas, texture) {
+        const scene = new THREE.Scene();
+        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+        const material = new THREE.MeshBasicMaterial({ map: texture, alphaTest: true });
+        const quad = new THREE.PlaneGeometry(2, 2);
+        const mesh = new THREE.Mesh(quad, material);
+        scene.add(mesh);
+        const image = texture.image;
+        const renderer = RenderUtils.offscreenRenderer(image.width, image.height);
+        renderer.render(scene, camera);
+        quad.dispose();
+        material.dispose();
+        const context = canvas.getContext('2d');
+        if (context) {
+            const sAspect = image.width / image.height;
+            const dAspect = canvas.width / canvas.height;
+            let dx, dy, dw, dh, shrink;
+            if (sAspect < dAspect) {
+                dh = (image.height > canvas.height) ? canvas.height : image.height;
+                shrink = Math.min(1, canvas.height / image.height);
+                dw = image.width * shrink;
+            } else {
+                dw = (image.width > canvas.width) ? canvas.width : image.width;
+                shrink = Math.min(1, canvas.width / image.width);
+                dh = image.height * shrink;
+            }
+            dx = (canvas.width - dw) / 2;
+            dy = (canvas.height - dh) / 2;
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.drawImage(renderer.domElement, 0, 0, image.width, image.height, dx, dy, dw, dh);
+        }
+    }
+}
+
 class Script$1 {
     constructor(format = SCRIPT_FORMAT.JAVASCRIPT) {
         this.isScript = true;
@@ -845,7 +931,10 @@ class ObjectUtils {
         source.matrixWorld.decompose(target.position, _tempQuaternion, target.scale);
         target.rotation.setFromQuaternion(_tempQuaternion, undefined, false);
         target.quaternion.setFromEuler(target.rotation, false);
-        if (updateMatrix) target.updateMatrix();
+        if (updateMatrix) {
+            target.updateMatrix();
+            target.updateMatrixWorld(true );
+        }
     }
     static countGeometry(groupOrArray) {
         const objects = (System.isIterable(groupOrArray)) ? groupOrArray : [ groupOrArray ];
@@ -1987,17 +2076,6 @@ async function RapierPhysics(gravityX = 0, gravityY = -9.81, gravityZ = 0) {
 	};
 }
 
-class Renderer3D extends THREE.WebGLRenderer {
-    constructor(parameters = {}) {
-        super(parameters);
-        const threeRender = this.render.bind(this);
-        this.render = function(scene, camera) {
-            window.activeCamera = camera;
-            threeRender(scene, camera);
-        };
-    }
-}
-
 let scriptFunctions = '';
 let scriptReturnObject = {};
 for (let eventKey in APP_EVENTS) {
@@ -2725,81 +2803,6 @@ class SVGBuilder {
             SVGBuilder.createFromPaths(svgGroup, data.paths, onLoad, Strings.nameFromUrl(url));
         });
         return svgGroup;
-    }
-}
-
-let _renderer$1;
-class RenderUtils {
-    static offscreenRenderer(width, height) {
-        if (_renderer$1 === undefined) {
-            _renderer$1 = new Renderer3D({ alpha: true });
-            _renderer$1.setClearColor(0xffffff, 0);
-            _renderer$1.setSize(512, 512, false);
-            _renderer$1.outputColorSpace = THREE.LinearSRGBColorSpace;
-        }
-        if (Maths.isNumber(width) && Maths.isNumber(height)) {
-            _renderer$1.setSize(width, height, false);
-        }
-        return _renderer$1;
-    }
-    static renderGeometryToCanvas(canvas, geometry, material, color = 0xffffff) {
-        const mat = material ?? new THREE.MeshStandardMaterial({ color: color });
-        const geo = geometry ?? new THREE.SphereGeometry();
-        const mesh = new THREE.Mesh(geo, mat);
-        RenderUtils.renderMeshToCanvas(canvas, mesh);
-        if (mesh && typeof mesh.dispose === 'function') mesh.dispose();
-        if (!material) mat.dispose();
-        if (!geometry) geo.dispose();
-    }
-    static renderMeshToCanvas(canvas, mesh) {
-        const scene = new THREE.Scene();
-        scene.add(new THREE.HemisphereLight(0xffffff, 0x202020, 1.5));
-        const camera = new THREE.PerspectiveCamera(50, canvas.width / canvas.height);
-        camera.position.set(0, 0, 1);
-        CameraUtils.fitCameraToObject(camera, mesh);
-        const exsistingParent = mesh.parent;
-        scene.add(mesh);
-        const renderer = RenderUtils.offscreenRenderer(canvas.width, canvas.height);
-        renderer.render(scene, camera);
-        scene.remove(mesh);
-        if (exsistingParent) exsistingParent.add(mesh);
-        const context = canvas.getContext('2d');
-        if (context) {
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            context.drawImage(renderer.domElement, 0, 0, canvas.width, canvas.height);
-        }
-    }
-    static renderTextureToCanvas(canvas, texture) {
-        const scene = new THREE.Scene();
-        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-        const material = new THREE.MeshBasicMaterial({ map: texture, alphaTest: true });
-        const quad = new THREE.PlaneGeometry(2, 2);
-        const mesh = new THREE.Mesh(quad, material);
-        scene.add(mesh);
-        const image = texture.image;
-        const renderer = RenderUtils.offscreenRenderer(image.width, image.height);
-        renderer.render(scene, camera);
-        quad.dispose();
-        material.dispose();
-        const context = canvas.getContext('2d');
-        if (context) {
-            const sAspect = image.width / image.height;
-            const dAspect = canvas.width / canvas.height;
-            let dx, dy, dw, dh, shrink;
-            if (sAspect < dAspect) {
-                dh = (image.height > canvas.height) ? canvas.height : image.height;
-                shrink = Math.min(1, canvas.height / image.height);
-                dw = image.width * shrink;
-            } else {
-                dw = (image.width > canvas.width) ? canvas.width : image.width;
-                shrink = Math.min(1, canvas.width / image.width);
-                dh = image.height * shrink;
-            }
-            dx = (canvas.width - dw) / 2;
-            dy = (canvas.height - dh) / 2;
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            context.drawImage(renderer.domElement, 0, 0, image.width, image.height, dx, dy, dw, dh);
-        }
     }
 }
 
@@ -3788,26 +3791,6 @@ class Camera {
     detach() {
         if (this.entity && this.backend) this.entity.remove(this.backend);
     }
-    updateProjectionMatrix() {
-        if (!window.getRenderer()) return;
-        if (this.backend && this.backend.isCamera) {
-            window.getRenderer().getSize(_renderSize);
-            let width = _renderSize.x;
-            let height = _renderSize.y;
-            if (this.backend.isPerspectiveCamera) {
-                if (this.data.fixedSize) this.backend.fov = (360 / Math.PI) * Math.atan(this._tanFOV * (height / this._windowHeight));
-                this.backend.aspect = width / height;
-            } else if (this.backend.isOrthographicCamera) {
-                let aspectWidth = 1.0;
-                let aspectHeight = 1.0;
-                this.backend.left = - width / aspectWidth / 2;
-                this.backend.right = width / aspectWidth / 2;
-                this.backend.top = height * aspectHeight / 2;
-                this.backend.bottom = - height * aspectHeight / 2;
-            }
-            this.backend.updateProjectionMatrix();
-        }
-    }
     three() {
         return this.backend;
     }
@@ -4315,13 +4298,11 @@ class Material {
         const isGlass = this.backend.isMeshPhysicalMaterial === true && this.backend.transmission > 0;
         if (isGlass) this.backend.envMap = hdrEquirect;
         if (this.backend.opacity < 0.05) {
-            if (window.activeCamera && window.editor && window.editor.viewport) {
-                if (activeCamera.uuid === editor.viewport.camera.uuid) {
-                    material.map = null;
-                    material.opacity = 0.25;
-                    material.wireframe = true;
-                    this.mesh.castShadow = false;
-                }
+            if (!SceneManager.app || SceneManager.app.state === APP_STATES.STOPPED) {
+                material.map = null;
+                material.opacity = 0.25;
+                material.wireframe = true;
+                this.mesh.castShadow = false;
             }
         }
         if (this.entity && this.mesh) this.entity.add(this.mesh);

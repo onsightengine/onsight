@@ -73,33 +73,6 @@ class Camera {
         if (this.entity && this.backend) this.entity.remove(this.backend);
     }
 
-    updateProjectionMatrix() {
-        if (!window.getRenderer()) return;
-
-        if (this.backend && this.backend.isCamera) {
-            window.getRenderer().getSize(_renderSize);
-            let width = _renderSize.x;
-            let height = _renderSize.y;
-
-            if (this.backend.isPerspectiveCamera) {
-                if (this.data.fixedSize) this.backend.fov = (360 / Math.PI) * Math.atan(this._tanFOV * (height / this._windowHeight));
-                this.backend.aspect = width / height;
-
-            } else if (this.backend.isOrthographicCamera) {
-                let aspectWidth = 1.0;
-                let aspectHeight = 1.0;
-
-                // Calculate new frustum, update camera
-                this.backend.left = - width / aspectWidth / 2;
-                this.backend.right = width / aspectWidth / 2;
-                this.backend.top = height * aspectHeight / 2;
-                this.backend.bottom = - height * aspectHeight / 2;
-            }
-
-            this.backend.updateProjectionMatrix();
-        }
-    }
-
     three() {
         return this.backend;
     }

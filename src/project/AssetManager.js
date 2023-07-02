@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { RenderUtils } from '../utils/three/RenderUtils.js';
 import { Script } from './assets/Script.js';
 import { Strings } from '../utils/Strings.js';
 
@@ -140,13 +141,11 @@ class AssetManager {
             newTexture.wrapS = THREE.RepeatWrapping;
             newTexture.wrapT = THREE.RepeatWrapping;
 
-            // System.waitForObject('AssetManager.loadTexture: Waiting on renderer', () => return window.getRenderer, () => {
-            //     // Reduces bluriness of mipmaps
-            //     const maxAnisotropy = window.getRenderer().capabilities.getMaxAnisotropy(); /* Mac M1 === 16 */
-            //     newTexture.anisotropy = maxAnisotropy;
-            //     newTexture.mipmaps = [];
-            //     newTexture.generateMipmaps = true;
-            // });
+            // // Reduces bluriness of mipmaps
+            // const maxAnisotropy = RenderUtils.offScreenRenderer().capabilities.getMaxAnisotropy(); /* Mac M1 === 16 */
+            // newTexture.anisotropy = maxAnisotropy;
+            // newTexture.mipmaps = [];
+            // newTexture.generateMipmaps = true;
 
             // On Load Callback
             if (onLoad && typeof onLoad === 'function') onLoad(newTexture);

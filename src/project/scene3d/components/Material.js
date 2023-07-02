@@ -1,10 +1,12 @@
 import * as THREE from 'three';
 // import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
+import { APP_STATES } from '../../../constants.js';
 import { AssetManager } from '../../AssetManager.js';
 import { ComponentManager } from '../../ComponentManager.js';
 import { GeometryUtils } from '../../../utils/three/GeometryUtils.js';
 import { ObjectUtils } from '../../../utils/three/ObjectUtils.js';
+import { SceneManager } from '../../../app/SceneManager.js';
 import { System } from '../../../utils/System.js';
 
 // MeshBasicMaterial        not affected by lights
@@ -178,15 +180,13 @@ class Material {
         const isGlass = this.backend.isMeshPhysicalMaterial === true && this.backend.transmission > 0;
         if (isGlass) this.backend.envMap = hdrEquirect;
 
-        // Show invisible objects as wireframe
+        // Show invisible objects as wireframe in editor
         if (this.backend.opacity < 0.05) {
-            if (window.activeCamera && window.editor && window.editor.viewport) {
-                if (activeCamera.uuid === editor.viewport.camera.uuid) {
-                    material.map = null;
-                    material.opacity = 0.25;
-                    material.wireframe = true;
-                    this.mesh.castShadow = false;
-                }
+            if (!SceneManager.app || SceneManager.app.state === APP_STATES.STOPPED) {
+                material.map = null;
+                material.opacity = 0.25;
+                material.wireframe = true;
+                this.mesh.castShadow = false;
             }
         }
 

@@ -205,11 +205,11 @@ class App {
     }
 
     async play() {
-        if (this.state === APP_STATES.STOPPED) {
+        if (SceneManager.app.state === APP_STATES.STOPPED) {
             await this.init();
             gameClock.reset();
         }
-        this.state = APP_STATES.PAUSED;
+        SceneManager.app.state = APP_STATES.PAUSED;
 
         // Add Event Listeners
         document.addEventListener('keydown', onKeyDown);
@@ -223,9 +223,9 @@ class App {
     }
 
     pause() {
-        switch(this.state) {
+        switch(SceneManager.app.state) {
             case APP_STATES.PAUSED:
-                this.state = APP_STATES.PLAYING;
+                SceneManager.app.state = APP_STATES.PLAYING;
                 gameClock.start();
                 if (animationID == null) {
                     animationID = requestAnimationFrame(SceneManager.app.animate);
@@ -233,7 +233,7 @@ class App {
                 break;
 
             case APP_STATES.PLAYING:
-                this.state = APP_STATES.PAUSED;
+                SceneManager.app.state = APP_STATES.PAUSED;
                 // FALL THROUGH...
             case APP_STATES.STOPPED:
                 gameClock.stop();
@@ -242,8 +242,8 @@ class App {
     }
 
     stop() {
-        if (this.state === APP_STATES.STOPPED) return;
-        this.state = APP_STATES.STOPPED;
+        if (SceneManager.app.state === APP_STATES.STOPPED) return;
+        SceneManager.app.state = APP_STATES.STOPPED;
 
         document.removeEventListener('keydown', onKeyDown);
         document.removeEventListener('keyup', onKeyUp);
@@ -293,21 +293,31 @@ export { App };
 /******************** INTERNAL ********************/
 
 function onKeyDown(event) {
-    SceneManager.app.dispatch(SceneManager.app.events.keydown, event);
+    if (SceneManager.app.state === APP_STATES.PLAYING) {
+        SceneManager.app.dispatch(SceneManager.app.events.keydown, event);
+    }
 }
 
 function onKeyUp(event) {
-    SceneManager.app.dispatch(SceneManager.app.events.keyup, event);
+    if (SceneManager.app.state === APP_STATES.PLAYING) {
+        SceneManager.app.dispatch(SceneManager.app.events.keyup, event);
+    }
 }
 
 function onPointerDown(event) {
-    SceneManager.app.dispatch(SceneManager.app.events.pointerdown, event);
+    if (SceneManager.app.state === APP_STATES.PLAYING) {
+        SceneManager.app.dispatch(SceneManager.app.events.pointerdown, event);
+    }
 }
 
 function onPointerUp(event) {
-    SceneManager.app.dispatch(SceneManager.app.events.pointerup, event);
+    if (SceneManager.app.state === APP_STATES.PLAYING) {
+        SceneManager.app.dispatch(SceneManager.app.events.pointerup, event);
+    }
 }
 
 function onPointerMove(event) {
-    SceneManager.app.dispatch(SceneManager.app.events.pointermove, event);
+    if (SceneManager.app.state === APP_STATES.PLAYING) {
+        SceneManager.app.dispatch(SceneManager.app.events.pointermove, event);
+    }
 }

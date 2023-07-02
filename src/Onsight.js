@@ -54,6 +54,9 @@ export { GeometryUtils } from './utils/three/GeometryUtils.js';
 export { ObjectUtils } from './utils/three/ObjectUtils.js';
 export { RenderUtils } from './utils/three/RenderUtils.js';
 
+// Three, Controls
+export { OrbitControls } from './utils/three/controls/OrbitControls.js';
+
 // Three, Geometry
 export { CapsuleGeometry } from './utils/three/geometry/CapsuleGeometry.js';
 export { CylinderGeometry } from './utils/three/geometry/CylinderGeometry.js';

@@ -165,7 +165,7 @@ class App {
         // FLOOR
         const floor = new THREE.Mesh(
             new THREE.BoxGeometry(10, 5, 10),
-            new THREE.ShadowMaterial({ color: 0x444444 }),
+            new THREE.ShadowMaterial({ color: 0, transparent: true, opacity: 0.2, depthWrite: false }),
         );
         floor.position.y = - 2.5;
         floor.receiveShadow = true;

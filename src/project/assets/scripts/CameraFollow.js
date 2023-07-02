@@ -9,11 +9,20 @@ class CameraFollow extends Script {
 
         this.source =
 `
+let controls;
+
 function update(event) {
 
-	camera.position.x = this.position.x;
-    camera.position.y = this.position.y;
-    camera.position.z = this.position.z + 6;
+    if (!controls) {
+        controls = new ONE.OrbitControls(camera, renderer.domElement);
+    }
+
+    controls.target.set(this.position.x, this.position.y, this.position.z);
+    controls.update();
+
+	// camera.position.x = this.position.x;
+    // camera.position.y = this.position.y;
+    // camera.position.z = this.position.z + 6;
 
 }
 `;

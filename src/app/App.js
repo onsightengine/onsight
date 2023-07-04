@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { APP_EVENTS, APP_STATES } from '../constants.js';
+import { APP_EVENTS } from '../constants.js';
 import { AssetManager } from '../project/AssetManager.js';
 import { CameraUtils } from '../utils/three/CameraUtils.js';
 import { Clock } from '../utils/Clock.js';
@@ -57,7 +57,9 @@ class App {
         }
 
         // Flags
-        this.state = APP_STATES.STOPPED;
+        this.isPlaying = false;
+        this.isPaused = false;
+        this.isStopped = true;
         this.wantsScreenshot = false;
     }
 
@@ -105,7 +107,7 @@ class App {
     /******************** ANIMATE / RENDER */
 
     animate() {
-        if (SceneManager.app.state === APP_STATES.PLAYING) {
+        if (!SceneManager.app.isPaused) {
             // Delta / Time Elapsed
             const delta = gameClock.getDeltaTime();
             const total = gameClock.getElapsedTime();
@@ -117,10 +119,8 @@ class App {
             // }
 
             // Call 'update()' functions, catch errors
-            if (SceneManager.app.state === APP_STATES.PLAYING) {
-                try { SceneManager.app.dispatch(SceneManager.app.events.update, { time: total, delta: delta }); }
-                catch (error) { console.error((error.message || error), (error.stack || '')); }
-            }
+            try { SceneManager.app.dispatch(SceneManager.app.events.update, { time: total, delta: delta }); }
+            catch (error) { console.error((error.message || error), (error.stack || '')); }
 
             // Physics Update
             let boxIndex = Math.floor(Math.random() * boxes.count);
@@ -147,7 +147,7 @@ class App {
         }
 
         // New Frame
-        if (SceneManager.app.state !== APP_STATES.STOPPED) {
+        if (SceneManager.app.isPlaying) {
             animationID = requestAnimationFrame(SceneManager.app.animate);
         }
     }
@@ -205,59 +205,70 @@ class App {
     }
 
     async play() {
-        if (SceneManager.app.state === APP_STATES.STOPPED) {
-            await this.init();
-            gameClock.reset();
-        }
-        SceneManager.app.state = APP_STATES.PAUSED;
+        if (SceneManager.app.isPlaying) return;
 
-        // Add Event Listeners
+        // Flags
+        SceneManager.app.isPlaying = true;
+        SceneManager.app.isPaused = false;
+        SceneManager.app.isStopped = false;
+
+        // Init
+        await this.init();
+
+        // Events
         document.addEventListener('keydown', onKeyDown);
         document.addEventListener('keyup', onKeyUp);
         document.addEventListener('pointerdown', onPointerDown);
         document.addEventListener('pointerup', onPointerUp);
         document.addEventListener('pointermove', onPointerMove);
 
-        // Start Game
-        this.pause();
+        // Clock
+        gameClock.reset();
+        gameClock.start();
+
+        // Animate
+        if (animationID) cancelAnimationFrame(animationID);
+        animationID = requestAnimationFrame(SceneManager.app.animate);
     }
 
     pause() {
-        switch(SceneManager.app.state) {
-            case APP_STATES.PAUSED:
-                SceneManager.app.state = APP_STATES.PLAYING;
+        if (!SceneManager.app.isStopped) {
+            if (SceneManager.app.isPaused) {
                 gameClock.start();
-                if (animationID == null) {
-                    animationID = requestAnimationFrame(SceneManager.app.animate);
-                }
-                break;
-
-            case APP_STATES.PLAYING:
-                SceneManager.app.state = APP_STATES.PAUSED;
-                // FALL THROUGH...
-            case APP_STATES.STOPPED:
+            } else {
                 gameClock.stop();
-                break;
+            }
         }
+        SceneManager.app.isPaused = !SceneManager.app.isPaused;
     }
 
-    stop() {
-        if (SceneManager.app.state === APP_STATES.STOPPED) return;
-        SceneManager.app.state = APP_STATES.STOPPED;
+    stop(dispose = false) {
+        if (SceneManager.app.isStopped) return;
 
+        // Flags
+        SceneManager.app.isPlaying = false;
+        SceneManager.app.isPaused = false;
+        SceneManager.app.isStopped = true;
+
+        // Events
         document.removeEventListener('keydown', onKeyDown);
         document.removeEventListener('keyup', onKeyUp);
         document.removeEventListener('pointerdown', onPointerDown);
         document.removeEventListener('pointerup', onPointerUp);
         document.removeEventListener('pointermove', onPointerMove);
 
+        // Cancel Animate
         if (animationID) {
             cancelAnimationFrame(animationID);
             animationID = null;
         }
         if (SceneManager.renderer) SceneManager.renderer.clear();
 
+        // Clock
         gameClock.stop();
+
+        // Clean Up
+        if (dispose === true) this.dispose();
     }
 
     /******************** GAME HELPERS */
@@ -293,31 +304,31 @@ export { App };
 /******************** INTERNAL ********************/
 
 function onKeyDown(event) {
-    if (SceneManager.app.state === APP_STATES.PLAYING) {
+    if (SceneManager.app.isPlaying) {
         SceneManager.app.dispatch(SceneManager.app.events.keydown, event);
     }
 }
 
 function onKeyUp(event) {
-    if (SceneManager.app.state === APP_STATES.PLAYING) {
+    if (SceneManager.app.isPlaying) {
         SceneManager.app.dispatch(SceneManager.app.events.keyup, event);
     }
 }
 
 function onPointerDown(event) {
-    if (SceneManager.app.state === APP_STATES.PLAYING) {
+    if (SceneManager.app.isPlaying) {
         SceneManager.app.dispatch(SceneManager.app.events.pointerdown, event);
     }
 }
 
 function onPointerUp(event) {
-    if (SceneManager.app.state === APP_STATES.PLAYING) {
+    if (SceneManager.app.isPlaying) {
         SceneManager.app.dispatch(SceneManager.app.events.pointerup, event);
     }
 }
 
 function onPointerMove(event) {
-    if (SceneManager.app.state === APP_STATES.PLAYING) {
+    if (SceneManager.app.isPlaying) {
         SceneManager.app.dispatch(SceneManager.app.events.pointermove, event);
     }
 }

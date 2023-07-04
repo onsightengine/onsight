@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 // import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
-import { APP_STATES } from '../../../constants.js';
 import { AssetManager } from '../../AssetManager.js';
 import { ComponentManager } from '../../ComponentManager.js';
 import { GeometryUtils } from '../../../utils/three/GeometryUtils.js';
@@ -182,7 +181,7 @@ class Material {
 
         // Show invisible objects as wireframe in editor
         if (this.backend.opacity < 0.05) {
-            if (!SceneManager.app || SceneManager.app.state === APP_STATES.STOPPED) {
+            if (!SceneManager.app || SceneManager.app.isStopped) {
                 material.map = null;
                 material.opacity = 0.25;
                 material.wireframe = true;

@@ -16,12 +16,6 @@ export const WORLD_TYPES = {
     World3D:        'World3D',
 };
 
-export const APP_STATES = {
-    PLAYING:        'playing',
-    PAUSED:         'paused',
-    STOPPED:        'stopped',
-}
-
 export const APP_EVENTS = {
     init:           'init',
     update:         'update',

@@ -181,7 +181,7 @@ class Material {
 
         // Show invisible objects as wireframe in editor
         if (this.backend.opacity < 0.05) {
-            if (!SceneManager.app || SceneManager.app.isStopped) {
+            if (!SceneManager.app || (!SceneManager.app.isPlaying)) {
                 material.map = null;
                 material.opacity = 0.25;
                 material.wireframe = true;

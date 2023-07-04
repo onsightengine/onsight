@@ -58,8 +58,6 @@ class App {
 
         // Flags
         this.isPlaying = false;
-        this.isPaused = false;
-        this.isStopped = true;
         this.wantsScreenshot = false;
     }
 
@@ -107,7 +105,7 @@ class App {
     /******************** ANIMATE / RENDER */
 
     animate() {
-        if (!SceneManager.app.isPaused) {
+        if (gameClock.isRunning()) {
             // Delta / Time Elapsed
             const delta = gameClock.getDeltaTime();
             const total = gameClock.getElapsedTime();
@@ -207,10 +205,8 @@ class App {
     async play() {
         if (SceneManager.app.isPlaying) return;
 
-        // Flags
+        // Flag
         SceneManager.app.isPlaying = true;
-        SceneManager.app.isPaused = false;
-        SceneManager.app.isStopped = false;
 
         // Init
         await this.init();
@@ -232,23 +228,20 @@ class App {
     }
 
     pause() {
-        if (!SceneManager.app.isStopped) {
-            if (SceneManager.app.isPaused) {
-                gameClock.start();
-            } else {
+        if (SceneManager.app.isPlaying) {
+            if (gameClock.isRunning()) {
                 gameClock.stop();
+            } else {
+                gameClock.start();
             }
         }
-        SceneManager.app.isPaused = !SceneManager.app.isPaused;
     }
 
     stop(dispose = false) {
-        if (SceneManager.app.isStopped) return;
+        if (!SceneManager.app.isPlaying) return;
 
-        // Flags
+        // Flag
         SceneManager.app.isPlaying = false;
-        SceneManager.app.isPaused = false;
-        SceneManager.app.isStopped = true;
 
         // Events
         document.removeEventListener('keydown', onKeyDown);
@@ -272,6 +265,10 @@ class App {
     }
 
     /******************** GAME HELPERS */
+
+    isClockRunning() {
+        return gameClock.isRunning();
+    }
 
     setSize(width, height) {
         if (SceneManager.camera) CameraUtils.updateCamera(SceneManager.camera, width, height);

@@ -6,6 +6,7 @@ class RotateEntity extends Script {
 		super();
 
 		this.name = 'Rotate Entity';
+        this.category = 'entity';
 
         this.source =
 `

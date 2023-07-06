@@ -6,6 +6,7 @@ class ColorChange extends Script {
 		super();
 
 		this.name = 'Color Change';
+        this.category = 'entity';
 
         this.source =
 `

@@ -183,6 +183,11 @@ class AssetManager {
             }
         }
 
+        // Load Prefabs
+        //
+        // TODO!!! Project Only!
+        //
+
         // Load Scripts
         const scripts = {};
         if (json.scripts) {
@@ -229,12 +234,12 @@ class AssetManager {
             materials: {},
         };
 
-        // Prefabs
+        // Save Prefabs
         //
         // TODO!!!
         //
 
-        // Scripts
+        // Save Scripts
         const scripts = AssetManager.getLibrary('script');
         for (let i = 0; i < scripts.length; i++) {
             const script = scripts[i];
@@ -243,7 +248,7 @@ class AssetManager {
             meta.scripts[script.uuid] = script.toJSON();
         }
 
-        // Geometries
+        // Save Geometries
         const geometries = AssetManager.getLibrary('geometry');
         for (let i = 0; i < geometries.length; i++) {
             const geometry = geometries[i];
@@ -251,7 +256,7 @@ class AssetManager {
             if (meta.geometries[geometry.uuid]) continue;
             meta.geometries[geometry.uuid] = geometry.toJSON(meta);
 
-            // // Shapes
+            // // Save Shapes
             // if (geometry.parameters && geometry.parameters.shapes) {
             //     const shapes = geometry.parameters.shapes;
             //     if (Array.isArray(shapes) !== true) shapes = [ shapes ];
@@ -262,7 +267,7 @@ class AssetManager {
             // }
         }
 
-        // Materials
+        // Save Materials
         const materials = AssetManager.getLibrary('material');
         for (let i = 0; i < materials.length; i++) {
             const material = materials[i];
@@ -271,7 +276,7 @@ class AssetManager {
             meta.materials[material.uuid] = material.toJSON(stopRoot);
         }
 
-        // Shapes
+        // Save Shapes
         const shapes = AssetManager.getLibrary('shape');
         for (let i = 0; i < shapes.length; i++) {
             const shape = shapes[i];
@@ -280,7 +285,7 @@ class AssetManager {
             meta.shapes[shape.uuid] = shape.toJSON(stopRoot);
         }
 
-        // Textures
+        // Save Textures
         const textures = AssetManager.getLibrary('texture');
         for (let i = 0; i < textures.length; i++) {
             const texture = textures[i];

@@ -12,16 +12,12 @@ class ColorChange extends Script {
 let color = '0xff0000';
 
 function init() {
-
 	this.updateComponent('material', { color: Number(color) });
-
 }
 
 function pointerdown() {
-
 	const clr = new THREE.Color(Math.random(), Math.random(), Math.random());
     this.replaceComponent('material', { color: clr });
-
 }
 `;
 

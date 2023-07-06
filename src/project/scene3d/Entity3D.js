@@ -38,6 +38,7 @@ class Entity3D extends THREE.Object3D {
 
         // Properties, Basic
         this.name = name;
+        this.category = null;                   // used for organizing prefabs
         this.isLocked = false;                  // locked in Editor (do not allow selection, deletion, duplication, etc.)
         this.lookAtCamera = false;              // implemented in updateMatrix() overload
 
@@ -497,6 +498,7 @@ class Entity3D extends THREE.Object3D {
 
         // Entity3D Properties
         if (data.name !== undefined) this.name = data.name;
+        if (data.category !== undefined) this.category = data.category;
         if (data.isLocked !== undefined) this.isLocked = data.isLocked;
         if (data.lookAtCamera !== undefined) this.lookAtCamera = data.lookAtCamera;
 
@@ -565,6 +567,7 @@ class Entity3D extends THREE.Object3D {
         }
 
         // Entity3D Properties
+        json.object.category = this.category;
         json.object.isLocked = this.isLocked;
         json.object.lookAtCamera = this.lookAtCamera;
 

@@ -61,6 +61,9 @@ class OrbitControls extends THREE.EventDispatcher {
         // Set to false to disable this control
         this.enabled = true;
 
+        // Set to true to enable 'Zoom' signal dispatch
+        this.signals = false;
+
         // The Vector3 position to orbit around
         this.target = new THREE.Vector3();
         if (target && target.isObject3D) {
@@ -385,16 +388,18 @@ class OrbitControls extends THREE.EventDispatcher {
 
                 // INFO BOX
 
-                if (zoomChanged) {
-                    signals.showInfo.dispatch(`${(this.getCameraZoom() * 100).toFixed(0)}%`);
-                } else if (self.animating !== ORBIT_ANIMATION.NONE) {
-                    if (self.camera.isOrthographicCamera) {
-                        signals.showInfo.dispatch(`${(newZoom * 100).toFixed(0)}%`);
-                    } else {
-                        const originalDistance = this.position0.distanceTo(this.target0);
-                        const newDistance = newPosition.distanceTo(newTarget);
-                        const zoom = (originalDistance / newDistance);
-                        signals.showInfo.dispatch(`${(zoom * 100).toFixed(0)}%`);
+                if (this.signals && window.signals) {
+                    if (zoomChanged) {
+                        signals.showInfo.dispatch(`${(this.getCameraZoom() * 100).toFixed(0)}%`);
+                    } else if (self.animating !== ORBIT_ANIMATION.NONE) {
+                        if (self.camera.isOrthographicCamera) {
+                            signals.showInfo.dispatch(`${(newZoom * 100).toFixed(0)}%`);
+                        } else {
+                            const originalDistance = this.position0.distanceTo(this.target0);
+                            const newDistance = newPosition.distanceTo(newTarget);
+                            const zoom = (originalDistance / newDistance);
+                            signals.showInfo.dispatch(`${(zoom * 100).toFixed(0)}%`);
+                        }
                     }
                 }
 
@@ -1154,15 +1159,9 @@ class OrbitControls extends THREE.EventDispatcher {
 
         // Event Listeners
         this.domElement.addEventListener('contextmenu', onContextMenu);
-
         this.domElement.addEventListener('pointerdown', onPointerDown);
         this.domElement.addEventListener('pointercancel', onPointerCancel);
         this.domElement.addEventListener('wheel', onMouseWheel, { passive: false });
-
-        // Update Event
-        this.addEventListener('change', function(event) {
-            signals.cameraUpdated.dispatch();
-        });
 
         // Force Update Upon Creation
         this.update();

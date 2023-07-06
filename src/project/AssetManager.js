@@ -42,12 +42,13 @@ class AssetManager {
         const assetArray = (Array.isArray(assetOrArray)) ? assetOrArray : [ assetOrArray ];
         for (let i = 0; i < assetArray.length; i++) {
             let asset = assetArray[i];
+            const type = AssetManager.checkType(asset);
 
             // Ensure asset has a name
             if (!asset.name || asset.name === '') asset.name = asset.constructor.name;
 
-            // Force 'BufferGeometry' type (strip ExtrudeGeometry, TextGeometry, etc...)
-            if (asset.isBufferGeometry && asset.constructor.name !== 'BufferGeometry') {
+            // Geometry: Force 'BufferGeometry' type (strip ExtrudeGeometry, TextGeometry, etc...)
+            if (type === 'geometry' && asset.constructor.name !== 'BufferGeometry') {
                 // // DEBUG: Show fancy geometry type
                 // console.log(`Trimming ${asset.constructor.name}`);
 
@@ -57,6 +58,13 @@ class AssetManager {
                 bufferGeometry.uuid = asset.uuid;
                 if (typeof asset.dispose === 'function') asset.dispose();
                 asset = bufferGeometry;
+            }
+
+            // Script / Prefab: Ensure asset has a category assigned
+            if (type === 'script' || type === 'prefab') {
+                if (asset.category == null || asset.category === '') {
+                    asset.category = 'unknown';
+                }
             }
 
             // Add Asset

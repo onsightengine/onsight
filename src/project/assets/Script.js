@@ -30,9 +30,9 @@ class Script {
                 'function init() {\n\n}\n' +
                 '\n' +
                 '// "update()" is executed before each frame is rendered\n' +
-                '//     event.time: total elapsed time (in ms)\n' +
-                '//     event.delta: time since last frame (in ms)\n' +
-                'function update(event) {\n\n}\n' +
+                '//     delta: time since last frame (in ms)\n' +
+                '//     total: total elapsed time (in ms)\n' +
+                'function update(delta, total) {\n\n}\n' +
                 '\n' +
                 '// "destroy()" is executed right before the entity is removed\n' +
                 'function destroy() {\n\n}\n' +

@@ -63,10 +63,10 @@ class App {
 
     /******************** LOAD */
 
-    dispatch(array, event) {
+    dispatch(array, ...args) {
         for (let i = 0; i < array.length; i++) {
             const callback = array[i];
-            if (typeof callback === 'function') callback(event);
+            if (typeof callback === 'function') callback(...args);
         }
     }
 
@@ -117,7 +117,7 @@ class App {
             // }
 
             // Call 'update()' functions, catch errors
-            try { SceneManager.app.dispatch(SceneManager.app.events.update, { time: total, delta: delta }); }
+            try { SceneManager.app.dispatch(SceneManager.app.events.update, delta, total); }
             catch (error) { console.error((error.message || error), (error.stack || '')); }
 
             // Physics Update

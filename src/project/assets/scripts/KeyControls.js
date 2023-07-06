@@ -9,16 +9,38 @@ class KeyControls extends Script {
 
         this.source =
 `
-let speed = 0.1;
+let speed = 0.05;
+
+let keys = {};
+let target = {};
+
+function init() {
+	keys = { left: false, right: false, up: false, down: false };
+	target = new THREE.Vector3();
+	target.copy(this.position);
+}
+
+function update(delta, total) {
+	if (keys.left) target.x -= speed;
+	if (keys.right) target.x += speed;
+    if (keys.up) target.y += speed;
+	if (keys.down) target.y -= speed;
+
+	this.position.lerp(target, delta * 10);
+}
 
 function keydown(event) {
+	if (event.key === 'ArrowLeft') keys.left = true;
+	if (event.key === 'ArrowRight') keys.right = true;
+    if (event.key === 'ArrowUp') keys.up = true;
+	if (event.key === 'ArrowDown') keys.down = true;
+}
 
-	if (event.key === 'ArrowLeft') this.position.x -= speed;
-	if (event.key === 'ArrowRight') this.position.x += speed;
-
-    if (event.key === 'ArrowUp') this.position.y += speed;
-	if (event.key === 'ArrowDown') this.position.y -= speed;
-
+function keyup(event) {
+	if (event.key === 'ArrowLeft') keys.left = false;
+	if (event.key === 'ArrowRight') keys.right = false;
+    if (event.key === 'ArrowUp') keys.up = false;
+	if (event.key === 'ArrowDown') keys.down = false;
 }
 `;
 

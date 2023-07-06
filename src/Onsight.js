@@ -12,6 +12,7 @@ import { VERSION } from './constants.js';
 
 export * from './constants.js';
 export { CAMERA_SCALE, CAMERA_START_DISTANCE, CAMERA_START_HEIGHT } from './utils/three/CameraUtils.js'
+export { ORBIT_STATES } from './utils/three/controls/OrbitControls.js';
 
 /******************** CLASSES - APP ********************/
 

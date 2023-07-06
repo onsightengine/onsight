@@ -13,7 +13,7 @@ let rotateX = 0;
 let rotateY = 0;
 let rotateZ = -1;
 
-function update(event) {
+function update(delta) {
 
 	this.rotation.x += (rotateX * (Math.PI / 180));
     this.rotation.y += (rotateY * (Math.PI / 180));

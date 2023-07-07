@@ -40,8 +40,7 @@ import { System } from '../utils/System.js';
 //  object          Data object                     {}
 //
 //      -- FORMATTING --
-//  layout          FORMAT                          Used for formatting / lyout only, use with the following options:
-//                  format: 'divider'               Inserts horizontal rule
+//  divider         Inserts horizontal rule         ---                 Used for formatting / layout only
 //
 
 /******************** OPTIONS ********************/
@@ -119,8 +118,8 @@ class ComponentManager {
 
                 if (property.type === undefined) {
                     console.warn(`ComponentManager.register(): All schema properties require a 'type' value`);
-                } else if (property.type === 'layout') {
-                    // NOTHING: 'layout' type is for formatting only!
+                } else if (property.type === 'divider') {
+                    // NOTHING: 'divider' type is for formatting only!
                     continue;
                 }
 
@@ -138,7 +137,6 @@ class ComponentManager {
                         case 'string':      property.default = '';              break;
                         case 'asset':       property.default = null;            break;
                         case 'object':      property.default = {};              break;
-                        case 'layout':      property.default = undefined;       break;
                         default:
                             console.warn(`ComponentManager.register(): Unknown property type: '${property.type}'`);
                             property.default = null;
@@ -318,7 +316,7 @@ class ComponentManager {
                 let item = itemArray[i];
 
                 // FORMATTING ONLY
-                if (item.type === 'layout') continue;
+                if (item.type === 'divider') continue;
 
                 // PROCESS 'IF' / 'NOT'
                 if (!ComponentManager.includeData(item, data)) continue;
@@ -370,7 +368,7 @@ class ComponentManager {
                 let item = itemArray[i];
 
                 // FORMATTING ONLY
-                if (item.type === 'layout') continue;
+                if (item.type === 'divider') continue;
 
                 // PROCESS 'IF' / 'NOT'
                 if (!ComponentManager.includeData(item, oldData, newData)) continue;

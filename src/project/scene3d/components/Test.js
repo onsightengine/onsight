@@ -41,16 +41,16 @@ Test.config = {
             { type: 'select', default: 'basic', select: [ 'asset', 'basic', 'array' ] },
         ],
 
-        divider: { type: 'layout', format: 'divider' },
+        divider: { type: 'divider' },
 
         asset: { type: 'asset', if: { style: [ 'asset' ] } },
-        assetDivider: { type: 'layout', format: 'divider' },
+        assetDivider: { type: 'divider' },
         geometry: { type: 'asset', class: 'geometry', if: { style: [ 'asset' ] } },
         material: { type: 'asset', class: 'material', if: { style: [ 'asset' ] } },
         script: { type: 'asset', class: 'script', if: { style: [ 'asset' ] } },
         shape: { type: 'asset', class: 'shape', if: { style: [ 'asset' ] } },
         texture: { type: 'asset', class: 'texture', if: { style: [ 'asset' ] } },
-        prefabDivider: { type: 'layout', format: 'divider' },
+        prefabDivider: { type: 'divider' },
         prefab: { type: 'asset', class: 'prefab', if: { style: [ 'asset' ] } },
 
         select: { type: 'select', default: 'Zebra', select: exampleSelect, if: { style: [ 'basic' ] } },

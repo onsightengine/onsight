@@ -34,7 +34,7 @@ Script.config = {
 
         script: { type: 'asset', class: 'script', rebuild: true },
 
-        divider: { type: 'layout', format: 'divider' },
+        divider: { type: 'divider' },
 
         variables: { type: 'object', default: {} },
 

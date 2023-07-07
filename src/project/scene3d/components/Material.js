@@ -255,7 +255,7 @@ Material.config = {
         ],
 
         // DIVIDER
-        styleDivider: { type: 'layout', format: 'divider' },
+        styleDivider: { type: 'divider' },
 
         asset: { type: 'asset', class: 'material', if: { style: [ 'asset' ] } },
 

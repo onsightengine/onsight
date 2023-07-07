@@ -112,6 +112,7 @@ class Project {
         for (let i = 0; i < worldIds.length; i++) {
             const world = this.worlds[worldIds[i]]
             this.removeWorld(world);
+            world.dispose();
         }
 
         // Reset Properties

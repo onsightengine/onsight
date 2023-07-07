@@ -19,9 +19,6 @@ import { System } from '../utils/System.js';
 
 // Game Loop
 let animationID = null;
-const gameClock = new Clock(false /* autostart */);
-let physics;
-let time = 0;
 
 ///// TODO: Game Variables
 let distance = 0;
@@ -30,6 +27,9 @@ let framerate = 60;
 
 // Globals
 const _position = new THREE.Vector3();
+
+// TEMP
+let physics;
 let boxes, balls;
 
 class App {
@@ -56,6 +56,9 @@ class App {
             this.events[event] = [];
         }
 
+        // Game Clock
+        this.gameClock = new Clock(false /* autostart */);
+
         // Flags
         this.isPlaying = false;
         this.wantsScreenshot = false;
@@ -71,13 +74,19 @@ class App {
     }
 
     dispose() {
+        // Clear Objects
         ObjectUtils.clearObject(SceneManager.camera);
         ObjectUtils.clearObject(SceneManager.scene);
 
-        for (let key in SceneManager.app.events) {
-            SceneManager.app.events[key].length = 0;
+        // Clear Project
+        this.project.clear();
+
+        // Clear Events
+        for (let key in this.events) {
+            this.events[key].length = 0;
         }
 
+        // Clear Physics
         if (physics) {
             physics.world.free();
         }
@@ -93,31 +102,31 @@ class App {
         // Scene Manager
         SceneManager.app = this;
         SceneManager.camera = SceneManager.cameraFromScene(fromScene);
-        SceneManager.project = this.project;
-        SceneManager.renderer = this.renderer;
         SceneManager.scene = new Scene3D();
 
         // Load Scene
         SceneManager.loadScene(SceneManager.scene, fromScene);
-        SceneManager.app.dispatch(SceneManager.app.events.init);
+        this.dispatch(this.events.init);
     }
 
     /******************** ANIMATE / RENDER */
 
     animate() {
-        if (gameClock.isRunning()) {
+        const self = this;
+
+        if (this.gameClock.isRunning()) {
             // Delta / Time Elapsed
-            const delta = gameClock.getDeltaTime();
-            const total = gameClock.getElapsedTime();
+            const delta = this.gameClock.getDeltaTime();
+            const total = this.gameClock.getElapsedTime();
 
             // // Debug
             // if (total > time) {
-            //     console.log(`Time: ${time}, FPS: ${gameClock.fps()}, Framerate: ${gameClock.averageDelta()}`);
+            //     console.log(`Time: ${time}, FPS: ${this.gameClock.fps()}, Framerate: ${this.gameClock.averageDelta()}`);
             //     time++;
             // }
 
             // Call 'update()' functions, catch errors
-            try { SceneManager.app.dispatch(SceneManager.app.events.update, delta, total); }
+            try { this.dispatch(this.events.update, delta, total); }
             catch (error) { console.error((error.message || error), (error.stack || '')); }
 
             // Physics Update
@@ -133,20 +142,20 @@ class App {
         }
 
         // Render
-        SceneManager.renderer.render(SceneManager.scene, SceneManager.camera);
+        this.renderer.render(SceneManager.scene, SceneManager.camera);
 
         // Screenshot
-        if (SceneManager.app.wantsScreenshot) {
-            const filename = SceneManager.project.name + ' ' + new Date().toLocaleString() + '.png';
+        if (this.wantsScreenshot) {
+            const filename = this.project.name + ' ' + new Date().toLocaleString() + '.png';
             const strMime = 'image/png'; /* or 'image/jpeg' or 'image/webp' */
-            const imgData = SceneManager.renderer.domElement.toDataURL(strMime);
+            const imgData = this.renderer.domElement.toDataURL(strMime);
             System.saveImage(imgData, filename);
-            SceneManager.app.wantsScreenshot = false;
+            this.wantsScreenshot = false;
         }
 
         // New Frame
-        if (SceneManager.app.isPlaying) {
-            animationID = requestAnimationFrame(SceneManager.app.animate);
+        if (this.isPlaying) {
+            animationID = requestAnimationFrame(() => { self.animate(); });
         }
     }
 
@@ -203,10 +212,11 @@ class App {
     }
 
     async play() {
-        if (SceneManager.app.isPlaying) return;
+        if (this.isPlaying) return;
+        const self = this;
 
         // Flag
-        SceneManager.app.isPlaying = true;
+        this.isPlaying = true;
 
         // Init
         await this.init();
@@ -219,29 +229,24 @@ class App {
         document.addEventListener('pointermove', onPointerMove);
 
         // Clock
-        gameClock.reset();
-        gameClock.start();
+        this.gameClock.reset();
+        this.gameClock.start();
 
         // Animate
         if (animationID) cancelAnimationFrame(animationID);
-        animationID = requestAnimationFrame(SceneManager.app.animate);
+        animationID = requestAnimationFrame(() => { self.animate(); });
     }
 
     pause() {
-        if (SceneManager.app.isPlaying) {
-            if (gameClock.isRunning()) {
-                gameClock.stop();
-            } else {
-                gameClock.start();
-            }
-        }
+        if (!this.isPlaying) return;
+        this.gameClock.toggle();
     }
 
     stop(dispose = false) {
-        if (!SceneManager.app.isPlaying) return;
+        if (!this.isPlaying) return;
 
         // Flag
-        SceneManager.app.isPlaying = false;
+        this.isPlaying = false;
 
         // Events
         document.removeEventListener('keydown', onKeyDown);
@@ -255,20 +260,16 @@ class App {
             cancelAnimationFrame(animationID);
             animationID = null;
         }
-        if (SceneManager.renderer) SceneManager.renderer.clear();
+        if (this.renderer) this.renderer.clear();
 
         // Clock
-        gameClock.stop();
+        this.gameClock.stop();
 
         // Clean Up
         if (dispose === true) this.dispose();
     }
 
     /******************** GAME HELPERS */
-
-    isClockRunning() {
-        return gameClock.isRunning();
-    }
 
     setSize(width, height) {
         if (SceneManager.camera) CameraUtils.updateCamera(SceneManager.camera, width, height);

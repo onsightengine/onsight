@@ -29,6 +29,11 @@ class Clock {
 		this.#running = false;
 	}
 
+	toggle() {
+		if (this.#running) this.stop();
+        else this.start();
+	}
+
 	reset() {
 		this.#startTime = _timer.now();
 		this.#lastChecked = this.#startTime;
@@ -70,6 +75,10 @@ class Clock {
 	/** Is clock running? */
 	isRunning() {
 		return this.#running;
+	}
+
+	isStopped() {
+		return !(this.#running);
 	}
 
 	/** Total number of times getDeltaTime() has been called since start() or reset() were called */

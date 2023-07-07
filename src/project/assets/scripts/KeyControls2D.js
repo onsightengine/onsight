@@ -13,8 +13,8 @@ let variables = {
 	speed: { type: 'number', default: 5 },
 };
 
-let keys = {};
-let target = {};
+let keys;
+let target;
 
 function init() {
 	speed /= 100;

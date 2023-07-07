@@ -12,7 +12,6 @@ class CameraFollow extends Script {
 let variables = {
     distance: { type: 'number', default: 10 },
     rotate: { type: 'boolean', default: false },
-    maintainUp: { type: 'boolean', default: false },
 };
 
 let controls;
@@ -36,13 +35,13 @@ function init() {
 }
 
 function update(delta) {
-    if (maintainUp) {
+    if (rotate) {
+        // Maintain World Up
         this.getWorldQuaternion(quaternion);
         direction.copy(up).applyQuaternion(quaternion);
         camera.up.lerp(direction, delta * 10);
-    }
 
-    if (rotate) {
+        // Rotate to Match Entity
         const angleDiff = rotation.y - this.rotation.y;
         controls.applyRotation(angleDiff);
         rotation.copy(this.rotation);

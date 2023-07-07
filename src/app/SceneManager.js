@@ -87,9 +87,9 @@ class SceneManager {
                     // console.log(value);
                     if (typeof value.value !== 'undefined') {
                         const json = JSON.stringify(value.value);
-                        body = body + `${variable} = JSON.parse('${json}');\n`
+                        body = body + `let ${variable} = JSON.parse('${json}');\n`
                     } else {
-                        body = body + `${variable} = undefined;\n`
+                        body = body + `let ${variable} = undefined;\n`
                     }
                 }
             }

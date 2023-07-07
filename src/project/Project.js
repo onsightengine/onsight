@@ -106,7 +106,6 @@ class Project {
     /******************** CLEAR */
 
     clear() {
-
         // Remove Worlds
         const worldIds = Object.keys(this.worlds);
         for (let i = 0; i < worldIds.length; i++) {
@@ -118,13 +117,11 @@ class Project {
         // Reset Properties
         this.name = 'My Project';
         this.uuid = Maths.uuid();
-
     }
 
     /******************** JSON */
 
     fromJSON(json, loadAssets = true) {
-
         // Check proper JSON type
         const metaType = (json.metadata) ? json.metadata.type : 'Undefined';
         if (metaType !== 'Onsight') {
@@ -170,7 +167,6 @@ class Project {
     }
 
     toJSON() {
-
         // Assets
         const meta = {};
         const json = AssetManager.toJSON(meta);

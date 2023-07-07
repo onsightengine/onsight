@@ -18,27 +18,43 @@ class Script {
         this.errors = false;
         if (format === SCRIPT_FORMAT.JAVASCRIPT) {
             this.source =
-                '//\n' +
-                '// Globals:            entity ("this" in events), app, renderer, scene, camera\n' +
-                '// Lifecycle Events:   init, update, destroy\n' +
-                '// Input Events:       keydown, keyup, pointerdown, pointerup, pointermove\n' +
-                '//\n' +
-                '\n' +
-                '// ... Code outside of events is executed when entity is loaded ... \n' +
-                '\n' +
-                '// "init()" is executed when the entity is loaded\n' +
-                'function init() {\n\n}\n' +
-                '\n' +
-                '// "update()" is executed before each frame is rendered\n' +
-                '//     delta: time since last frame (in ms)\n' +
-                '//     total: total elapsed time (in ms)\n' +
-                'function update(delta, total) {\n\n}\n' +
-                '\n' +
-                '// "destroy()" is executed right before the entity is removed\n' +
-                'function destroy() {\n\n}\n' +
-                '\n' +
-                '// Example Input Event\n' +
-                'function keydown(event) {\n\n}\n';
+`//
+// Lifecycle Events:    init, update, destroy
+// Input Events:        keydown, keyup, pointerdown, pointerup, pointermove
+// Within Events:
+//      'this'  (represents entity this script is attached to)
+//      'app'   (app.renderer, app.project, app.scene, app.camera, app.keys)
+//
+
+// To add script properties, use the following template:
+// let variables = {
+//      myProperty: { type: 'number/boolean/color', default: ? },
+// };
+
+// ...also, script scope variable declarations allowed here
+
+// "init()" is executed when the entity is loaded
+function init() {
+
+}
+
+// "update()" is executed before each frame is rendered
+//     delta: time since last frame (in ms)
+//     total: total elapsed time (in ms)
+function update(delta, total) {
+
+}
+
+// "destroy()" is executed right before the entity is removed
+function destroy() {
+
+}
+
+// Example Input Event
+function keydown(event) {
+
+}
+`;
         }
     }
 

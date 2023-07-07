@@ -13,8 +13,7 @@ for (let eventKey in APP_EVENTS) {
     scriptReturnObject[eventKey] = eventKey;
 }
 scriptFunctions = scriptFunctions.replace(/.$/, '');                                /* remove last comma */
-const scriptGlobals = 'entity,app,renderer,scene,camera';
-const scriptParameters = scriptGlobals + ',' + scriptFunctions;
+const scriptParameters = 'app,' + scriptFunctions;
 const scriptReturnString = JSON.stringify(scriptReturnObject).replace(/\"/g, '');   /* remove all qoutes */
 
 // Temp
@@ -24,21 +23,20 @@ const _position = new THREE.Vector3();
 class SceneManager {
 
     static app = undefined;
-    static camera = undefined;
-    static scene = undefined;
 
     /********** CAMERA */
 
     static cameraFromScene(scene) {
-        scene = scene ?? SceneManager.scene;
         // Look for Camera Component
-        let component = EntityUtils.findCameraComponent(scene);
-        if (component) {
-            const componentCamera = component.three();
-            if (componentCamera) {
-                const camera = componentCamera.clone();
-                ObjectUtils.copyWorldTransform(componentCamera, camera, true);
-                return camera;
+        if (scene && scene.isScene3D) {
+            let component = EntityUtils.findCameraComponent(scene);
+            if (component) {
+                const componentCamera = component.three();
+                if (componentCamera) {
+                    const camera = componentCamera.clone();
+                    ObjectUtils.copyWorldTransform(componentCamera, camera, true);
+                    return camera;
+                }
             }
         }
 
@@ -95,7 +93,7 @@ class SceneManager {
 
             // Returns object holding script functions (with proper 'this' bound and access to globals / script variables)
             const buildFunctionObject = new Function(scriptParameters /* parameters */, body /* source */).bind(toEntity);
-            const functions = buildFunctionObject(toEntity, SceneManager.app, SceneManager.app.renderer, SceneManager.scene, SceneManager.camera);
+            const functions = buildFunctionObject(SceneManager.app);
 
             // Add functions to event dispatch handler
             for (let name in functions) {

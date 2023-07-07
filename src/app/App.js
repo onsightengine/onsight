@@ -56,8 +56,15 @@ class App {
             this.events[event] = [];
         }
 
+        // Active Scene
+        this.scene = null;
+        this.camera = null;
+
         // Game Clock
         this.gameClock = new Clock(false /* autostart */);
+
+        // Keys
+        this.keys = {};
 
         // Flags
         this.isPlaying = false;
@@ -75,8 +82,8 @@ class App {
 
     dispose() {
         // Clear Objects
-        ObjectUtils.clearObject(SceneManager.camera);
-        ObjectUtils.clearObject(SceneManager.scene);
+        ObjectUtils.clearObject(this.camera);
+        ObjectUtils.clearObject(this.scene);
 
         // Clear Project
         this.project.clear();
@@ -101,11 +108,11 @@ class App {
 
         // Scene Manager
         SceneManager.app = this;
-        SceneManager.camera = SceneManager.cameraFromScene(fromScene);
-        SceneManager.scene = new Scene3D();
+        this.camera = SceneManager.cameraFromScene(fromScene);
+        this.scene = new Scene3D();
 
         // Load Scene
-        SceneManager.loadScene(SceneManager.scene, fromScene);
+        SceneManager.loadScene(this.scene, fromScene);
         this.dispatch(this.events.init);
     }
 
@@ -142,7 +149,7 @@ class App {
         }
 
         // Render
-        this.renderer.render(SceneManager.scene, SceneManager.camera);
+        this.renderer.render(this.scene, this.camera);
 
         // Screenshot
         if (this.wantsScreenshot) {
@@ -163,7 +170,6 @@ class App {
 
     async init() {
         physics = await RapierPhysics();
-        const scene = SceneManager.scene;
 
         const material = new THREE.MeshLambertMaterial();
         const matrix = new THREE.Matrix4();
@@ -176,7 +182,7 @@ class App {
         );
         floor.position.y = - 2.5;
         floor.receiveShadow = true;
-        scene.add(floor);
+        this.scene.add(floor);
         physics.addMesh(floor);
 
         // BOXES
@@ -185,7 +191,7 @@ class App {
         boxes.instanceMatrix.setUsage(THREE.DynamicDrawUsage); // will be updated every frame
         boxes.castShadow = true;
         boxes.receiveShadow = true;
-        scene.add(boxes);
+        this.scene.add(boxes);
 
         for (let i = 0; i < boxes.count; i++) {
             matrix.setPosition(Math.random() - 0.5, Math.random() * 2, Math.random() - 0.5);
@@ -200,7 +206,7 @@ class App {
         balls.instanceMatrix.setUsage(THREE.DynamicDrawUsage); // will be updated every frame
         balls.castShadow = true;
         balls.receiveShadow = true;
-        scene.add(balls);
+        this.scene.add(balls);
 
         for (let i = 0; i < balls.count; i++) {
             matrix.setPosition(Math.random() - 0.5, Math.random() * 2, Math.random() - 0.5);
@@ -222,11 +228,16 @@ class App {
         await this.init();
 
         // Events
-        document.addEventListener('keydown', onKeyDown);
-        document.addEventListener('keyup', onKeyUp);
-        document.addEventListener('pointerdown', onPointerDown);
-        document.addEventListener('pointerup', onPointerUp);
-        document.addEventListener('pointermove', onPointerMove);
+        this._onKeyDown = onKeyDown.bind(this);
+        this._onKeyUp = onKeyUp.bind(this);
+        this._onPointerDown = onPointerDown.bind(this);
+        this._onPointerUp = onPointerUp.bind(this);
+        this._onPointerMove = onPointerMove.bind(this);
+        document.addEventListener('keydown', this._onKeyDown);
+        document.addEventListener('keyup', this._onKeyUp);
+        document.addEventListener('pointerdown', this._onPointerDown);
+        document.addEventListener('pointerup', this._onPointerUp);
+        document.addEventListener('pointermove', this._onPointerMove);
 
         // Clock
         this.gameClock.reset();
@@ -249,11 +260,11 @@ class App {
         this.isPlaying = false;
 
         // Events
-        document.removeEventListener('keydown', onKeyDown);
-        document.removeEventListener('keyup', onKeyUp);
-        document.removeEventListener('pointerdown', onPointerDown);
-        document.removeEventListener('pointerup', onPointerUp);
-        document.removeEventListener('pointermove', onPointerMove);
+        document.removeEventListener('keydown', this._onKeyDown);
+        document.removeEventListener('keyup', this._onKeyUp);
+        document.removeEventListener('pointerdown', this._onPointerDown);
+        document.removeEventListener('pointerup', this._onPointerUp);
+        document.removeEventListener('pointermove', this._onPointerMove);
 
         // Cancel Animate
         if (animationID) {
@@ -272,7 +283,7 @@ class App {
     /******************** GAME HELPERS */
 
     setSize(width, height) {
-        if (SceneManager.camera) CameraUtils.updateCamera(SceneManager.camera, width, height);
+        if (this.camera) CameraUtils.updateCamera(this.camera, width, height);
         if (this.renderer) this.renderer.setSize(width, height);
     }
 
@@ -291,7 +302,7 @@ class App {
         const y = -((eventY / rect.height) * (rect.height * 2)) + rect.height;
 
         const vec = new THREE.Vector3(x, y, 0);
-        vec.unproject(SceneManager.camera);
+        vec.unproject(this.camera);
         return vec;
     }
 
@@ -302,31 +313,33 @@ export { App };
 /******************** INTERNAL ********************/
 
 function onKeyDown(event) {
-    if (SceneManager.app.isPlaying) {
-        SceneManager.app.dispatch(SceneManager.app.events.keydown, event);
+    if (this.isPlaying) {
+        this.keys[event.key] = true;
+        this.dispatch(this.events.keydown, event);
     }
 }
 
 function onKeyUp(event) {
-    if (SceneManager.app.isPlaying) {
-        SceneManager.app.dispatch(SceneManager.app.events.keyup, event);
+    if (this.isPlaying) {
+        this.keys[event.key] = false;
+        this.dispatch(this.events.keyup, event);
     }
 }
 
 function onPointerDown(event) {
-    if (SceneManager.app.isPlaying) {
-        SceneManager.app.dispatch(SceneManager.app.events.pointerdown, event);
+    if (this.isPlaying) {
+        this.dispatch(this.events.pointerdown, event);
     }
 }
 
 function onPointerUp(event) {
-    if (SceneManager.app.isPlaying) {
-        SceneManager.app.dispatch(SceneManager.app.events.pointerup, event);
+    if (this.isPlaying) {
+        this.dispatch(this.events.pointerup, event);
     }
 }
 
 function onPointerMove(event) {
-    if (SceneManager.app.isPlaying) {
-        SceneManager.app.dispatch(SceneManager.app.events.pointermove, event);
+    if (this.isPlaying) {
+        this.dispatch(this.events.pointermove, event);
     }
 }

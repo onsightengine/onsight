@@ -72,7 +72,7 @@ class Clock {
 		return dt;
 	}
 
-	/** Is clock running? */
+	/** Is Clock running? */
 	isRunning() {
 		return this.#running;
 	}

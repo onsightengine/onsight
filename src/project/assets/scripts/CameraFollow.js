@@ -21,10 +21,10 @@ let up;
 let rotation;
 
 function init() {
-    camera.position.x = this.position.x;
-    camera.position.y = this.position.y;
-    camera.position.z = this.position.z + distance;
-    controls = new ONE.OrbitControls(camera, renderer.domElement, this);
+    app.camera.position.x = this.position.x;
+    app.camera.position.y = this.position.y;
+    app.camera.position.z = this.position.z + distance;
+    controls = new ONE.OrbitControls(app.camera, app.renderer.domElement, this);
 
     direction = new THREE.Vector3();
 	quaternion = new THREE.Quaternion();
@@ -39,7 +39,7 @@ function update(delta) {
         // Maintain World Up
         this.getWorldQuaternion(quaternion);
         direction.copy(up).applyQuaternion(quaternion);
-        camera.up.lerp(direction, delta * 10);
+        app.camera.up.lerp(direction, delta * 10);
 
         // Rotate to Match Entity
         const angleDiff = rotation.y - this.rotation.y;

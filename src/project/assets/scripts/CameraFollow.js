@@ -9,15 +9,17 @@ class CameraFollow extends Script {
         this.category = 'camera';
         this.source =
 `
-let distance = 6;
-let maintainUp = false;
-let rotate = false;
+let variables = {
+    distance: { type: 'number', default: 10 },
+    rotate: { type: 'boolean', default: false },
+    maintainUp: { type: 'boolean', default: false },
+};
 
 let controls;
 let direction;
 let quaternion;
 let up;
-let rotation
+let rotation;
 
 function init() {
     camera.position.x = this.position.x;

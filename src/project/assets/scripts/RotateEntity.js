@@ -9,9 +9,11 @@ class RotateEntity extends Script {
         this.category = 'entity';
         this.source =
 `
-let rotateX = 0;
-let rotateY = 0;
-let rotateZ = -1;
+// let variables = {
+//     rotateX: { type: 'number', default: 0 },
+//     rotateY: { type: 'number', default: 0 },
+//     rotateZ: { type: 'number', default: -1 },
+// };
 
 function update(delta) {
 	this.rotation.x += (rotateX * (Math.PI / 180));

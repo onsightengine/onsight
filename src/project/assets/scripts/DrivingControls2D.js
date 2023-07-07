@@ -7,9 +7,11 @@ class DrivingControls2D extends Script {
 
 		this.name = 'Driving Controls (2D)';
 		this.category = 'controls';
-        this.source =
+		this.source =
 `
-let speed = 5;
+let variables = {
+	speed: { type: 'number', default: 5 },
+};
 
 let keys = {};
 let target = {};

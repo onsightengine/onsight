@@ -83,10 +83,14 @@ class SceneManager {
             let body = `${script.source}\n`;
             for (let variable in component.data.variables) {
                 const value = component.data.variables[variable];
-                // console.log(value, typeof value)
-                if (typeof value !== 'undefined') {
-                    const json = JSON.stringify(value);
-                    body = body + `${variable} = JSON.parse('${json}');\n`
+                if (value && typeof value === 'object') {
+                    // console.log(value);
+                    if (typeof value.value !== 'undefined') {
+                        const json = JSON.stringify(value.value);
+                        body = body + `${variable} = JSON.parse('${json}');\n`
+                    } else {
+                        body = body + `${variable} = undefined;\n`
+                    }
                 }
             }
             body = body + `return ${scriptReturnString};`;

@@ -9,7 +9,9 @@ class DrivingControls3D extends Script {
 		this.category = 'controls';
         this.source =
 `
-let speed = 5;
+let variables = {
+	speed: { type: 'number', default: 5 },
+};
 
 let keys = {};
 let target = {};

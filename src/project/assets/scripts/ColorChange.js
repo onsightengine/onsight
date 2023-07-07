@@ -9,7 +9,9 @@ class ColorChange extends Script {
         this.category = 'entity';
         this.source =
 `
-let color = '0xff0000';
+let variables = {
+    color: { type: 'color', default: 0xff0000 },
+};
 
 function init() {
 	this.updateComponent('material', { color: Number(color) });

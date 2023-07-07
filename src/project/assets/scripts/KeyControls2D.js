@@ -1,21 +1,21 @@
 import { Script } from '../Script.js';
 
-class KeyControls extends Script {
+class KeyControls2D extends Script {
 
     constructor() {
 		super();
 
-		this.name = 'Key Controls';
+		this.name = 'Key Controls (2D)';
 		this.category = 'controls';
-
         this.source =
 `
-let speed = 0.05;
+let speed = 5;
 
 let keys = {};
 let target = {};
 
 function init() {
+	speed /= 100;
 	keys = { left: false, right: false, up: false, down: false };
 	target = new THREE.Vector3();
 	target.copy(this.position);
@@ -49,4 +49,4 @@ function keyup(event) {
 
 }
 
-export { KeyControls };
+export { KeyControls2D };

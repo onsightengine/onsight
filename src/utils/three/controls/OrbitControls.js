@@ -8,7 +8,7 @@
  */
 
 // This set of controls performs orbiting, dollying (zooming), and panning.
-// Unlike TrackballControls, it maintains the 'up' direction camera.up (+Y by default).
+// Unlike TrackballControls, it maintains the 'up' direction of camera.up (+Y by default).
 //
 // Orbit - left mouse / touch: one-finger move
 // Zoom - middle mouse, or mousewheel / touch: two-finger spread or squish
@@ -292,6 +292,10 @@ class OrbitControls extends THREE.EventDispatcher {
 
         this.distanceToTarget = function(optionalTarget = undefined) {
             return this.camera.position.distanceTo(optionalTarget ?? this.target);
+        }
+
+        this.applyRotation = function(angle) {
+            rotateLeft(angle);
         }
 
         /***** UPDATE *****/

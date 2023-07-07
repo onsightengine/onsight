@@ -7,7 +7,6 @@ class RotateEntity extends Script {
 
 		this.name = 'Rotate Entity';
         this.category = 'entity';
-
         this.source =
 `
 let rotateX = 0;

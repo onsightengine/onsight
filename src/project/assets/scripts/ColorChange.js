@@ -7,7 +7,6 @@ class ColorChange extends Script {
 
 		this.name = 'Color Change';
         this.category = 'entity';
-
         this.source =
 `
 let color = '0xff0000';

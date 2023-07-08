@@ -101,10 +101,12 @@ export { Script };
 function variableTemplate(includeVariables = false) {
     if (!includeVariables) {
 return (`
-// To add script properties, use the following template:
-// let variables = {
-//      myProperty: { type: 'number/boolean/color', default: ? },
-// };
+// Script Properties:
+let variables = {
+//	myNumber: { type: 'number', default: 10 },
+//	myString: { type: 'string', default: '' },
+//	myColor: { type: 'color', default: 0x0000ff },
+};
 `);
     } else {
 return (

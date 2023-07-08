@@ -82,7 +82,9 @@ class SceneManager {
                 if (value && typeof value === 'object') {
                     // console.log(value);
                     if (typeof value.value !== 'undefined') {
-                        const json = JSON.stringify(value.value);
+                        let json = JSON.stringify(value.value);
+                        json = json.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); /* fix special characters */
+                        // console.log(json);
                         body = body + `let ${variable} = JSON.parse('${json}');\n`
                     } else {
                         body = body + `let ${variable} = undefined;\n`

@@ -3,7 +3,7 @@ import { Maths } from '../../utils/Maths.js';
 
 class Script {
 
-    constructor(format = SCRIPT_FORMAT.JAVASCRIPT) {
+    constructor(format = SCRIPT_FORMAT.JAVASCRIPT, variables = false) {
         // Prototype
         this.isScript = true;
         this.type = 'Script';
@@ -16,6 +16,8 @@ class Script {
         this.line = 0;
         this.char = 0;
         this.errors = false;
+
+        // JavaScript
         if (format === SCRIPT_FORMAT.JAVASCRIPT) {
             this.source =
 `//
@@ -25,12 +27,7 @@ class Script {
 //      'this'  (represents entity this script is attached to)
 //      'app'   (app.renderer, app.project, app.scene, app.camera, app.keys)
 //
-
-// To add script properties, use the following template:
-// let variables = {
-//      myProperty: { type: 'number/boolean/color', default: ? },
-// };
-
+${variableTemplate(variables)}
 // ...also, script scope variable declarations allowed here
 
 // "init()" is executed when the entity is loaded
@@ -98,3 +95,67 @@ function keydown(event) {
 }
 
 export { Script };
+
+/******************** INTERNAL ********************/
+
+function variableTemplate(includeVariables = false) {
+    if (!includeVariables) {
+return (`
+// To add script properties, use the following template:
+// let variables = {
+//      myProperty: { type: 'number/boolean/color', default: ? },
+// };
+`);
+    } else {
+return (
+`
+//
+// Example Script Properties
+//      - 'info' property will appeaer in Advisor
+//      - See ComponentManager.js for more info
+//
+let variables = {
+
+    // The following 'asset' types are saved as asset UUID values
+    geometry: { type: 'asset', class: 'geometry', info: 'Geometry Asset' },
+    material: { type: 'asset', class: 'material', info: 'Material Asset' },
+    script: { type: 'asset', class: 'script', info: 'Script Asset' },
+    shape: { type: 'asset', class: 'shape', info: 'Shape Asset' },
+    texture: { type: 'asset', class: 'texture', info: 'Texture Asset' },
+    divider1: { type: 'divider' },
+    prefab: { type: 'asset', class: 'prefab', info: 'Prefab Asset' },
+    divider2: { type: 'divider' },
+
+    // Dropdown selection box, saved as 'string' value
+    select: { type: 'select', default: 'Banana', select: [ 'Apple', 'Banana', 'Cherry' ], info: 'Selection Box' },
+
+    // Numeric values, saved as 'number' values
+    number: { type: 'number', default: 0.05, min: 0, max: 1, step: 0.05, label: 'test', info: 'Floating Point' },
+    int: { type: 'int', default: 5, min: 3, max: 10, info: 'Integer' },
+
+    // Angle, saved as 'number' value in radians
+    angle: { type: 'angle', default: 2 * Math.PI, min: 0, max: 360, info: 'Angle' },
+
+    // Numeric value +/- a range value, saved as Array
+    variable: { type: 'variable', default: [ 0, 0 ], min: 0, max: 100, info: 'Ranged Value' },
+    slider: { type: 'slider', default: 0, min: 0, max: 9, step: 1, precision: 0, info: 'Numeric Slider' },
+
+    // Boolean
+    boolean: { type: 'boolean', default: true, info: 'true || false' },
+
+    // Color returns integer value at runtime
+    color: { type: 'color', default: 0xff0000, info: 'Color Value' },
+
+    // Strings
+    string: { type: 'string', info: 'String Value' },
+    multiline: { type: 'string', rows: 4, info: 'Multiline String' },
+
+    // Vectors returned as Array types at runtime
+    numberArray: { type: 'vector', size: 1, info: 'Numeric Array' },
+    vector2: { type: 'vector', size: 2, tint: true, label: [ 'x', 'y' ], info: 'Vector 2' },
+    vector3: { type: 'vector', size: 3, tint: true, min: [ 1, 1, 1 ], max: [ 2, 2, 2 ], step: 0.1, precision: 2, info: 'Vector 3' },
+    vector4: { type: 'vector', size: 4, tint: true, info: 'Vector 4' },
+}
+`);
+    }
+}

@@ -85,6 +85,29 @@ const _registered = {};
 
 class ComponentManager {
 
+    /******************** TYPES */
+
+    static defaultValue(type) {
+        switch (type) {
+            case 'select':      return null;
+            case 'number':      return 0;
+            case 'int':         return 0;
+            case 'angle':       return 0;
+            case 'slider':      return 0;
+            case 'variable':    return [ 0, 0 ];
+            case 'vector':      return [ 0 ];
+            case 'boolean':     return false;
+            case 'color':       return 0xffffff;
+            case 'string':      return '';
+            case 'asset':       return null;
+            case 'object':      return {};
+            case 'divider':     return null;
+            default:
+                console.warn(`ComponentManager.defaultValue(): Unknown property type: '${type}'`);
+        }
+        return null;
+    }
+
     /******************** REGISTRATION */
 
     /** Returns class definition of a registered type */
@@ -124,23 +147,7 @@ class ComponentManager {
                 }
 
                 if (property.default === undefined) {
-                    switch (property.type) {
-                        case 'select':      property.default = null;            break;
-                        case 'number':      property.default = 0;               break;
-                        case 'int':         property.default = 0;               break;
-                        case 'angle':       property.default = 0;               break;
-                        case 'slider':      property.default = 0;               break;
-                        case 'variable':    property.default = [ 0, 0 ];        break;
-                        case 'vector':      property.default = [ 0 ];           break;
-                        case 'boolean':     property.default = false;           break;
-                        case 'color':       property.default = 0xffffff;        break;
-                        case 'string':      property.default = '';              break;
-                        case 'asset':       property.default = null;            break;
-                        case 'object':      property.default = {};              break;
-                        default:
-                            console.warn(`ComponentManager.register(): Unknown property type: '${property.type}'`);
-                            property.default = null;
-                    }
+                    property.default = ComponentManager.defaultValue(property.type);
                 }
 
                 if (property.proMode !== undefined) {

@@ -9,6 +9,7 @@ class ColorChange extends Script {
         this.category = 'entity';
         this.source =
 `
+// Properties
 let variables = {
     color: { type: 'color', default: 0xff0000 },
 };

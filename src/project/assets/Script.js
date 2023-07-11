@@ -113,8 +113,8 @@ return (
 `
 //
 // Example Script Properties
-//      - 'info' property will appeaer in Advisor
-//      - See ComponentManager.js for more info
+//      - 'info' property text will appear in Advisor
+//      - see 'ComponentManager.js' for more information
 //
 let variables = {
 
@@ -151,6 +151,7 @@ let variables = {
     // Strings
     string: { type: 'string', info: 'String Value' },
     multiline: { type: 'string', rows: 4, info: 'Multiline String' },
+    keyboard: { type: 'key', default: 'Escape' },
 
     // Vectors returned as Array types at runtime
     numberArray: { type: 'vector', size: 1, info: 'Numeric Array' },

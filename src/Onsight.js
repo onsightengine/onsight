@@ -35,9 +35,8 @@ export { Script } from './project/assets/Script.js';
 // Core, Assets, Scripts
 export { CameraFollow } from './project/assets/scripts/CameraFollow.js';
 export { ColorChange } from './project/assets/scripts/ColorChange.js';
-export { DrivingControls2D } from './project/assets/scripts/DrivingControls2D.js';
-export { DrivingControls3D } from './project/assets/scripts/DrivingControls3D.js';
-export { KeyControls2D } from './project/assets/scripts/KeyControls2D.js';
+export { DrivingControls } from './project/assets/scripts/DrivingControls.js';
+export { KeyControls } from './project/assets/scripts/KeyControls.js';
 export { RotateEntity } from './project/assets/scripts/RotateEntity.js';
 
 // Core, Scene3D

@@ -9,6 +9,7 @@ class RotateEntity extends Script {
         this.category = 'entity';
         this.source =
 `
+// Properties
 let variables = {
     rotateX: { type: 'number', default: 0 },
     rotateY: { type: 'number', default: 0 },

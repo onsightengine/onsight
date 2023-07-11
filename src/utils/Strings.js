@@ -43,7 +43,10 @@ class Strings {
 
     /** Adds spaces between 'CamelCaseWords' -> 'Camel Case Words' */
     static addSpaces(string) {
-        return String(string).replace(/([A-Z])/g, ' $1').trim();
+        if (typeof string !== 'string') string = String(string);
+        string = string.replace(/([a-z])([A-Z])/g, '$1 $2');
+        string = string.replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
+        return string.trim();
     }
 
     /** Capitalizes the first letter of every word in a string */

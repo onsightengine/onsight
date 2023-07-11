@@ -32,6 +32,7 @@ import { System } from '../utils/System.js';
 //  boolean         Option / Checkbox               false
 //  color           Color Selector                  0xffffff
 //  string          String / Multiline?             ''                  rows (1)
+//  key             Keyboard Key                    ''
 //
 //      -- UUID TYPES --
 //  asset           Asset (asset.uuid)              null                class: (all) or (geometry, material, script, shape, texture, prefab)
@@ -99,6 +100,7 @@ class ComponentManager {
             case 'boolean':     return false;
             case 'color':       return 0xffffff;
             case 'string':      return '';
+            case 'key':         return '';
             case 'asset':       return null;
             case 'object':      return {};
             case 'divider':     return null;

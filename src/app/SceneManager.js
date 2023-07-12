@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { APP_EVENTS } from '../constants.js';
 import { AssetManager } from '../project/AssetManager.js';
-import { CameraUtils } from '../utils/three/CameraUtils.js';
+import { Camera3D } from '../project/scene3d/Camera3D.js';
 import { EntityUtils } from '../utils/three/EntityUtils.js';
 import { ObjectUtils } from '../utils/three/ObjectUtils.js';
 
@@ -41,7 +41,7 @@ class SceneManager {
         }
 
         // No Camera Found
-        const camera = CameraUtils.createPerspective(1000, 1000, true);
+        const camera = new Camera3D({ width: 1000, height: 1000 });
         camera.position.set(0, 0, 10);
         camera.lookAt(0, 0, 0);
         return camera;

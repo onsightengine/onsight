@@ -284,21 +284,11 @@ class OrbitControls extends THREE.EventDispatcher {
             this.animating = ORBIT_ANIMATION.START;
         };
 
-        /** Returns relative ortho zoom from perspective target distance */
-        this.relativeOrthoZoom = function(optionalTarget = undefined) {
+        /** Returns zoom of camera */
+        this.getCameraZoom = function(optionalTarget = undefined) {
             const originalDistance = this.position0.distanceTo(this.target0);
             const newDistance = this.distanceToTarget(optionalTarget);
             return (originalDistance / newDistance);
-        };
-
-        /** Returns zoom of camera */
-        this.getCameraZoom = function(optionalTarget = undefined) {
-            if (this.camera.isOrthographicCamera) {
-                return this.camera.zoom;
-            } else if (this.camera.isPerspectiveCamera) {
-                return this.relativeOrthoZoom(optionalTarget);
-            }
-            return 1.0;
         }
 
         this.distanceToTarget = function(optionalTarget = undefined) {
@@ -388,7 +378,7 @@ class OrbitControls extends THREE.EventDispatcher {
 
                     // Update camera
                     self.camera.updateWorldMatrix(true);
-                    self.camera.updateProjectionMatrix();
+                    self.camera.updateProjectionMatrix(self.target);
                     self.camera.lookAt(self.target);
 
                     // End animation, mark as done
@@ -408,14 +398,7 @@ class OrbitControls extends THREE.EventDispatcher {
                     if (zoomChanged) {
                         signals.showInfo.dispatch(`${(this.getCameraZoom() * 100).toFixed(0)}%`);
                     } else if (self.animating !== ORBIT_ANIMATION.NONE) {
-                        if (self.camera.isOrthographicCamera) {
-                            signals.showInfo.dispatch(`${(newZoom * 100).toFixed(0)}%`);
-                        } else {
-                            const originalDistance = this.position0.distanceTo(this.target0);
-                            const newDistance = newPosition.distanceTo(newTarget);
-                            const zoom = (originalDistance / newDistance);
-                            signals.showInfo.dispatch(`${(zoom * 100).toFixed(0)}%`);
-                        }
+                        signals.showInfo.dispatch(`${(this.getCameraZoom(newTarget) * 100).toFixed(0)}%`);
                     }
                 }
 
@@ -606,7 +589,7 @@ class OrbitControls extends THREE.EventDispatcher {
             return function pan(deltaX, deltaY) {
                 const element = self.domElement;
 
-                if (self.camera.isPerspectiveCamera) {
+                if (self.camera.isPerspectiveCamera || self.camera.isOrthographicCamera) {
                     const position = self.camera.position;
                     offset.copy(position).sub(self.target);
                     let targetDistance = offset.length();
@@ -617,10 +600,6 @@ class OrbitControls extends THREE.EventDispatcher {
                     // we use only clientHeight here so aspect ratio does not distort speed
                     panLeft(2 * deltaX * targetDistance / element.clientHeight, self.camera.matrix);
                     panUp(2 * deltaY * targetDistance / element.clientHeight, self.camera.matrix);
-
-                } else if (self.camera.isOrthographicCamera) {
-                    panLeft(deltaX * (self.camera.right - self.camera.left) / self.camera.zoom / element.clientWidth, self.camera.matrix);
-                    panUp(deltaY * (self.camera.top - self.camera.bottom) / self.camera.zoom / element.clientHeight, self.camera.matrix);
 
                 } else {
                     console.warn('OrbitControls.pan: Unknown camera type, pan disabled');
@@ -637,8 +616,7 @@ class OrbitControls extends THREE.EventDispatcher {
 
         function dollyOut(dollyScale) {
             if (self.camera.isPerspectiveCamera || self.camera.isOrthographicCamera) {
-                self.camera.zoom = Math.max(self.minZoom, Math.min(self.maxZoom, self.camera.zoom * dollyScale));
-                self.camera.updateProjectionMatrix();
+                scale /= dollyScale;
                 zoomChanged = true;
             } else {
                 console.warn('OrbitControls.dollyOut: Unknown camera type, dolly / zoom disabled');
@@ -647,12 +625,8 @@ class OrbitControls extends THREE.EventDispatcher {
         }
 
         function dollyIn(dollyScale) {
-            if (self.camera.isPerspectiveCamera) {
+            if (self.camera.isPerspectiveCamera || self.camera.isOrthographicCamera) {
                 scale *= dollyScale;
-                zoomChanged = true;
-            } else if (self.camera.isOrthographicCamera) {
-                self.camera.zoom = Math.max(self.minZoom, Math.min(self.maxZoom, self.camera.zoom / dollyScale));
-                self.camera.updateProjectionMatrix();
                 zoomChanged = true;
             } else {
                 console.warn('OrbitControls.dollyIn: Unknown camera type, dolly / zoom disabled');
@@ -667,7 +641,7 @@ class OrbitControls extends THREE.EventDispatcher {
             newTarget.copy(self.target);
 
             // Position / Zoom
-            if (self.camera.isPerspectiveCamera) {
+            if (self.camera.isPerspectiveCamera || self.camera.isOrthographicCamera) {
                 if (self.animating === ORBIT_ANIMATION.NONE) {
                     dollyPosition.copy(self.camera.position);
                 } else {
@@ -690,26 +664,6 @@ class OrbitControls extends THREE.EventDispatcher {
 
                 // Zoom
                 newZoom = self.camera.zoom;
-
-            } else if (self.camera.isOrthographicCamera) {
-
-                // Position
-                newPosition.copy(self.camera.position);
-
-                // Zoom
-                if (self.animating === ORBIT_ANIMATION.NONE) {
-                    if (direction === 1) {
-                        newZoom = Math.max(self.minZoom, Math.min(self.maxZoom, self.camera.zoom / dollyScale));
-                    } else {
-                        newZoom = Math.max(self.minZoom, Math.min(self.maxZoom, self.camera.zoom * dollyScale));
-                    }
-                } else {
-                    if (direction === 1) {
-                        newZoom = Math.max(self.minZoom, Math.min(self.maxZoom, newZoom / dollyScale));
-                    } else {
-                        newZoom = Math.max(self.minZoom, Math.min(self.maxZoom, newZoom * dollyScale));
-                    }
-                }
             }
 
             // Sanity Check

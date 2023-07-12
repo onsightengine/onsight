@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { APP_EVENTS } from '../constants.js';
 import { AssetManager } from '../project/AssetManager.js';
-import { CameraUtils } from '../utils/three/CameraUtils.js';
 import { Clock } from '../utils/Clock.js';
 import { ObjectUtils } from '../utils/three/ObjectUtils.js';
 import { Project } from '../project/Project.js';
@@ -284,7 +283,7 @@ class App {
 
     setSize(width, height) {
         if (this.camera) {
-            // CameraUtils.setCameraSize(this.camera, width, height);
+            // this.camera.setSize(width, height);
         }
 
         if (this.renderer) this.renderer.setSize(width, height);

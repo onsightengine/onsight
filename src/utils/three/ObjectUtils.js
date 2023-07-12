@@ -12,6 +12,7 @@ import { System } from '../System.js';
 // copyWorldTransform()     Copies world transform from one object to another
 // countGeometry()          Counts total geometris in an object or array of objects
 // flattenGroup()           Puts an object's children into parent, deletes original containing object
+// fromJSON()               Sets base THREE.Object3D properties from JSON
 // resetTransform()         Normalize / zero / reset object 3D transform
 
 const _boxCenter = new THREE.Box3();
@@ -169,6 +170,28 @@ class ObjectUtils {
         if (!group.parent) return;
         while (group.children) group.parent.attach(group.children[0]);
         ObjectUtils.clearObject(group, true);
+    }
+
+    /** Sets base THREE.Object3D properties from JSON (replaces THREE.ObjectLoader()) */
+    static fromJSON(json, object) {
+        const data = json.object;
+        if (!data || !object || !object.isObject3D) return;
+
+        if (data.uuid !== undefined) object.uuid = data.uuid;
+
+        if (data.position !== undefined) object.position.fromArray(data.position);
+        if (data.rotation !== undefined) object.rotation.fromArray(data.rotation);
+        if (data.scale !== undefined) object.scale.fromArray(data.scale);
+
+        if (data.castShadow !== undefined) object.castShadow = data.castShadow;
+        if (data.receiveShadow !== undefined) object.receiveShadow = data.receiveShadow;
+        if (data.matrixAutoUpdate !== undefined) object.matrixAutoUpdate = data.matrixAutoUpdate;
+        if (data.layers !== undefined) object.layers.mask = data.layers;
+
+        if (data.visible !== undefined) object.visible = data.visible;
+        if (data.frustumCulled !== undefined) object.frustumCulled = data.frustumCulled;
+        if (data.renderOrder !== undefined) object.renderOrder = data.renderOrder;
+        if (data.userData !== undefined) object.userData = data.userData;
     }
 
     /** Normalize / zero / reset object 3D transform */

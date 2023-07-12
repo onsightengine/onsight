@@ -36,7 +36,7 @@ class CameraUtils {
             1,          // right
             1,          // top
             0,          // bottom
-            -1000,      // near
+           -1000,       // near
             1000        // far
         );
 

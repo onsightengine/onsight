@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { ComponentManager } from '../ComponentManager.js';
 import { EntityUtils } from '../../utils/three/EntityUtils.js';
+import { ObjectUtils } from '../../utils/three/ObjectUtils.js';
 import { Strings } from '../../utils/Strings.js';
 
 // INTERNAL FLAGS
@@ -497,21 +498,7 @@ class Entity3D extends THREE.Object3D {
         const data = json.object;
 
         // Object3D Properties
-        if (data.uuid !== undefined) this.uuid = data.uuid;
-
-        if (data.position !== undefined) this.position.fromArray(data.position);
-        if (data.rotation !== undefined) this.rotation.fromArray(data.rotation);
-        if (data.scale !== undefined) this.scale.fromArray(data.scale);
-
-        if (data.castShadow !== undefined) this.castShadow = data.castShadow;
-        if (data.receiveShadow !== undefined) this.receiveShadow = data.receiveShadow;
-        if (data.matrixAutoUpdate !== undefined) this.matrixAutoUpdate = data.matrixAutoUpdate;
-        if (data.layers !== undefined) this.layers.mask = data.layers;
-
-        if (data.visible !== undefined) this.visible = data.visible;
-        if (data.frustumCulled !== undefined) this.frustumCulled = data.frustumCulled;
-        if (data.renderOrder !== undefined) this.renderOrder = data.renderOrder;
-        if (data.userData !== undefined) this.userData = data.userData;
+        ObjectUtils.fromJSON(json, this);
 
         // Entity3D Properties
         if (data.name !== undefined) this.name = data.name;

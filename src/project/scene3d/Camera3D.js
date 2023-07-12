@@ -1,19 +1,15 @@
 import * as THREE from 'three';
-import { Entity3D } from './Entity3D.js';
+import { CAMERA_TYPES } from '../../constants.js';
+import { ObjectUtils } from '../../utils/three/ObjectUtils.js';
 
-export const CAMERA_TYPES = {
-    PERSPECTIVE:    'perspective',
-    ORTHOGRAPHIC:   'orthographic',
-};
+class Camera3D extends THREE.Camera {
 
-export const CAMERA_ORIENTATION = {
-    PORTRAIT:   'portrait',
-    LANDSCAPE:  'landscape',
-};
-
-class Camera3D extends Entity3D {
-
-    constructor(type = CAMERA_TYPES.PERSPECTIVE) {
+    constructor({
+        type = CAMERA_TYPES.PERSPECTIVE,
+        near,
+        far,
+        fov,
+    } = {}) {
         super(type);
 
         // Prototype
@@ -23,18 +19,38 @@ class Camera3D extends Entity3D {
         // Properties
         this.zoom = 1;
 
+
+        // View Offset
+        this.view = null;
+
         // Flags
         this.isOrthographicCamera = false;
-        this.isOrthographicCamera = false;
+        this.isPerspectiveCamera = false;
         this.rotateLock = false;
 
+        // Init Type
+        this.updateProjectionMatrix();
+    }
+
+    changeType(type) {
+        switch (type) {
+            case CAMERA_TYPES.PERSPECTIVE:
+
+                break;
+            case CAMERA_TYPES.ORTHOGRAPHIC:
+            default:
+
+
+        }
+
+        this.updateProjectionMatrix();
     }
 
     /******************** Copy */
 
-    copyEntity(source, recursive = true) {
-        // Entity3D.copy()
-        super.copyEntity(source, recursive);
+    copy(source, recursive = true) {
+        // THREE.Object3D.copy()
+        super.copy(source, recursive);
 
         // // Camera3D Properties
         // this.property1 = source.property1;
@@ -47,18 +63,22 @@ class Camera3D extends Entity3D {
     fromJSON(json) {
         const data = json.object;
 
-        // Entity3D Properties
-        super.fromJSON(json);
+        // Object3D Properties
+        ObjectUtils.fromJSON(json, this);
 
-        // // Camera3D Properties
-        // if (data.property1 !== undefined) this.property1 = data.property1;
+        // Camera3D Properties
+        if (data.zoom !== undefined) this.zoom = data.zoom;
+        // ...
+
+        // Projection Matrix
+        this.updateProjectionMatrix();
 
         return this;
     }
 
     toJSON() {
         // Entity3D Properties
-        const json = super.toJSON();
+        const json = super.toJSON(null /* !isRootObject */);
 
         // // Camera3D Properties
         // json.object.property1 = this.property1;

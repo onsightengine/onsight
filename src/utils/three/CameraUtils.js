@@ -13,9 +13,7 @@ import * as THREE from 'three';
 // UTILS
 //  fitCameraToObject()     Fits camera to object
 
-export const CAMERA_SCALE = 0.01;
-export const CAMERA_START_DISTANCE = 5;
-export const CAMERA_START_HEIGHT = 0;
+const START_DISTANCE = 5;
 
 const _raycaster = new THREE.Raycaster();
 
@@ -47,8 +45,8 @@ class CameraUtils {
         camera.fitType = fitType;
 
         // Set starting location
-        camera.position.set(0, CAMERA_START_HEIGHT, CAMERA_START_DISTANCE);
-        camera.lookAt(0, CAMERA_START_HEIGHT, 0);
+        camera.position.set(0, 0, START_DISTANCE);
+        camera.lookAt(0, 0, 0);
 
         CameraUtils.updateOrthographic(camera, camWidth, camHeight);
         return camera;
@@ -76,8 +74,8 @@ class CameraUtils {
         camera.fixedSize = fixedSize;
 
         // Move the camera back so we can view the scene
-        camera.position.set(0, CAMERA_START_HEIGHT, CAMERA_START_DISTANCE);
-        camera.lookAt(0, CAMERA_START_HEIGHT, 0);
+        camera.position.set(0, 0, START_DISTANCE);
+        camera.lookAt(0, 0, 0);
 
         CameraUtils.updatePerspective(camera, camWidth, camHeight);
         return camera;
@@ -117,8 +115,8 @@ class CameraUtils {
         let width = size;
         let height = size;
         if (fit === 'none') {
-            width = camWidth * CAMERA_SCALE * 0.5;
-            height = camHeight * CAMERA_SCALE * 0.5;
+            width = camWidth * 0.005;
+            height = camHeight * 0.005;
         } else if (fit === 'width') {
             aspectHeight = camHeight / camWidth;
         } else if (fit === 'height') {
@@ -151,7 +149,7 @@ class CameraUtils {
             return new THREE.Vector3();
         }
 
-        // Distance to Z (as a percentage, interpolate between the near and far plane points)
+        // Distance to Z Method (as a percentage, interpolated between the near and far plane)
 
         // let z = pointOnScreen.z ?? 0;
         // const nearVector = new THREE.Vector3(pointOnScreen.x, pointOnScreen.y, 0).unproject(camera);
@@ -178,7 +176,7 @@ class CameraUtils {
         const planeMaterial = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
         const plane = new THREE.Mesh(planeGeometry, planeMaterial);
 
-        // Cast ray from camera
+        // Cast ray from Camera
         _raycaster.setFromCamera(pointOnScreen, camera);
         if (camera.isOrthographicCamera) {
             _raycaster.ray.origin.set(pointOnScreen.x, pointOnScreen.y, - camera.far).unproject(camera);

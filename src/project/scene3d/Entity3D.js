@@ -496,12 +496,6 @@ class Entity3D extends THREE.Object3D {
     fromJSON(json) {
         const data = json.object;
 
-        // Entity3D Properties
-        if (data.name !== undefined) this.name = data.name;
-        if (data.category !== undefined) this.category = data.category;
-        if (data.isLocked !== undefined) this.isLocked = data.isLocked;
-        if (data.lookAtCamera !== undefined) this.lookAtCamera = data.lookAtCamera;
-
         // Object3D Properties
         if (data.uuid !== undefined) this.uuid = data.uuid;
 
@@ -519,6 +513,12 @@ class Entity3D extends THREE.Object3D {
         if (data.renderOrder !== undefined) this.renderOrder = data.renderOrder;
         if (data.userData !== undefined) this.userData = data.userData;
 
+        // Entity3D Properties
+        if (data.name !== undefined) this.name = data.name;
+        if (data.category !== undefined) this.category = data.category;
+        if (data.isLocked !== undefined) this.isLocked = data.isLocked;
+        if (data.lookAtCamera !== undefined) this.lookAtCamera = data.lookAtCamera;
+
         // Components
         for (let i = 0; i < json.object.components.length; i++) {
             const componentData = json.object.components[i];
@@ -532,7 +532,7 @@ class Entity3D extends THREE.Object3D {
             }
         }
 
-        // Children
+        // Child Entities
         this.loadChildren(json);
 
         // Matrix
@@ -561,16 +561,6 @@ class Entity3D extends THREE.Object3D {
             }
         };
 
-        // Components
-        for (let i = 0; i < this.components.length; i++) {
-            json.object.components.push(this.components[i].toJSON());
-        }
-
-        // Entity3D Properties
-        json.object.category = this.category;
-        json.object.isLocked = this.isLocked;
-        json.object.lookAtCamera = this.lookAtCamera;
-
         // Object3D Properties
         json.object.position  = this.position.toArray();
         json.object.rotation = this.rotation.toArray();
@@ -586,6 +576,16 @@ class Entity3D extends THREE.Object3D {
         if (this.renderOrder !== 0) json.object.renderOrder = this.renderOrder;
         if (JSON.stringify(this.userData) !== '{}') {
             json.object.userData = (typeof structuredClone === 'function') ? structuredClone(this.userData) : JSON.parse(JSON.stringify(this.userData));
+        }
+
+        // Entity3D Properties
+        json.object.category = this.category;
+        json.object.isLocked = this.isLocked;
+        json.object.lookAtCamera = this.lookAtCamera;
+
+        // Components
+        for (let i = 0; i < this.components.length; i++) {
+            json.object.components.push(this.components[i].toJSON());
         }
 
         // Child Entities

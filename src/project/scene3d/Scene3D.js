@@ -37,7 +37,7 @@ class Scene3D extends Entity3D {
         this.add(this.shadowPlane);
     }
 
-    /******************** Copy */
+    /******************** COPY */
 
     copyEntity(source, recursive = true) {
         // Entity3D.copy()
@@ -55,11 +55,10 @@ class Scene3D extends Entity3D {
     fromJSON(json) {
         const data = json.object;
 
-        // Scene3D Properties
-        if (data.start !== undefined) this.start = data.start;
-        if (data.end !== undefined) this.end = data.end;
+        // Entity3D Properties
+        super.fromJSON(json);
 
-        // Scene Properties
+        // THREE.Scene Properties
         if (data.background !== undefined) {
             if (Number.isInteger(data.background)) {
                 this.background = new THREE.Color(data.background);
@@ -80,8 +79,9 @@ class Scene3D extends Entity3D {
             }
         }
 
-        // Entity3D Properties
-        super.fromJSON(json);
+        // Scene3D Properties
+        if (data.start !== undefined) this.start = data.start;
+        if (data.end !== undefined) this.end = data.end;
 
         return this;
     }
@@ -90,7 +90,7 @@ class Scene3D extends Entity3D {
         // Entity3D Properties
         const json = super.toJSON();
 
-        // Scene Properties
+        // THREE.Scene Properties
         if (this.fog) json.object.fog = this.fog.toJSON();
 
         // Scene3D Properties

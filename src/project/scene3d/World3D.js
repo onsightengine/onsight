@@ -116,7 +116,7 @@ class World3D extends Entity3D {
         }
     }
 
-    /******************** Copy */
+    /******************** COPY */
 
     copyEntity(source, recursive = true) {
         // Entity3D.copy()
@@ -138,13 +138,13 @@ class World3D extends Entity3D {
     fromJSON(json) {
         const data = json.object;
 
-        // World Properties
+        // Entity3D Properties
+        super.fromJSON(json);
+
+        // World3D Properties
         if (data.xPos !== undefined) this.xPos = data.xPos;
         if (data.yPos !== undefined) this.yPos = data.yPos;
         if (data.activeSceneUUID !== undefined) this.activeSceneUUID = data.activeSceneUUID;
-
-        // Entity3D Properties
-        super.fromJSON(json);
 
         return this;
     }
@@ -167,7 +167,7 @@ class World3D extends Entity3D {
         // Entity3D Properties
         const json = super.toJSON();
 
-        // World Properties
+        // World3D Properties
         json.object.xPos = this.xPos;
         json.object.yPos = this.yPos;
         json.object.activeSceneUUID = this.activeSceneUUID;

@@ -40,7 +40,7 @@ class App {
 
         // Renderer
         this.renderer = new Renderer3D({ antialias: true });
-        this.renderer.setPixelRatio(1); //window.devicePixelRatio;
+        this.renderer.setPixelRatio(1); // window.devicePixelRatio;
         this.renderer.useLegacyLights = true;
         this.renderer.shadowMap.enabled = true;
         this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace; // NOTE: three 151->152
@@ -283,7 +283,10 @@ class App {
     /******************** GAME HELPERS */
 
     setSize(width, height) {
-        if (this.camera) CameraUtils.updateCamera(this.camera, width, height);
+        if (this.camera) {
+            // CameraUtils.updateCamera(this.camera, width, height);
+        }
+
         if (this.renderer) this.renderer.setSize(width, height);
     }
 

@@ -17,6 +17,7 @@ class Project {
         this.uuid = Maths.uuid();
 
         // Collections
+        this.settings = {};
         this.worlds = {};
     }
 
@@ -153,6 +154,9 @@ class Project {
         this.name = json.object.name;
         this.uuid = json.object.uuid;
 
+        // Settings
+        this.settings = structuredClone(json.object.settings);
+
         // Worlds
         for (let i = 0; i < json.worlds.length; i++) {
             switch (json.worlds[i].object.type) {
@@ -184,6 +188,9 @@ class Project {
             name: this.name,
             uuid: this.uuid,
         };
+
+        // Settings
+        json.settings = structuredClone(this.settings);
 
         // Worlds
         json.worlds = [];

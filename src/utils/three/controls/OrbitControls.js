@@ -69,12 +69,12 @@ class OrbitControls extends THREE.EventDispatcher {
         if (target && target.isObject3D) {
             target.getWorldPosition(this.target);
         } else {
-            this.target.set(0, ONE.CAMERA_START_HEIGHT, 0);
+            this.target.set(0, 0, 0);
         }
 
         // Zoom / Dolly
-        this.minDistance = 20.0 * ONE.CAMERA_SCALE;     // Zoom in,  PerspectiveCamera only
-        this.maxDistance = 25000 * ONE.CAMERA_SCALE;    // Zoom out, PerspectiveCamera only
+        this.minDistance = 0.2;                         // Zoom in,  PerspectiveCamera only
+        this.maxDistance = 250;                         // Zoom out, PerspectiveCamera only
         this.minZoom = 0.021;                           // Zoom out, OrthographicCamera only
         this.maxZoom = 25.0;                            // Zoom in,  OrthographicCamera only
 
@@ -254,7 +254,7 @@ class OrbitControls extends THREE.EventDispatcher {
                 distance = tempSphere.radius;
                 distance = Math.pow(distance, 0.7); /* equalize large / small Object3Ds */
             }
-            distance *= 700 * ONE.CAMERA_SCALE; /* zoom out */
+            distance *= 7; /* zoom out */
 
             // Use distance to calculate new desired camera location
             tempDelta.set(0, 0, distance);
@@ -624,10 +624,7 @@ class OrbitControls extends THREE.EventDispatcher {
         }
 
         function dollyOut(dollyScale) {
-            if (self.camera.isPerspectiveCamera) {
-                scale /= dollyScale;
-                zoomChanged = true;
-            } else if (self.camera.isOrthographicCamera) {
+            if (self.camera.isPerspectiveCamera || self.camera.isOrthographicCamera) {
                 self.camera.zoom = Math.max(self.minZoom, Math.min(self.maxZoom, self.camera.zoom * dollyScale));
                 self.camera.updateProjectionMatrix();
                 zoomChanged = true;
@@ -635,19 +632,6 @@ class OrbitControls extends THREE.EventDispatcher {
                 console.warn('OrbitControls.dollyOut: Unknown camera type, dolly / zoom disabled');
                 self.enableZoom = false;
             }
-
-            // added by stevinz
-            // // NOTE: The following code prints zoom levels, independent off camera types
-            //
-            // let originalDistance = self.position0.distanceTo( self.target0 );
-            // let currentDistance = self.camera.position.distanceTo( self.target );
-            // let currentScale = originalDistance / currentDistance;
-            // if (self.camera.isOrthographicCamera) {
-            // 	console.info(`Ortho Zoom: ${self.camera.zoom}`);
-            // } else {
-            // 	console.info(`Perspective Scale: ${currentScale}`);
-            // }
-            //
         }
 
         function dollyIn(dollyScale) {

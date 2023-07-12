@@ -34,14 +34,14 @@ class SceneManager {
                 const componentCamera = component.three();
                 if (componentCamera) {
                     const camera = componentCamera.clone();
-                    ObjectUtils.copyWorldTransform(componentCamera, camera, true);
+                    ObjectUtils.copyWorldTransform(componentCamera, camera, true /* updateMatrix */);
                     return camera;
                 }
             }
         }
 
         // No Camera Found
-        const camera = CameraUtils.createPerspective(1024, 1024, true);
+        const camera = CameraUtils.createPerspective(1000, 1000, true);
         camera.position.x = 0;
         camera.position.y = 0;
         camera.position.z = 6;
@@ -55,7 +55,7 @@ class SceneManager {
         const children = fromEntity.getEntities();
         for (let i = 0; i < children.length; i++) {
             const entity = children[i];
-            const clone = entity.cloneEntity(false /* recursive */);
+            const clone = entity.cloneEntity(false /* recursive? */);
             SceneManager.loadScriptsFromComponents(clone, entity);
             SceneManager.copyChildren(clone, entity);
             toEntity.add(clone);
@@ -83,7 +83,7 @@ class SceneManager {
                     // console.log(value);
                     if (typeof value.value !== 'undefined') {
                         let json = JSON.stringify(value.value);
-                        json = json.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); /* fix special characters */
+                        json = json.replace(/[.*+`'"?^${}()|[\]\\]/g, '\\$&'); /* fix special characters */
                         // console.log(json);
                         body = body + `let ${variable} = JSON.parse('${json}');\n`
                     } else {

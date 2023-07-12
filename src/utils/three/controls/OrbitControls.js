@@ -211,6 +211,17 @@ class OrbitControls extends THREE.EventDispatcher {
 
         /***** ADDED BY STEVINZ *****/
 
+        this.changeCamera = function(newCamera) {
+            // If animating, need to stop animation
+            if (self.animating !== ORBIT_ANIMATION.NONE) {
+                self.forceEndAnimation = true;
+                self.update();
+            }
+
+            // Set new camera
+            self.camera = newCamera;
+        }
+
         /** Recenter the camera to orbit target, maintains current zoom and rotation */
         this.centerOnTarget = function(target) {
             if (state !== ORBIT_STATES.NONE) return;
@@ -275,8 +286,8 @@ class OrbitControls extends THREE.EventDispatcher {
 
         /** Returns relative ortho zoom from perspective target distance */
         this.relativeOrthoZoom = function(optionalTarget = undefined) {
-            let originalDistance = this.position0.distanceTo(this.target0);
-            let newDistance = this.distanceToTarget(optionalTarget);
+            const originalDistance = this.position0.distanceTo(this.target0);
+            const newDistance = this.distanceToTarget(optionalTarget);
             return (originalDistance / newDistance);
         };
 
@@ -291,6 +302,7 @@ class OrbitControls extends THREE.EventDispatcher {
         }
 
         this.distanceToTarget = function(optionalTarget = undefined) {
+            if (optionalTarget && optionalTarget.isObject3D) optionalTarget = optionalTarget.position;
             return this.camera.position.distanceTo(optionalTarget ?? this.target);
         }
 
@@ -677,8 +689,7 @@ class OrbitControls extends THREE.EventDispatcher {
                 newPosition.copy(dollyPosition).add(tempDelta);
 
                 // Zoom
-                let newDistance = newPosition.distanceTo(self.target);
-                newZoom = (self.camera.isOrthographicCamera) ? (originalDistance / newDistance) : self.camera.zoom;
+                newZoom = self.camera.zoom;
 
             } else if (self.camera.isOrthographicCamera) {
 

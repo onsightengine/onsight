@@ -2,13 +2,19 @@ import * as THREE from 'three';
 import { CAMERA_TYPES } from '../../constants.js';
 import { ObjectUtils } from '../../utils/three/ObjectUtils.js';
 
+const PRIMARY_SIZE = 1000;      // app orientation (in pixels)
+
 class Camera3D extends THREE.Camera {
 
     constructor({
         type = CAMERA_TYPES.PERSPECTIVE,
         near,
         far,
+        // perspective
         fov,
+
+        // orthographic
+
     } = {}) {
         super(type);
 
@@ -19,14 +25,26 @@ class Camera3D extends THREE.Camera {
         // Properties
         this.zoom = 1;
 
+        switch (type) {
+            case CAMERA_TYPES.PERSPECTIVE:
+                this.near = near ?? 0.01;
+                this.far = far ?? 1000;
 
-        // View Offset
-        this.view = null;
+                this.fov = fov ?? 58.10;
+                break;
+            case CAMERA_TYPES.ORTHOGRAPHIC:
+            default:
+
+
+        }
 
         // Flags
         this.isOrthographicCamera = false;
         this.isPerspectiveCamera = false;
+
+        this.aspect = 1;
         this.rotateLock = false;
+        this.view = null; /* view offset */
 
         // Init Type
         this.updateProjectionMatrix();
@@ -42,7 +60,19 @@ class Camera3D extends THREE.Camera {
 
 
         }
+        this.updateProjectionMatrix();
+    }
 
+    setSize(width, height) {
+        switch (type) {
+            case CAMERA_TYPES.PERSPECTIVE:
+
+                break;
+            case CAMERA_TYPES.ORTHOGRAPHIC:
+            default:
+
+
+        }
         this.updateProjectionMatrix();
     }
 

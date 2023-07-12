@@ -4,16 +4,14 @@ import * as THREE from 'three';
 //  createOrthographic()    Create an orthographic camera
 //  createPerspective()     Create a perspective camera
 // UPDATE
-//  updateCamera()          Calls appropriate update function for camera
-//  updatePerspective()     Updates a perspective camera's frustum
-//  updateOrthographic()    Updates an orthographic camera's frustum
+//  setCameraSize()         Calls appropriate update function for camera
+//  setSizePerspective()    Updates a perspective camera's frustum
+//  setSizeOrthographic()   Updates an orthographic camera's frustum
 // SPACE
 //  screenPoint()           Projects a point from 3D world space coordinates to 2D screen coordinates
 //  worldPoint()            Unprojects a point from 2D screen coordinates to 3D world space coordinates
 // UTILS
 //  fitCameraToObject()     Fits camera to object
-
-const START_DISTANCE = 5;
 
 const _raycaster = new THREE.Raycaster();
 
@@ -44,11 +42,7 @@ class CameraUtils {
         camera.desiredSize = desiredSize;
         camera.fitType = fitType;
 
-        // Set starting location
-        camera.position.set(0, 0, START_DISTANCE);
-        camera.lookAt(0, 0, 0);
-
-        CameraUtils.updateOrthographic(camera, camWidth, camHeight);
+        CameraUtils.setSizeOrthographic(camera, camWidth, camHeight);
         return camera;
     }
 
@@ -73,23 +67,19 @@ class CameraUtils {
         camera.windowHeight = (fixedSize) ? 1000 /* i.e. 1000 pixels tall, nice round number */ : 0;
         camera.fixedSize = fixedSize;
 
-        // Move the camera back so we can view the scene
-        camera.position.set(0, 0, START_DISTANCE);
-        camera.lookAt(0, 0, 0);
-
-        CameraUtils.updatePerspective(camera, camWidth, camHeight);
+        CameraUtils.setSizePerspective(camera, camWidth, camHeight);
         return camera;
     }
 
     /******************** UPDATE ********************/
 
-    static updateCamera(camera, camWidth, camHeight) {
-        if (camera.isPerspectiveCamera) CameraUtils.updatePerspective(camera, camWidth, camHeight);
-        if (camera.isOrthographicCamera) CameraUtils.updateOrthographic(camera, camWidth, camHeight);
+    static setCameraSize(camera, camWidth, camHeight) {
+        if (camera.isPerspectiveCamera) CameraUtils.setSizePerspective(camera, camWidth, camHeight);
+        if (camera.isOrthographicCamera) CameraUtils.setSizeOrthographic(camera, camWidth, camHeight);
     }
 
     /** Updates a perspective camera's frustum */
-    static updatePerspective(camera, camWidth, camHeight) {
+    static setSizePerspective(camera, camWidth, camHeight) {
         if (camera.fixedSize) {
             camera.fov = (360 / Math.PI) * Math.atan(camera.tanFOV * (camHeight / camera.windowHeight));
         }
@@ -99,7 +89,7 @@ class CameraUtils {
     }
 
     /** Updates an orthographic camera's frustum */
-    static updateOrthographic(camera, camWidth, camHeight) {
+    static setSizeOrthographic(camera, camWidth, camHeight) {
         // Check for added camera properties
         let fit = camera.fitType;
         let size = 0;

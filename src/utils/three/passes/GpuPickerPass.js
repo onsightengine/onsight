@@ -11,7 +11,6 @@ const _currClearColor = new THREE.Color();
 let _emptyScene;
 let _renderer;
 
-/** For performing gpu picking */
 class GpuPickerPass extends Pass {
 
     constructor(scene, camera) {
@@ -221,7 +220,7 @@ class GpuPickerPass extends Pass {
         const camWidth = renderer.domElement.width;
         const camHeight = renderer.domElement.height;
 
-        // Set the projection matrix to only look at the pixel we are interested in.
+        // Set the projection matrix to only look at the pixel we are interested in
         this.camera.setViewOffset(camWidth, camHeight, this.x, this.y, 1, 1);
 
         // Store current renderer state info

@@ -284,7 +284,7 @@ class App {
 
     setSize(width, height) {
         if (this.camera) {
-            // CameraUtils.updateCamera(this.camera, width, height);
+            // CameraUtils.setCameraSize(this.camera, width, height);
         }
 
         if (this.renderer) this.renderer.setSize(width, height);

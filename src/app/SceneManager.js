@@ -42,9 +42,8 @@ class SceneManager {
 
         // No Camera Found
         const camera = CameraUtils.createPerspective(1000, 1000, true);
-        camera.position.x = 0;
-        camera.position.y = 0;
-        camera.position.z = 6;
+        camera.position.set(0, 0, 10);
+        camera.lookAt(0, 0, 0);
         return camera;
     }
 

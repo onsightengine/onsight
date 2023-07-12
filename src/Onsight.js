@@ -39,6 +39,7 @@ export { KeyControls } from './project/assets/scripts/KeyControls.js';
 export { RotateEntity } from './project/assets/scripts/RotateEntity.js';
 
 // Core, Scene3D
+export { Camera3D } from './project/scene3d/Camera3D.js';
 export { Entity3D } from './project/scene3d/Entity3D.js';
 export { Scene3D } from './project/scene3d/Scene3D.js';
 export { World3D } from './project/scene3d/World3D.js';

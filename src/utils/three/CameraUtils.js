@@ -182,12 +182,13 @@ class CameraUtils {
 
     /******************** UTILS ********************/
 
-    static distanceToFitObject(camera, object, offset = 1.25) {
-
-    }
-
     /* Fits camera to object */
     static fitCameraToObject(camera, object, controls = null, offset = 1.25, tilt = false) {
+
+        //
+        // TODO: Work with Orthographic camera!
+        //
+
         const boundingBox = new THREE.Box3();
         boundingBox.setFromObject(object);
         const center = boundingBox.getCenter(new THREE.Vector3());

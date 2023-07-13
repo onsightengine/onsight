@@ -38,12 +38,12 @@ class Camera3D extends THREE.Camera {
         // Flags
         this.isPerspectiveCamera = (type === CAMERA_TYPES.PERSPECTIVE);
         this.isOrthographicCamera = (type === CAMERA_TYPES.ORTHOGRAPHIC);
+        this.aspect = 1;
         this.rotateLock = false;
         this.view = null; /* view offset */
         this.zoom = 1;
 
         // Flags, Perspective
-        this.aspect = 1;
         this.fov = 58.10;
 
         // Flags, Orthographic
@@ -57,27 +57,28 @@ class Camera3D extends THREE.Camera {
         this.lastWidth = width;
         this.lastHeight = height;
 
-        /* Perspective */ {
-            this.aspect = width / height;
+        this.aspect = width / height;
 
-            if (this.fit === 'none') {
-                const radFOV = (Math.PI / 180) * this.fieldOfView;
-                const tanFOV = Math.tan(radFOV / 2);
-                this.fov = (360 / Math.PI) * Math.atan(tanFOV * (height / APP_SIZE));
-            } else if (this.fit === 'width') {
-                this.fov = this.fieldOfView / this.aspect;
-            } else {
+        /* Perspective */ {
+            if (this.fit === 'height') {
                 this.fov = this.fieldOfView;
+            } else {
+                const tanFOV = Math.tan(((Math.PI / 180) * this.fieldOfView) / 2);
+                if (this.fit === 'width') {
+                    this.fov = (360 / Math.PI) * Math.atan(tanFOV / this.aspect);
+                } else { // (this.fit === 'none') {
+                    this.fov = (360 / Math.PI) * Math.atan(tanFOV * (height / APP_SIZE));
+                }
             }
         }
 
         /* Orthographic */ {
             if (this.fit === 'width') {
                 width = APP_SIZE;
-                height = width / (width / height);
+                height = width / this.aspect;
             } else if (this.fit === 'height') {
                 height = APP_SIZE;
-                width = height * (width / height);
+                width = height * this.aspect;
             }
 
             this.left =    - width / 2;
@@ -128,7 +129,7 @@ class Camera3D extends THREE.Camera {
 			    height *= view.height / fullHeight;
 		    }
 
-		    this.projectionMatrix.makePerspective(left, left + width, top, top - height, this.near, this.far, this.coordinateSystem);
+            this.projectionMatrix.makePerspective(left, left + width, top, top - height, this.near, this.far, this.coordinateSystem);
 		    this.projectionMatrixInverse.copy(this.projectionMatrix).invert();
         }
 

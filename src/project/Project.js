@@ -1,3 +1,4 @@
+import { APP_ORIENTATION } from '../constants.js';
 import { VERSION, WORLD_TYPES } from '../constants.js';
 
 import { AssetManager } from './AssetManager.js';
@@ -16,8 +17,12 @@ class Project {
         this.name = name;
         this.uuid = Maths.uuid();
 
-        // Collections
-        this.settings = {};
+        // Settings
+        this.settings = {
+            orientation: APP_ORIENTATION.PORTRAIT,
+        };
+
+        // Worlds
         this.worlds = {};
     }
 
@@ -155,7 +160,7 @@ class Project {
         this.uuid = json.object.uuid;
 
         // Settings
-        this.settings = structuredClone(json.object.settings);
+        this.settings = structuredClone(json.settings);
 
         // Worlds
         for (let i = 0; i < json.worlds.length; i++) {

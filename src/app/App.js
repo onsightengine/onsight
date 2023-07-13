@@ -108,6 +108,7 @@ class App {
         // Scene Manager
         SceneManager.app = this;
         this.camera = SceneManager.cameraFromScene(fromScene);
+        this.camera.changeFit(this.project.settings?.orientation);
         this.scene = new Scene3D();
 
         // Load Scene
@@ -282,10 +283,7 @@ class App {
     /******************** GAME HELPERS */
 
     setSize(width, height) {
-        if (this.camera) {
-            // this.camera.setSize(width, height);
-        }
-
+        if (this.camera) this.camera.setSize(width, height);
         if (this.renderer) this.renderer.setSize(width, height);
     }
 

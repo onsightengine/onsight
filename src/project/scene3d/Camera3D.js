@@ -1,16 +1,15 @@
 import * as THREE from 'three';
+import { APP_SIZE } from '../../constants.js';
 import { CAMERA_TYPES } from '../../constants.js';
 import { ObjectUtils } from '../../utils/three/ObjectUtils.js';
-
-const PRIMARY_SIZE = 1000;          // app orientation (in pixels)
 
 class Camera3D extends THREE.Camera {
 
     constructor({
         type = CAMERA_TYPES.PERSPECTIVE,
-        width = PRIMARY_SIZE,       // initial dom element width
-        height = PRIMARY_SIZE,      // initial dom element height
-        fit = 'none',               // 'none', 'width', 'height'
+        width = APP_SIZE,           // initial dom element width
+        height = APP_SIZE,          // initial dom element height
+        fit,                        // 'none', 'width', 'height'
         near,
         far,
         // perspective
@@ -25,6 +24,7 @@ class Camera3D extends THREE.Camera {
         this.type = 'Camera3D';
 
         // Properties
+        if (fit !== 'width' && fit !== 'height') fit = 'none';
         this.fit = fit;
         this.near = near ?? ((type === CAMERA_TYPES.PERSPECTIVE) ? 0.01 : - 1000);
         this.far = far ?? ((type === CAMERA_TYPES.PERSPECTIVE) ? 1000 : 1000);
@@ -38,13 +38,13 @@ class Camera3D extends THREE.Camera {
         // Flags
         this.isPerspectiveCamera = (type === CAMERA_TYPES.PERSPECTIVE);
         this.isOrthographicCamera = (type === CAMERA_TYPES.ORTHOGRAPHIC);
+        this.aspect = 1;
         this.rotateLock = false;
         this.view = null; /* view offset */
         this.zoom = 1;
 
         // Flags, Perspective
         this.fov = 58.10;
-        this.aspect = 1;
 
         // Flags, Orthographic
         this.target = new THREE.Vector3();
@@ -53,33 +53,45 @@ class Camera3D extends THREE.Camera {
         this.setSize(width, height);
     }
 
-    setSize(width = PRIMARY_SIZE, height = PRIMARY_SIZE) {
+    setSize(width = APP_SIZE, height = APP_SIZE) {
         this.lastWidth = width;
         this.lastHeight = height;
+
+        this.aspect = width / height;
 
         /* Perspective */ {
             if (this.fit === 'none') {
                 const tanFOV = Math.tan(((Math.PI / 180) * this.fieldOfView / 2));
-                this.fov = (360 / Math.PI) * Math.atan(tanFOV * (height / PRIMARY_SIZE));
+                this.fov = (360 / Math.PI) * Math.atan(tanFOV * (height / APP_SIZE));
             } else {
                 this.fov = this.fieldOfView;
             }
-            this.aspect = width / height;
         }
 
         /* Orthographic */ {
-            let orthoWidth = (this.fit === 'none') ? width : PRIMARY_SIZE;
-            let orthoHeight = (this.fit === 'none') ? height: PRIMARY_SIZE;
-            const aspectWidth = (this.fit === 'width') ? height / width : 1.0;
-            const aspectHeight = (this.fit === 'height') ? width / height : 1.0;
-            this.left =    - orthoWidth / aspectWidth / 2;
-            this.right =     orthoWidth / aspectWidth / 2;
-            this.top =       orthoHeight * aspectHeight / 2;
-            this.bottom =  - orthoHeight * aspectHeight / 2;
+            if (this.fit === 'width') {
+                width = APP_SIZE;
+                height = width / this.aspect;
+            } else if (this.fit === 'height') {
+                height = APP_SIZE;
+                width = height * this.aspect;
+            }
+
+            this.left =    - width / 2;
+            this.right =     width / 2;
+            this.top =       height / 2;
+            this.bottom =  - height / 2;
         }
 
         // Update
         this.updateProjectionMatrix();
+    }
+
+    changeFit(fit) {
+        if (fit === 'landscape') fit = 'width';
+        if (fit === 'portrait') fit = 'height';
+        if (fit !== 'width' && fit !== 'height') fit = 'none';
+        this.fit = fit;
     }
 
     changeType(newType) {
@@ -125,18 +137,18 @@ class Camera3D extends THREE.Camera {
             if (target && target.isObject3D) target = target.position;
             if (target) this.target.copy(target);
             const distance = this.position.distanceTo(this.target);
-            const zoom = distance / 1000; /* NOTE: 1 world unit === 1000 pixels */
+
+            let zoom = distance / 1000; /* NOTE: 1 world unit === 100 pixels at distance 10 */
+                                        /*       1 world unit === 1000 pixels at distance 1 */
+                                        /*       1 world unit === 10 pixels at distance 100 */
+            if (!isFinite(zoom) || isNaN(zoom)) zoom = 0.00001;
+            if (zoom < 0.00001 && zoom > - 0.00001) zoom = 0.00001;
 
             // Frustum
             const dx = ((this.right - this.left) * zoom) / 2;
             const dy = ((this.top - this.bottom) * zoom) / 2;
             const cx = (this.right + this.left);
             const cy = (this.top + this.bottom);
-
-            // const dx = ( this.right - this.left ) / ( 2 * zoom );
-            // const dy = ( this.top - this.bottom ) / ( 2 * zoom );
-            // const cx = ( this.right + this.left ) / 2;
-            // const cy = ( this.top + this.bottom ) / 2;
 
             let left = cx - dx;
             let right = cx + dx;
@@ -147,10 +159,6 @@ class Camera3D extends THREE.Camera {
             if (view && view.enabled) {
                 const scaleW = ((this.right - this.left) / view.fullWidth) * zoom;
                 const scaleH = ((this.top - this.bottom) / view.fullHeight) * zoom;
-
-                // const scaleW = (this.right - this.left) / view.fullWidth / zoom;
-                // const scaleH = (this.top - this.bottom) / view.fullHeight / zoom;
-
                 left += scaleW * view.offsetX;
                 right = left + scaleW * view.width;
                 top -= scaleH * view.offsetY;

@@ -1,5 +1,7 @@
 export const VERSION = '0.0.6';
 
+export const APP_SIZE = 1000;
+
 export const APP_EVENTS = {
     init:           'init',
     update:         'update',

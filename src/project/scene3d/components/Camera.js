@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Camera3D } from '../Camera3D.js';
 import { ComponentManager } from '../../ComponentManager.js';
 
 // https://github.com/Cloud9c/taro/blob/main/src/components/Camera.js
@@ -10,37 +11,13 @@ class Camera {
     init(data) {
         // Generate Backend
         let camera = undefined;
+
+
         switch (data.style) {
 
             case 'perspective':
-                // Private Properties
-                this._tanFOV = Math.tan(((Math.PI / 180) * data.fov / 2));
-                this._windowHeight = (data.fixedSize) ? 1000 : 0;
-
-                // Error checks
-                let nearPersp = (data.nearPersp <= 0) ? 0.00001 : data.nearPersp;
-                let farPersp = (data.farPersp == 0) ? 0.00001 : data.farPersp;
-                if (farPersp === nearPersp) farPersp += 0.001;
-
-                // Build Object
-                camera = new THREE.PerspectiveCamera(data.fov, 1 /* data.aspect */, nearPersp, farPersp);
-                camera.fixedSize = data.fixedSize;
-                break;
-
             case 'orthographic':
-                // Error checks
-                let nearOrtho = data.nearOrtho;
-                let farOrtho = data.farOrtho;
-                let leftOrtho = data.left;
-                let rightOrtho = data.right;
-                let topOrtho = data.top;
-                let bottomOrtho = data.bottom;
-                if (farOrtho === farOrtho) farOrtho += 0.001;
-                if (rightOrtho === leftOrtho) rightOrtho += 0.001;
-                if (topOrtho === bottomOrtho) topOrtho += 0.001;
-
-                // Build Object
-                camera = new THREE.OrthographicCamera(leftOrtho, rightOrtho, topOrtho, bottomOrtho, nearOrtho, farOrtho);
+                camera = new Camera3D({ type: data.style });
                 break;
 
             default:
@@ -50,8 +27,7 @@ class Camera {
 
         // Modify Camera
         if (camera && camera.isCamera) {
-            camera.position.set(0, 0, 0);
-            camera.lookAt(0, 0, 0);
+
         } else {
             // console.log('Error with camera!');
         }
@@ -83,19 +59,12 @@ Camera.config = {
     schema: {
         style: { type: 'select', default: 'perspective', select: [ 'perspective', 'orthographic' ] },
 
-        nearPersp: { type: 'number', default: 1, min: 0, step: 0.1, if: { style: [ 'perspective' ] } },
-        farPersp: { type: 'number', default: 500, min: 0, step: 1, if: { style: [ 'perspective' ] } },
-        nearOrtho: { type: 'number', default: -500, step: 1,  if: { style: [ 'orthographic' ] } },
-        farOrtho: { type: 'number', default: 500, step: 1,  if: { style: [ 'orthographic' ] } },
+        // nearPersp: { type: 'number', default: 1, min: 0, step: 0.1, if: { style: [ 'perspective' ] } },
+        // farPersp: { type: 'number', default: 500, min: 0, step: 1, if: { style: [ 'perspective' ] } },
+        // fov: { type: 'number', default: 58.10, if: { style: [ 'perspective' ] } },
 
-        fov: { type: 'number', default: 58.10, if: { style: [ 'perspective' ] } },
-        fixedSize: { type: 'boolean', default: true, if: { style: [ 'perspective' ] } },
-        // aspect: { type: 'number', default: 1, if: { style: [ 'perspective' ], fixedSize: [ false ] } },
-
-        left: { type: 'number', default: -1, if: { style: [ 'orthographic' ] } },
-        right: { type: 'number', default: 1, if: { style: [ 'orthographic' ] } },
-        top: { type: 'number', default: 1, if: { style: [ 'orthographic' ] } },
-        bottom: { type: 'number', default: -1, if: { style: [ 'orthographic' ] } },
+        // nearOrtho: { type: 'number', default: -500, step: 1,  if: { style: [ 'orthographic' ] } },
+        // farOrtho: { type: 'number', default: 500, step: 1,  if: { style: [ 'orthographic' ] } },
     },
     icon: ``,
     color: '#4B4886',

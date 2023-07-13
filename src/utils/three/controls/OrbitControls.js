@@ -854,8 +854,8 @@ class OrbitControls extends THREE.EventDispatcher {
             // Make sure we are enabled
             if (self.enabled === false) return;
 
-            // Make sure we have focus on Viewport
-            if (!editor.viewport.hasFocus()) return;
+            // Make sure we have focus
+            if (!document.activeElement.contains(self.domElement)) return;
 
             // If animating, need to stop animation
             if (self.animating !== ORBIT_ANIMATION.NONE) {
@@ -909,35 +909,51 @@ class OrbitControls extends THREE.EventDispatcher {
         function onMouseDown(event) {
             let mouseAction = THREE.MOUSE.ROTATE;
 
-            if (event.button === 0 /* left */ && !self.spaceKey) {
-                switch (editor.viewport.mouseMode) {
-                    case VIEWPORT.MOUSE_MODES.SELECT:	mouseAction = THREE.MOUSE.PAN; break;
-                    case VIEWPORT.MOUSE_MODES.LOOK:		mouseAction = THREE.MOUSE.ROTATE; break;
-                    case VIEWPORT.MOUSE_MODES.MOVE:		mouseAction = THREE.MOUSE.PAN; break;
-                    case VIEWPORT.MOUSE_MODES.ZOOM:		mouseAction = THREE.MOUSE.DOLLY; break;
-                    default: mouseAction = -1;
-                }
+            // Editor Viewport?
+            if (editor && editor.viewport.hasFocus()) {
 
-            } else if (event.button === 2 /* right */ || (event.button === 0 && self.spaceKey)) {
-                if (self.camera.isOrthographicCamera) {
-                    if (editor.viewport.mouseMode === VIEWPORT.MOUSE_MODES.MOVE) {
-                        mouseAction = (self.spaceKey) ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE;
-                    } else {
-                        mouseAction = (self.spaceKey) ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN;
+                console.log('Editor down here');
+
+                if (event.button === 0 /* left */ && !self.spaceKey) {
+                    switch (editor.viewport.mouseMode) {
+                        case VIEWPORT.MOUSE_MODES.SELECT:	mouseAction = THREE.MOUSE.PAN; break;
+                        case VIEWPORT.MOUSE_MODES.LOOK:		mouseAction = THREE.MOUSE.ROTATE; break;
+                        case VIEWPORT.MOUSE_MODES.MOVE:		mouseAction = THREE.MOUSE.PAN; break;
+                        case VIEWPORT.MOUSE_MODES.ZOOM:		mouseAction = THREE.MOUSE.DOLLY; break;
+                        default: mouseAction = -1;
                     }
 
+                } else if (event.button === 2 /* right */ || (event.button === 0 && self.spaceKey)) {
+                    if (self.camera.isOrthographicCamera) {
+                        if (editor.viewport.mouseMode === VIEWPORT.MOUSE_MODES.MOVE) {
+                            mouseAction = (self.spaceKey) ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE;
+                        } else {
+                            mouseAction = (self.spaceKey) ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN;
+                        }
+
+                    } else {
+                        if (editor.viewport.mouseMode === VIEWPORT.MOUSE_MODES.LOOK) {
+                            mouseAction = (self.spaceKey) ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN;
+                        } else {
+                            mouseAction = (self.spaceKey) ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE;
+                        }
+
+                        if (self.camera.rotateLock) mouseAction = THREE.MOUSE.PAN;
+                    }
                 } else {
-                    if (editor.viewport.mouseMode === VIEWPORT.MOUSE_MODES.LOOK) {
-                        mouseAction = (self.spaceKey) ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN;
-                    } else {
-                        mouseAction = (self.spaceKey) ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE;
-                    }
-
-                    if (editor.viewport.camera.rotateLock) mouseAction = THREE.MOUSE.PAN;
+                    mouseAction = -1;
                 }
 
+            // Not Viewport
             } else {
-                mouseAction = -1;
+
+                if (event.button === 0) {
+                    mouseAction = THREE.MOUSE.ROTATE
+                } else if (event.button === 2) {
+                    mouseAction = THREE.MOUSE.PAN;
+                } else {
+                    mouseAction = -1;
+                }
             }
 
             switch (mouseAction) {
@@ -949,7 +965,7 @@ class OrbitControls extends THREE.EventDispatcher {
 
                 case THREE.MOUSE.ROTATE:
                     if (self.enableRotate === false) return;
-                    if (editor.viewport.camera.rotateLock === true) return;
+                    if (self.camera.rotateLock === true) return;
                     handleMouseDownRotate(event);
                     state = ORBIT_STATES.ROTATE;
                     break;
@@ -1020,7 +1036,7 @@ class OrbitControls extends THREE.EventDispatcher {
                 // One finger, rotate
                 case 1:
                     if (self.enableRotate === false) return;
-                    if (editor.viewport.camera.rotateLock === true) return;
+                    if (self.camera.rotateLock === true) return;
                     handleTouchStartRotate();
                     state = ORBIT_STATES.TOUCH_ROTATE;
                     break;

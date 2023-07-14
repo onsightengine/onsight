@@ -116,7 +116,7 @@ Light.config = {
         ],
         groundColor: { type: 'color', default: 0x806040, if: { style: [ 'hemisphere' ] } },
         intensity: [
-            { type: 'slider', default: 0.25 /* 0.5 */, step: 0.05, min: 0, max: 2, if: { style: [ 'ambient' ] } },
+            { type: 'slider', default: 0.50 /* 0.5 */, step: 0.05, min: 0, max: 2, if: { style: [ 'ambient' ] } },
             { type: 'slider', default: 0.50 /* 0.5 */, step: 0.05, min: 0, max: 2, if: { style: [ 'hemisphere' ] } },
             { type: 'slider', default: 1.00 /* 0.5 */, step: 0.05, min: 0, max: 2, if: { style: [ 'directional' ] } },
             { type: 'slider', default: 1.00 /* 1.0 */, step: 0.05, min: 0, max: 2, if: { style: [ 'point', 'spot' ] } },

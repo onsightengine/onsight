@@ -40,9 +40,13 @@ class App {
         // Renderer
         this.renderer = new Renderer3D({ antialias: true });
         this.renderer.setPixelRatio(1); // window.devicePixelRatio;
-        this.renderer.useLegacyLights = true;
         this.renderer.shadowMap.enabled = true;
-        this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace; // NOTE: three 151->152
+
+        // // NOTE: 151->152
+        // see: https://discourse.threejs.org/t/updates-to-color-management-in-three-js-r152/50791
+        //      https://github.com/mrdoob/three.js/wiki/Migration-Guide
+        // Don't need if using EffectComposer?
+        this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 
         // DOM
         this.dom = document.createElement('div');

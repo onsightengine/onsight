@@ -911,9 +911,6 @@ class OrbitControls extends THREE.EventDispatcher {
 
             // Editor Viewport?
             if (editor && editor.viewport.hasFocus()) {
-
-                console.log('Editor down here');
-
                 if (event.button === 0 /* left */ && !self.spaceKey) {
                     switch (editor.viewport.mouseMode) {
                         case VIEWPORT.MOUSE_MODES.SELECT:	mouseAction = THREE.MOUSE.PAN; break;
@@ -946,7 +943,6 @@ class OrbitControls extends THREE.EventDispatcher {
 
             // Not Viewport
             } else {
-
                 if (event.button === 0) {
                     mouseAction = THREE.MOUSE.ROTATE
                 } else if (event.button === 2) {

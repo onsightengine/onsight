@@ -15,7 +15,6 @@ class RenderUtils {
     static offscreenRenderer(width, height) {
         if (_renderer === undefined) {
             _renderer = new Renderer3D({ alpha: true /* transparent background */});
-            _renderer.setClearColor(0xffffff, 0);
             _renderer.setSize(512, 512, false);
             _renderer.outputColorSpace = THREE.LinearSRGBColorSpace; // NOTE: three 151->152
         }
@@ -44,7 +43,8 @@ class RenderUtils {
     /** Render mesh to camera, camera centered on mesh */
     static renderMeshToCanvas(canvas, mesh) {
         const scene = new THREE.Scene();
-        scene.add(new THREE.HemisphereLight(0xffffff, 0x202020, 1.5));
+        const light = new THREE.HemisphereLight(0xffffff, 0x202020, 2.5);
+        scene.add(light);
 
         const camera = new THREE.PerspectiveCamera(50, canvas.width / canvas.height);
         camera.position.set(0, 0, 1);
@@ -63,6 +63,9 @@ class RenderUtils {
         // Replace parent
         scene.remove(mesh);
         if (exsistingParent) exsistingParent.add(mesh);
+
+        // Cleanup
+        if (typeof light.dispose === 'function') light.dispose();
 
         // Copy to canvas
         const context = canvas.getContext('2d');

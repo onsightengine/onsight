@@ -204,7 +204,7 @@ class Material {
 function extendMaterial(material, data = { style: 'basic', premultiplyAlpha: true }) {
     if (!material || !material.isMaterial) return;
 
-    let wantsOpaque = (data && data.opacity === 1.0 && data.map === undefined);
+    const wantsOpaque = (data && data.opacity === 1.0 && data.map === undefined);
 
     // Standard Values
     material.transparent = !wantsOpaque;                // Opaque? Auto adjust 'transparent' (speeds rendering)

@@ -21,6 +21,7 @@ class Light {
         // Generate Backend
         let light = undefined;
         let shadows = false;
+
         switch (data.style) {
 
             case 'ambient':
@@ -117,9 +118,9 @@ Light.config = {
         groundColor: { type: 'color', default: 0x806040, if: { style: [ 'hemisphere' ] } },
         intensity: [
             { type: 'slider', default: 0.50 /* 0.5 */, step: 0.05, min: 0, max: 2, if: { style: [ 'ambient' ] } },
-            { type: 'slider', default: 0.50 /* 0.5 */, step: 0.05, min: 0, max: 2, if: { style: [ 'hemisphere' ] } },
-            { type: 'slider', default: 1.00 /* 0.5 */, step: 0.05, min: 0, max: 2, if: { style: [ 'directional' ] } },
-            { type: 'slider', default: 1.00 /* 1.0 */, step: 0.05, min: 0, max: 2, if: { style: [ 'point', 'spot' ] } },
+            { type: 'slider', default: 0.50 /* 0.5 */, step: 0.05, min: 0, max: 3, if: { style: [ 'hemisphere' ] } },
+            { type: 'slider', default: 1.00 /* 0.5 */, step: 0.05, min: 0, max: 4, if: { style: [ 'directional' ] } },
+            { type: 'slider', default: 1.00 /* 1.0 */, step: 0.05, min: 0, max: 5, if: { style: [ 'point', 'spot' ] } },
         ],
         distance: { type: 'number', default: 0, if: { style: [ 'point', 'spot' ] } },
         decay: { type: 'number', default: 1, if: { style: [ 'point', 'spot' ] } },

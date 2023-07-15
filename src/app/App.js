@@ -8,7 +8,6 @@ import { RapierPhysics } from './RapierPhysics.js';
 import { Renderer3D } from './Renderer3D.js';
 import { Scene3D } from '../project/scene3d/Scene3D.js';
 import { SceneManager } from './SceneManager.js';
-import { System } from '../utils/System.js';
 
 // https://github.com/mrdoob/three.js/blob/dev/editor/js/libs/app.js
 // https://github.com/mrdoob/three.js/blob/dev/examples/jsm/physics/RapierPhysics.js
@@ -71,7 +70,6 @@ class App {
 
         // Flags
         this.isPlaying = false;
-        this.wantsScreenshot = false;
     }
 
     /******************** LOAD */
@@ -154,15 +152,6 @@ class App {
 
         // Render
         this.renderer.render(this.scene, this.camera);
-
-        // Screenshot
-        if (this.wantsScreenshot) {
-            const filename = this.project.name + ' ' + new Date().toLocaleString() + '.png';
-            const strMime = 'image/png'; /* or 'image/jpeg' or 'image/webp' */
-            const imgData = this.renderer.domElement.toDataURL(strMime);
-            System.saveImage(imgData, filename);
-            this.wantsScreenshot = false;
-        }
 
         // New Frame
         if (this.isPlaying) {

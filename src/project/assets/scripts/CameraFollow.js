@@ -12,6 +12,7 @@ class CameraFollow extends Script {
 // Properties
 let variables = {
     distance: { type: 'number', default: 10 },
+    orbit: { type: 'boolean', default: false },
     rotate: { type: 'boolean', default: false },
 };
 
@@ -28,6 +29,8 @@ function init() {
     app.camera.position.y = this.position.y;
     app.camera.position.z = this.position.z + distance;
     controls = new ONE.OrbitControls(app.camera, app.renderer.domElement, this);
+    controls.enableRotate = orbit;
+    controls.enablePan = orbit;
 
     // Initialize Temp Variables
     direction = new THREE.Vector3();

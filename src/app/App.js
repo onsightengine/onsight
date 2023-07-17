@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 import { APP_EVENTS } from '../constants.js';
 import { AssetManager } from '../project/AssetManager.js';
+import { CameraUtils } from '../utils/three/CameraUtils.js';
 import { Clock } from '../utils/Clock.js';
+import { EntityUtils } from '../utils/three/EntityUtils.js';
 import { ObjectUtils } from '../utils/three/ObjectUtils.js';
 import { Project } from '../project/Project.js';
 import { RapierPhysics } from './RapierPhysics.js';
@@ -25,6 +27,7 @@ let framerate = 60;
 
 // Globals
 const _position = new THREE.Vector3();
+const _raycaster = new THREE.Raycaster();
 
 // TEMP
 let physics;
@@ -65,8 +68,9 @@ class App {
         // Game Clock
         this.gameClock = new Clock(false /* autostart */);
 
-        // Keys
+        // Keys / Mouse
         this.keys = {};
+        this.pointer = new THREE.Vector2();
 
         // Flags
         this.isPlaying = false;
@@ -135,7 +139,7 @@ class App {
             // }
 
             // Call 'update()' functions, catch errors
-            try { this.dispatch(this.events.update, delta, total); }
+            try { this.dispatch(this.events.update, { delta, total }); }
             catch (error) { console.error((error.message || error), (error.stack || '')); }
 
             // Physics Update
@@ -280,23 +284,20 @@ class App {
         if (this.renderer) this.renderer.setSize(width, height);
     }
 
-    gameCoordinates(fromEvent) {
-        //
-        // NEEDS FURTHER IMPROVEMENT
-        //
+    gameCoordinates(event) {
+        this.updatePointer(event);
+        return CameraUtils.worldPoint({ x: this.pointer.x, y: this.pointer.y }, this.camera, this.camera.target, 'xy');
+    }
 
-        // Get mouse coords
+    updatePointer(event) {
+        // Mouse coords
         const rect = this.dom.getBoundingClientRect();
-        const eventX = fromEvent.clientX - rect.left;
-        const eventY = fromEvent.clientY - rect.top;
+        const eventX = event.clientX - rect.left;
+        const eventY = event.clientY - rect.top;
 
         // Relative screen position (WebGL is -1 to 1 left to right, 1 to -1 top to bottom)
-        const x =  ((eventX / rect.width ) * (rect.width * 2)) - rect.width;
-        const y = -((eventY / rect.height) * (rect.height * 2)) + rect.height;
-
-        const vec = new THREE.Vector3(x, y, 0);
-        vec.unproject(this.camera);
-        return vec;
+        this.pointer.x =  ((eventX / rect.width ) * 2) - 1;
+        this.pointer.y = -((eventY / rect.height) * 2) + 1;
     }
 
 }
@@ -321,6 +322,21 @@ function onKeyUp(event) {
 
 function onPointerDown(event) {
     if (this.isPlaying) {
+        // Entity?
+        this.updatePointer(event);
+        _raycaster.setFromCamera(this.pointer, this.camera);
+        const intersects = _raycaster.intersectObjects(this.scene.children, true);
+        for (let i = 0; i < intersects.length; i++) {
+            event.entity = EntityUtils.parentEntity(intersects[i].object);
+            if (event.entity && event.entity.isEntity) break;
+            event.entity = undefined;
+        }
+
+        // // DEBUG: Mouse position in game coordinates
+        // const coords = this.gameCoordinates(event);
+        // console.log(coords? `Coords X:${coords.x}, Y: ${coords.y}, Z: ${coords.z}` : 'Unknown');
+
+        // Dispatch Events
         this.dispatch(this.events.pointerdown, event);
     }
 }

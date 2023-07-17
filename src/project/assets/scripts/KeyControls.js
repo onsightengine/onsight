@@ -30,7 +30,7 @@ function init() {
 	position.copy(this.position);
 }
 
-function update(delta, total) {
+function update(event) {
 	// Movement
 	if (app.keys[keyLeft]) position.x -= moveSpeed;
 	if (app.keys[keyRight]) position.x += moveSpeed;
@@ -38,7 +38,7 @@ function update(delta, total) {
 	if (app.keys[keyDown]) position.y -= moveSpeed;
 
 	// Update Position
-	this.position.lerp(position, delta * 10);
+	this.position.lerp(position, event.delta * 10);
 }
 `;
 

@@ -11,15 +11,16 @@ class RotateEntity extends Script {
 `
 // Properties
 let variables = {
+    // Rotation in degress per second
     rotateX: { type: 'number', default: 0 },
     rotateY: { type: 'number', default: 0 },
-    rotateZ: { type: 'number', default: -1 },
+    rotateZ: { type: 'number', default: -360 },
 };
 
-function update(delta) {
-	this.rotation.x += (rotateX * (Math.PI / 180));
-    this.rotation.y += (rotateY * (Math.PI / 180));
-    this.rotation.z += (rotateZ * (Math.PI / 180));
+function update(event) {
+	this.rotation.x += (rotateX * (Math.PI / 180) * event.delta);
+    this.rotation.y += (rotateY * (Math.PI / 180) * event.delta);
+    this.rotation.z += (rotateZ * (Math.PI / 180) * event.delta);
 }
 `;
 

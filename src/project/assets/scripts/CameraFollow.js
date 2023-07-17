@@ -36,12 +36,12 @@ function init() {
     rotation = new THREE.Vector3().copy(this.rotation)
 }
 
-function update(delta) {
+function update(event) {
     if (rotate) {
         // Maintain World Up
         this.getWorldQuaternion(quaternion);
         direction.copy(up).applyQuaternion(quaternion);
-        app.camera.up.lerp(direction, delta * 10);
+        app.camera.up.lerp(direction, event.delta * 10);
 
         // Rotate to Match Entity
         const angleDiff = (rotation.y - this.rotation.y);
@@ -51,7 +51,7 @@ function update(delta) {
 
     // Update Orbit Controls
     controls.centerOnTarget(this);
-    controls.update(delta);
+    controls.update(event.delta);
 }
 `;
 

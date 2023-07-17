@@ -46,7 +46,7 @@ class Clock {
 		return this.#elapsedTime;
 	}
 
-	/** Returns delta time (time since last getDeltaTime() call) */
+	/** Returns delta time (time since last getDeltaTime() call) (in seconds) */
 	getDeltaTime() {
 		if (!this.#running) {
 			this.#lastFrameCount = 0;

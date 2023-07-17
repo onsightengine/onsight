@@ -18,9 +18,11 @@ function init() {
 	this.updateComponent('material', { color: Number(color) });
 }
 
-function pointerdown() {
-	const clr = new THREE.Color(Math.random(), Math.random(), Math.random());
-    this.replaceComponent('material', { color: clr });
+function pointerdown(event) {
+    if (event.entity === this) {
+	    const clr = new THREE.Color(Math.random(), Math.random(), Math.random());
+        this.replaceComponent('material', { color: clr });
+    }
 }
 `;
 

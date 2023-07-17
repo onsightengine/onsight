@@ -24,25 +24,28 @@ class Script {
 // Lifecycle Events:    init, update, destroy
 // Input Events:        keydown, keyup, pointerdown, pointerup, pointermove
 // Within Events:
-//      'this'  (represents entity this script is attached to)
-//      'app'   (app.renderer, app.project, app.scene, app.camera, app.keys)
+//      'this'          represents entity this script is attached to
+//      'app'           access .renderer, .project, .scene, .camera, .keys
+// Pointer Events:
+//      'event.entity'  entity under pointer (if there is one)
+// Update Event:
+//      'event.delta'   time since last frame (in seconds)
+//      'event.total'   total elapsed time (in seconds)
 //
 ${variableTemplate(variables)}
-// ...also, script scope variable declarations allowed here
+// ...script scope variable declarations allowed here...
 
-// "init()" is executed when the entity is loaded
+// "init()" is executed when an entity is loaded
 function init() {
 
 }
 
-// "update()" is executed before each frame is rendered
-//     delta: time since last frame (in ms)
-//     total: total elapsed time (in ms)
-function update(delta, total) {
+// "update()" is executed once each frame
+function update(event) {
 
 }
 
-// "destroy()" is executed right before the entity is removed
+// "destroy()" is executed right before an entity is removed
 function destroy() {
 
 }

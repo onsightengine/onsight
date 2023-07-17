@@ -55,7 +55,7 @@ function init() {
 	position.copy(this.position);
 }
 
-function update(delta, total) {
+function update(event) {
 	// Rotate
 	if (app.keys[keyLeft] || app.keys[keyRight]) {
 		rotation.setFromEuler(this.rotation);
@@ -74,7 +74,7 @@ function update(delta, total) {
 	}
 
 	// Update Position
-	this.position.lerp(position, delta * 10);
+	this.position.lerp(position, event.delta * 10);
 }
 `;
 

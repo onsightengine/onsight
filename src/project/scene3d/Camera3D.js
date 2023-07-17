@@ -112,6 +112,12 @@ class Camera3D extends THREE.Camera {
 
     updateProjectionMatrix(target /* Vector3 */) {
 
+        // Update Target
+        if (target) {
+            if (target.isObject3D) target = target.position;
+            this.target.copy(target);
+        }
+
         // https://github.com/mrdoob/three.js/blob/dev/src/cameras/PerspectiveCamera.js
         if (this.isPerspectiveCamera) {
             let top = this.near * Math.tan((Math.PI / 180) * 0.5 * this.fov);
@@ -137,8 +143,6 @@ class Camera3D extends THREE.Camera {
         if (this.isOrthographicCamera) {
 
             // Scale to Postion --> Target Distance
-            if (target && target.isObject3D) target = target.position;
-            if (target) this.target.copy(target);
             const distance = this.position.distanceTo(this.target);
 
             // NOTE: Starting Camera distance is '10'

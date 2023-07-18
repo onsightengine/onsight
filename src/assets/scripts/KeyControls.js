@@ -32,10 +32,15 @@ function init() {
 
 function update(event) {
 	// Movement
-	if (app.keys[keyLeft]) position.x -= moveSpeed;
-	if (app.keys[keyRight]) position.x += moveSpeed;
-    if (app.keys[keyUp]) position.y += moveSpeed;
-	if (app.keys[keyDown]) position.y -= moveSpeed;
+	if (app.keys[keyLeft] || app.keys[keyRight] || app.keys[keyUp] || app.keys[keyDown]) {
+		if (app.keys[keyLeft]) position.x -= moveSpeed;
+		if (app.keys[keyRight]) position.x += moveSpeed;
+		if (app.keys[keyUp]) position.y += moveSpeed;
+		if (app.keys[keyDown]) position.y -= moveSpeed;
+	} else {
+		// Dissipate Movement
+		position.lerp(this.position, event.delta * 10);
+	}
 
 	// Update Position
 	this.position.lerp(position, event.delta * 10);

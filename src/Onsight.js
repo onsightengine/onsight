@@ -27,12 +27,14 @@ export { SceneManager } from './app/SceneManager.js'
 export { Script } from './assets/Script.js';
 
 // Assets, Scripts, Camera
+export { MoveCamera } from './assets/scripts/MoveCamera.js';
 export { OrbitEntity } from './assets/scripts/OrbitEntity.js';
 
 // Assets, Scripts, Controls
 export { DragControls } from './assets/scripts/DragControls.js';
 export { DrivingControls } from './assets/scripts/DrivingControls.js';
 export { KeyControls } from './assets/scripts/KeyControls.js';
+export { ZigZagControls } from './assets/scripts/ZigZagControls.js';
 
 // Assets, Scripts, Entity
 export { ColorChange } from './assets/scripts/ColorChange.js';

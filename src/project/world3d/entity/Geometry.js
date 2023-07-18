@@ -429,6 +429,7 @@ Geometry.config = {
     icon: ``,
     color: 'rgb(255, 113, 0)',
     dependencies: [ 'material' ],
+    group: [ 'Entity3D' ],
 };
 
 ComponentManager.register('geometry', Geometry);

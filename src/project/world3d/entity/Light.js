@@ -131,6 +131,7 @@ Light.config = {
     },
     icon: ``,
     color: '#222222',
+    group: [ 'Entity3D' ],
 };
 
 ComponentManager.register('light', Light);

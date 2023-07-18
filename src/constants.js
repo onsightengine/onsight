@@ -23,20 +23,10 @@ export const CAMERA_TYPES = {
     ORTHOGRAPHIC:   'orthographic',
 };
 
-export const ENTITY_TYPES = {
-    Entity2D:       'Entity2D',
-    Entity3D:       'Entity3D',
-};
-
-export const SCENE_TYPES = {
-    Scene2D:        'Scene2D',
-    Scene3D:        'Scene3D',
-    SceneUI:        'SceneUI',
-};
-
 export const WORLD_TYPES = {
     World2D:        'World2D',
     World3D:        'World3D',
+    WorldUI:        'WorldUI',
 };
 
 export const SCRIPT_FORMAT = {

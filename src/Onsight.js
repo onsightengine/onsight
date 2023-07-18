@@ -48,13 +48,13 @@ export { ComponentManager } from './project/ComponentManager.js';
 export { Project } from './project/Project.js';
 
 // Core, Scene3D
-export { Camera3D } from './project/scene3d/Camera3D.js';
-export { Entity3D } from './project/scene3d/Entity3D.js';
-export { Scene3D } from './project/scene3d/Scene3D.js';
-export { World3D } from './project/scene3d/World3D.js';
+export { Camera3D } from './project/world3d/Camera3D.js';
+export { Entity3D } from './project/world3d/Entity3D.js';
+export { Scene3D } from './project/world3d/Scene3D.js';
+export { World3D } from './project/world3d/World3D.js';
 
 // Core, Scene3D, Builders
-export { SVGBuilder } from './project/scene3d/builders/SVGBuilder.js';
+export { SVGBuilder } from './project/world3d/builders/SVGBuilder.js';
 
 /******************** CLASSES - Utils  ********************/
 
@@ -90,14 +90,14 @@ export { Vectors } from './utils/Vectors.js';
 
 /******************** REGISTER COMPONENTS ********************/
 
-import './project/scene3d/components/Camera.js';
-import './project/scene3d/components/Geometry.js';
-import './project/scene3d/components/Light.js';
-import './project/scene3d/components/Material.js';
-import './project/scene3d/components/Mesh.js';
-import './project/scene3d/components/Script.js';
-import './project/scene3d/components/Test.js';
-// import './project/scene3d/components/Sprite.js';
+import './project/world3d/entity/Camera.js';
+import './project/world3d/entity/Geometry.js';
+import './project/world3d/entity/Light.js';
+import './project/world3d/entity/Material.js';
+import './project/world3d/entity/Mesh.js';
+import './project/world3d/entity/Script.js';
+import './project/world3d/entity/Test.js';
+// import './project/world3d/entity/Sprite.js';
 
 /******************** ENSURE SINGLE IMPORT ********************/
 

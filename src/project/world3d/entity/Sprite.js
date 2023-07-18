@@ -55,9 +55,10 @@ Sprite.config = {
         color: { type: 'color' },
         map: { type: 'asset', class: 'texture' },
     },
-    multiple: true,
     icon: ``,
     color: '#222222',
+    multiple: true,
+    group: [ 'Entity3D' ],
 };
 
 ComponentManager.register('sprite', Sprite);

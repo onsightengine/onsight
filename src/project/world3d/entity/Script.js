@@ -44,6 +44,7 @@ Script.config = {
     width: '40%',
     multiple: true,
     dependencies: [],
+    group: [ 'Entity3D' ],
 };
 
 ComponentManager.register('script', Script);

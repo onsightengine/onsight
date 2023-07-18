@@ -68,6 +68,7 @@ Camera.config = {
     },
     icon: ``,
     color: '#4B4886',
+    group: [ 'Entity3D' ],
 };
 
 ComponentManager.register('camera', Camera);

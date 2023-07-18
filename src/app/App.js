@@ -8,7 +8,7 @@ import { ObjectUtils } from '../utils/three/ObjectUtils.js';
 import { Project } from '../project/Project.js';
 import { RapierPhysics } from './RapierPhysics.js';
 import { Renderer3D } from './Renderer3D.js';
-import { Scene3D } from '../project/scene3d/Scene3D.js';
+import { Scene3D } from '../project/world3d/Scene3D.js';
 import { SceneManager } from './SceneManager.js';
 
 // https://github.com/mrdoob/three.js/blob/dev/editor/js/libs/app.js

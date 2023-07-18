@@ -3,7 +3,7 @@ import { VERSION, WORLD_TYPES } from '../constants.js';
 
 import { AssetManager } from './AssetManager.js';
 import { Maths } from '../utils/Maths.js';
-import { World3D } from './scene3d/World3D.js';
+import { World3D } from './world3d/World3D.js';
 
 class Project {
 

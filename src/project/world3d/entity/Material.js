@@ -20,7 +20,7 @@ const blendingModes = [ 'NoBlending', 'NormalBlending', 'AdditiveBlending', 'Sub
 const sides = [ 'FrontSide', 'BackSide', 'DoubleSide' ];
 const depthPacking = [ 'BasicDepthPacking', 'RGBADepthPacking' ];
 
-// const hdrEquirect = new RGBELoader().setPath('../engine/src/project/scene3d/components/textures/')
+// const hdrEquirect = new RGBELoader().setPath('../engine/src/project/world3d/entity/textures/')
 //  .load('royal_esplanade_1k.hdr', () => hdrEquirect.mapping = THREE.EquirectangularReflectionMapping);
 
 class Material {
@@ -338,6 +338,7 @@ Material.config = {
     icon: ``,
     color: 'rgb(165, 243, 0)',
     dependencies: [ 'geometry' ],
+    group: [ 'Entity3D' ],
 };
 
 ComponentManager.register('material', Material);

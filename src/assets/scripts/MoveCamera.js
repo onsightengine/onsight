@@ -13,7 +13,7 @@ class MoveCamera extends Script {
 let variables = {
     // Rotation in degress per second
     moveX: { type: 'number', default: 0 },
-    moveY: { type: 'number', default: 1 },
+    moveY: { type: 'number', default: 2 },
     moveZ: { type: 'number', default: 0 },
 };
 

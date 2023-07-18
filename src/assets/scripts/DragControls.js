@@ -11,19 +11,19 @@ class DragControls extends Script {
 `
 // Properties
 let variables = {
-    updateSpeed: { type: 'slider', default: 10, min: 0, max: 60 },
+    updateSpeed: { type: 'slider', default: 10, min: 0, max: 50 },
 };
 
 // Locals
 let downOnEntity = false;
 let position;
 let pointer;
-let target;
+let camera;
 
 function init() {
 	position = new THREE.Vector3();
     pointer = new THREE.Vector3();
-    target = new THREE.Vector3();
+    camera = new THREE.Vector3();
 
     // Starting Position
 	position.copy(this.position);
@@ -33,6 +33,7 @@ function pointerdown(event) {
     if (event.entity === this && event.button !== 2) {
         const coords = app.gameCoordinates(event);
         pointer.copy(coords ? coords : this.position);
+        camera.copy(app.camera.position);
         downOnEntity = true;
     }
 }
@@ -41,7 +42,6 @@ function pointermove(event) {
     if (downOnEntity) {
         const coords = app.gameCoordinates(event);
         if (coords) pointer.copy(coords);
-        target.copy(app.camera.position);
     }
 }
 
@@ -55,10 +55,10 @@ function update(event) {
         if (downOnEntity) position.lerp(pointer, event.delta * updateSpeed);
 
         // Camera Moved?
-        pointer.x += app.camera.position.x - target.x;
-        pointer.y += app.camera.position.y - target.y;
-        pointer.z += app.camera.position.z - target.z;
-        target.copy(app.camera.position);
+        pointer.x += app.camera.position.x - camera.x;
+        pointer.y += app.camera.position.y - camera.y;
+        pointer.z += app.camera.position.z - camera.z;
+        camera.copy(app.camera.position);
     } else {
         // Dissipate Target
         position.lerp(this.position, event.delta * updateSpeed);

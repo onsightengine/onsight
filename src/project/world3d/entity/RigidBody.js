@@ -66,6 +66,7 @@ Rigidbody.config = {
     },
     icon: ``,
     color: '#1365C2',
+    group: [ 'Entity3D' ],
 };
 
 ComponentManager.register('rigidbody', Rigidbody);

@@ -944,9 +944,9 @@ class OrbitControls extends THREE.EventDispatcher {
             // Not Viewport
             } else {
                 if (event.button === 0) {
-                    mouseAction = THREE.MOUSE.ROTATE
-                } else if (event.button === 2) {
                     mouseAction = THREE.MOUSE.PAN;
+                } else if (event.button === 2) {
+                    mouseAction = THREE.MOUSE.ROTATE
                 } else {
                     mouseAction = -1;
                 }

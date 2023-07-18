@@ -286,7 +286,7 @@ class App {
 
     gameCoordinates(event) {
         this.updatePointer(event);
-        return CameraUtils.worldPoint({ x: this.pointer.x, y: this.pointer.y }, this.camera, this.camera.target, 'xy');
+        return CameraUtils.worldPoint({ x: this.pointer.x, y: this.pointer.y }, this.camera, this.camera.target, 'none');
     }
 
     updatePointer(event) {

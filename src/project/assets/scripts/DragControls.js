@@ -16,7 +16,8 @@ let variables = {
 
 // Locals
 let downOnEntity = false;
-let position, pointer;
+let position;
+let pointer;
 
 function init() {
 	// Starting Position
@@ -25,7 +26,7 @@ function init() {
 }
 
 function pointerdown(event) {
-    if (event.entity === this) {
+    if (event.entity === this && event.button !== 2) {
         const coords = app.gameCoordinates(event);
         pointer.copy(coords ? coords : this.position);
         downOnEntity = true;

@@ -4,6 +4,11 @@ import * as THREE from 'three';
 //  screenPoint()           Projects a point from 3D world space coordinates to 2D screen coordinates
 //  worldPoint()            Unprojects a point from 2D screen coordinates to 3D world space coordinates
 
+const _camPosition = new THREE.Vector3();
+const _camQuaternion = new THREE.Quaternion();
+const _camScale = new THREE.Vector3();
+const _rotationQuaternion = new THREE.Quaternion();
+
 const _raycaster = new THREE.Raycaster();
 
 class CameraUtils {
@@ -65,11 +70,12 @@ class CameraUtils {
     }
 
     /** Unprojects a point from 2D screen coordinates to 3D world space coordinates */
-    static worldPoint(pointOnScreen, camera, lookTarget = new THREE.Vector3(), facingPlane = 'xy') {
+    static worldPoint(pointOnScreen, camera, lookTarget = new THREE.Vector3(), facingPlane = 'none') {
         if (!camera || !camera.isCamera) {
             console.warn(`CameraUtils.worldPoint: No camera provided!`);
-            return new THREE.Vector3();
+            return false;
         }
+        facingPlane = (typeof facingPlane === 'string') ? facingPlane.toLowerCase() : 'none';
 
         // // OPTION: Distance to Z Method (as a percentage, interpolated between the near and far plane)
 
@@ -87,16 +93,22 @@ class CameraUtils {
 
         // Rotate to 'facingPlane'
         const planeGeometry = new THREE.PlaneGeometry(100000000, 100000000, 2, 2);
-        switch (facingPlane.toLowerCase()) {
+        switch (facingPlane) {
             case 'yz': planeGeometry.rotateY(Math.PI / 2); break;
             case 'xz': planeGeometry.rotateX(Math.PI / 2); break;
-            default: /* 'xy' */ ;
+            default: /* 'xy' & 'none' */
         }
         planeGeometry.translate(lookTarget.x, lookTarget.y, lookTarget.z);
 
         // Mesh
         const planeMaterial = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
         const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+
+        // Rotate to Camera Plane (if facing 'none')
+        if (facingPlane === 'none') {
+            camera.matrixWorld.decompose(_camPosition, _camQuaternion, _camScale);
+            plane.quaternion.multiply(_camQuaternion);
+        }
 
         // Cast ray from Camera
         _raycaster.setFromCamera(pointOnScreen, camera);

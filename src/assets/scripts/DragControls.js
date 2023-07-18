@@ -22,10 +22,11 @@ let target;
 
 function init() {
 	position = new THREE.Vector3();
-    position.copy(this.position);
-
     pointer = new THREE.Vector3();
     target = new THREE.Vector3();
+
+    // Starting Position
+	position.copy(this.position);
 }
 
 function pointerdown(event) {
@@ -58,7 +59,7 @@ function update(event) {
         pointer.y += app.camera.position.y - target.y;
         pointer.z += app.camera.position.z - target.z;
         target.copy(app.camera.position);
-    else {
+    } else {
         // Dissipate Target
         position.lerp(this.position, event.delta * updateSpeed);
     }

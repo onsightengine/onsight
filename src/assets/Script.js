@@ -1,5 +1,5 @@
-import { SCRIPT_FORMAT } from '../../constants.js';
-import { Maths } from '../../utils/Maths.js';
+import { SCRIPT_FORMAT } from '../constants.js';
+import { Maths } from '../utils/Maths.js';
 
 class Script {
 

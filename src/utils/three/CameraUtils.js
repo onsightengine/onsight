@@ -94,21 +94,18 @@ class CameraUtils {
         // Rotate to 'facingPlane'
         const planeGeometry = new THREE.PlaneGeometry(100000000, 100000000, 2, 2);
         switch (facingPlane) {
+            case 'xy': break;
             case 'yz': planeGeometry.rotateY(Math.PI / 2); break;
             case 'xz': planeGeometry.rotateX(Math.PI / 2); break;
-            default: /* 'xy' & 'none' */
+            default: /* 'none' */
+                camera.matrixWorld.decompose(_camPosition, _camQuaternion, _camScale);
+                planeGeometry.applyQuaternion(_camQuaternion);
         }
         planeGeometry.translate(lookTarget.x, lookTarget.y, lookTarget.z);
 
         // Mesh
         const planeMaterial = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
         const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-
-        // Rotate to Camera Plane (if facing 'none')
-        if (facingPlane === 'none') {
-            camera.matrixWorld.decompose(_camPosition, _camQuaternion, _camScale);
-            plane.quaternion.multiply(_camQuaternion);
-        }
 
         // Cast ray from Camera
         _raycaster.setFromCamera(pointOnScreen, camera);

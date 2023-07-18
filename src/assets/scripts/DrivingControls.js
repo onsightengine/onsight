@@ -66,11 +66,15 @@ function update(event) {
 
 	// Movement
     if (app.keys[keyUp] || app.keys[keyDown]) {
+		// Apply Movement
 		this.getWorldQuaternion(quaternion);
 		direction.copy(up).applyQuaternion(quaternion);
 		direction.multiplyScalar(moveSpeed);
 		if (app.keys[keyUp]) position.add(direction);
 		if (app.keys[keyDown]) position.sub(direction);
+	} else {
+		// Dissipate Movement
+		position.lerp(this.position, event.delta * 10);
 	}
 
 	// Update Position

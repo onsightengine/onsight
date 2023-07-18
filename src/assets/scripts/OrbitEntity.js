@@ -1,11 +1,11 @@
 import { Script } from '../Script.js';
 
-class CameraFollow extends Script {
+class OrbitEntity extends Script {
 
     constructor() {
 		super();
 
-		this.name = 'Camera Follow';
+		this.name = 'Orbit Entity';
         this.category = 'camera';
         this.source =
 `
@@ -63,4 +63,4 @@ function update(event) {
 
 }
 
-export { CameraFollow };
+export { OrbitEntity };

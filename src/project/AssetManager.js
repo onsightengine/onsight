@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { RenderUtils } from '../utils/three/RenderUtils.js';
-import { Script } from './assets/Script.js';
+import { Script } from '../assets/Script.js';
 import { Strings } from '../utils/Strings.js';
 
 const _assets = {};

@@ -13,7 +13,7 @@ import { VERSION } from './constants.js';
 export * from './constants.js';
 export { ORBIT_STATES } from './utils/three/controls/OrbitControls.js';
 
-/******************** CLASSES - APP ********************/
+/******************** CLASSES - App ********************/
 
 // App
 export { App } from './app/App.js';
@@ -21,23 +21,29 @@ export { EntityPool } from './app/EntityPool.js';
 export { Renderer3D } from './app/Renderer3D.js';
 export { SceneManager } from './app/SceneManager.js'
 
+/******************** CLASSES - Assets  ********************/
+
+// Assets
+export { Script } from './assets/Script.js';
+
+// Assets, Scripts, Camera
+export { OrbitEntity } from './assets/scripts/OrbitEntity.js';
+
+// Assets, Scripts, Controls
+export { DragControls } from './assets/scripts/DragControls.js';
+export { DrivingControls } from './assets/scripts/DrivingControls.js';
+export { KeyControls } from './assets/scripts/KeyControls.js';
+
+// Assets, Scripts, Entity
+export { ColorChange } from './assets/scripts/ColorChange.js';
+export { RotateEntity } from './assets/scripts/RotateEntity.js';
+
 /******************** CLASSES - Project  ********************/
 
 // Core
 export { AssetManager } from './project/AssetManager.js';
 export { ComponentManager } from './project/ComponentManager.js';
 export { Project } from './project/Project.js';
-
-// Core, Assets
-export { Script } from './project/assets/Script.js';
-
-// Core, Assets, Scripts
-export { CameraFollow } from './project/assets/scripts/CameraFollow.js';
-export { ColorChange } from './project/assets/scripts/ColorChange.js';
-export { DragControls } from './project/assets/scripts/DragControls.js';
-export { DrivingControls } from './project/assets/scripts/DrivingControls.js';
-export { KeyControls } from './project/assets/scripts/KeyControls.js';
-export { RotateEntity } from './project/assets/scripts/RotateEntity.js';
 
 // Core, Scene3D
 export { Camera3D } from './project/scene3d/Camera3D.js';

@@ -18,11 +18,14 @@ let variables = {
 let downOnEntity = false;
 let position;
 let pointer;
+let target;
 
 function init() {
-	// Starting Position
-	position = new THREE.Vector3(); position.copy(this.position);
-    pointer = new THREE.Vector3(); pointer.copy(this.position);
+	position = new THREE.Vector3();
+    position.copy(this.position);
+
+    pointer = new THREE.Vector3();
+    target = new THREE.Vector3();
 }
 
 function pointerdown(event) {
@@ -37,6 +40,7 @@ function pointermove(event) {
     if (downOnEntity) {
         const coords = app.gameCoordinates(event);
         if (coords) pointer.copy(coords);
+        target.copy(app.camera.position);
     }
 }
 
@@ -45,8 +49,19 @@ function pointerup(event) {
 }
 
 function update(event) {
-    // Update Pointer
-    if (downOnEntity) position.lerp(pointer, event.delta * updateSpeed);
+    if (downOnEntity) {
+        // Update Pointer
+        if (downOnEntity) position.lerp(pointer, event.delta * updateSpeed);
+
+        // Camera Moved?
+        pointer.x += app.camera.position.x - target.x;
+        pointer.y += app.camera.position.y - target.y;
+        pointer.z += app.camera.position.z - target.z;
+        target.copy(app.camera.position);
+    else {
+        // Dissipate Target
+        position.lerp(this.position, event.delta * updateSpeed);
+    }
 
 	// Update Position
 	this.position.lerp(position, event.delta * updateSpeed);

@@ -51,8 +51,7 @@ class Light {
                 break;
 
             default:
-                console.error(`Light: Invalid light type '${data.style}'`);
-
+                console.error(`Light Component: Invalid style '${data.style}'`);
         }
 
         // Modify Light

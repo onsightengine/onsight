@@ -186,8 +186,7 @@ class Geometry {
                 break;
 
             default:
-                console.error('Geometry: Invalid geometry type ' + data.style);
-
+                console.error('Geometry Component: Invalid style ' + data.style);
         }
 
         // Modifiy Geometry

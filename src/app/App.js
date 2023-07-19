@@ -41,14 +41,9 @@ class App {
 
         // Renderer
         this.renderer = new Renderer3D({ antialias: true });
-        this.renderer.setPixelRatio(1); // window.devicePixelRatio;
+        this.renderer.setPixelRatio( window.devicePixelRatio);
         this.renderer.shadowMap.enabled = true;
-
-        // // NOTE: 151->152
-        // see: https://discourse.threejs.org/t/updates-to-color-management-in-three-js-r152/50791
-        //      https://github.com/mrdoob/three.js/wiki/Migration-Guide
-        // Don't need if using EffectComposer?
-        this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+        this.renderer.useLegacyLights = true; /* true by default */
 
         // DOM
         this.dom = document.createElement('div');
@@ -62,6 +57,7 @@ class App {
         }
 
         // Active Scene
+        this.world = null;
         this.scene = null;
         this.camera = null;
 
@@ -86,6 +82,9 @@ class App {
     }
 
     dispose() {
+        // Clear Renderer
+        SceneManager.dispose(this.project);
+
         // Clear Objects
         ObjectUtils.clearObject(this.camera);
         ObjectUtils.clearObject(this.scene);
@@ -109,16 +108,16 @@ class App {
         this.project.fromJSON(json, loadAssets);
 
         // Active World/Scene/Camera
-        const fromScene = this.project.getFirstWorld().activeScene();
+        this.world = this.project.getFirstWorld();
 
         // Scene Manager
         SceneManager.app = this;
-        this.camera = SceneManager.cameraFromScene(fromScene);
+        this.camera = SceneManager.cameraFromScene(this.world.activeScene());
         this.camera.changeFit(this.project.settings?.orientation);
         this.scene = new Scene3D();
 
         // Load Scene
-        SceneManager.loadScene(this.scene, fromScene);
+        SceneManager.loadScene(this.scene, this.world.activeScene());
         this.dispatch(this.events.init);
     }
 
@@ -155,7 +154,7 @@ class App {
         }
 
         // Render
-        this.renderer.render(this.scene, this.camera);
+        SceneManager.renderWorld(this.world);
 
         // New Frame
         if (this.isPlaying) {
@@ -282,6 +281,7 @@ class App {
     setSize(width, height) {
         if (this.camera) this.camera.setSize(width, height);
         if (this.renderer) this.renderer.setSize(width, height);
+        SceneManager.setSize(width, height);
     }
 
     gameCoordinates(event) {

@@ -111,8 +111,7 @@ class Material {
             case 'standard': material = new THREE.MeshStandardMaterial(parameters); break;
 
             default:
-                console.error(`Material: Invalid material type '${data.style}'`);
-
+                console.error(`Material Component: Invalid style '${data.style}'`);
         }
 
         // Modifiy Material

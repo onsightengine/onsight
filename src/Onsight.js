@@ -90,6 +90,7 @@ export { Vectors } from './utils/Vectors.js';
 
 /******************** REGISTER COMPONENTS ********************/
 
+// Entity
 import './project/world3d/entity/Camera.js';
 import './project/world3d/entity/Geometry.js';
 import './project/world3d/entity/Light.js';
@@ -98,6 +99,9 @@ import './project/world3d/entity/Mesh.js';
 import './project/world3d/entity/Script.js';
 import './project/world3d/entity/Test.js';
 // import './project/world3d/entity/Sprite.js';
+
+// World
+import './project/world3d/world/Post.js';
 
 /******************** ENSURE SINGLE IMPORT ********************/
 

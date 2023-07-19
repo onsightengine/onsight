@@ -1,9 +1,17 @@
 import * as THREE from 'three';
 import { APP_EVENTS } from '../constants.js';
+import { APP_SIZE } from '../constants.js';
 import { AssetManager } from '../project/AssetManager.js';
 import { Camera3D } from '../project/world3d/Camera3D.js';
 import { EntityUtils } from '../utils/three/EntityUtils.js';
 import { ObjectUtils } from '../utils/three/ObjectUtils.js';
+
+import { CopyShader } from 'three/addons/shaders/CopyShader.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { ClearPass } from 'three/addons/postprocessing/ClearPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
 // Script Functions
 let scriptFunctions = '';
@@ -16,7 +24,8 @@ scriptFunctions = scriptFunctions.replace(/.$/, '');                            
 const scriptParameters = 'app,' + scriptFunctions;
 const scriptReturnString = JSON.stringify(scriptReturnObject).replace(/\"/g, '');   /* remove all qoutes */
 
-// Temp
+// Local
+const _composers = {};
 const _position = new THREE.Vector3();
 
 // Class
@@ -117,6 +126,83 @@ class SceneManager {
 
     static loadScene(toScene, fromScene) {
         SceneManager.copyChildren(toScene, fromScene);
+    }
+
+    /********** RENDER */
+
+    static renderWorld(world) {
+        // Build Composer
+        if (!_composers[world.uuid]) {
+            const composer = new EffectComposer(SceneManager.app.renderer);
+            composer.renderToScreen = true; /* true by default, only applies to last pass */
+
+            // Clear Buffer
+            const clearPass = new ClearPass(new THREE.Color(), 0.0);
+            composer.addPass(clearPass);
+
+            // Render Scene
+            const renderPass = new RenderPass(SceneManager.app.scene, SceneManager.app.camera);
+            renderPass.clear = false;
+            composer.addPass(renderPass);
+
+            // Custom Passes
+            const passes = world.getComponentsWithProperties('type', 'post');
+            passes.forEach((component) => {
+                const pass = component.three();
+                if (pass) {
+                    pass.scene = SceneManager.app.scene;
+                    pass.camera = SceneManager.app.camera;
+                    pass.renderCamera = SceneManager.app.camera;
+                }
+                composer.addPass(pass);
+            });
+
+            // Copy to Screen
+            const copyPass = new ShaderPass(CopyShader);
+            composer.addPass(copyPass);
+
+            _composers[world.uuid] = composer;
+        }
+
+        // Render
+        if (_composers[world.uuid]) {
+            _composers[world.uuid].render();
+        }
+    }
+
+    static setSize(width, height) {
+        // Resize Composers
+        for (const uuid in _composers) {
+            const composer = _composers[uuid];
+            composer.setSize(width, height);
+
+            // Keep 'Pixelation' Pass Ratio
+            composer.passes.forEach((pass) => {
+                if (pass.basePixelSize) {
+                    const fit = SceneManager.app.project.settings?.orientation;
+                    const ratio = APP_SIZE / ((fit === 'portrait') ? height : width);
+                    pass.setPixelSize(pass.basePixelSize / ratio);
+                }
+            });
+        }
+    }
+
+    /********** DISPOSE */
+
+    static dispose(project) {
+        if (!project || !project.isProject) return;
+
+        // Dispose World Composers
+        for (const uuid in project.worlds) {
+            const composer = _composers[uuid];
+            if (composer) {
+                composer.passes.forEach((pass) => {
+                    if (typeof pass.dispose === 'function') pass.dispose();
+                });
+                if (typeof composer.dispose === 'function') composer.dispose();
+                delete _composers[uuid];
+            }
+        }
     }
 
 }

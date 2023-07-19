@@ -21,8 +21,7 @@ class Camera {
                 break;
 
             default:
-                console.error(`Camera.init: Invalid camera type '${data.style}'`);
-
+                console.error(`Camera Component: Invalid style '${data.style}'`);
         }
 
         // Modify Camera

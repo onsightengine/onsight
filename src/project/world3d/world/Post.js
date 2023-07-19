@@ -1,14 +1,12 @@
 import { ComponentManager } from '../../ComponentManager.js';
 
-import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
 import { AsciiShader } from '../../../utils/three/shaders/AsciiShader.js';
 import { ColorifyShader } from 'three/addons/shaders/ColorifyShader.js';
 import { LevelsShader } from '../../../utils/three/shaders/LevelsShader.js';
+import { PixelShader } from '../../../utils/three/shaders/PixelShader.js';
 import { SobelOperatorShader } from 'three/addons/shaders/SobelOperatorShader.js';
-
-let _texture;
 
 class Post {
 
@@ -19,12 +17,10 @@ class Post {
         switch (data.style) {
             case 'ascii':
                 pass = new ShaderPass(AsciiShader);
-                if (_texture && typeof _texture.dispose === 'function') _texture.dispose();
-                _texture = AsciiShader.createCharactersTexture(data.characters);
-                pass.uniforms['uCharacters'].value = _texture;
+                pass.uniforms['tCharacters'].value = AsciiShader.createCharactersTexture(data.characters);
                 pass.uniforms['uCharacterCount'].value = data.characters.length;
-                pass.uniforms['uCellSize'].value = data.cellSize;
-                pass.uniforms['uColor'].value.set(data.cellColor);
+                pass.uniforms['uCellSize'].value = data.textSize;
+                pass.uniforms['uColor'].value.set(data.textColor);
                 break;
 
             case 'bloom':
@@ -48,12 +44,9 @@ class Post {
                 break;
 
             case 'pixel':
-                const options = {
-                    pixelSize: data.pixelSize || 6,
-                    normalEdgeStrength: data.normalEdge || 0.1,
-                    depthEdgeStrength: data.depthEdge || 0.1,
-                };
-                pass = new RenderPixelatedPass(options.pixelSize, null /* scene */, null /* camera */, options);
+                pass = new ShaderPass(PixelShader);
+                pass.uniforms['tPixel'].value = PixelShader.createStyleTexture(data.cellStyle);
+                pass.uniforms['uCellSize'].value = data.cellSize;
                 break;
 
             case 'tint':
@@ -89,7 +82,17 @@ class Post {
     }
 
     dispose() {
+        const pass = this.backend;
+        if (!pass || !pass.uniforms) return;
 
+        for (const property in pass.uniforms) {
+            const uniform = pass.uniforms[property];
+            if (uniform && uniform.value && uniform.value.isTexture) {
+                if (typeof uniform.value.dispose === 'function') {
+                    uniform.value.dispose();
+                }
+            }
+        }
     }
 
     three() {
@@ -105,9 +108,12 @@ Post.config = {
             { type: 'select', default: 'pixel', select: [ 'ascii', 'edge', 'levels', 'pixel', 'tint' ] },
         ],
 
+        // Divider
+        divider: { type: 'divider' },
+
         // Ascii
-        cellSize: { type: 'slider', default: 16, min: 4, max: 64, step: 1, precision: 0, if: { style: [ 'ascii' ] } },
-        cellColor: { type: 'color', default: 0xffffff, if: { style: [ 'ascii' ] } },
+        textSize: { type: 'slider', default: 16, min: 4, max: 64, step: 1, precision: 0, if: { style: [ 'ascii' ] } },
+        textColor: { type: 'color', default: 0xffffff, if: { style: [ 'ascii' ] } },
         characters: { type: 'string', default: ` .,•'^:-+=*!|?%X0#@`, if: { style: [ 'ascii' ] } },
 
         // Levels
@@ -119,9 +125,8 @@ Post.config = {
         negative: { type: 'boolean', default: false, if: { style: [ 'levels' ] } },
 
         // Pixel
-        pixelSize: { type: 'slider', default: 4, min: 1, max: 16, step: 1, precision: 0, if: { style: [ 'pixel' ] } },
-        normalEdge: { type: 'slider', promode: true, default: 0.1, min: 0, max: 2, step: 0.1, precision: 2, if: { style: [ 'pixel' ] } },
-        depthEdge: { type: 'slider', promode: true, default: 0.1, min: 0, max: 1, step: 0.1, precision: 2, if: { style: [ 'pixel' ] } },
+        cellStyle: { type: 'select', default: 'none', select: [ 'none', 'brick', 'cross', 'stitch', 'tile', 'woven' ], if: { style: [ 'pixel' ] } },
+        cellSize: { type: 'slider', default: 12, min: 1, max: 100, step: 1, precision: 0, if: { style: [ 'pixel' ] } },
 
         // Tint
         color: { type: 'color', default: 0xff0000, if: { style: [ 'tint' ] } },

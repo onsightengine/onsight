@@ -6,9 +6,9 @@ const CHARACTERS_PER_ROW = 16;
 
 export const AsciiShader = {
 	uniforms: {
-		'tDiffuse': { value: null },
         'resolution': { value: new THREE.Vector2() },
-        'uCharacters': { value: null },
+		'tDiffuse': { value: null },
+        'tCharacters': { value: null },
         'uCharacterCount': { value: 0 },
         'uCellSize': { value: 16 },
         'uColor': { value: new THREE.Color() },
@@ -23,10 +23,9 @@ export const AsciiShader = {
 
 	fragmentShader: /* glsl */`
 		#include <common>
-		uniform sampler2D tDiffuse;
-        uniform vec2 resolution;
-
-        uniform sampler2D uCharacters;
+		uniform vec2 resolution;
+        uniform sampler2D tDiffuse;
+        uniform sampler2D tCharacters;
         uniform float uCharacterCount;
         uniform float uCellSize;
         uniform vec3 uColor;
@@ -46,7 +45,7 @@ export const AsciiShader = {
             vec2 characterPosition = vec2(mod(characterIndex, SIZE.x), floor(characterIndex / SIZE.y));
             vec2 offset = vec2(characterPosition.x, -characterPosition.y) / SIZE;
             vec2 charUV = mod(vUv * (cell / SIZE), 1.0 / SIZE) - vec2(0., 1.0 / SIZE) + offset;
-            vec4 asciiCharacter = texture2D(uCharacters, charUV);
+            vec4 asciiCharacter = texture2D(tCharacters, charUV);
 
 			gl_FragColor = vec4(uColor * asciiCharacter.rgb, pixelized.a);
         }`,
@@ -65,16 +64,18 @@ export const AsciiShader = {
             // document.body.appendChild(canvas);
 
             const texture = new THREE.CanvasTexture(
-                canvas, THREE.UVMapping,
-                THREE.RepeatWrapping, THREE.RepeatWrapping,
-                THREE.NearestFilter, THREE.NearestFilter,
+                canvas, undefined,
+                THREE.RepeatWrapping,
+                THREE.RepeatWrapping,
+                THREE.NearestFilter,
+                THREE.NearestFilter,
             );
 
-            const context = canvas.getContext('2d');
-            context.clearRect(0, 0, SIZE, SIZE);
-            context.font = `${FONT_SIZE}px arial`;
-            context.textAlign = 'center';
-            context.textBaseline = 'middle';
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, SIZE, SIZE);
+            ctx.font = `${FONT_SIZE}px arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
 
             for (let i = 0; i < characters.length; i++) {
                 const char = characters[i];
@@ -82,11 +83,11 @@ export const AsciiShader = {
                 const y = Math.floor(i / CHARACTERS_PER_ROW);
 
                 // // DEBUG
-                // context.fillStyle = 'hsl(' + 360 * Math.random() + ', 50%, 50%)';
-                // context.fillRect(x * CELL, y * CELL, CELL, CELL);
+                // ctx.fillStyle = 'hsl(' + 360 * Math.random() + ', 50%, 50%)';
+                // ctx.fillRect(x * CELL, y * CELL, CELL, CELL);
 
-                context.fillStyle = '#fff';
-                context.fillText(char, x * CELL + CELL / 2, y * CELL + CELL / 2);
+                ctx.fillStyle = '#fff';
+                ctx.fillText(char, x * CELL + CELL / 2, y * CELL + CELL / 2);
             }
 
             texture.needsUpdate = true;

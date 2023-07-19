@@ -137,25 +137,36 @@ class System {
     }
 
     /** Wait for 'getter' to return an object that exists, then call a function */
-    static waitForObject(operationName, getter, callback, checkFrequencyMs = 1000, timeoutMs = false, alertMs = 5000) {
+    static waitForObject(
+        operationName = '',
+        getter,
+        callback,
+        checkFrequencyMs = 100,
+        timeoutMs = -1,
+        alertMs = 5000,
+    ) {
         let startTimeMs = Date.now();
         let alertTimeMs = Date.now();
-        (function loopSearch() {
-            if (alertMs && Date.now() - alertTimeMs > alertMs) {
+
+        function loopSearch() {
+            if (timeoutMs > 0 && (Date.now() - startTimeMs > timeoutMs)) {
+                console.info(`Operation: ${operationName} timed out`);
+                return;
+            }
+            if ((alertMs > 0) && Date.now() - alertTimeMs > alertMs) {
                 console.info(`Still waiting on operation: ${operationName}`);
                 alertTimeMs = Date.now();
             }
 
-            if (getter() !== undefined && getter() !== null) {
-                callback();
+            if (!getter || typeof getter !== 'function' || getter()) {
+                if (callback && typeof callback === 'function') callback();
                 return;
             } else {
-                setTimeout(function() {
-                    if (timeoutMs && Date.now() - startTimeMs > timeoutMs) return;
-                    loopSearch();
-                }, checkFrequencyMs);
+                setTimeout(loopSearch, checkFrequencyMs);
             }
-        })();
+        }
+
+        loopSearch();
     }
 
 }

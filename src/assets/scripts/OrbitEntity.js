@@ -12,7 +12,7 @@ class OrbitEntity extends Script {
 // Properties
 let variables = {
     distance: { type: 'number', default: 10 },
-    orbit: { type: 'boolean', default: false },
+    orbit: { type: 'boolean', default: true },
     pan: { type: 'boolean', default: false },
     rotate: { type: 'boolean', default: false },
 };

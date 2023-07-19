@@ -3,80 +3,12 @@ import { ComponentManager } from '../../ComponentManager.js';
 import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
+import { AsciiShader } from '../../../utils/three/shaders/AsciiShader.js';
 import { ColorifyShader } from 'three/addons/shaders/ColorifyShader.js';
+import { LevelsShader } from '../../../utils/three/shaders/LevelsShader.js';
 import { SobelOperatorShader } from 'three/addons/shaders/SobelOperatorShader.js';
 
-const LevelsShader = {
-	uniforms: {
-		'tDiffuse': { value: null },
-        'hue': { value: 0 },
-        'saturation': { value: 0 },
-        'brightness': { value: 0 },
-		'contrast': { value: 0 },
-        'grayscale': { value: 0.0 },
-	},
-
-	vertexShader: /* glsl */`
-		varying vec2 vUv;
-		void main() {
-			vUv = uv;
-			gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-		}`,
-
-	fragmentShader: /* glsl */`
-		#include <common>
-		uniform sampler2D tDiffuse;
-
-        uniform float hue;
-        uniform float saturation;
-        uniform float brightness;
-		uniform float contrast;
-        uniform float grayscale;
-
-		varying vec2 vUv;
-
-		void main() {
-			vec4 texel = texture2D(tDiffuse, vUv);
-
-            // Hue
-			float angle = hue * 3.14159265;
-			float s = sin(angle), c = cos(angle);
-			vec3 weights = (vec3(2.0 * c, -sqrt(3.0) * s - c, sqrt(3.0) * s - c) + 1.0) / 3.0;
-			float len = length(texel.rgb);
-			texel.rgb = vec3(
-				dot(texel.rgb, weights.xyz),
-				dot(texel.rgb, weights.zxy),
-				dot(texel.rgb, weights.yzx)
-			);
-
-            // Saturation
-			float average = (texel.r + texel.g + texel.b) / 3.0;
-			if (saturation > 0.0) {
-				texel.rgb += (average - texel.rgb) * (1.0 - 1.0 / (1.001 - saturation));
-			} else {
-				texel.rgb += (average - texel.rgb) * (- saturation);
-			}
-
-            // Brightness
-            float bright = brightness * texel.a;
-            texel.rgb += bright;
-
-            // Contrast
-            float clarity = min(contrast * texel.a, 0.9999);
-			if (clarity > 0.0) {
-				texel.rgb = (texel.rgb - 0.5) / (1.0 - clarity) + 0.5;
-			} else {
-				texel.rgb = (texel.rgb - 0.5) * (1.0 + clarity) + 0.5;
-			}
-
-            // Grayscale
-            float l = luminance(texel.rgb);
-            texel = mix(texel, vec4(l, l, l, texel.a), grayscale);
-
-            // Final
-			gl_FragColor = texel;
-		}`
-};
+let _texture;
 
 class Post {
 
@@ -85,8 +17,24 @@ class Post {
         let pass = undefined;
 
         switch (data.style) {
+            case 'ascii':
+                pass = new ShaderPass(AsciiShader);
+                if (_texture && typeof _texture.dispose === 'function') _texture.dispose();
+                _texture = AsciiShader.createCharactersTexture(data.characters);
+                pass.uniforms['uCharacters'].value = _texture;
+                pass.uniforms['uCharacterCount'].value = data.characters.length;
+                pass.uniforms['uCellSize'].value = data.cellSize;
+                pass.uniforms['uColor'].value.set(data.cellColor);
+                pass.setFixedSize = function(width, height) {
+                    pass.uniforms['resolution'].value.x = width;
+				    pass.uniforms['resolution'].value.y = height;
+                };
+                break;
 
             case 'bloom':
+
+                // TODO
+
                 break;
 
             case 'edge':
@@ -128,7 +76,7 @@ class Post {
 
         }
 
-        // Modify Camera
+        // Modify Pass
         if (pass) {
 
         } else {
@@ -153,10 +101,14 @@ class Post {
 Post.config = {
     schema: {
 
-        // ADD: 'bloom', 'toon'
         style: [
-            { type: 'select', default: 'pixel', select: [ 'edge', 'levels', 'pixel', 'tint' ] },
+            { type: 'select', default: 'pixel', select: [ 'ascii', 'edge', 'levels', 'pixel', 'tint' ] },
         ],
+
+        // Ascii
+        cellSize: { type: 'slider', default: 16, min: 4, max: 64, step: 1, precision: 0, if: { style: [ 'ascii' ] } },
+        cellColor: { type: 'color', default: 0xffffff, if: { style: [ 'ascii' ] } },
+        characters: { type: 'string', default: ` .,•'^:-+=*!|?%X0#@`, if: { style: [ 'ascii' ] } },
 
         // Levels
         hue: { type: 'angle', default: 0.0, min: -180, max: 180, if: { style: [ 'levels' ] } },

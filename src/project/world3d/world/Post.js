@@ -25,10 +25,6 @@ class Post {
                 pass.uniforms['uCharacterCount'].value = data.characters.length;
                 pass.uniforms['uCellSize'].value = data.cellSize;
                 pass.uniforms['uColor'].value.set(data.cellColor);
-                pass.setFixedSize = function(width, height) {
-                    pass.uniforms['resolution'].value.x = width;
-				    pass.uniforms['resolution'].value.y = height;
-                };
                 break;
 
             case 'bloom':
@@ -39,10 +35,6 @@ class Post {
 
             case 'edge':
                 pass = new ShaderPass(SobelOperatorShader);
-                pass.setFixedSize = function(width, height) {
-                    pass.uniforms['resolution'].value.x = width;
-				    pass.uniforms['resolution'].value.y = height;
-                };
                 break;
 
             case 'levels':
@@ -52,6 +44,7 @@ class Post {
                 pass.uniforms['saturation'].value = data.saturation;
                 pass.uniforms['hue'].value = data.hue;
                 pass.uniforms['grayscale'].value = data.grayscale;
+                pass.uniforms['negative'].value = data.negative;
                 break;
 
             case 'pixel':
@@ -61,9 +54,6 @@ class Post {
                     depthEdgeStrength: data.depthEdge || 0.1,
                 };
                 pass = new RenderPixelatedPass(options.pixelSize, null /* scene */, null /* camera */, options);
-                pass.setFixedSize = function(width, height) {
-                    pass.setSize(width, height);
-                }
                 break;
 
             case 'tint':
@@ -78,6 +68,16 @@ class Post {
 
         // Modify Pass
         if (pass) {
+            pass.setFixedSize = function(width, height) {
+                if (pass.uniforms && pass.uniforms['resolution']) {
+                    pass.uniforms['resolution'].value.x = width;
+                    pass.uniforms['resolution'].value.y = height;
+                }
+
+                if (typeof pass.setSize === 'function') {
+                    pass.setSize(width, height);
+                }
+            };
 
         } else {
             // console.log('Error with post pass!');
@@ -116,6 +116,7 @@ Post.config = {
         brightness: { type: 'slider', default: 0.0, min: -1, max: 1, step: 0.1, precision: 2, if: { style: [ 'levels' ] } },
         contrast: { type: 'slider', default: 0.0, min: -1, max: 1, step: 0.1, precision: 2, if: { style: [ 'levels' ] } },
         grayscale: { type: 'slider', default: 0.0, min: 0, max: 1, step: 0.1, precision: 2, if: { style: [ 'levels' ] } },
+        negative: { type: 'boolean', default: false, if: { style: [ 'levels' ] } },
 
         // Pixel
         pixelSize: { type: 'slider', default: 4, min: 1, max: 16, step: 1, precision: 0, if: { style: [ 'pixel' ] } },

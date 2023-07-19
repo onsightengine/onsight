@@ -7,6 +7,7 @@ export const LevelsShader = {
         'brightness': { value: 0 },
 		'contrast': { value: 0 },
         'grayscale': { value: 0.0 },
+		'negative': { value: false },
 	},
 
 	vertexShader: /* glsl */`
@@ -25,6 +26,7 @@ export const LevelsShader = {
         uniform float brightness;
 		uniform float contrast;
         uniform float grayscale;
+		uniform float negative;
 
 		varying vec2 vUv;
 
@@ -65,6 +67,9 @@ export const LevelsShader = {
             // Grayscale
             float l = luminance(texel.rgb);
             texel = mix(texel, vec4(l, l, l, texel.a), grayscale);
+
+			// Negative
+			texel.rgb = mix(texel.rgb, (1.0 - texel.rgb) * texel.a, negative);
 
             // Final
 			gl_FragColor = texel;

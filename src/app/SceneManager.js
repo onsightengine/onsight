@@ -171,17 +171,20 @@ class SceneManager {
     }
 
     static setSize(width, height) {
+        const fit = SceneManager.app?.project?.settings?.orientation;
+        const ratio = APP_SIZE / ((fit === 'portrait') ? height : width);
+        const fixedWidth = width * ratio;
+        const fixedHeight = height * ratio;
+
         // Resize Composers
         for (const uuid in _composers) {
             const composer = _composers[uuid];
             composer.setSize(width, height);
 
-            // Keep 'Pixelation' Pass Ratio
+            // Passes with Fixed Size
             composer.passes.forEach((pass) => {
-                if (pass.basePixelSize) {
-                    const fit = SceneManager.app.project.settings?.orientation;
-                    const ratio = APP_SIZE / ((fit === 'portrait') ? height : width);
-                    pass.setPixelSize(pass.basePixelSize / ratio);
+                if (typeof pass.setFixedSize === 'function') {
+                    pass.setFixedSize(fixedWidth, fixedHeight);
                 }
             });
         }

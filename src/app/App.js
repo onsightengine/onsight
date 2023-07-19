@@ -41,7 +41,7 @@ class App {
 
         // Renderer
         this.renderer = new Renderer3D({ antialias: true });
-        this.renderer.setPixelRatio( window.devicePixelRatio);
+        this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.shadowMap.enabled = true;
         this.renderer.useLegacyLights = true; /* true by default */
 

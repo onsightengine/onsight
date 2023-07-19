@@ -3,12 +3,17 @@ import { ComponentManager } from '../../ComponentManager.js';
 import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
+import { ColorifyShader } from 'three/addons/shaders/ColorifyShader.js';
 import { SobelOperatorShader } from 'three/addons/shaders/SobelOperatorShader.js';
 
 const LevelsShader = {
 	uniforms: {
 		'tDiffuse': { value: null },
-        'grayscale': { value: 0.0 }
+        'hue': { value: 0 },
+        'saturation': { value: 0 },
+        'brightness': { value: 0 },
+		'contrast': { value: 0 },
+        'grayscale': { value: 0.0 },
 	},
 
 	vertexShader: /* glsl */`
@@ -21,15 +26,52 @@ const LevelsShader = {
 	fragmentShader: /* glsl */`
 		#include <common>
 		uniform sampler2D tDiffuse;
+
+        uniform float hue;
+        uniform float saturation;
+        uniform float brightness;
+		uniform float contrast;
         uniform float grayscale;
+
 		varying vec2 vUv;
 
 		void main() {
 			vec4 texel = texture2D(tDiffuse, vUv);
 
+            // Hue
+			float angle = hue * 3.14159265;
+			float s = sin(angle), c = cos(angle);
+			vec3 weights = (vec3(2.0 * c, -sqrt(3.0) * s - c, sqrt(3.0) * s - c) + 1.0) / 3.0;
+			float len = length(texel.rgb);
+			texel.rgb = vec3(
+				dot(texel.rgb, weights.xyz),
+				dot(texel.rgb, weights.zxy),
+				dot(texel.rgb, weights.yzx)
+			);
+
+            // Saturation
+			float average = (texel.r + texel.g + texel.b) / 3.0;
+			if (saturation > 0.0) {
+				texel.rgb += (average - texel.rgb) * (1.0 - 1.0 / (1.001 - saturation));
+			} else {
+				texel.rgb += (average - texel.rgb) * (- saturation);
+			}
+
+            // Brightness
+            float bright = brightness * texel.a;
+            texel.rgb += bright;
+
+            // Contrast
+            float clarity = min(contrast * texel.a, 0.9999);
+			if (clarity > 0.0) {
+				texel.rgb = (texel.rgb - 0.5) / (1.0 - clarity) + 0.5;
+			} else {
+				texel.rgb = (texel.rgb - 0.5) * (1.0 + clarity) + 0.5;
+			}
+
             // Grayscale
             float l = luminance(texel.rgb);
-            texel = mix(texel, vec4(l, l, l, texel.w), grayscale);
+            texel = mix(texel, vec4(l, l, l, texel.a), grayscale);
 
             // Final
 			gl_FragColor = texel;
@@ -57,6 +99,10 @@ class Post {
 
             case 'levels':
                 pass = new ShaderPass(LevelsShader);
+                pass.uniforms['brightness'].value = data.brightness;
+                pass.uniforms['contrast'].value = data.contrast;
+                pass.uniforms['saturation'].value = data.saturation;
+                pass.uniforms['hue'].value = data.hue;
                 pass.uniforms['grayscale'].value = data.grayscale;
                 break;
 
@@ -70,6 +116,11 @@ class Post {
                 pass.setFixedSize = function(width, height) {
                     pass.setSize(width, height);
                 }
+                break;
+
+            case 'tint':
+                pass = new ShaderPass(ColorifyShader);
+                pass.uniforms['color'].value.set(data.color);
                 break;
 
             default:
@@ -102,17 +153,25 @@ class Post {
 Post.config = {
     schema: {
 
+        // ADD: 'bloom', 'toon'
         style: [
-            { type: 'select', default: 'pixel', select: [ 'bloom', 'edge', 'levels', 'pixel', 'tint' ] },
+            { type: 'select', default: 'pixel', select: [ 'edge', 'levels', 'pixel', 'tint' ] },
         ],
 
         // Levels
-        grayscale: { type: 'slider', default: 1.0, min: 0, max: 1, step: 0.1, precision: 2, if: { style: [ 'levels' ] } },
+        hue: { type: 'angle', default: 0.0, min: -180, max: 180, if: { style: [ 'levels' ] } },
+        saturation: { type: 'slider', default: 0.0, min: -1, max: 1, step: 0.1, precision: 2, if: { style: [ 'levels' ] } },
+        brightness: { type: 'slider', default: 0.0, min: -1, max: 1, step: 0.1, precision: 2, if: { style: [ 'levels' ] } },
+        contrast: { type: 'slider', default: 0.0, min: -1, max: 1, step: 0.1, precision: 2, if: { style: [ 'levels' ] } },
+        grayscale: { type: 'slider', default: 0.0, min: 0, max: 1, step: 0.1, precision: 2, if: { style: [ 'levels' ] } },
 
         // Pixel
         pixelSize: { type: 'slider', default: 4, min: 1, max: 16, step: 1, precision: 0, if: { style: [ 'pixel' ] } },
         normalEdge: { type: 'slider', promode: true, default: 0.1, min: 0, max: 2, step: 0.1, precision: 2, if: { style: [ 'pixel' ] } },
         depthEdge: { type: 'slider', promode: true, default: 0.1, min: 0, max: 1, step: 0.1, precision: 2, if: { style: [ 'pixel' ] } },
+
+        // Tint
+        color: { type: 'color', default: 0xff0000, if: { style: [ 'tint' ] } },
 
     },
     icon: ``,

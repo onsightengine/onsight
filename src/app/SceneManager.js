@@ -6,12 +6,33 @@ import { Camera3D } from '../project/world3d/Camera3D.js';
 import { EntityUtils } from '../utils/three/EntityUtils.js';
 import { ObjectUtils } from '../utils/three/ObjectUtils.js';
 
-import { CopyShader } from 'three/addons/shaders/CopyShader.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { ClearPass } from 'three/addons/postprocessing/ClearPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+
+const OpaqueShader = {
+    // https://github.com/mrdoob/three.js/blob/master/examples/jsm/shaders/CopyShader.js
+	name: 'OpaqueShader',
+	uniforms: {
+		'tDiffuse': { value: null },
+		'opacity': { value: 1.0 }
+	},
+	vertexShader: /* glsl */`
+		varying vec2 vUv;
+		void main() {
+			vUv = uv;
+			gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+		}`,
+	fragmentShader: /* glsl */`
+		uniform sampler2D tDiffuse;
+		varying vec2 vUv;
+		void main() {
+			vec4 texel = texture2D(tDiffuse, vUv);
+			gl_FragColor = vec4(texel.rgb, 1.0);
+		}`
+};
 
 // Script Functions
 let scriptFunctions = '';
@@ -137,7 +158,7 @@ class SceneManager {
             composer.renderToScreen = true; /* true by default, only applies to last pass */
 
             // Clear Buffer
-            const clearPass = new ClearPass(new THREE.Color(), 0.0);
+            const clearPass = new ClearPass(new THREE.Color(0x000000), 0.0);
             composer.addPass(clearPass);
 
             // Render Scene
@@ -150,6 +171,7 @@ class SceneManager {
             passes.forEach((component) => {
                 const pass = component.three();
                 if (pass) {
+                    pass.clear = false;
                     pass.scene = SceneManager.app.scene;
                     pass.camera = SceneManager.app.camera;
                     pass.renderCamera = SceneManager.app.camera;
@@ -158,7 +180,8 @@ class SceneManager {
             });
 
             // Copy to Screen
-            const copyPass = new ShaderPass(CopyShader);
+            const copyPass = new ShaderPass(OpaqueShader);
+            copyPass.clear = false;
             composer.addPass(copyPass);
 
             _composers[world.uuid] = composer;

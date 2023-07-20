@@ -49,6 +49,7 @@ class Post {
                 pass.uniforms['uCellSize'].value = data.cellSize;
                 if (data.cellStyle === 'stitch') pass.uniforms['uStyle'].value = 1.0;
                 if (data.cellStyle === 'woven') pass.uniforms['uStyle'].value = 2.0;
+                if (data.cellStyle === 'brick') pass.uniforms['uStyle'].value = 3.0;
                 break;
 
             case 'tint':
@@ -128,7 +129,7 @@ Post.config = {
 
         // Pixel
         cellStyle: { type: 'select', default: 'none', select: [ 'none', 'brick', 'cross', 'stitch', 'tile', 'woven' ], if: { style: [ 'pixel' ] } },
-        cellSize: { type: 'slider', default: 12, min: 1, max: 100, step: 1, precision: 0, if: { style: [ 'pixel' ] } },
+        cellSize: { type: 'slider', default: 10, min: 1, max: 100, step: 1, precision: 0, if: { style: [ 'pixel' ] } },
 
         // Tint
         color: { type: 'color', default: 0xff0000, if: { style: [ 'tint' ] } },

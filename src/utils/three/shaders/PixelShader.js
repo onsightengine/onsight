@@ -86,6 +86,15 @@ export const PixelShader = {
                 if (patternUV.y > 0.95 && patternUV.x > 0.5) pixelY += (grid.y / 2.0);  // Top Right
             }
 
+            // Brick?
+            if (uStyle == 3.0) {
+                if (patternUV.y > 0.5) {
+                    pixelY += (grid.y / 2.0);
+                    if (patternUV.x < 0.5) pixelX -= (grid.x / 2.0);
+                    else pixelX += (grid.x / 2.0);
+                }
+            }
+
             // Image Color
             vec4 pixelized = texture2D(tDiffuse, vec2(pixelX, pixelY));
 
@@ -122,6 +131,7 @@ export const PixelShader = {
                 ctx.fillStyle = '#fff';
                 ctx.fillRect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE);
                 texture.needsUpdate = true;
+                setTimeout(() => { texture.needsUpdate = true; }, 100);
 
             } else {
                 const image = document.createElement('img');

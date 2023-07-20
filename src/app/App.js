@@ -249,7 +249,7 @@ class App {
         this.gameClock.toggle();
     }
 
-    stop(dispose = false) {
+    stop() {
         if (!this.isPlaying) return;
 
         // Flag
@@ -273,7 +273,7 @@ class App {
         this.gameClock.stop();
 
         // Clean Up
-        if (dispose === true) this.dispose();
+        this.dispose();
     }
 
     /******************** GAME HELPERS */

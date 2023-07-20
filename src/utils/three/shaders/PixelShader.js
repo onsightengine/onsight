@@ -20,6 +20,7 @@ export const PixelShader = {
 		'tDiffuse': { value: null },
         'tPixel': { value: null },
         'uCellSize': { value: 16 },
+        'uStyle': { value: 0.0 },
 	},
 
 	vertexShader: /* glsl */`
@@ -35,6 +36,7 @@ export const PixelShader = {
         uniform sampler2D tDiffuse;
         uniform sampler2D tPixel;
         uniform float uCellSize;
+        uniform float uStyle;
 
         varying vec2 vUv;
 
@@ -42,9 +44,53 @@ export const PixelShader = {
             vec2 cell = resolution / uCellSize;
             vec2 grid = 1.0 / cell;
             vec2 pixelUV = grid * (0.5 + floor(vUv / grid));
-            vec4 pixelized = texture2D(tDiffuse, pixelUV);
+            vec2 patternUV = mod(vUv * cell, 1.0);
+            float pixelX = pixelUV.x;
+            float pixelY = pixelUV.y;
 
-            vec4 pattern = texture2D(tPixel, vUv * cell);
+            // Stitch?
+            if (uStyle == 1.0) {
+                float testY = ((patternUV.y - 0.05) * 0.55);
+                if (patternUV.x < 0.5) {                                                // Left
+                    if (testY < ((0.5 - patternUV.x) + 0.1)) pixelY -= grid.y;
+                } else {                                                                // Right
+                    if (testY < ((0.5 - (1.0 - patternUV.x)) + 0.1)) pixelY -= grid.y;
+                }
+            }
+
+            // Woven?
+            if (uStyle == 2.0) {
+                // Top Left
+                if (patternUV.x < 0.45 && patternUV.y > 0.45) {
+                    pixelX -= (grid.x / 4.0);
+                    pixelY += (grid.y / 4.0);
+                }
+                // Bottom Left
+                if (patternUV.x < 0.55 && patternUV.y < 0.45) {
+                    pixelX -= (grid.x / 4.0);
+                    pixelY -= (grid.y / 4.0);
+                }
+                // Top Right
+                if (patternUV.x > 0.45 && patternUV.y > 0.55) {
+                    pixelX += (grid.x / 4.0);
+                    pixelY += (grid.y / 4.0);
+                }
+                // Bottom Right
+                if (patternUV.x > 0.55 && patternUV.y < 0.55) {
+                    pixelX += (grid.x / 4.0);
+                    pixelY -= (grid.y / 4.0);
+                }
+                if (patternUV.x < 0.05 && patternUV.y > 0.5) pixelX -= (grid.x / 2.0);  // Top Left
+                if (patternUV.x > 0.95 && patternUV.y < 0.5) pixelX += (grid.x / 2.0);  // Bottom Right
+                if (patternUV.y < 0.05 && patternUV.x < 0.5) pixelY -= (grid.y / 2.0);  // Bottom Left
+                if (patternUV.y > 0.95 && patternUV.x > 0.5) pixelY += (grid.y / 2.0);  // Top Right
+            }
+
+            // Image Color
+            vec4 pixelized = texture2D(tDiffuse, vec2(pixelX, pixelY));
+
+            // Pattern Pixel
+            vec4 pattern = texture2D(tPixel, patternUV);
 			float l = luminance(pattern.rgb);
 
             gl_FragColor = vec4(l * pixelized.rgb, pattern.a);
@@ -70,6 +116,7 @@ export const PixelShader = {
             );
 
             const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE);
 
             if (!_sources[style]) {
                 ctx.fillStyle = '#fff';
@@ -78,12 +125,13 @@ export const PixelShader = {
 
             } else {
                 const image = document.createElement('img');
-                image.src = _sources[style];
                 image.onload = () => {
                     ctx.clearRect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE);
                     ctx.drawImage(image, 0, 0, TEXTURE_SIZE, TEXTURE_SIZE);
                     texture.needsUpdate = true;
+                    setTimeout(() => { texture.needsUpdate = true; }, 100);
                 };
+                image.src = _sources[style];
             }
 
             return texture;

@@ -47,6 +47,8 @@ class Post {
                 pass = new ShaderPass(PixelShader);
                 pass.uniforms['tPixel'].value = PixelShader.createStyleTexture(data.cellStyle);
                 pass.uniforms['uCellSize'].value = data.cellSize;
+                if (data.cellStyle === 'stitch') pass.uniforms['uStyle'].value = 1.0;
+                if (data.cellStyle === 'woven') pass.uniforms['uStyle'].value = 2.0;
                 break;
 
             case 'tint':

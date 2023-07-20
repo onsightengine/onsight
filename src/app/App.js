@@ -213,7 +213,7 @@ class App {
         physics.addMesh(balls, 1);
     }
 
-    async play() {
+    async start() {
         if (this.isPlaying) return;
         const self = this;
 
@@ -238,6 +238,9 @@ class App {
         // Clock
         this.gameClock.reset();
         this.gameClock.start();
+
+        // Initial Render (to build EffectComposer)
+        SceneManager.renderWorld(this.world);
 
         // Animate
         if (animationID) cancelAnimationFrame(animationID);

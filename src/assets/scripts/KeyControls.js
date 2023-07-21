@@ -43,7 +43,7 @@ function update(event) {
     }
 
     // Update Position
-    this.position.lerp(position, event.delta * 10);
+    this.position.copy(position);
 }
 `;
 

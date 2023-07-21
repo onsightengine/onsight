@@ -124,6 +124,7 @@ class Camera3D extends THREE.Camera {
             let height = 2 * top;
             let width = this.aspect * height;
             let left = - 0.5 * width;
+            this.zoom = 1;
 
             const view = this.view;
             if (view && view.enabled) {
@@ -147,18 +148,19 @@ class Camera3D extends THREE.Camera {
 
             // NOTE: Starting Camera distance is '10'
             //  1 world unit === 1000 pixels at distance 1
-            //  1 world unit === 100 pixels at distance 10
+            //  1 world unit === 100 pixels at distance 10 (demo settings)
             //  1 world unit === 10 pixels at distance 100
             //  1 world unit === 1 pixels at distance 1000 (careful near / far)
             let zoom = distance / 1000;
             if (!isFinite(zoom) || isNaN(zoom)) zoom = 0.00001;
             if (zoom < 0.00001 && zoom > - 0.00001) zoom = 0.00001;
+            this.zoom = zoom;
 
             // Frustum
             const dx = ((this.right - this.left) * zoom) / 2;
             const dy = ((this.top - this.bottom) * zoom) / 2;
-            const cx = (this.right + this.left);
-            const cy = (this.top + this.bottom);
+            const cx = (this.right + this.left); // center x
+            const cy = (this.top + this.bottom); // center y
 
             let left = cx - dx;
             let right = cx + dx;

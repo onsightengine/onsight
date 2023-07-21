@@ -4,6 +4,11 @@ import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { Pass } from 'three/addons/postprocessing/Pass.js';
 import { PixelatedShader } from '../shaders/PixelatedShader.js';
 
+const _camPosition = new THREE.Vector3();
+const _camRotation = new THREE.Quaternion();
+const _camRight = new THREE.Vector3();
+const _camUp = new THREE.Vector3();
+
 class PixelatedPass extends Pass {
 
 	constructor(pixelSize = 1) {
@@ -37,8 +42,8 @@ class PixelatedPass extends Pass {
 
         // Pixel Shader uniforms accessible as 'uniforms'
         Object.defineProperty(this, 'uniforms', {
-            get: function() { return this.pixelUniforms; },
-            set: function(uniforms) { this.pixelUniforms = uniforms; },
+            get: function() { return self.pixelUniforms; },
+            set: function(uniforms) { self.pixelUniforms = uniforms; },
         });
 
         // Beautify Render Target
@@ -53,39 +58,23 @@ class PixelatedPass extends Pass {
 	}
 
 	render(renderer, writeBuffer, readBuffer, /* deltaTime, maskActive */) {
-
         // Copy to Beauty and Back Again
         this.copyUniforms['tDiffuse'].value = readBuffer.texture;
         renderer.setRenderTarget(this.beautyRenderTarget);
         this.copyQuad.render(renderer);
-
         this.copyUniforms['tDiffuse'].value = this.beautyRenderTarget.texture;
         renderer.setRenderTarget(readBuffer);
         this.copyQuad.render(renderer);
-
-        // // Camera Position
-        // if (window.activeCamera) this.uniforms['uCamera'].value.copy(window.activeCamera.position);
-
-        // const rendererSize = renderer.getSize(new THREE.Vector2());
-		// const aspectRatio = rendererSize.x / rendererSize.y;
-        // pixelAlignFrustum(
-        //     camera,
-        //     aspectRatio,
-        //     Math.floor(rendererSize.x / this.pixelSize),
-        //     Math.floor(rendererSize.y / this.pixelSize)
-        // );
-
-
-
-        // Render PixelatedShader
-        this.pixelUniforms['tDiffuse'].value = readBuffer.texture;
-		renderer.setRenderTarget((this.renderToScreen) ? null : writeBuffer);
-        this.pixelQuad.render(renderer);
 
         // // Render CopyShader
         // this.copyUniforms['tDiffuse'].value = readBuffer.texture;
 		// renderer.setRenderTarget((this.renderToScreen) ? null : writeBuffer);
         // this.copyQuad.render(renderer);
+
+        // Render PixelatedShader
+        this.pixelUniforms['tDiffuse'].value = readBuffer.texture;
+		renderer.setRenderTarget((this.renderToScreen) ? null : writeBuffer);
+        this.pixelQuad.render(renderer);
 	}
 
 	dispose() {
@@ -104,13 +93,42 @@ class PixelatedPass extends Pass {
     setFixedSize(width, height) {
         this.pixelUniforms['resolution'].value.x = width;
         this.pixelUniforms['resolution'].value.y = height;
-        this.setSize(width, height);
+        const beautyW = Math.max(1, width / Math.max(1.0, this.pixelSize));
+        const beautyH = Math.max(1, height / Math.max(1.0, this.pixelSize));
+        this.beautyRenderTarget.setSize(beautyW, beautyH);
     };
 
-    setSize(width, height) {
-        const beautyW = Math.max(1, parseInt(width / this.pixelSize));
-        const beautyH = Math.max(1, parseInt(height / this.pixelSize));
-        this.beautyRenderTarget.setSize(beautyW, beautyH);
+    setSize(width, height) {}
+
+    // Align Camera to Pixel Grid
+    // https://github.com/mrdoob/three.js/blob/master/examples/webgl_postprocessing_pixel.html
+    onBeforeRender() {
+        const camera = this.camera;
+        if (!camera) return;
+
+        const width = (camera.right - camera.left);
+        const height = (camera.top - camera.bottom);
+
+        // Project camera position along its local rotation bases
+        camera.getWorldPosition(_camPosition);
+        camera.getWorldQuaternion(_camRotation);
+        _camRight.set(1.0, 0.0, 0.0).applyQuaternion(_camRotation);
+        _camUp.set(0.0, 1.0, 0.0).applyQuaternion(_camRotation);
+
+        // Find how far along its position is along these bases
+        const camPosRight = _camPosition.dot(_camRight);
+        const camPosUp = _camPosition.dot(_camUp);
+
+        // Find the fractional pixel units (in world units)
+        const fractX = camPosRight % (this.pixelSize * camera.zoom);
+		const fractY = camPosUp % (this.pixelSize * camera.zoom);
+
+        // Add fractional world units to align with the pixel grid
+        camera.left =   (- width  / 2.0) - (fractX / 2.0);
+        camera.right =  (+ width  / 2.0) - (fractX / 2.0);
+        camera.top =    (+ height / 2.0) - (fractY / 2.0);
+        camera.bottom = (- height / 2.0) - (fractY / 2.0);
+        camera.updateProjectionMatrix();
     }
 
 }

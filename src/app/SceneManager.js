@@ -167,9 +167,18 @@ class SceneManager {
             _composers[world.uuid] = composer;
         }
 
-        // Render
-        if (_composers[world.uuid]) {
-            _composers[world.uuid].render();
+        // Composer Render
+        const composer = _composers[world.uuid];
+        if (composer) {
+            // Before Render
+            composer.passes.forEach((pass) => {
+                if (typeof pass.onBeforeRender === 'function') {
+                    pass.onBeforeRender();
+                }
+            });
+
+            // Render
+            composer.render();
         }
     }
 

@@ -20,6 +20,7 @@ export const PixelatedShader = {
         'tDiffuse': { value: null },
         'tPixel': { value: null },
         'uCellSize': { value: 16 },
+        'uDiscard': { value: 0 },
     },
 
     vertexShader: /* glsl */`
@@ -36,6 +37,7 @@ export const PixelatedShader = {
         uniform sampler2D tDiffuse;
         uniform sampler2D tPixel;
         uniform float uCellSize;
+        uniform float uDiscard;
 
         varying vec2 vUv;
 
@@ -47,19 +49,27 @@ export const PixelatedShader = {
 
             // Pattern Pixel
             //
-            //  +1.0┏━━━━━━━━━━┓        Blue Layer, Y Offset
-            //      ┃       256┃
+            //  +1.0┏━━━━━━━━━━┓
+            //      ┃       255┃        Blue Layer, Y Offset
+            //      ┃     192  ┃
             //  +0.0┃   128    ┃
-            //      ┃0         ┃
-            //  -1.0┗━━ +0.0 ━━┛+1.0    Green Layer, X Offset
+            //      ┃ 64       ┃
+            //      ┃0         ┃        Green Layer, X Offset
+            //  -1.0┗━━ +0.0 ━━┛+1.0
+            //
+            // NOTE: 128 != 255/2.0, so apply adjustment (i.e. 128 * 0.99609375 == 127.5)
             //
             vec4 pattern = texture2D(tPixel, patternUV);
-            float l = luminance(vec3(pattern.r));               // r, grayscale
-            pixelUV.x += grid.x * ((pattern.g * 2.0) - 1.0);    // g, x offset
-            pixelUV.y += grid.y * ((pattern.b * 2.0) - 1.0);    // b, y offset
+            float l = luminance(vec3(pattern.r));                           // r, grayscale
+            pixelUV.x += grid.x * ((pattern.g * 0.99609375 * 2.0) - 1.0);   // g, x offset
+            pixelUV.y += grid.y * ((pattern.b * 0.99609375 * 2.0) - 1.0);   // b, y offset
 
             // Image Color
             vec4 pixelized = texture2D(tDiffuse, pixelUV);
+
+            // Too Dark?
+            float darkness = luminance(pixelized.rgb);
+            if (darkness < uDiscard) discard;
 
             gl_FragColor = vec4(l * pixelized.rgb * pattern.a, pattern.a);
         }`,

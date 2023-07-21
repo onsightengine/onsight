@@ -90,6 +90,9 @@ class OrbitControls extends THREE.EventDispatcher {
         this.minAzimuthAngle = - Infinity;              // In radians
         this.maxAzimuthAngle =   Infinity;              // In radians
 
+        // Smooth Animation?
+        this.smoothAnimate = true;                      // If enabled, disables 'enableDamping' && 'enableSmooth'
+
         // Movement Lerping
         this.enableSmooth = true;                       // If enabled, overrides 'enableDamping'
         this.dampSmooth = 15;                           // Higher is faster / tighter, lower is slower / smoother
@@ -335,7 +338,7 @@ class OrbitControls extends THREE.EventDispatcher {
                 if (self.animating !== ORBIT_ANIMATION.NONE) {
 
                     // Check if user input or dolly happened, if so, end animation
-                    if ((state !== ORBIT_STATES.NONE) || zoomChanged) {
+                    if (!self.smoothAnimate || zoomChanged || state !== ORBIT_STATES.NONE) {
                         self.forceEndAnimation = true;
                     }
 
@@ -416,7 +419,7 @@ class OrbitControls extends THREE.EventDispatcher {
                 }
 
                 // Smooth Enabled
-                if (self.enableSmooth) {
+                if (self.enableSmooth && self.smoothAnimate) {
                     // Lerp towards new Spherical
                     let targetTheta = spherical.theta + sphericalDelta.theta;
                     let targetPhi = spherical.phi + sphericalDelta.phi;
@@ -455,7 +458,7 @@ class OrbitControls extends THREE.EventDispatcher {
                     self.target.z = dampZ;
 
                 // Dampen Enabled
-                } else if (self.enableDamping) {
+                } else if (self.enableDamping && self.smoothAnimate) {
                     spherical.theta += sphericalDelta.theta * self.dampingFactor;
                     spherical.phi += sphericalDelta.phi * self.dampingFactor;
 

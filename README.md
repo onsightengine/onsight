@@ -10,6 +10,6 @@ Onsight is a 2D / 3D, open-source game engine written in JavaScript. It is built
 
 ## Status
 
-Under heavy development, more info to come...
+Under heavy development along with [Onside](https://github.com/onsightengine/onside), a drag n' drop editor for the Onsight Engine. More info to come...
 
 <br />

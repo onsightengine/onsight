@@ -20,7 +20,6 @@ export const PixelatedShader = {
         'tDiffuse': { value: null },
         'tPixel': { value: null },
         'uCellSize': { value: 16 },
-        'uCamera': { value: new THREE.Vector3() },
     },
 
     vertexShader: /* glsl */`
@@ -32,11 +31,11 @@ export const PixelatedShader = {
 
     fragmentShader: /* glsl */`
         #include <common>
+
         uniform vec2 resolution;
         uniform sampler2D tDiffuse;
         uniform sampler2D tPixel;
         uniform float uCellSize;
-        uniform vec3 uCamera;
 
         varying vec2 vUv;
 
@@ -44,22 +43,16 @@ export const PixelatedShader = {
             vec2 cell = resolution / uCellSize;
             vec2 grid = 1.0 / cell;
             vec2 pixelUV = grid * (0.5 + floor(vUv / grid));
-
-
-            vec2 pixel = 1.0 / resolution;
-
-            // pixelUV.x -= (mod(uCamera.x * 100.0, uCellSize) * pixel.x) + (pixel.x / 2.0);
-            // pixelUV.y -= (mod(uCamera.y * 100.0, uCellSize) * pixel.y) + (pixel.y / 2.0);
-
-
             vec2 patternUV = mod(vUv * cell, 1.0);
 
             // Pattern Pixel
+            //
             //  +1.0┏━━━━━━━━━━┓        Blue Layer, Y Offset
             //      ┃       256┃
             //  +0.0┃   128    ┃
             //      ┃0         ┃
             //  -1.0┗━━ +0.0 ━━┛+1.0    Green Layer, X Offset
+            //
             vec4 pattern = texture2D(tPixel, patternUV);
             float l = luminance(vec3(pattern.r));               // r, grayscale
             pixelUV.x += grid.x * ((pattern.g * 2.0) - 1.0);    // g, x offset

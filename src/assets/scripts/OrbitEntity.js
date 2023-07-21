@@ -15,6 +15,7 @@ let variables = {
     orbit: { type: 'boolean', default: true },
     pan: { type: 'boolean', default: false },
     rotate: { type: 'boolean', default: false },
+    smooth: { type: 'boolean', default: true },
 };
 
 // Locals
@@ -32,6 +33,7 @@ function init() {
     controls = new ONE.OrbitControls(app.camera, app.renderer.domElement, this);
     controls.enablePan = pan;
     controls.enableRotate = rotate;
+    controls.smoothAnimate = smooth;
 
     // Initialize Temp Variables
     direction = new THREE.Vector3();

@@ -1,5 +1,6 @@
 import { ComponentManager } from '../../ComponentManager.js';
 
+import { PatternPass } from '../../../utils/three/passes/PatternPass.js';
 import { PixelatedPass } from '../../../utils/three/passes/PixelatedPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
@@ -22,6 +23,10 @@ class Post {
                 pass.uniforms['uCharacterCount'].value = data.characters.length;
                 pass.uniforms['uCellSize'].value = data.textSize;
                 pass.uniforms['uColor'].value.set(data.textColor);
+                pass.setFixedSize = function(width, height) {
+                    pass.uniforms['resolution'].value.x = width;
+                    pass.uniforms['resolution'].value.y = height;
+                };
                 break;
 
             case 'bloom':
@@ -32,6 +37,10 @@ class Post {
 
             case 'edge':
                 pass = new ShaderPass(SobelOperatorShader);
+                pass.setFixedSize = function(width, height) {
+                    pass.uniforms['resolution'].value.x = width;
+                    pass.uniforms['resolution'].value.y = height;
+                };
                 break;
 
             case 'levels':
@@ -45,13 +54,13 @@ class Post {
                 break;
 
             case 'pixel':
-                // pass = new ShaderPass(PixelatedShader);
-                // pass.uniforms['tPixel'].value = PixelatedShader.createStyleTexture(data.cellStyle);
-                // pass.uniforms['uCellSize'].value = data.cellSize;
-
                 pass = new PixelatedPass();
                 pass.uniforms['tPixel'].value = PixelatedShader.createStyleTexture(data.cellStyle);
                 pass.setPixelSize(data.cellSize);
+
+                // pass = new PatternPass();
+                // pass.uniforms['tPixel'].value = PixelatedShader.createStyleTexture(data.cellStyle);
+                // pass.setPixelSize(data.cellSize);
                 break;
 
             case 'tint':
@@ -66,16 +75,6 @@ class Post {
 
         // Modify Pass
         if (pass) {
-            pass.setFixedSize = function(width, height) {
-                if (pass.uniforms && pass.uniforms['resolution']) {
-                    pass.uniforms['resolution'].value.x = width;
-                    pass.uniforms['resolution'].value.y = height;
-                }
-
-                if (typeof pass.setSize === 'function') {
-                    pass.setSize(width, height);
-                }
-            };
 
         } else {
             // console.log('Error with post pass!');

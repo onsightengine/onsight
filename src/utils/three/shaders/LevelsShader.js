@@ -1,5 +1,9 @@
+// https://github.com/mrdoob/three.js/blob/dev/examples/jsm/shaders/BrightnessContrastShader.js
+// https://github.com/mrdoob/three.js/blob/dev/examples/jsm/shaders/HueSaturationShader.js
 
 export const LevelsShader = {
+	name: 'Levels Shader',
+
 	uniforms: {
 		'tDiffuse': { value: null },
         'hue': { value: 0 },

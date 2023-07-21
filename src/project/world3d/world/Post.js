@@ -1,5 +1,6 @@
 import { ComponentManager } from '../../ComponentManager.js';
 
+import { PixelatedPass } from '../../../utils/three/passes/PixelatedPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
 import { AsciiShader } from '../../../utils/three/shaders/AsciiShader.js';
@@ -44,9 +45,9 @@ class Post {
                 break;
 
             case 'pixel':
-                pass = new ShaderPass(PixelShader);
+                pass = new PixelatedPass();
                 pass.uniforms['tPixel'].value = PixelShader.createStyleTexture(data.cellStyle);
-                pass.uniforms['uCellSize'].value = data.cellSize;
+                pass.setPixelSize(data.cellSize);
                 break;
 
             case 'tint':

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { Pass } from 'three/addons/postprocessing/Pass.js';
-import { PixelShader } from '../shaders/PixelShader.js';
+import { PixelatedShader } from '../shaders/PixelatedShader.js';
 
 class PixelatedPass extends Pass {
 
@@ -9,7 +9,7 @@ class PixelatedPass extends Pass {
         super();
 
         // Pixel Shader
-        let shader = PixelShader;
+        let shader = PixelatedShader;
         this.uniforms = THREE.UniformsUtils.clone(shader.uniforms);
         this.material = new THREE.ShaderMaterial({
             name: shader.name ?? 'unspecified',

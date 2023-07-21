@@ -6,7 +6,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { AsciiShader } from '../../../utils/three/shaders/AsciiShader.js';
 import { ColorifyShader } from 'three/addons/shaders/ColorifyShader.js';
 import { LevelsShader } from '../../../utils/three/shaders/LevelsShader.js';
-import { PixelShader } from '../../../utils/three/shaders/PixelShader.js';
+import { PixelatedShader } from '../../../utils/three/shaders/PixelatedShader.js';
 import { SobelOperatorShader } from 'three/addons/shaders/SobelOperatorShader.js';
 
 class Post {
@@ -45,12 +45,12 @@ class Post {
                 break;
 
             case 'pixel':
-                // pass = new ShaderPass(PixelShader);
-                // pass.uniforms['tPixel'].value = PixelShader.createStyleTexture(data.cellStyle);
+                // pass = new ShaderPass(PixelatedShader);
+                // pass.uniforms['tPixel'].value = PixelatedShader.createStyleTexture(data.cellStyle);
                 // pass.uniforms['uCellSize'].value = data.cellSize;
 
                 pass = new PixelatedPass();
-                pass.uniforms['tPixel'].value = PixelShader.createStyleTexture(data.cellStyle);
+                pass.uniforms['tPixel'].value = PixelatedShader.createStyleTexture(data.cellStyle);
                 pass.setPixelSize(data.cellSize);
                 break;
 

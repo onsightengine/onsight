@@ -3,9 +3,9 @@ import { Script } from '../Script.js';
 class DragControls extends Script {
 
     constructor() {
-		super();
+        super();
 
-		this.name = 'Drag Controls';
+        this.name = 'Drag Controls';
         this.category = 'controls';
         this.source =
 `
@@ -21,12 +21,12 @@ let pointer;
 let camera;
 
 function init() {
-	position = new THREE.Vector3();
+    position = new THREE.Vector3();
     pointer = new THREE.Vector3();
     camera = new THREE.Vector3();
 
     // Starting Position
-	position.copy(this.position);
+    position.copy(this.position);
 }
 
 function pointerdown(event) {
@@ -64,8 +64,8 @@ function update(event) {
         position.lerp(this.position, event.delta * updateSpeed);
     }
 
-	// Update Position
-	this.position.lerp(position, event.delta * updateSpeed);
+    // Update Position
+    this.position.lerp(position, event.delta * updateSpeed);
 }
 
 `;

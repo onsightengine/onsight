@@ -15,26 +15,28 @@ _sources['woven'] = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAA
 export const PixelShader = {
     name: 'Pixel Shader',
 
-	uniforms: {
+    uniforms: {
         'resolution': { value: new THREE.Vector2() },
-		'tDiffuse': { value: null },
+        'tDiffuse': { value: null },
         'tPixel': { value: null },
         'uCellSize': { value: 16 },
-	},
+        'uCamera': { value: new THREE.Vector3() },
+    },
 
-	vertexShader: /* glsl */`
-		varying vec2 vUv;
-		void main() {
-			vUv = uv;
-			gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-		}`,
+    vertexShader: /* glsl */`
+        varying vec2 vUv;
+        void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }`,
 
-	fragmentShader: /* glsl */`
-		#include <common>
-		uniform vec2 resolution;
+    fragmentShader: /* glsl */`
+        #include <common>
+        uniform vec2 resolution;
         uniform sampler2D tDiffuse;
         uniform sampler2D tPixel;
         uniform float uCellSize;
+        uniform vec3 uCamera;
 
         varying vec2 vUv;
 
@@ -42,11 +44,19 @@ export const PixelShader = {
             vec2 cell = resolution / uCellSize;
             vec2 grid = 1.0 / cell;
             vec2 pixelUV = grid * (0.5 + floor(vUv / grid));
+
+
+            vec2 pixel = 1.0 / resolution;
+
+            pixelUV.x -= (mod(uCamera.x * 100.0, uCellSize) * pixel.x);
+            pixelUV.y -= (mod(uCamera.y * 100.0, uCellSize) * pixel.y);
+
+
             vec2 patternUV = mod(vUv * cell, 1.0);
 
             // Pattern Pixel
             vec4 pattern = texture2D(tPixel, patternUV);
-			float l = luminance(vec3(pattern.r));               // r, grayscale
+            float l = luminance(vec3(pattern.r));               // r, grayscale
             pixelUV.x += grid.x * ((pattern.g * 2.0) - 1.0);    // g, x displacement
             pixelUV.y += grid.y * ((pattern.b * 2.0) - 1.0);    // b, y displacement
 

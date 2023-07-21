@@ -45,6 +45,10 @@ class Post {
                 break;
 
             case 'pixel':
+                // pass = new ShaderPass(PixelShader);
+                // pass.uniforms['tPixel'].value = PixelShader.createStyleTexture(data.cellStyle);
+                // pass.uniforms['uCellSize'].value = data.cellSize;
+
                 pass = new PixelatedPass();
                 pass.uniforms['tPixel'].value = PixelShader.createStyleTexture(data.cellStyle);
                 pass.setPixelSize(data.cellSize);

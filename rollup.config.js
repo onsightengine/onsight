@@ -13,9 +13,9 @@ import cleanup from 'rollup-plugin-cleanup';                // Remove comments, 
 // import obfuscator from 'rollup-plugin-obfuscator';       // Obfuscate
 
 function header() {
-	return {
-		renderChunk(code) {
-			return `/**
+    return {
+        renderChunk(code) {
+            return `/**
  * @description Onsight Engine
  * @about       Easy to use 2D / 3D JavaScript game engine.
  * @author      Stephens Nunnally <@stevinz>

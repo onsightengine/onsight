@@ -196,7 +196,7 @@ class App {
         }
         physics.addMesh(boxes, 1);
 
-	    // SPHERES
+        // SPHERES
         const geometrySphere = new THREE.IcosahedronGeometry(0.05, 4);
         balls = new THREE.InstancedMesh(geometrySphere, material, 400);
         balls.instanceMatrix.setUsage(THREE.DynamicDrawUsage); // will be updated every frame

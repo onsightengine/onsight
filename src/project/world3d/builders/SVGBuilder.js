@@ -97,7 +97,7 @@ class SVGBuilder {
                     entity.addComponent('geometry', geometry);
 
                     // Material Component
-	                entity.addComponent('material', {
+                    entity.addComponent('material', {
                         style: 'standard',
                         side: 'FrontSide', // 'DoubleSide',
                         color: _color.setStyle(fillColor).getHex(),

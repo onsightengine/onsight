@@ -50,12 +50,12 @@ class Maths {
 
     /** http://www.rorydriscoll.com/2016/03/07/frame-rate-independent-damping-using-lerp/ */
     static damp(x, y, lambda, dt) {
-	    return Maths.lerp(x, y, 1 - Math.exp(- lambda * dt));
+        return Maths.lerp(x, y, 1 - Math.exp(- lambda * dt));
     }
 
     /** https://en.wikipedia.org/wiki/Linear_interpolation */
     static lerp(x, y, t) {
-	    return (1 - t) * x + t * y;
+        return (1 - t) * x + t * y;
     }
 
     /** Returns a number rounded to 'decimalPlaces' */
@@ -121,8 +121,8 @@ class Maths {
 
         if ((ua >= 0) && (ua <= 1) && (ub >= 0) && (ub <= 1)) {
             // If intersecting, the intersection points are
-            // 		crossX = x1 + (uA * (x2 - x1));
-            // 		crossY = y1 + (uA * (y2 - y1));
+            //      crossX = x1 + (uA * (x2 - x1));
+            //      crossY = y1 + (uA * (y2 - y1));
             return true;
         }
         return false;
@@ -141,7 +141,7 @@ class Maths {
 
     /** Random float from min (inclusive) to max (exclusive) */
     static randomFloat(min, max) {
-	    return min + Math.random() * (max - min);
+        return min + Math.random() * (max - min);
     }
 
     /** Random integer from min (inclusive) to max (exclusive), randomInt(0, 3) => expected output: 0, 1 or 2 */
@@ -155,15 +155,15 @@ class Maths {
 
         // https://github.com/mrdoob/three.js/blob/dev/src/math/MathUtils.js
         // http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript/21963136#21963136
-	    const d0 = Math.random() * 0xffffffff | 0;
-	    const d1 = Math.random() * 0xffffffff | 0;
-	    const d2 = Math.random() * 0xffffffff | 0;
-	    const d3 = Math.random() * 0xffffffff | 0;
-	    const uuid = _lut[ d0 & 0xff ] + _lut[ d0 >> 8 & 0xff ] + _lut[ d0 >> 16 & 0xff ] + _lut[ d0 >> 24 & 0xff ] + '-' +
-			_lut[ d1 & 0xff ] + _lut[ d1 >> 8 & 0xff ] + '-' + _lut[ d1 >> 16 & 0x0f | 0x40 ] + _lut[ d1 >> 24 & 0xff ] + '-' +
-			_lut[ d2 & 0x3f | 0x80 ] + _lut[ d2 >> 8 & 0xff ] + '-' + _lut[ d2 >> 16 & 0xff ] + _lut[ d2 >> 24 & 0xff ] +
-			_lut[ d3 & 0xff ] + _lut[ d3 >> 8 & 0xff ] + _lut[ d3 >> 16 & 0xff ] + _lut[ d3 >> 24 & 0xff ];
-	    return uuid.toLowerCase(); // .toLowerCase() flattens concatenated strings to save heap memory space
+        const d0 = Math.random() * 0xffffffff | 0;
+        const d1 = Math.random() * 0xffffffff | 0;
+        const d2 = Math.random() * 0xffffffff | 0;
+        const d3 = Math.random() * 0xffffffff | 0;
+        const uuid = _lut[ d0 & 0xff ] + _lut[ d0 >> 8 & 0xff ] + _lut[ d0 >> 16 & 0xff ] + _lut[ d0 >> 24 & 0xff ] + '-' +
+            _lut[ d1 & 0xff ] + _lut[ d1 >> 8 & 0xff ] + '-' + _lut[ d1 >> 16 & 0x0f | 0x40 ] + _lut[ d1 >> 24 & 0xff ] + '-' +
+            _lut[ d2 & 0x3f | 0x80 ] + _lut[ d2 >> 8 & 0xff ] + '-' + _lut[ d2 >> 16 & 0xff ] + _lut[ d2 >> 24 & 0xff ] +
+            _lut[ d3 & 0xff ] + _lut[ d3 >> 8 & 0xff ] + _lut[ d3 >> 16 & 0xff ] + _lut[ d3 >> 24 & 0xff ];
+        return uuid.toLowerCase(); // .toLowerCase() flattens concatenated strings to save heap memory space
     }
 
 }

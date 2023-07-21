@@ -199,7 +199,7 @@ class Geometry {
             // if (data.simplify < 1) {
             //     const simplifyModifier = new SimplifyModifier()
             //     const count = Math.max(3.0, Math.floor(geometry.attributes.position.count * data.simplify));
-			//     let simplifiedGeometry = simplifyModifier.modify(geometry, count);
+            //     let simplifiedGeometry = simplifyModifier.modify(geometry, count);
             //     if (simplifiedGeometry) {
             //         geometry.dispose();
             //         geometry = simplifiedGeometry;

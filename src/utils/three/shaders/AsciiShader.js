@@ -7,25 +7,25 @@ const CHARACTERS_PER_ROW = 16;
 export const AsciiShader = {
     name: 'Ascii Shader',
 
-	uniforms: {
+    uniforms: {
         'resolution': { value: new THREE.Vector2() },
-		'tDiffuse': { value: null },
+        'tDiffuse': { value: null },
         'tCharacters': { value: null },
         'uCharacterCount': { value: 0 },
         'uCellSize': { value: 16 },
         'uColor': { value: new THREE.Color() },
-	},
+    },
 
-	vertexShader: /* glsl */`
-		varying vec2 vUv;
-		void main() {
-			vUv = uv;
-			gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-		}`,
+    vertexShader: /* glsl */`
+        varying vec2 vUv;
+        void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }`,
 
-	fragmentShader: /* glsl */`
-		#include <common>
-		uniform vec2 resolution;
+    fragmentShader: /* glsl */`
+        #include <common>
+        uniform vec2 resolution;
         uniform sampler2D tDiffuse;
         uniform sampler2D tCharacters;
         uniform float uCharacterCount;
@@ -49,7 +49,7 @@ export const AsciiShader = {
             vec2 charUV = mod(vUv * (cell / SIZE), 1.0 / SIZE) - vec2(0., 1.0 / SIZE) + offset;
             vec4 asciiCharacter = texture2D(tCharacters, charUV);
 
-			gl_FragColor = vec4(uColor * asciiCharacter.rgb, pixelized.a);
+            gl_FragColor = vec4(uColor * asciiCharacter.rgb, pixelized.a);
         }`,
 
     createCharactersTexture: function(characters) {

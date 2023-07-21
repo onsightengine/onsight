@@ -129,7 +129,7 @@ class GpuPickerPass extends Pass {
                     // `,
 
                     // shader reference
-                    // 		https://github.com/mrdoob/three.js/blob/master/src/renderers/shaders/ShaderLib/meshbasic.glsl.js
+                    // https://github.com/mrdoob/three.js/blob/master/src/renderers/shaders/ShaderLib/meshbasic.glsl.js
 
                     fragmentShader: `
                         #include <common>

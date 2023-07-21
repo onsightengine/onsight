@@ -3,9 +3,9 @@ import { Script } from '../Script.js';
 class MoveCamera extends Script {
 
     constructor() {
-		super();
+        super();
 
-		this.name = 'Move Camera';
+        this.name = 'Move Camera';
         this.category = 'camera';
         this.source =
 `
@@ -18,7 +18,7 @@ let variables = {
 };
 
 function update(event) {
-	app.camera.position.x += moveX * event.delta;
+    app.camera.position.x += moveX * event.delta;
     app.camera.position.y += moveY * event.delta;
     app.camera.position.z += moveZ * event.delta;
 }

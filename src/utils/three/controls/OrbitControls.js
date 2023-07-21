@@ -55,8 +55,8 @@ class OrbitControls extends THREE.EventDispatcher {
         this.domElement.style.touchAction = 'none';     // Disable touch scroll
 
         // True when animating to new position
-        this.animating = ORBIT_ANIMATION.NONE;			// When larger than 0, we are animating
-        this.forceEndAnimation = false;					// Set to true to have update end animation early
+        this.animating = ORBIT_ANIMATION.NONE;          // When larger than 0, we are animating
+        this.forceEndAnimation = false;                 // Set to true to have update end animation early
 
         // Set to false to disable this control
         this.enabled = true;
@@ -80,41 +80,41 @@ class OrbitControls extends THREE.EventDispatcher {
 
         // How far you can orbit vertically
         // Range is 0 to Math.PI radians.
-        this.minPolarAngle = 0; 						// In radians, range is 0 to Math.PI
-        this.maxPolarAngle = Math.PI;					// In radians, range is 0 to Math.PI
+        this.minPolarAngle = 0;                         // In radians, range is 0 to Math.PI
+        this.maxPolarAngle = Math.PI;                   // In radians, range is 0 to Math.PI
 
         // How far you can orbit horizontally
-        // 		If set, the interval [min, max] must
-        // 		be a sub-interval of [- 2 PI, 2 PI],
-        // 		with ( max - min < 2 PI )
-        this.minAzimuthAngle = - Infinity; 				// In radians
-        this.maxAzimuthAngle =   Infinity; 				// In radians
+        //      If set, the interval [min, max] must
+        //      be a sub-interval of [- 2 PI, 2 PI],
+        //      with ( max - min < 2 PI )
+        this.minAzimuthAngle = - Infinity;              // In radians
+        this.maxAzimuthAngle =   Infinity;              // In radians
 
         // Movement Lerping
-        this.enableSmooth = true;						// If enabled, overrides 'enableDamping'
-        this.dampSmooth = 15;			                // Higher is faster / tighter, lower is slower / smoother
+        this.enableSmooth = true;                       // If enabled, overrides 'enableDamping'
+        this.dampSmooth = 15;                           // Higher is faster / tighter, lower is slower / smoother
 
         // Movement Damping
-        this.enableDamping = true;						// If enabled, must call controls.update() in animation loop
-        this.dampingFactor = 0.2;						// Higher is faster / tighter, lower is slower / smoother
+        this.enableDamping = true;                      // If enabled, must call controls.update() in animation loop
+        this.dampingFactor = 0.2;                       // Higher is faster / tighter, lower is slower / smoother
 
         // Zoom / Dolly
-        this.enableZoom = true;							// Set to false to disable zooming
-        this.zoomSpeed = 1.0;							// Zoom speed
+        this.enableZoom = true;                         // Set to false to disable zooming
+        this.zoomSpeed = 1.0;                           // Zoom speed
 
         // Rotate
-        this.enableRotate = true;						// Set to false to disable rotating
-        this.rotateSpeed = 1.0;							// Rotate speed
+        this.enableRotate = true;                       // Set to false to disable rotating
+        this.rotateSpeed = 1.0;                         // Rotate speed
 
         // Panning
-        this.enablePan = true;							// Set to false to disable panning
-        this.panSpeed = 1.0;							// Pan speed
-        this.screenSpacePanning = true; 				// If false, pan orthogonal to world-space direction camera.up
-        this.keyPanSpeed = 20.0;						// Pixels moved per arrow key push
+        this.enablePan = true;                          // Set to false to disable panning
+        this.panSpeed = 1.0;                            // Pan speed
+        this.screenSpacePanning = true;                 // If false, pan orthogonal to world-space direction camera.up
+        this.keyPanSpeed = 20.0;                        // Pixels moved per arrow key push
 
         // Auto Rotate
-        this.autoRotate = false;						// If true, must call controls.update() in animation loop
-        this.autoRotateSpeed = 2.0; 					// Speed of 2.0 is 30 seconds per orbit when fps is 60
+        this.autoRotate = false;                        // If true, must call controls.update() in animation loop
+        this.autoRotateSpeed = 2.0;                     // Speed of 2.0 is 30 seconds per orbit when fps is 60
 
         /***** LOCALS *****/
 
@@ -407,8 +407,8 @@ class OrbitControls extends THREE.EventDispatcher {
                 // Get Position and Rotation
                 const position = self.camera.position;
                 offset.copy(position).sub(self.target);
-                offset.applyQuaternion(quat);						// Rotate offset to 'y-axis-is-up' space
-                spherical.setFromVector3(offset);					// Angle from z-axis around y-axis
+                offset.applyQuaternion(quat);                   // Rotate offset to 'y-axis-is-up' space
+                spherical.setFromVector3(offset);               // Angle from z-axis around y-axis
 
                 // Auto Rotation
                 if (self.autoRotate && state === ORBIT_STATES.NONE) {
@@ -498,16 +498,16 @@ class OrbitControls extends THREE.EventDispatcher {
 
                 // Apply new Position, use lookAt for Rotation
                 offset.setFromSpherical(spherical);
-                offset.applyQuaternion(quatInverse);				// Rotate back to 'camera-up-vector-is-up'
+                offset.applyQuaternion(quatInverse);            // Rotate back to 'camera-up-vector-is-up'
                 position.copy(self.target).add(offset);
                 self.camera.lookAt(self.target);
 
                 scale = 1;
 
                 // Performed significant update, condition is one of following:
-                //		- Zoom changed
-                //		- Camera position changed
-                //		- Camera rotation changed (using small-angle approximation cos(x/2) = 1 - x^2 / 8)
+                //      - Zoom changed
+                //      - Camera position changed
+                //      - Camera rotation changed (using small-angle approximation cos(x/2) = 1 - x^2 / 8)
                 //
                 if (zoomChanged ||
                     lastPosition.distanceToSquared(self.camera.position) > 0.001 ||
@@ -696,7 +696,7 @@ class OrbitControls extends THREE.EventDispatcher {
 
             const element = self.domElement;
 
-            rotateLeft(2 * Math.PI * rotateDelta.x / element.clientHeight); 	// yes, height
+            rotateLeft(2 * Math.PI * rotateDelta.x / element.clientHeight); // yes, height
             rotateUp(2 * Math.PI * rotateDelta.y / element.clientHeight);
             rotateStart.copy(rotateEnd);
             self.update();
@@ -738,10 +738,10 @@ class OrbitControls extends THREE.EventDispatcher {
                     self.spaceKey = true;
                     break;
                 // // OPTION: Have orbit controls pan on arrow key
-                // case self.keys.UP: 		pan(0,   self.keyPanSpeed); needsUpdate = true; break;
-                // case self.keys.BOTTOM:	pan(0, - self.keyPanSpeed);	needsUpdate = true; break;
-                // case self.keys.LEFT:		pan(  self.keyPanSpeed, 0);	needsUpdate = true;	break;
-                // case self.keys.RIGHT:	pan(- self.keyPanSpeed, 0);	needsUpdate = true;	break;
+                // case self.keys.UP:       pan(0,   self.keyPanSpeed); needsUpdate = true; break;
+                // case self.keys.BOTTOM:   pan(0, - self.keyPanSpeed); needsUpdate = true; break;
+                // case self.keys.LEFT:     pan(  self.keyPanSpeed, 0); needsUpdate = true; break;
+                // case self.keys.RIGHT:    pan(- self.keyPanSpeed, 0); needsUpdate = true; break;
             }
 
             if (needsUpdate) {
@@ -806,7 +806,7 @@ class OrbitControls extends THREE.EventDispatcher {
             rotateDelta.subVectors(rotateEnd, rotateStart).multiplyScalar(self.rotateSpeed);
 
             const element = self.domElement;
-            rotateLeft(2 * Math.PI * rotateDelta.x / element.clientHeight); 	// yes, height
+            rotateLeft(2 * Math.PI * rotateDelta.x / element.clientHeight); // yes, height
             rotateUp(2 * Math.PI * rotateDelta.y / element.clientHeight);
             rotateStart.copy(rotateEnd);
         }
@@ -913,10 +913,10 @@ class OrbitControls extends THREE.EventDispatcher {
             if (editor && editor.viewport.hasFocus()) {
                 if (event.button === 0 /* left */ && !self.spaceKey) {
                     switch (editor.viewport.mouseMode) {
-                        case VIEWPORT.MOUSE_MODES.SELECT:	mouseAction = THREE.MOUSE.PAN; break;
-                        case VIEWPORT.MOUSE_MODES.LOOK:		mouseAction = THREE.MOUSE.ROTATE; break;
-                        case VIEWPORT.MOUSE_MODES.MOVE:		mouseAction = THREE.MOUSE.PAN; break;
-                        case VIEWPORT.MOUSE_MODES.ZOOM:		mouseAction = THREE.MOUSE.DOLLY; break;
+                        case VIEWPORT.MOUSE_MODES.SELECT:   mouseAction = THREE.MOUSE.PAN; break;
+                        case VIEWPORT.MOUSE_MODES.LOOK:     mouseAction = THREE.MOUSE.ROTATE; break;
+                        case VIEWPORT.MOUSE_MODES.MOVE:     mouseAction = THREE.MOUSE.PAN; break;
+                        case VIEWPORT.MOUSE_MODES.ZOOM:     mouseAction = THREE.MOUSE.DOLLY; break;
                         default: mouseAction = -1;
                     }
 

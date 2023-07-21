@@ -21,7 +21,7 @@ class System {
         if (arguments.length === 1 && Array.isArray(arguments[0])) {
             return arguments[0];
         } else {
-		    return Array.from(arguments);
+            return Array.from(arguments);
         }
     }
 

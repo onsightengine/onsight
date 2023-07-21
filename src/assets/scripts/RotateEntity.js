@@ -3,9 +3,9 @@ import { Script } from '../Script.js';
 class RotateEntity extends Script {
 
     constructor() {
-		super();
+        super();
 
-		this.name = 'Rotate Entity';
+        this.name = 'Rotate Entity';
         this.category = 'entity';
         this.source =
 `
@@ -18,7 +18,7 @@ let variables = {
 };
 
 function update(event) {
-	this.rotation.x += (rotateX * (Math.PI / 180) * event.delta);
+    this.rotation.x += (rotateX * (Math.PI / 180) * event.delta);
     this.rotation.y += (rotateY * (Math.PI / 180) * event.delta);
     this.rotation.z += (rotateZ * (Math.PI / 180) * event.delta);
 }

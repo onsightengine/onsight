@@ -125,7 +125,7 @@ class AssetManager {
         }
 
         // Load Texture
-		const texture = _textureLoader.load(url, onTextureLoaded, onTextureLoadError);
+        const texture = _textureLoader.load(url, onTextureLoaded, onTextureLoadError);
         _textureCache[resolvedUrl] = texture;
 
         function onTextureLoaded(newTexture) {
@@ -166,7 +166,7 @@ class AssetManager {
             delete _textureCache[resolvedUrl];
         }
 
-		return texture;
+        return texture;
     }
 
     /******************** JSON */
@@ -199,13 +199,13 @@ class AssetManager {
         }
 
         // Load Assets
-		const objectLoader = new THREE.ObjectLoader();
-		const animations = objectLoader.parseAnimations(json.animations);
-		const shapes = objectLoader.parseShapes(json.shapes);
-		const geometries = objectLoader.parseGeometries(json.geometries, {});
-		const images = objectLoader.parseImages(json.images);
-		const textures = objectLoader.parseTextures(json.textures, images);
-		const materials = objectLoader.parseMaterials(json.materials, textures);
+        const objectLoader = new THREE.ObjectLoader();
+        const animations = objectLoader.parseAnimations(json.animations);
+        const shapes = objectLoader.parseShapes(json.shapes);
+        const geometries = objectLoader.parseGeometries(json.geometries, {});
+        const images = objectLoader.parseImages(json.images);
+        const textures = objectLoader.parseTextures(json.textures, images);
+        const materials = objectLoader.parseMaterials(json.materials, textures);
         addLibraryToAssets(animations);
         addLibraryToAssets(shapes);
         addLibraryToAssets(geometries);

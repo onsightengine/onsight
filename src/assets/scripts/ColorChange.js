@@ -3,9 +3,9 @@ import { Script } from '../Script.js';
 class ColorChange extends Script {
 
     constructor() {
-		super();
+        super();
 
-		this.name = 'Color Change';
+        this.name = 'Color Change';
         this.category = 'entity';
         this.source =
 `
@@ -15,12 +15,12 @@ let variables = {
 };
 
 function init() {
-	this.updateComponent('material', { color: Number(color) });
+    this.updateComponent('material', { color: Number(color) });
 }
 
 function pointerdown(event) {
     if (event.entity === this) {
-	    const clr = new THREE.Color(Math.random(), Math.random(), Math.random());
+        const clr = new THREE.Color(Math.random(), Math.random(), Math.random());
         this.replaceComponent('material', { color: clr });
     }
 }

@@ -3,9 +3,9 @@ import { Script } from '../Script.js';
 class OrbitEntity extends Script {
 
     constructor() {
-		super();
+        super();
 
-		this.name = 'Orbit Entity';
+        this.name = 'Orbit Entity';
         this.category = 'camera';
         this.source =
 `
@@ -35,8 +35,8 @@ function init() {
 
     // Initialize Temp Variables
     direction = new THREE.Vector3();
-	quaternion = new THREE.Quaternion();
-	up = new THREE.Vector3(0, 1, 0);
+    quaternion = new THREE.Quaternion();
+    up = new THREE.Vector3(0, 1, 0);
     rotation = new THREE.Vector3().copy(this.rotation)
 }
 

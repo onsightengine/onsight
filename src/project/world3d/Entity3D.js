@@ -411,8 +411,8 @@ class Entity3D extends THREE.Object3D {
     /******************** COPY / CLONE */
 
     clone(recursive) {
-		return new this.constructor().copy(this, recursive);
-	}
+        return new this.constructor().copy(this, recursive);
+    }
 
     copy(source, recursive = true) {
         // THREE.Object3D.copy()
@@ -420,19 +420,19 @@ class Entity3D extends THREE.Object3D {
 
         // Override copy of transform, update 'matrix'
         this.position.copy(source.position);
-		this.rotation.copy(source.rotation);
-		this.scale.copy(source.scale);
+        this.rotation.copy(source.rotation);
+        this.scale.copy(source.scale);
         this.isLocked = source.isLocked;                // Entity3D property, attempt to copy
         this.lookAtCamera = source.lookAtCamera;        // Entity3D property, attempt to copy
         this.updateMatrix();
 
         // Copy Children
         if (recursive) {
-			for (let i = 0; i < source.children.length; i++) {
+            for (let i = 0; i < source.children.length; i++) {
                 const clone = source.children[i].clone();
-				this.add(clone);
-			}
-		}
+                this.add(clone);
+            }
+        }
 
         return this;
     }

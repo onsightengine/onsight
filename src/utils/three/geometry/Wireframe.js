@@ -378,14 +378,14 @@ class FatWireBox extends Line2 {
     }
 
     getBox3(targetBox3) {
-        //		Point 0: Right	Top		Front (z positive)
-        //		Point 1: Left	Top		Front
-        //		Point 2: Left	Down	Front
-        //		Point 3: Right	Down	Front
-        //		Point 4: Right	Top		Back (z negative)
-        //		Point 5: Left	Top		Back
-        //		Point 6: Left	Down	Back
-        //		Point 7: Right	Down	Back
+        //      Point 0: Right  Top     Front (z positive)
+        //      Point 1: Left   Top     Front
+        //      Point 2: Left   Down    Front
+        //      Point 3: Right  Down    Front
+        //      Point 4: Right  Top     Back (z negative)
+        //      Point 5: Left   Top     Back
+        //      Point 6: Left   Down    Back
+        //      Point 7: Right  Down    Back
         const points = this.getLocalPoints();
         targetBox3 = targetBox3 ?? new THREE.Box3();
         targetBox3.min.x = points[6].x;

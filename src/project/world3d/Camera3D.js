@@ -125,18 +125,18 @@ class Camera3D extends THREE.Camera {
             let width = this.aspect * height;
             let left = - 0.5 * width;
 
-		    const view = this.view;
-		    if (view && view.enabled) {
-			    const fullWidth = view.fullWidth;
-				const fullHeight = view.fullHeight;
-			    left += view.offsetX * width / fullWidth;
-			    top -= view.offsetY * height / fullHeight;
-			    width *= view.width / fullWidth;
-			    height *= view.height / fullHeight;
-		    }
+            const view = this.view;
+            if (view && view.enabled) {
+                const fullWidth = view.fullWidth;
+                const fullHeight = view.fullHeight;
+                left += view.offsetX * width / fullWidth;
+                top -= view.offsetY * height / fullHeight;
+                width *= view.width / fullWidth;
+                height *= view.height / fullHeight;
+            }
 
             this.projectionMatrix.makePerspective(left, left + width, top, top - height, this.near, this.far, this.coordinateSystem);
-		    this.projectionMatrixInverse.copy(this.projectionMatrix).invert();
+            this.projectionMatrixInverse.copy(this.projectionMatrix).invert();
         }
 
         // https://github.com/mrdoob/three.js/blob/dev/src/cameras/OrthographicCamera.js
@@ -194,14 +194,14 @@ class Camera3D extends THREE.Camera {
         this.view.height = height;
 
         this.setSize(fullWidth, fullHeight);
-	}
+    }
 
-	clearViewOffset() {
-		if (this.view && this.view.enabled) {
-			this.view.enabled = false;
+    clearViewOffset() {
+        if (this.view && this.view.enabled) {
+            this.view.enabled = false;
             this.setSize(this.view.fullWidth, this.view.fullHeight);
-		}
-	}
+        }
+    }
 
     /******************** COPY */
 

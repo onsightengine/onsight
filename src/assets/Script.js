@@ -106,9 +106,9 @@ function variableTemplate(includeVariables = false) {
 return (`
 // Script Properties:
 let variables = {
-//	myNumber: { type: 'number', default: 10 },
-//	myString: { type: 'string', default: '' },
-//	myColor: { type: 'color', default: 0x0000ff },
+//  myNumber: { type: 'number', default: 10 },
+//  myString: { type: 'string', default: '' },
+//  myColor: { type: 'color', default: 0x0000ff },
 };
 `);
     } else {

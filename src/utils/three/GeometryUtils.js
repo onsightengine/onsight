@@ -23,8 +23,8 @@ class GeometryUtils {
     static addAttribute(geometry, attributeName = 'color', stride = 3, fill = 0) {
         if (!geometry.getAttribute(attributeName)) {
             let array = new Float32Array(geometry.attributes.position.count * stride).fill(fill)
-	        const attribute = new THREE.BufferAttribute(array, stride, true).setUsage(THREE.DynamicDrawUsage);
-	        geometry.setAttribute(attributeName, attribute);
+            const attribute = new THREE.BufferAttribute(array, stride, true).setUsage(THREE.DynamicDrawUsage);
+            geometry.setAttribute(attributeName, attribute);
         }
         return geometry;
     }

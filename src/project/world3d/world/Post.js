@@ -55,7 +55,7 @@ class Post {
             case 'pixel':
                 pass = new PixelatedPass();
                 pass.uniforms['tPixel'].value = PixelatedShader.createStyleTexture(data.cellStyle);
-                pass.uniforms['uDiscard'].value = data.cuttOff;
+                pass.uniforms['uDiscard'].value = data.cutOff;
                 pass.setPixelSize(data.cellSize);
                 break;
 
@@ -126,8 +126,8 @@ Post.config = {
 
         // Pixel
         cellStyle: { type: 'select', default: 'none', select: [ 'none', 'brick', 'cross', 'knit', 'tile', 'woven' ], if: { style: [ 'pixel' ] } },
-        cellSize: { type: 'slider', default: 10, min: 1, max: 64, step: 1, precision: 0, if: { style: [ 'pixel' ] } },
-        cuttOff: { type: 'slider', default: 0, min: 0, max: 1.0, step: 0.05, precision: 2, if: { style: [ 'pixel' ] } },
+        cellSize: { type: 'slider', default: 8, min: 1, max: 64, step: 1, precision: 0, if: { style: [ 'pixel' ] } },
+        cutOff: { type: 'slider', default: 0, min: 0, max: 1.0, step: 0.05, precision: 2, if: { style: [ 'pixel' ] } },
 
         // Tint
         color: { type: 'color', default: 0xff0000, if: { style: [ 'tint' ] } },

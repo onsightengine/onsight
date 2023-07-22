@@ -282,8 +282,10 @@ class App {
     /******************** GAME HELPERS */
 
     setSize(width, height) {
+        width = Math.ceil(Math.max(1, width));
+        height = Math.ceil(Math.max(1, height));
         if (this.camera) this.camera.setSize(width, height);
-        if (this.renderer) this.renderer.setSize(width, height);
+        if (this.renderer) this.renderer.setSize(width, height); /* internal three <canvas> */
         SceneManager.setSize(width, height);
     }
 

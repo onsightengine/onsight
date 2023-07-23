@@ -155,8 +155,14 @@ class AssetManager {
             // newTexture.mipmaps = [];
             // newTexture.generateMipmaps = true;
 
-            // On Load Callback
+            // Needs Update
+            newTexture.needsUpdate = true;
+
+            // On Load Callback (editor expects texture has not been added yet!)
             if (onLoad && typeof onLoad === 'function') onLoad(newTexture);
+
+            // Add to AssetManager on finished loading...
+            AssetManager.addAsset(newTexture);
         }
 
         function onTextureLoadError() {

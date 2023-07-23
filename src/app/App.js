@@ -243,7 +243,7 @@ class App {
         SceneManager.renderWorld(this.world);
 
         // Animate
-        if (animationID) cancelAnimationFrame(animationID);
+        cancelAnimationFrame(animationID);
         animationID = requestAnimationFrame(() => { self.animate(); });
     }
 
@@ -266,10 +266,8 @@ class App {
         document.removeEventListener('pointermove', this._onPointerMove);
 
         // Cancel Animate
-        if (animationID) {
-            cancelAnimationFrame(animationID);
-            animationID = null;
-        }
+        cancelAnimationFrame(animationID);
+        animationID = null;
         if (this.renderer) this.renderer.clear();
 
         // Clock

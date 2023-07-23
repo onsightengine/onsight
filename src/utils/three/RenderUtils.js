@@ -85,7 +85,9 @@ class RenderUtils {
         scene.add(mesh);
 
         const image = texture.image;
-        const renderer = RenderUtils.offscreenRenderer(image.width, image.height);
+        const renderWidth = canvas.width;
+        const renderHeight = canvas.height
+        const renderer = RenderUtils.offscreenRenderer(renderWidth, renderHeight);
         renderer.render(scene, camera);
         quad.dispose();
         material.dispose();
@@ -96,18 +98,18 @@ class RenderUtils {
             const dAspect = canvas.width / canvas.height;
             let dx, dy, dw, dh, shrink;
             if (sAspect < dAspect) {
-                dh = (image.height > canvas.height) ? canvas.height : image.height;
-                shrink = Math.min(1, canvas.height / image.height);
-                dw = image.width * shrink;
+                dh = canvas.height;
+                shrink = sAspect / dAspect;
+                dw = canvas.width * shrink;
             } else {
-                dw = (image.width > canvas.width) ? canvas.width : image.width;
-                shrink = Math.min(1, canvas.width / image.width);
-                dh = image.height * shrink;
+                dw = canvas.width;
+                shrink = dAspect / sAspect;
+                dh = canvas.height * shrink;
             }
             dx = (canvas.width - dw) / 2;
             dy = (canvas.height - dh) / 2;
             context.clearRect(0, 0, canvas.width, canvas.height);
-            context.drawImage(renderer.domElement, 0, 0, image.width, image.height, dx, dy, dw, dh);
+            context.drawImage(renderer.domElement, 0, 0, renderWidth, renderHeight, dx, dy, dw, dh);
         }
     }
 

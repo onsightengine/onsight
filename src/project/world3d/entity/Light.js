@@ -126,7 +126,7 @@ Light.config = {
         angle: { type: 'number', default: 45, unit: '°', if: { style: [ 'spot' ] } },
         penumbra: { type: 'number', default: 0, min: 0, max: 1, if: { style: [ 'spot' ] } },
 
-        shadowBias: { type: 'number', default: 0, precision: 6, promode: true, if: { style: [ 'directional', 'point', 'spot' ] } }
+        shadowBias: { type: 'number', default: 0, step: 0.00001, precision: 6, promode: true, if: { style: [ 'directional', 'point', 'spot' ] } }
     },
     icon: ``,
     color: '#222222',

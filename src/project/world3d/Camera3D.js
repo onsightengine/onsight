@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { APP_SIZE } from '../../constants.js';
 import { CAMERA_TYPES } from '../../constants.js';
+import { Maths } from '../../utils/Maths.js';
 import { ObjectUtils } from '../../utils/three/ObjectUtils.js';
 
 class Camera3D extends THREE.Camera {
@@ -119,6 +120,16 @@ class Camera3D extends THREE.Camera {
             this.target.copy(target);
         }
 
+        // Orthographic Zoom, Scale Postion--->Target Distance
+        // NOTE: Starting Camera distance is '10'
+        //  1 world unit === 1000 pixels at distance 1
+        //  1 world unit === 100 pixels at distance 10 (demo settings)
+        //  1 world unit === 10 pixels at distance 100
+        //  1 world unit === 1 pixels at distance 1000 (careful near / far)
+        const distance = this.position.distanceTo(this.target);
+        const zoom = Maths.noZero(1000 / distance);
+        this.relativeZoom = zoom;
+
         // https://github.com/mrdoob/three.js/blob/dev/src/cameras/PerspectiveCamera.js
         if (this.isPerspectiveCamera) {
             let top = this.near * Math.tan((Math.PI / 180) * 0.5 * this.fov);
@@ -142,21 +153,6 @@ class Camera3D extends THREE.Camera {
 
         // https://github.com/mrdoob/three.js/blob/dev/src/cameras/OrthographicCamera.js
         if (this.isOrthographicCamera) {
-
-            // Scale to Postion --> Target Distance
-            const distance = this.position.distanceTo(this.target);
-
-            // NOTE: Starting Camera distance is '10'
-            //  1 world unit === 1000 pixels at distance 1
-            //  1 world unit === 100 pixels at distance 10 (demo settings)
-            //  1 world unit === 10 pixels at distance 100
-            //  1 world unit === 1 pixels at distance 1000 (careful near / far)
-            let zoom = 1000 / distance;
-            if (!isFinite(zoom) || isNaN(zoom)) zoom = 0.00001;
-            if (zoom < 0.00001 && zoom > - 0.00001) zoom = 0.00001;
-            this.relativeZoom = zoom;
-
-            // Frustum
             const dx = (this.right - this.left) / (2 * zoom);
             const dy = (this.top - this.bottom) / (2 * zoom);
             const cx = (this.right + this.left) / 2;

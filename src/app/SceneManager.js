@@ -169,17 +169,7 @@ class SceneManager {
 
         // Composer Render
         const composer = _composers[world.uuid];
-        if (composer) {
-            // Before Render
-            composer.passes.forEach((pass) => {
-                if (typeof pass.onBeforeRender === 'function') {
-                    pass.onBeforeRender();
-                }
-            });
-
-            // Render
-            composer.render();
-        }
+        if (composer) composer.render();
     }
 
     static setSize(width, height) {

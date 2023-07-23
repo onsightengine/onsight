@@ -16,6 +16,8 @@
 //  addCommas()             Formats a number into a string with commas added for large numbers
 //  countDecimals()         Counts significant decimal places
 //  isNumber()              Checks if 'number' is a valid number
+//  noZero()                Ensures number is not equal to zero
+//  sanity()                Ensures number is a Number
 // POLYGONS
 //  lineCollision()         Check if two lines are intersecting
 //  lineRectCollision()     Checks if a line is intersecting a rectangle
@@ -107,6 +109,21 @@ class Maths {
     /** Checks if 'number' is a valid number */
     static isNumber(number) {
         return (number !== undefined && number !== null && typeof number === 'number' && !Number.isNaN(number) && Number.isFinite(number));
+    }
+
+    /** Ensures number is not equal to zero */
+    static noZero(number, min = 0.00001) {
+        min = Math.abs(min);
+        number = Maths.sanity(number);
+        if (number >= 0 && number < min) number = min;
+        if (number < 0 && number > min * -1.0) number = min * -1.0;
+        return number;
+    }
+
+    /** Ensures number is a Number */
+    static sanity(number) {
+        if (isNaN(number)) number = 0;
+        return number;
     }
 
     /******************** POLYGON ********************/

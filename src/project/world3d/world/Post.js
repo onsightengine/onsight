@@ -1,6 +1,6 @@
 import { ComponentManager } from '../../ComponentManager.js';
 
-import { PixelatedPass } from '../../../utils/three/passes/PixelatedPass.js';
+import { PixelPerfectPass } from '../../../utils/three/passes/PixelPerfectPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
 import { AsciiShader } from '../../../utils/three/shaders/AsciiShader.js';
@@ -17,15 +17,11 @@ class Post {
 
         switch (data.style) {
             case 'ascii':
-                pass = new ShaderPass(AsciiShader);
+                pass = new PixelPerfectPass(AsciiShader, data.cellSize);
                 pass.uniforms['tCharacters'].value = AsciiShader.createCharactersTexture(data.characters);
                 pass.uniforms['uCharacterCount'].value = data.characters.length;
                 pass.uniforms['uCellSize'].value = data.textSize;
                 pass.uniforms['uColor'].value.set(data.textColor);
-                pass.setFixedSize = function(width, height) {
-                    pass.uniforms['resolution'].value.x = width;
-                    pass.uniforms['resolution'].value.y = height;
-                };
                 break;
 
             case 'bloom':
@@ -53,10 +49,9 @@ class Post {
                 break;
 
             case 'pixel':
-                pass = new PixelatedPass();
+                pass = new PixelPerfectPass(PixelatedShader, data.cellSize);
                 pass.uniforms['tPixel'].value = PixelatedShader.createStyleTexture(data.cellStyle);
                 pass.uniforms['uDiscard'].value = data.cutOff;
-                pass.setPixelSize(data.cellSize);
                 break;
 
             case 'tint':
@@ -114,7 +109,7 @@ Post.config = {
         // Ascii
         textSize: { type: 'slider', default: 16, min: 4, max: 64, step: 1, precision: 0, if: { style: [ 'ascii' ] } },
         textColor: { type: 'color', default: 0xffffff, if: { style: [ 'ascii' ] } },
-        characters: { type: 'string', default: ` .,•'^:-+=*!|?%X0#@`, if: { style: [ 'ascii' ] } },
+        characters: { type: 'string', default: ` .,•:-+=*!?%X0#@`, if: { style: [ 'ascii' ] } },
 
         // Levels
         hue: { type: 'angle', default: 0.0, min: -180, max: 180, if: { style: [ 'levels' ] } },

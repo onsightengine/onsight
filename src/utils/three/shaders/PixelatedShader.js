@@ -44,7 +44,6 @@ export const PixelatedShader = {
         varying vec2 vUv;
 
         void main() {
-            vec2 offset;
             vec2 cell = resolution / uCellSize;
             vec2 grid = 1.0 / cell;
             vec2 pixel = 1.0 / resolution;
@@ -66,17 +65,15 @@ export const PixelatedShader = {
             //
             vec2 patternUV = mod((vUv + fract) * cell, 1.0);
             vec4 pattern = texture2D(tPixel, patternUV);
+            vec2 offset;
             float l = luminance(vec3(pattern.r));                           // r, grayscale
             offset.x = grid.x * ((pattern.g * 0.99609375 * 2.0) - 1.0);     // g, x offset
             offset.y = grid.y * ((pattern.b * 0.99609375 * 2.0) - 1.0);     // b, y offset
 
-            // Image UV
-            vec2 pixelUV = vUv;
-            pixelUV = grid * (0.5 + floor((pixelUV + fract) / grid));
+            // Image Pixel
+            vec2 pixelUV = grid * (0.5 + floor((vUv + fract) / grid));
             pixelUV -= fract;
             pixelUV += offset;
-
-            // Image Color
             vec4 pixelized = texture2D(tDiffuse, pixelUV);
 
             // Too Dark?

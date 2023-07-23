@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { CopyShader } from '../shaders/CopyShader.js';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { Pass } from 'three/addons/postprocessing/Pass.js';
 import { PixelatedShader } from '../shaders/PixelatedShader.js';
@@ -9,15 +8,12 @@ const _camRotation = new THREE.Quaternion();
 const _camRight = new THREE.Vector3();
 const _camUp = new THREE.Vector3();
 
-let _count = 0;
+class PixelPerfectPass extends Pass {
 
-class PixelatedPass extends Pass {
-
-    constructor(pixelSize = 1) {
+    constructor(shader, pixelSize = 1) {
         super();
 
         // Pixel Shader
-        const shader = PixelatedShader;
         this.uniforms = THREE.UniformsUtils.clone(shader.uniforms);
         this.material = new THREE.ShaderMaterial({
             name: shader.name ?? 'unspecified',
@@ -76,4 +72,4 @@ class PixelatedPass extends Pass {
 
 }
 
-export { PixelatedPass };
+export { PixelPerfectPass };

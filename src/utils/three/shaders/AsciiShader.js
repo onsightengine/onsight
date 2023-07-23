@@ -14,6 +14,7 @@ export const AsciiShader = {
         'uCharacterCount': { value: 0 },
         'uCellSize': { value: 16 },
         'uColor': { value: new THREE.Color() },
+        'uCamera': { value: new THREE.Vector2() },
     },
 
     vertexShader: /* glsl */`
@@ -31,6 +32,7 @@ export const AsciiShader = {
         uniform float uCharacterCount;
         uniform float uCellSize;
         uniform vec3 uColor;
+        uniform vec2 uCamera;
 
         varying vec2 vUv;
 
@@ -39,14 +41,22 @@ export const AsciiShader = {
         void main() {
             vec2 cell = resolution / uCellSize;
             vec2 grid = 1.0 / cell;
-            vec2 pixelUV = grid * (0.5 + floor(vUv / grid));
-            vec4 pixelized = texture2D(tDiffuse, pixelUV);
-            float greyscale = luminance(pixelized.rgb);
+            vec2 pixel = 1.0 / resolution;
 
+            // Camera Offset
+            vec2 fract = pixel * mod(uCamera, uCellSize);
+
+            // Image Color
+            vec2 pixelUV = grid * (0.5 + floor((vUv + fract) / grid));
+            pixelUV -= fract;
+            vec4 pixelized = texture2D(tDiffuse, pixelUV);
+
+            // Character
+            float greyscale = luminance(pixelized.rgb);
             float characterIndex = floor((uCharacterCount - 1.0) * greyscale);
             vec2 characterPosition = vec2(mod(characterIndex, SIZE.x), floor(characterIndex / SIZE.y));
             vec2 offset = vec2(characterPosition.x, -characterPosition.y) / SIZE;
-            vec2 charUV = mod(vUv * (cell / SIZE), 1.0 / SIZE) - vec2(0., 1.0 / SIZE) + offset;
+            vec2 charUV = mod((vUv + fract) * (cell / SIZE), 1.0 / SIZE) - vec2(0.0, 1.0 / SIZE) + offset;
             vec4 asciiCharacter = texture2D(tCharacters, charUV);
 
             gl_FragColor = vec4(uColor * asciiCharacter.rgb, pixelized.a);

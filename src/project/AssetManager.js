@@ -17,7 +17,7 @@ class AssetManager {
         for (let uuid in _assets) {
             const asset = _assets[uuid];
 
-            // Don't clear prefabs for now
+            // FIXME: Don't clear prefabs for now
             if (!asset.isEntity) {
                 AssetManager.removeAsset(_assets[uuid], true);
             }

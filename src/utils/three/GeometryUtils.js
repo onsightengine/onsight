@@ -111,12 +111,12 @@ class GeometryUtils {
         if (transformMatrix === undefined) transformMatrix = new THREE.Matrix4();
 
         // Find Geometry Size
-        let geometrySize = GeometryUtils.modelSize(geometry);
+        const geometrySize = GeometryUtils.modelSize(geometry);
 
         // Create Cube based on Geometry Size
-        let size = (geometrySize / 2);
-        let bbox = new THREE.Box3(new THREE.Vector3(-size, -size, -size), new THREE.Vector3(size, size, size));
-        let boxCenter = new THREE.Vector3();
+        const size = (geometrySize / 2);
+        const bbox = new THREE.Box3(new THREE.Vector3(-size, -size, -size), new THREE.Vector3(size, size, size));
+        const boxCenter = new THREE.Vector3();
         geometry.boundingBox.getCenter(boxCenter);
 
         // Align cube center with geometry center
@@ -215,19 +215,17 @@ class GeometryUtils {
                 n.y = Math.abs(n.y);
                 n.z = Math.abs(n.z);
 
-                // XZ mapping
+                // Y Dimension, XZ mapping (top / bottom)
                 if (n.y > n.x && n.y > n.z) {
                     _uv[0].x = (v0.x - bbox.min.x) / geometrySize; _uv[0].y = (bbox.max.z - v0.z) / geometrySize;
                     _uv[1].x = (v1.x - bbox.min.x) / geometrySize; _uv[1].y = (bbox.max.z - v1.z) / geometrySize;
                     _uv[2].x = (v2.x - bbox.min.x) / geometrySize; _uv[2].y = (bbox.max.z - v2.z) / geometrySize;
-
-                // XY Mapping
+                // X Dimension, YZ Mapping (left / right)
                 } else if (n.x > n.y && n.x > n.z) {
                     _uv[0].x = (v0.z - bbox.min.z) / geometrySize; _uv[0].y = (v0.y - bbox.min.y) / geometrySize;
                     _uv[1].x = (v1.z - bbox.min.z) / geometrySize; _uv[1].y = (v1.y - bbox.min.y) / geometrySize;
                     _uv[2].x = (v2.z - bbox.min.z) / geometrySize; _uv[2].y = (v2.y - bbox.min.y) / geometrySize;
-
-                // XZ Mapping
+                // Z Plane, XY Mapping (front / back)
                 } else if (n.z > n.y && n.z > n.x) {
                     _uv[0].x = (v0.x - bbox.min.x) / geometrySize; _uv[0].y = (v0.y - bbox.min.y) / geometrySize;
                     _uv[1].x = (v1.x - bbox.min.x) / geometrySize; _uv[1].y = (v1.y - bbox.min.y) / geometrySize;

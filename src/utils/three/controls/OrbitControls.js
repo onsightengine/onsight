@@ -17,8 +17,15 @@
 // https://github.com/mrdoob/three.js/blob/dev/examples/jsm/interactive/OrbitControls.js
 
 import * as THREE from 'three';
-import * as ONE from 'onsight';
-import * as VIEWPORT from 'viewport';
+import { Maths } from '../../Maths.js';
+
+/** Same as ViewportConstants */
+const MOUSE_MODES = {
+    SELECT:             'select',
+    LOOK:               'look',
+    MOVE:               'move',
+    ZOOM:               'zoom',
+};
 
 const ORBIT_STATES = {
     NONE: -1,
@@ -79,14 +86,14 @@ class OrbitControls extends THREE.EventDispatcher {
         this.maxZoom = 25.0;                            // Zoom in,  OrthographicCamera only
 
         // How far you can orbit vertically
-        // Range is 0 to Math.PI radians.
+        // Range is 0 to Math.PI radians
         this.minPolarAngle = 0;                         // In radians, range is 0 to Math.PI
         this.maxPolarAngle = Math.PI;                   // In radians, range is 0 to Math.PI
 
         // How far you can orbit horizontally
-        //      If set, the interval [min, max] must
-        //      be a sub-interval of [- 2 PI, 2 PI],
-        //      with ( max - min < 2 PI )
+        // If set, the interval [min, max] must be a
+        // sub-interval of [- 2 PI, 2 PI],
+        // with (max - min < 2 PI)
         this.minAzimuthAngle = - Infinity;              // In radians
         this.maxAzimuthAngle =   Infinity;              // In radians
 
@@ -354,22 +361,22 @@ class OrbitControls extends THREE.EventDispatcher {
                     }
 
                     // // #OPTION: Damp
-                    self.camera.position.x = ONE.Maths.damp(self.camera.position.x, newPosition.x, lambda, dt);
-                    self.camera.position.y = ONE.Maths.damp(self.camera.position.y, newPosition.y, lambda, dt);
-                    self.camera.position.z = ONE.Maths.damp(self.camera.position.z, newPosition.z, lambda, dt);
-                    self.target.x = ONE.Maths.damp(self.target.x, newTarget.x, lambda, dt);
-                    self.target.y = ONE.Maths.damp(self.target.y, newTarget.y, lambda, dt);
-                    self.target.z = ONE.Maths.damp(self.target.z, newTarget.z, lambda, dt);
-                    self.camera.zoom = ONE.Maths.damp(self.camera.zoom, newZoom, lambda, dt);
+                    self.camera.position.x = Maths.damp(self.camera.position.x, newPosition.x, lambda, dt);
+                    self.camera.position.y = Maths.damp(self.camera.position.y, newPosition.y, lambda, dt);
+                    self.camera.position.z = Maths.damp(self.camera.position.z, newPosition.z, lambda, dt);
+                    self.target.x = Maths.damp(self.target.x, newTarget.x, lambda, dt);
+                    self.target.y = Maths.damp(self.target.y, newTarget.y, lambda, dt);
+                    self.target.z = Maths.damp(self.target.z, newTarget.z, lambda, dt);
+                    self.camera.zoom = Maths.damp(self.camera.zoom, newZoom, lambda, dt);
 
                     // // #OPTION: Lerp
                     // self.camera.position.lerp(newPosition, dt * lambda);
                     // self.target.lerp(newTarget, dt * lambda);
-                    // self.camera.zoom = ONE.Maths.lerp(newZoom, dt * lambda);
+                    // self.camera.zoom = Maths.lerp(newZoom, dt * lambda);
 
                     // End Animation?
-                    let donePosition = ONE.Maths.fuzzyVector(self.camera.position, newPosition, 0.001);
-                    let doneZooming = ONE.Maths.fuzzyFloat(self.camera.zoom, newZoom, 0.001);
+                    let donePosition = Maths.fuzzyVector(self.camera.position, newPosition, 0.001);
+                    let doneZooming = Maths.fuzzyFloat(self.camera.zoom, newZoom, 0.001);
                     endAnimation = (donePosition && doneZooming) || self.forceEndAnimation;
 
                     // Sync new positions
@@ -423,8 +430,8 @@ class OrbitControls extends THREE.EventDispatcher {
                     // Lerp towards new Spherical
                     let targetTheta = spherical.theta + sphericalDelta.theta;
                     let targetPhi = spherical.phi + sphericalDelta.phi;
-                    let dampTheta = ONE.Maths.damp(spherical.theta, targetTheta, self.dampSmooth, deltaTime);
-                    let dampPhi = ONE.Maths.damp(spherical.phi, targetPhi, self.dampSmooth, deltaTime);
+                    let dampTheta = Maths.damp(spherical.theta, targetTheta, self.dampSmooth, deltaTime);
+                    let dampPhi = Maths.damp(spherical.phi, targetPhi, self.dampSmooth, deltaTime);
 
                     // Make sure numbers are legit
                     if (Number.isNaN(dampTheta)) dampTheta = spherical.theta;
@@ -440,9 +447,9 @@ class OrbitControls extends THREE.EventDispatcher {
                     let targetX = self.target.x + panOffset.x;
                     let targetY = self.target.y + panOffset.y;
                     let targetZ = self.target.z + panOffset.z;
-                    let dampX = ONE.Maths.damp(self.target.x, targetX, self.dampSmooth * 2, deltaTime);
-                    let dampY = ONE.Maths.damp(self.target.y, targetY, self.dampSmooth * 2, deltaTime);
-                    let dampZ = ONE.Maths.damp(self.target.z, targetZ, self.dampSmooth * 2, deltaTime);
+                    let dampX = Maths.damp(self.target.x, targetX, self.dampSmooth * 2, deltaTime);
+                    let dampY = Maths.damp(self.target.y, targetY, self.dampSmooth * 2, deltaTime);
+                    let dampZ = Maths.damp(self.target.z, targetZ, self.dampSmooth * 2, deltaTime);
 
                     // Make sure numbers are legit
                     if (Number.isNaN(dampX)) dampX = self.target.x;
@@ -857,9 +864,6 @@ class OrbitControls extends THREE.EventDispatcher {
             // Make sure we are enabled
             if (self.enabled === false) return;
 
-            // Make sure we have focus
-            if (!document.activeElement.contains(self.domElement)) return;
-
             // If animating, need to stop animation
             if (self.animating !== ORBIT_ANIMATION.NONE) {
                 self.forceEndAnimation = true;
@@ -884,6 +888,9 @@ class OrbitControls extends THREE.EventDispatcher {
 
         function onPointerMove(event) {
             if (self.enabled === false) return;
+
+            // Make sure we have focus
+            if (!document.activeElement.contains(self.domElement)) return;
 
             if (event.pointerType === 'touch') {
                 onTouchMove(event);
@@ -913,26 +920,26 @@ class OrbitControls extends THREE.EventDispatcher {
             let mouseAction = THREE.MOUSE.ROTATE;
 
             // Editor Viewport?
-            if (editor && editor.viewport.hasFocus()) {
+            if (self.domElement && self.domElement.classList.contains('Viewport')) {
                 if (event.button === 0 /* left */ && !self.spaceKey) {
                     switch (editor.viewport.mouseMode) {
-                        case VIEWPORT.MOUSE_MODES.SELECT:   mouseAction = THREE.MOUSE.PAN; break;
-                        case VIEWPORT.MOUSE_MODES.LOOK:     mouseAction = THREE.MOUSE.ROTATE; break;
-                        case VIEWPORT.MOUSE_MODES.MOVE:     mouseAction = THREE.MOUSE.PAN; break;
-                        case VIEWPORT.MOUSE_MODES.ZOOM:     mouseAction = THREE.MOUSE.DOLLY; break;
+                        case MOUSE_MODES.SELECT:   mouseAction = THREE.MOUSE.PAN; break;
+                        case MOUSE_MODES.LOOK:     mouseAction = THREE.MOUSE.ROTATE; break;
+                        case MOUSE_MODES.MOVE:     mouseAction = THREE.MOUSE.PAN; break;
+                        case MOUSE_MODES.ZOOM:     mouseAction = THREE.MOUSE.DOLLY; break;
                         default: mouseAction = -1;
                     }
 
                 } else if (event.button === 2 /* right */ || (event.button === 0 && self.spaceKey)) {
                     if (self.camera.isOrthographicCamera) {
-                        if (editor.viewport.mouseMode === VIEWPORT.MOUSE_MODES.MOVE) {
+                        if (editor.viewport.mouseMode === MOUSE_MODES.MOVE) {
                             mouseAction = (self.spaceKey) ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE;
                         } else {
                             mouseAction = (self.spaceKey) ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN;
                         }
 
                     } else {
-                        if (editor.viewport.mouseMode === VIEWPORT.MOUSE_MODES.LOOK) {
+                        if (editor.viewport.mouseMode === MOUSE_MODES.LOOK) {
                             mouseAction = (self.spaceKey) ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN;
                         } else {
                             mouseAction = (self.spaceKey) ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE;

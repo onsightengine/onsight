@@ -49,7 +49,6 @@ class Camera3D extends THREE.Camera {
 
         // Flags, Orthographic
         this.target = new THREE.Vector3();
-        this.relativeZoom = 1.0;
 
         // Init Size
         this.setSize(width, height);
@@ -128,7 +127,7 @@ class Camera3D extends THREE.Camera {
         //  1 world unit === 1 pixels at distance 1000 (careful near / far)
         const distance = this.position.distanceTo(this.target);
         const zoom = Maths.noZero(1000 / distance);
-        this.relativeZoom = zoom;
+        this.zoom = zoom;
 
         // https://github.com/mrdoob/three.js/blob/dev/src/cameras/PerspectiveCamera.js
         if (this.isPerspectiveCamera) {

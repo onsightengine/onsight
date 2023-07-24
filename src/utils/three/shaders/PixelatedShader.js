@@ -1,4 +1,3 @@
-// https://github.com/emilwidlund/ASCII
 // image to base64: https://www.base64-image.de/
 
 import * as THREE from 'three';

@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { Pass } from 'three/addons/postprocessing/Pass.js';
-import { PixelatedShader } from '../shaders/PixelatedShader.js';
 
 const _camPosition = new THREE.Vector3();
 const _camRotation = new THREE.Quaternion();
@@ -46,8 +45,8 @@ class PixelPerfectPass extends Pass {
         const camPosY = _camPosition.dot(_camUp);
 
         // Camera Position (in Pixels)
-        this.uniforms['uCamera'].value.x = camPosX * camera.relativeZoom;
-        this.uniforms['uCamera'].value.y = camPosY * camera.relativeZoom;
+        this.uniforms['uCamera'].value.x = camPosX * camera.zoom;
+        this.uniforms['uCamera'].value.y = camPosY * camera.zoom;
 
         // Fullscreen Quad using PixelatedShader
         this.uniforms['tDiffuse'].value = readBuffer.texture;

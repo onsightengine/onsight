@@ -1,12 +1,3 @@
-/**
- * @description Onsight Editor
- * @about       Easy to use 2D / 3D JavaScript game engine.
- * @author      Written by Stephens Nunnally <@stevinz>
- * @license     None - Copyright (C) 2021-2023 Scidian Studios - All Rights Reserved
- *              Unauthorized Copying of these Files, via Any Medium is Strictly Prohibited
- *              Proprietary and Confidential, No Public License
- */
-
 // This set of controls performs orbiting, dollying (zooming), and panning.
 // Unlike TrackballControls, it maintains the 'up' direction of camera.up (+Y by default).
 //
@@ -285,10 +276,12 @@ class OrbitControls extends THREE.EventDispatcher {
             // New camera target
             newTarget.copy(target.position);
 
-            // For orthographic camera set camera zoom to match perspective distance
-            let originalDistance = this.position0.distanceTo(this.target0);
-            let newDistance = newPosition.distanceTo(target.position);
-            newZoom = (this.camera.isOrthographicCamera) ? (originalDistance / newDistance) : this.camera.zoom;
+            // // OLD: For orthographic camera set camera zoom to match perspective distance
+            // let originalDistance = this.position0.distanceTo(this.target0);
+            // let newDistance = newPosition.distanceTo(target.position);
+            // newZoom = (this.camera.isOrthographicCamera) ? (originalDistance / newDistance) : this.camera.zoom;
+            // // NEW: Camera3D Ortho takes into account position, new zoom same as old zoom
+            newZoom = this.camera.zoom;
 
             // Start animation
             this.animating = ORBIT_ANIMATION.START;
@@ -375,8 +368,8 @@ class OrbitControls extends THREE.EventDispatcher {
                     // self.camera.zoom = Maths.lerp(newZoom, dt * lambda);
 
                     // End Animation?
-                    let donePosition = Maths.fuzzyVector(self.camera.position, newPosition, 0.001);
-                    let doneZooming = Maths.fuzzyFloat(self.camera.zoom, newZoom, 0.001);
+                    const donePosition = Maths.fuzzyVector(self.camera.position, newPosition, 0.001);
+                    const doneZooming = Maths.fuzzyFloat(self.camera.zoom, newZoom, 0.001);
                     endAnimation = (donePosition && doneZooming) || self.forceEndAnimation;
 
                     // Sync new positions

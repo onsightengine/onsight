@@ -25,6 +25,8 @@ const _objPosition = new THREE.Vector3();
 const _objQuaternion = new THREE.Quaternion();
 const _objRotation = new THREE.Euler();
 const _objScale = new THREE.Vector3();
+const _tempBounds = new THREE.Box3();
+const _tempScale = new THREE.Vector3();
 
 class ObjectUtils {
 
@@ -192,6 +194,19 @@ class ObjectUtils {
         if (data.frustumCulled !== undefined) object.frustumCulled = data.frustumCulled;
         if (data.renderOrder !== undefined) object.renderOrder = data.renderOrder;
         if (data.userData !== undefined) object.userData = data.userData;
+    }
+
+    /** Calculate identity size (scale 1, 1, 1), stores result in 'target' (THREE.Vector3) */
+    static identityBoundsCalculate(object, target) {
+        target = target ?? new THREE.Vector3();
+        _tempScale.copy(object.scale);
+        object.scale.set(1, 1, 1);
+        object.updateMatrixWorld(true);
+        ONE.ObjectUtils.computeBounds(object, _tempBounds, true /* checkForSingleGeometry */);
+        _tempBounds.getSize(target);
+        object.scale.copy(_tempScale);
+        object.updateMatrixWorld(true);
+        return target;
     }
 
     /** Normalize / zero / reset object 3D transform */

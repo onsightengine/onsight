@@ -17,10 +17,10 @@ class Post {
 
         switch (data.style) {
             case 'ascii':
-                pass = new PixelPerfectPass(AsciiShader, data.cellSize);
+                pass = new PixelPerfectPass(AsciiShader, data.textSize, data.textSize);
                 pass.uniforms['tCharacters'].value = AsciiShader.createCharactersTexture(data.characters);
                 pass.uniforms['uCharacterCount'].value = data.characters.length;
-                pass.uniforms['uCellSize'].value = data.textSize;
+                pass.uniforms['uCellSize'].value.set(data.textSize, data.textSize);
                 pass.uniforms['uColor'].value.set(data.textColor);
                 break;
 
@@ -49,7 +49,7 @@ class Post {
                 break;
 
             case 'pixel':
-                pass = new PixelPerfectPass(PixelatedShader, data.cellSize);
+                pass = new PixelPerfectPass(PixelatedShader, data.cellSize[0], data.cellSize[1]);
                 pass.uniforms['tPixel'].value = PixelatedShader.createStyleTexture(data.cellStyle);
                 pass.uniforms['uDiscard'].value = data.cutOff;
                 break;
@@ -121,8 +121,8 @@ Post.config = {
 
         // Pixel
         cellStyle: { type: 'select', default: 'none', select: [ 'none', 'brick', 'cross', 'knit', 'tile', 'woven' ], if: { style: [ 'pixel' ] } },
-        cellSize: { type: 'slider', default: 8, min: 1, max: 64, step: 1, precision: 0, if: { style: [ 'pixel' ] } },
-        cutOff: { type: 'slider', default: 0, min: 0, max: 1.0, step: 0.05, precision: 2, if: { style: [ 'pixel' ] } },
+        cellSize: { type: 'vector', default: [ 8, 8 ], size: 2, tint: true, aspect: true, label: [ 'x', 'y' ], min: [ 1, 1 ], max: [ 1000, 1000 ], precision: [ 2, 2 ], if: { style: [ 'pixel' ] } },
+        cutOff: { type: 'slider', promode: true, default: 0, min: 0, max: 1.0, step: 0.05, precision: 2, if: { style: [ 'pixel' ] } },
 
         // Tint
         color: { type: 'color', default: 0xff0000, if: { style: [ 'tint' ] } },

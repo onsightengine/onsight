@@ -22,28 +22,31 @@ let variables = {
 let position;
 
 function init() {
-    // Prep Variables
-    moveSpeed /= 100;
-
     // Starting Position
-    position = new THREE.Vector3();
-    position.copy(this.position);
+    position = new THREE.Vector3().copy(this.position);
+
+    // "Actual" Position (for smooth scrolling OrbitControls)
+    this.actual = new THREE.Vector3().copy(position);
 }
 
 function update(event) {
     // Movement
     if (app.keys[keyLeft] || app.keys[keyRight] || app.keys[keyUp] || app.keys[keyDown]) {
-        if (app.keys[keyLeft]) position.x -= moveSpeed;
-        if (app.keys[keyRight]) position.x += moveSpeed;
-        if (app.keys[keyUp]) position.y += moveSpeed;
-        if (app.keys[keyDown]) position.y -= moveSpeed;
+        if (app.keys[keyLeft]) position.x -= moveSpeed / 100;
+        if (app.keys[keyRight]) position.x += moveSpeed / 100;
+        if (app.keys[keyUp]) position.y += moveSpeed / 100;
+        if (app.keys[keyDown]) position.y -= moveSpeed / 100;
     } else {
         // Dissipate Movement
-        position.lerp(this.position, event.delta * 10);
+        position.lerp(this.position, event.delta * moveSpeed);
     }
 
+    this.actual.lerp(position, event.delta * moveSpeed);
+
     // Update Position
-    this.position.copy(position);
+    this.position.x = ((this.actual.x * 100) - (this.actual.x * 100) % pixels) / 100;
+    this.position.y = ((this.actual.y * 100) - (this.actual.y * 100) % pixels) / 100;
+    this.position.z = ((this.actual.z * 100) - (this.actual.z * 100) % pixels) / 100;
 }
 `;
 

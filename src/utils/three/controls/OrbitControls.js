@@ -227,11 +227,14 @@ class OrbitControls extends THREE.EventDispatcher {
         this.centerOnTarget = function(target) {
             if (state !== ORBIT_STATES.NONE) return;
 
+            // Get target position
+            const targetPosition = target.actual ?? target.position ?? target;
+
             // Update camera position (add in difference between new target and current target)
-            newPosition.copy(this.camera.position).add(target.position).sub(this.target);
+            newPosition.copy(this.camera.position).add(targetPosition).sub(this.target);
 
             // New camera target
-            newTarget.copy(target.position);
+            newTarget.copy(targetPosition);
 
             // New zoom same as old zoom
             newZoom = this.camera.zoom;

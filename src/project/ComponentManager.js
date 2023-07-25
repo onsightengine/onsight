@@ -27,7 +27,7 @@ import { System } from '../utils/System.js';
 //  slider          Number Slider                   0                   min (-inf), max (inf), step ('any'), precision (2)
 //
 //  variable        Number with +/- Number          [ 0, 0 ]            min[], max[], step[], unit[], precision[]
-//  vector          Number Array                    [ 0 ]               size: array length, tint (false) - also min[], max[], step[], unit[], precision[], label[]
+//  vector          Number Array                    [ 0 ]               size: array length (1), tint (false), aspect(false) - also min[], max[], step[], unit[], precision[], label[]
 
 //  boolean         Option / Checkbox               false
 //  color           Color Selector                  0xffffff
@@ -72,8 +72,10 @@ import { System } from '../utils/System.js';
 //  'grid'          Align step to current editor 'grid' setting
 //
 //  VECTOR OPTIONS
+//  ...             Supports all "Numerical Options"
 //  size            Length of array
 //  tint            When true, number boxes are colorered (up to 4 boxes, axis colors)
+//  aspect          True/False, show "Aspect Lock" button?
 //
 //  STRING OPTIONS
 //  rows            If value of > 1, specifies multiline text. Value describes desired default height when displayed.

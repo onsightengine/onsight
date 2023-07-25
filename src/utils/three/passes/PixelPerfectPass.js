@@ -9,7 +9,7 @@ const _camUp = new THREE.Vector3();
 
 class PixelPerfectPass extends Pass {
 
-    constructor(shader, pixelSize = 1) {
+    constructor(shader, pixelX = 1, pixelY = 1) {
         super();
 
         // Pixel Shader
@@ -23,8 +23,11 @@ class PixelPerfectPass extends Pass {
         });
         this.pixelQuad = new FullScreenQuad(this.material);
 
+        // Properties
+        this.pixelSize = new THREE.Vector2();
+
         // Init
-        this.setPixelSize(pixelSize);
+        this.setPixelSize(pixelX, pixelY);
     }
 
     render(renderer, writeBuffer, readBuffer, /* deltaTime, maskActive */) {
@@ -59,8 +62,11 @@ class PixelPerfectPass extends Pass {
         this.pixelQuad.dispose();
     }
 
-    setPixelSize(pixelSize = 1) {
-        this.pixelSize = Math.min(1024, Math.max(1, parseInt(pixelSize)));
+    setPixelSize(x = 1, y = 1) {
+        if (y == undefined) y = x;
+        x = Math.min(1024, Math.max(1, parseInt(x)));
+        y = Math.min(1024, Math.max(1, parseInt(y)));
+        this.pixelSize.set(x, y);
         this.uniforms['uCellSize'].value = this.pixelSize;
     }
 

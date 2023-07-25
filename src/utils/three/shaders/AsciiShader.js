@@ -30,7 +30,7 @@ export const AsciiShader = {
         uniform sampler2D tDiffuse;
         uniform sampler2D tCharacters;
         uniform float uCharacterCount;
-        uniform float uCellSize;
+        uniform vec2 uCellSize;
         uniform vec3 uColor;
         uniform vec2 uCamera;
 

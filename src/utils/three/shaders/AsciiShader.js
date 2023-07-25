@@ -79,8 +79,8 @@ export const AsciiShader = {
                 canvas, undefined,
                 THREE.RepeatWrapping,
                 THREE.RepeatWrapping,
-                THREE.NearestFilter,
-                THREE.NearestFilter,
+                THREE.LinearFilter,
+                THREE.LinearFilter,
             );
 
             const ctx = canvas.getContext('2d');

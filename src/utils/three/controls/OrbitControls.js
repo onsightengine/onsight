@@ -369,7 +369,7 @@ class OrbitControls extends THREE.EventDispatcher {
 
                     // End Animation?
                     const donePosition = Maths.fuzzyVector(self.camera.position, newPosition, 0.001);
-                    const doneZooming = Maths.fuzzyFloat(self.camera.zoom, newZoom, 0.001);
+                    const doneZooming = true;// OLD (changed zoom): Maths.fuzzyFloat(self.camera.zoom, newZoom, 0.001);
                     endAnimation = (donePosition && doneZooming) || self.forceEndAnimation;
 
                     // Sync new positions
@@ -913,7 +913,7 @@ class OrbitControls extends THREE.EventDispatcher {
             let mouseAction = THREE.MOUSE.ROTATE;
 
             // Editor Viewport?
-            if (self.domElement && self.domElement.classList.contains('Viewport')) {
+            if (self.domElement && self.domElement.classList.contains('one-viewport')) {
                 if (event.button === 0 /* left */ && !self.spaceKey) {
                     switch (editor.viewport.mouseMode) {
                         case MOUSE_MODES.SELECT:   mouseAction = THREE.MOUSE.PAN; break;

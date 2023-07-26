@@ -18,9 +18,9 @@ class Vectors {
     static noZero(vec3, min = 0.001) {
         min = Math.abs(min);
         Vectors.sanity(vec3);
-        if (vec3.x > 0 && vec3.x < min) vec3.x = min;
-        if (vec3.y > 0 && vec3.y < min) vec3.y = min;
-        if (vec3.z > 0 && vec3.z < min) vec3.z = min;
+        if (vec3.x >= 0 && vec3.x < min) vec3.x = min;
+        if (vec3.y >= 0 && vec3.y < min) vec3.y = min;
+        if (vec3.z >= 0 && vec3.z < min) vec3.z = min;
         if (vec3.x < 0 && vec3.x > min * -1.0) vec3.x = min * -1.0;
         if (vec3.y < 0 && vec3.y > min * -1.0) vec3.y = min * -1.0;
         if (vec3.z < 0 && vec3.z > min * -1.0) vec3.z = min * -1.0;
@@ -48,6 +48,7 @@ class Vectors {
         if (isNaN(vec3.x)) vec3.x = 0;
         if (isNaN(vec3.y)) vec3.y = 0;
         if (isNaN(vec3.z)) vec3.z = 0;
+        if (vec3.w != null && isNaN(vec3.w)) vec3.w = 1;
         return vec3;
     }
 

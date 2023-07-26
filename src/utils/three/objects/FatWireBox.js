@@ -7,24 +7,20 @@ import { ObjectUtils } from '../ObjectUtils.js';
 import { Vectors } from '../../Vectors.js';
 
 const _box = new THREE.Box3();
-const _objQuaternion = new THREE.Quaternion();
-const _objScale = new THREE.Vector3();
-const _objPosition = new THREE.Vector3();
+const _indices = new Uint16Array([ 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 ]);
 const _tempScale = new THREE.Vector3();
 const _tempSize = new THREE.Vector3();
 
-const _indices = new Uint16Array([ 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 ]);
-
 /** Variable line width wireframe cube */
 class FatWireBox extends Line2 {
-    constructor(object, lineWidth = 1, boxColor = 0xffffff, opacity = 1.0, matchTransform = false) {
+    constructor(object, linewidth = 1, color = 0xffffff, opacity = 1.0) {
         // Geometry
         const lineGeometry = new LineSegmentsGeometry();
 
         // Material
         const lineMaterial = new LineMaterial({
-            color: boxColor,
-            linewidth: lineWidth,       // in world units with size attenuation, pixels otherwise
+            color: color,
+            linewidth: linewidth,       // in world units with size attenuation, pixels otherwise
             opacity: opacity,
 
             alphaToCoverage: true,
@@ -44,48 +40,27 @@ class FatWireBox extends Line2 {
         super(lineGeometry, lineMaterial);
 
         // Properties
-        this.positions = new Float32Array(8 * 3);      // Box data
-        this.points = [];                               // To store points
-        for (let i = 0; i <  8; i++) {
-            this.points.push(new THREE.Vector3());
-        }
+        this.positions = new Float32Array(8 * 3); /* box data */
 
-        // Apply geometry
-        if (object) this.updateFromObject(object, matchTransform);
-
-        // Clone function
-        this.clone = function() {
-            return new this.constructor(object, lineWidth, boxColor, opacity, matchTransform).copy(this, true);
-        }
-    }
-
-    disableDepthTest() {
-        this.material.depthTest = false;
-    }
-
-    updateFromObject(object, matchTransform) {
-        const updateObject = object.clone();
-
-        // Get object transform info, clear info to compute box
-        if (matchTransform) {
-            object.getWorldPosition(_objPosition);
-            object.getWorldQuaternion(_objQuaternion);
-            object.getWorldScale(_objScale);
+        /// Box Position Data
+        if (object && object.isObject3D) {
+            const updateObject = object.clone();
             updateObject.lookAtCamera = false;
             updateObject.position.set(0, 0, 0);
             updateObject.rotation.set(0, 0, 0);
             updateObject.scale.set(1, 1, 1);
-            updateObject.updateMatrixWorld(true);
+            updateObject.matrix.compose(updateObject.position, updateObject.quaternion, updateObject.scale);
+            _box.setFromObject(updateObject);
+            ObjectUtils.clearObject(updateObject);
+            Vectors.sanity(_box.min);
+            Vectors.sanity(_box.max);
+        } else {
+            _box.set(new THREE.Vector3(-0.5, -0.5, -0.5), new THREE.Vector3(0.5, 0.5, 0.5));
         }
 
-        // Set points from Box3 bounding box
-        _box.setFromObject(updateObject);
+        // Assign points
         const min = _box.min;
         const max = _box.max;
-        Vectors.sanity(_box.min);
-        Vectors.sanity(_box.max);
-
-        // Assign points
         const array = this.positions;
         array[ 0] = max.x; array[ 1] = max.y; array[ 2] = max.z;
         array[ 3] = min.x; array[ 4] = max.y; array[ 5] = max.z;
@@ -106,38 +81,28 @@ class FatWireBox extends Line2 {
         }
         this.geometry.setPositions(positions);
 
-        // Match box transform to object
-        if (matchTransform) {
-            this.setRotationFromQuaternion(_objQuaternion);
-            // this.rotation.setFromQuaternion(_objQuaternion, undefined, false);
-            this.scale.set(_objScale.x, _objScale.y, _objScale.z);
-            this.position.set(_objPosition.x, _objPosition.y, _objPosition.z);
-            this.updateMatrix();
-        }
+        // Copy Transform
+        if (object && object.isObject3D) ObjectUtils.copyWorldTransform(object, this, true /* update matrix? */);
 
-        this.updateMatrixWorld(true);
-        ObjectUtils.clearObject(updateObject);
-    }
-
-    getPoints() {
-        for (let i = 0; i < 8; i++) {
-            const index = (i * 3);
-            this.points[i].x = this.geometry.attributes.position.array[index + 0];
-            this.points[i].y = this.geometry.attributes.position.array[index + 1];
-            this.points[i].z = this.geometry.attributes.position.array[index + 2];
-            this.localToWorld(this.points[i]);
+        // Clone function
+        this.clone = function() {
+            const clone = new this.constructor(object, linewidth, color, opacity);
+            ObjectUtils.copyLocalTransform(this, clone);
+            return clone;
         }
-        return this.points;
     }
 
     getLocalPoints() {
+        const points = [];
         for (let i = 0; i < 8; i++) {
             const index = (i * 3);
-            this.points[i].x = this.positions[index + 0];
-            this.points[i].y = this.positions[index + 1];
-            this.points[i].z = this.positions[index + 2];
+            const point = new THREE.Vector3();
+            point.x = this.positions[index + 0];
+            point.y = this.positions[index + 1];
+            point.z = this.positions[index + 2];
+            points[i] = point;
         }
-        return this.points;
+        return points;
     }
 
     getAbsoluteSize(target) {
@@ -161,22 +126,21 @@ class FatWireBox extends Line2 {
         //      Point 5: Left   Top     Back
         //      Point 6: Left   Down    Back
         //      Point 7: Right  Down    Back
-        const points = this.getLocalPoints();
         targetBox3 = targetBox3 ?? new THREE.Box3();
-        targetBox3.min.x = points[6].x;
-        targetBox3.min.y = points[6].y;
-        targetBox3.min.z = points[6].z;
-        targetBox3.max.x = points[0].x;
-        targetBox3.max.y = points[0].y;
-        targetBox3.max.z = points[0].z;
+        targetBox3.min.x = this.positions[(6 * 3) /* index */ + 0];
+        targetBox3.min.y = this.positions[(6 * 3) /* index */ + 1];
+        targetBox3.min.z = this.positions[(6 * 3) /* index */ + 2];
+        targetBox3.max.x = this.positions[(0 * 3) /* index */ + 0];
+        targetBox3.max.y = this.positions[(0 * 3) /* index */ + 1];
+        targetBox3.max.z = this.positions[(0 * 3) /* index */ + 2];
     }
 
     getSize(target) {
+        this.getBox3(_box);
         this.getWorldScale(_tempScale);
-        const points = this.getLocalPoints();
-        target.x = (points[0].x - points[6].x) * Math.abs(_tempScale.x);    // Width
-        target.y = (points[0].y - points[6].y) * Math.abs(_tempScale.y);    // Height
-        target.z = (points[0].z - points[6].z) * Math.abs(_tempScale.z);    // Depth
+        target.x = (_box.max.x - _box.min.x) * Math.abs(_tempScale.x);    // Width
+        target.y = (_box.max.y - _box.min.y) * Math.abs(_tempScale.y);    // Height
+        target.z = (_box.max.z - _box.min.z) * Math.abs(_tempScale.z);    // Depth
         // console.info(`Width: ${target.x}, Height: ${target.y}, Depth: ${target.z}`);
     }
 
@@ -184,6 +148,7 @@ class FatWireBox extends Line2 {
         this.getSize(_tempSize);
         return Math.max(Math.max(_tempSize.x, _tempSize.y), _tempSize.z);
     }
+
 }
 
 export { FatWireBox };

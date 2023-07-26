@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Maths } from '../Maths.js';
 import { System } from '../System.js';
+import { Vectors } from '../Vectors.js';
 
 // allowSelection()         Check if object should be allowed to be interacted with in Editor
 // checkTransforms()        Compares array of objects to see if transforms are all the same
@@ -9,6 +10,7 @@ import { System } from '../System.js';
 // computeBounds()          Finds bounding box of an object or array of objects
 // computeCenter()          Finds center point of an object or array of objects
 // containsObject()         Checks array to see if it has an object (by Object3D.uuid)
+// copyLocalTransform()     Copies local transform from one object to another
 // copyWorldTransform()     Copies world transform from one object to another
 // countGeometry()          Counts total geometris in an object or array of objects
 // flattenGroup()           Puts an object's children into parent, deletes original containing object
@@ -142,10 +144,21 @@ class ObjectUtils {
         return false;
     }
 
+    /** Copies local transform from one object to another */
+    static copyLocalTransform(source, target) {
+        target.position.copy(source.position);
+        target.rotation.order = source.rotation.order;
+        target.quaternion.copy(source.quaternion);
+        target.scale.copy(source.scale);
+        target.matrix.copy(source.matrix);
+        target.matrixWorld.copy(source.matrixWorld);
+    }
+
     /** Copies world transform from one object to another */
     static copyWorldTransform(source, target, updateMatrix = true) {
         source.updateWorldMatrix(true, false);
         source.matrixWorld.decompose(target.position, _tempQuaternion, target.scale);
+        Vectors.sanity(_tempQuaternion);
         target.rotation.setFromQuaternion(_tempQuaternion, undefined, false);
         target.quaternion.setFromEuler(target.rotation, false);
         if (updateMatrix) {

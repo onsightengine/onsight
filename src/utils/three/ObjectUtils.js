@@ -4,7 +4,7 @@ import { System } from '../System.js';
 import { Vectors } from '../Vectors.js';
 
 // allowSelection()         Check if object should be allowed to be interacted with in Editor
-// checkTransforms()        Compares array of objects to see if transforms are all the same
+// compareQuaternions()     Compares array of objects to see if quaternions are all the same
 // clearObject()            Completely deletes object (including geomtries/materials), and all of it's children
 // clearMaterial()          Disposes of a material
 // computeBounds()          Finds bounding box of an object or array of objects
@@ -41,8 +41,8 @@ class ObjectUtils {
         return allowSelect;
     }
 
-    /** Compares array of objects to see if transforms are all the same */
-    static checkTransforms(array) {
+    /** Compares array of objects to see if quaternions are all the same */
+    static compareQuaternions(array) {
         if (array.length <= 1) return true;
         array[0].getWorldQuaternion(_startQuaternion);
         for (let i = 1; i < array.length; i++) {
@@ -214,11 +214,11 @@ class ObjectUtils {
         target = target ?? new THREE.Vector3();
         _tempScale.copy(object.scale);
         object.scale.set(1, 1, 1);
-        object.updateMatrixWorld(true);
+        object.updateMatrixWorld(true /* force */);
         ONE.ObjectUtils.computeBounds(object, _tempBounds, true /* checkForSingleGeometry */);
         _tempBounds.getSize(target);
         object.scale.copy(_tempScale);
-        object.updateMatrixWorld(true);
+        object.updateMatrixWorld(true /* force */);
         return target;
     }
 
@@ -226,7 +226,10 @@ class ObjectUtils {
     static resetTransform(object) {
         object.position.set(0, 0, 0);
         object.rotation.set(0, 0, 0);
+        object.quaternion.set(0, 0, 0, 1);
         object.scale.set(1, 1, 1);
+        object.updateMatrix();
+        object.updateMatrixWorld(true /* force */);
     }
 
 }

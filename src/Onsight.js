@@ -72,10 +72,13 @@ export { OrbitControls } from './utils/three/controls/OrbitControls.js';
 export { CapsuleGeometry } from './utils/three/geometry/CapsuleGeometry.js';
 export { CylinderGeometry } from './utils/three/geometry/CylinderGeometry.js';
 export { PrismGeometry } from './utils/three/geometry/PrismGeometry.js';
-export { BasicLine, BasicWireBox, BasicWireframe } from './utils/three/geometry/Wireframe.js';
-export { FatLine, FatWireBox, FatWireframe } from './utils/three/geometry/Wireframe.js';
 
 // Three, Objects
+export { BasicLine } from './utils/three/objects/BasicLine.js';
+export { BasicWireBox } from './utils/three/objects/BasicWireBox.js';
+export { BasicWireframe, FatWireframe } from './utils/three/objects/Wireframe.js';
+export { FatLine } from './utils/three/objects/FatLine.js';
+export { FatWireBox } from './utils/three/objects/FatWireBox.js';
 export { SkyObject } from './utils/three/objects/SkyObject.js';
 
 // Three, Passes

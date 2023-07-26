@@ -1,8 +1,9 @@
 // absolute()       Set x, y, z to positive numbers
+// isNaN()          Checks if vector values are numbers
 // noZero()         Ensures vector values are not equal to zero
-// printOut()       Logs a vector3 to the console
-// round()          Rounds vector3 values to 'decimalPlaces'
-// sanity()         Ensures Vector3 values are real numbers
+// printOut()       Logs a vector to the console
+// round()          Rounds vector values to 'decimalPlaces'
+// sanity()         Ensures vector values are real numbers
 
 class Vectors {
 
@@ -12,6 +13,15 @@ class Vectors {
         vec3.y = Math.abs(vec3.y);
         vec3.z = Math.abs(vec3.z);
         return vec3;
+    }
+
+    /** Checks if vector values are numbers */
+    static isNaN(vec3) {
+        if (isNaN(vec3.x)) return true;
+        if (isNaN(vec3.y)) return true;
+        if (isNaN(vec3.z)) return true;
+        if (vec3.w != null && isNaN(vec3.w)) return true;
+        return false;
     }
 
     /** Ensures vector values are not equal to zero */
@@ -27,14 +37,14 @@ class Vectors {
         return vec3;
     }
 
-    /** Logs a vector3 to the console */
+    /** Logs a vector to the console */
     static printOut(vec3, name = '') {
         if (name !== '') name += ' - ';
         console.info(`${name}X: ${vec3.x}, Y: ${vec3.y}, Z: ${vec3.z}`);
         return vec3;
     }
 
-    /** Rounds vector3 values to 'decimalPlaces' */
+    /** Rounds vector values to 'decimalPlaces' */
     static round(vec3, decimalPlaces = 0) {
         const shift = Math.pow(10, decimalPlaces);
         vec3.x = Math.round(vec3.x * shift) / shift;
@@ -43,7 +53,7 @@ class Vectors {
         return vec3;
     }
 
-    /** Ensures Vector3 values are real numbers */
+    /** Ensures vector values are real numbers */
     static sanity(vec3) {
         if (isNaN(vec3.x)) vec3.x = 0;
         if (isNaN(vec3.y)) vec3.y = 0;

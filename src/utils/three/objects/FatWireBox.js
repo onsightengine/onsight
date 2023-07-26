@@ -48,9 +48,12 @@ class FatWireBox extends Line2 {
             updateObject.lookAtCamera = false;
             updateObject.position.set(0, 0, 0);
             updateObject.rotation.set(0, 0, 0);
+            updateObject.quaternion.set(0, 0, 0, 1);
             updateObject.scale.set(1, 1, 1);
             updateObject.matrix.compose(updateObject.position, updateObject.quaternion, updateObject.scale);
-            _box.setFromObject(updateObject);
+            updateObject.matrixWorld.copy(updateObject.matrix);
+            updateObject.matrixAutoUpdate = false;
+            _box.setFromObject(updateObject, true /* precise */);
             ObjectUtils.clearObject(updateObject);
             Vectors.sanity(_box.min);
             Vectors.sanity(_box.max);
@@ -81,13 +84,10 @@ class FatWireBox extends Line2 {
         }
         this.geometry.setPositions(positions);
 
-        // Copy Transform
-        if (object && object.isObject3D) ObjectUtils.copyWorldTransform(object, this, true /* update matrix? */);
-
         // Clone function
         this.clone = function() {
             const clone = new this.constructor(object, linewidth, color, opacity);
-            ObjectUtils.copyLocalTransform(this, clone);
+            ObjectUtils.copyTransform(this, clone);
             return clone;
         }
     }

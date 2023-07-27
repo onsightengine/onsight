@@ -12,6 +12,7 @@ export const LevelsShader = {
         'contrast': { value: 0 },
         'grayscale': { value: 0.0 },
         'negative': { value: false },
+        'bitrate': { value: 1.0 },
     },
 
     vertexShader: /* glsl */`
@@ -31,6 +32,7 @@ export const LevelsShader = {
         uniform float contrast;
         uniform float grayscale;
         uniform float negative;
+        uniform float bitrate;
 
         varying vec2 vUv;
 
@@ -74,6 +76,9 @@ export const LevelsShader = {
 
             // Negative
             texel.rgb = mix(texel.rgb, (1.0 - texel.rgb) * texel.a, negative);
+
+            // Bitrate (0 to 256)
+            texel.rgb = floor(texel.rgb * bitrate) / bitrate;
 
             // Final
             gl_FragColor = texel;

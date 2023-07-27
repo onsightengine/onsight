@@ -26,6 +26,7 @@ export const AsciiShader = {
 
     fragmentShader: /* glsl */`
         #include <common>
+
         uniform vec2 resolution;
         uniform sampler2D tDiffuse;
         uniform sampler2D tCharacters;

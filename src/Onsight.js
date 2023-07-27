@@ -84,6 +84,11 @@ export { SkyObject } from './utils/three/objects/SkyObject.js';
 // Three, Passes
 export { GpuPickerPass } from './utils/three/passes/GpuPickerPass.js';
 
+// Three, Shaders
+//
+// ...
+//
+
 // Utils
 export { Clock } from './utils/Clock.js';
 export { Maths } from './utils/Maths.js';

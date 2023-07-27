@@ -4,7 +4,9 @@ import { PixelPerfectPass } from '../../../utils/three/passes/PixelPerfectPass.j
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
 import { AsciiShader } from '../../../utils/three/shaders/AsciiShader.js';
+import { CartoonShader } from '../../../utils/three/shaders/CartoonShader.js';
 import { ColorifyShader } from 'three/addons/shaders/ColorifyShader.js';
+import { DitherShader } from '../../../utils/three/shaders/DitherShader.js';
 import { LevelsShader } from '../../../utils/three/shaders/LevelsShader.js';
 import { PixelatedShader } from '../../../utils/three/shaders/PixelatedShader.js';
 import { SobelOperatorShader } from 'three/addons/shaders/SobelOperatorShader.js';
@@ -30,12 +32,28 @@ class Post {
 
                 break;
 
+            case 'cartoon':
+                pass = new ShaderPass(CartoonShader);
+                pass.uniforms['uEdgeColor'].value.set(data.edgeColor);
+                pass.uniforms['uEdgeStrength'].value = data.edgeStrength;
+                pass.uniforms['uGradient'].value = data.gradient;
+                pass.setSize = function(width, height) {
+                    pass.uniforms['resolution'].value.x = width;
+                    pass.uniforms['resolution'].value.y = height;
+                };
+                break;
+
             case 'edge':
                 pass = new ShaderPass(SobelOperatorShader);
                 pass.setFixedSize = function(width, height) {
                     pass.uniforms['resolution'].value.x = width;
                     pass.uniforms['resolution'].value.y = height;
                 };
+                break;
+
+            case 'dither':
+                pass = new ShaderPass(DitherShader);
+                pass.uniforms['colors'].value = data.colors;
                 break;
 
             case 'levels':
@@ -46,6 +64,9 @@ class Post {
                 pass.uniforms['hue'].value = data.hue;
                 pass.uniforms['grayscale'].value = data.grayscale;
                 pass.uniforms['negative'].value = data.negative;
+                const exp = Math.pow(1.992078554292416, data.bitrate - 8);
+                const colors = (data.bitrate <= 8) ? data.bitrate : 8 + exp;
+                pass.uniforms['bitrate'].value = colors;
                 break;
 
             case 'pixel':
@@ -100,7 +121,7 @@ Post.config = {
     schema: {
 
         style: [
-            { type: 'select', default: 'pixel', select: [ 'ascii', 'edge', 'levels', 'pixel', 'tint' ] },
+            { type: 'select', default: 'levels', select: [ 'ascii', 'cartoon', 'dither', 'edge', 'levels', 'pixel', 'tint' ] },
         ],
 
         // Divider
@@ -111,7 +132,19 @@ Post.config = {
         textColor: { type: 'color', default: 0xffffff, if: { style: [ 'ascii' ] } },
         characters: { type: 'string', default: ` .,•:-+=*!?%X0#@`, if: { style: [ 'ascii' ] } },
 
+        // Cartoon
+        edgeColor: { type: 'color', default: 0x000000, if: { style: [ 'cartoon' ] } },
+        edgeStrength: { type: 'slider', default: 0, min: 0, max: 1, precision: 2, if: { style: [ 'cartoon' ] } },
+        gradient: { type: 'slider', default: 5, min: 2, max: 32, step: 1, precision: 0, if: { style: [ 'cartoon' ] } },
+
+        // Dither
+        colors: { type: 'number', default: 2, if: { style: [ 'dither' ] } },
+
+        // Edge
+        // ...
+
         // Levels
+        bitrate: { type: 'slider', default: 16, min: 1, max: 16, step: 1, precision: 0, if: { style: [ 'levels' ] } },
         hue: { type: 'angle', default: 0.0, min: -180, max: 180, if: { style: [ 'levels' ] } },
         saturation: { type: 'slider', default: 0.0, min: -1, max: 1, step: 0.1, precision: 2, if: { style: [ 'levels' ] } },
         brightness: { type: 'slider', default: 0.0, min: -1, max: 1, step: 0.1, precision: 2, if: { style: [ 'levels' ] } },

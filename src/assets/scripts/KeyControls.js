@@ -12,6 +12,7 @@ class KeyControls extends Script {
 // Properties
 let variables = {
     moveSpeed: { type: 'number', default: 5 },
+    pixels: { type: 'number', default: 1 },
     keyLeft: { type: 'key', default: 'ArrowLeft' },
     keyRight: { type: 'key', default: 'ArrowRight' },
     keyUp: { type: 'key', default: 'ArrowUp' },
@@ -25,8 +26,8 @@ function init() {
     // Starting Position
     position = new THREE.Vector3().copy(this.position);
 
-    // "Actual" Position (for smooth scrolling OrbitControls)
-    this.actual = new THREE.Vector3().copy(position);
+    // "Target" Position (for smooth scrolling OrbitControls)
+    this.target = new THREE.Vector3().copy(position);
 }
 
 function update(event) {
@@ -38,15 +39,15 @@ function update(event) {
         if (app.keys[keyDown]) position.y -= moveSpeed / 100;
     } else {
         // Dissipate Movement
-        position.lerp(this.position, event.delta * moveSpeed);
+        position.lerp(this.target, event.delta * moveSpeed);
     }
 
-    this.actual.lerp(position, event.delta * moveSpeed);
+    this.target.lerp(position, event.delta * moveSpeed);
 
     // Update Position
-    this.position.x = ((this.actual.x * 100) - (this.actual.x * 100) % pixels) / 100;
-    this.position.y = ((this.actual.y * 100) - (this.actual.y * 100) % pixels) / 100;
-    this.position.z = ((this.actual.z * 100) - (this.actual.z * 100) % pixels) / 100;
+    this.position.x = ((this.target.x * 100) - (this.target.x * 100) % pixels) / 100;
+    this.position.y = ((this.target.y * 100) - (this.target.y * 100) % pixels) / 100;
+    this.position.z = ((this.target.z * 100) - (this.target.z * 100) % pixels) / 100;
 }
 `;
 

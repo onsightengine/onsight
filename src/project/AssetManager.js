@@ -31,6 +31,7 @@ class AssetManager {
         if (asset.isBufferGeometry) return 'geometry';
         if (asset.type === 'Shape') return 'shape';
         if (asset.isMaterial) return 'material';
+        if (asset.isPalette) return 'palette';
         if (asset.isScript) return 'script';
         if (asset.isTexture) return 'texture';
         if (asset.isEntity || asset.isPrefab) return 'prefab';
@@ -189,6 +190,19 @@ class AssetManager {
             }
         }
 
+        /***** ONSIGHT *****/
+
+        // Load Palettes
+        const palettes = {};
+        if (json.palettes) {
+            for (let i = 0; i < json.palettes.length; i++) {
+                const palette = new Script().fromJSON(json.palettes[i]);
+                palettes[palette.uuid] = palette;
+            }
+            addLibraryToAssets(palettes);
+        }
+
+
         // Load Prefabs
         //
         // TODO!!! Project Only!
@@ -203,6 +217,8 @@ class AssetManager {
             }
             addLibraryToAssets(scripts);
         }
+
+        /***** THREE *****/
 
         // Load Assets
         const objectLoader = new THREE.ObjectLoader();
@@ -225,6 +241,7 @@ class AssetManager {
         const json = {};
 
         if (!meta) meta = {};
+        if (!meta.palettes) meta.palettes = {};
         if (!meta.scripts) meta.scripts = {};
         if (!meta.shapes) meta.shapes = {};
         if (!meta.geometries) meta.geometries = {};
@@ -240,6 +257,17 @@ class AssetManager {
             materials: {},
         };
 
+        /***** ONSIGHT *****/
+
+        // Save Palettes
+        const palettes = AssetManager.getLibrary('palette');
+        for (let i = 0; i < palettes.length; i++) {
+            const palette = palettes[i];
+            if (!palette.uuid) continue;
+            if (meta.palettes[palette.uuid]) continue;
+            meta.palettes[palette.uuid] = palette.toJSON();
+        }
+
         // Save Prefabs
         //
         // TODO!!!
@@ -253,6 +281,8 @@ class AssetManager {
             if (meta.scripts[script.uuid]) continue;
             meta.scripts[script.uuid] = script.toJSON();
         }
+
+        /***** THREE *****/
 
         // Save Geometries
         const geometries = AssetManager.getLibrary('geometry');

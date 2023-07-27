@@ -85,7 +85,9 @@ export const CartoonShader = {
             vec3 hsv = rgbToHsv(texel.rgb);
             hsv.x = clamp(0.01 * (floor(hsv.x / 0.01)), 0.0, 1.0);
             hsv.y = clamp(0.01 * (floor(hsv.y / 0.01)), 0.0, 1.0);
-            hsv.z = clamp(clrs * (floor(hsv.z / clrs) + (1.0 * texel.a)), 0.0, 1.0);
+            hsv.z = clamp(clrs * floor(hsv.z / clrs), 0.0, 1.0);
+            // hsv.z = clamp(clrs * (floor(hsv.z / clrs) + (1.0 * texel.a)), 0.0, 1.0);
+
             vec3 rgb = hsvToRgb(hsv.xyz);
 
             // Edge

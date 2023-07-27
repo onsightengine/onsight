@@ -43,17 +43,21 @@ class Post {
                 };
                 break;
 
+            case 'dither':
+                pass = new ShaderPass(DitherShader);
+                pass.uniforms['uBias'].value = data.bias;
+                pass.setSize = function(width, height) {
+                    pass.uniforms['resolution'].value.x = width;
+                    pass.uniforms['resolution'].value.y = height;
+                };
+                break;
+
             case 'edge':
                 pass = new ShaderPass(SobelOperatorShader);
                 pass.setFixedSize = function(width, height) {
                     pass.uniforms['resolution'].value.x = width;
                     pass.uniforms['resolution'].value.y = height;
                 };
-                break;
-
-            case 'dither':
-                pass = new ShaderPass(DitherShader);
-                pass.uniforms['colors'].value = data.colors;
                 break;
 
             case 'levels':
@@ -64,9 +68,9 @@ class Post {
                 pass.uniforms['hue'].value = data.hue;
                 pass.uniforms['grayscale'].value = data.grayscale;
                 pass.uniforms['negative'].value = data.negative;
-                const exp = Math.pow(1.992078554292416, data.bitrate - 8);
-                const colors = (data.bitrate <= 8) ? data.bitrate : 8 + exp;
-                pass.uniforms['bitrate'].value = colors;
+                // const exp = Math.pow(1.992078554292416, data.bitrate - 8);
+                // const colors = (data.bitrate <= 8) ? data.bitrate : 8 + exp;
+                pass.uniforms['bitrate'].value = Math.pow(2, data.bitrate);
                 break;
 
             case 'pixel':
@@ -121,7 +125,7 @@ Post.config = {
     schema: {
 
         style: [
-            { type: 'select', default: 'levels', select: [ 'ascii', 'cartoon', 'dither', 'edge', 'levels', 'pixel', 'tint' ] },
+            { type: 'select', default: 'dither', select: [ 'ascii', 'cartoon', 'dither', 'edge', 'levels', 'pixel', 'tint' ] },
         ],
 
         // Divider
@@ -138,14 +142,14 @@ Post.config = {
         gradient: { type: 'slider', default: 5, min: 2, max: 32, step: 1, precision: 0, if: { style: [ 'cartoon' ] } },
 
         // Dither
-        colors: { type: 'number', default: 2, if: { style: [ 'dither' ] } },
+        bias: { type: 'slider', default: 0, min: -1, max: 1, if: { style: [ 'dither' ] } },
 
         // Edge
         // ...
 
         // Levels
-        bitrate: { type: 'slider', default: 16, min: 1, max: 16, step: 1, precision: 0, if: { style: [ 'levels' ] } },
-        hue: { type: 'angle', default: 0.0, min: -180, max: 180, if: { style: [ 'levels' ] } },
+        bitrate: { type: 'slider', promode: true, default: 8, min: 0, max: 8, step: 1, precision: 0, if: { style: [ 'levels' ] } },
+        hue: { type: 'angle', default: 0.0, min: -360, max: 360, if: { style: [ 'levels' ] } },
         saturation: { type: 'slider', default: 0.0, min: -1, max: 1, step: 0.1, precision: 2, if: { style: [ 'levels' ] } },
         brightness: { type: 'slider', default: 0.0, min: -1, max: 1, step: 0.1, precision: 2, if: { style: [ 'levels' ] } },
         contrast: { type: 'slider', default: 0.0, min: -1, max: 1, step: 0.1, precision: 2, if: { style: [ 'levels' ] } },

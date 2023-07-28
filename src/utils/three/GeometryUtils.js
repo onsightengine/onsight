@@ -1,6 +1,3 @@
-import * as THREE from 'three';
-import { Vectors } from '../Vectors.js';
-
 // https://stackoverflow.com/questions/20774648/three-js-generate-uv-coordinate
 // https://stackoverflow.com/questions/34958072/programmatically-generate-simple-uv-mapping-for-models
 // https://discourse.threejs.org/t/can-i-make-a-uv-unwrapping-of-a-model-programmatically-with-three-js/2421/6
@@ -13,6 +10,9 @@ import { Vectors } from '../Vectors.js';
 // uvFlip()                 Flip uv coordinates
 // uvMapCube()              Maps uv coordinates onto an object that fits inside a cube
 // uvMapSphere()            Maps uv coordinates onto an object that fits inside a sphere
+
+import * as THREE from 'three';
+import { Vectors } from '../Vectors.js';
 
 const _uv = [ new THREE.Vector2(), new THREE.Vector2(), new THREE.Vector2() ];
 const _vertex = [ new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3() ];

@@ -1,6 +1,6 @@
-import { Entity3D } from '../project/world3d/Entity3D.js';
-
 // https://github.com/rare-earth/Square/blob/main/src/EntityPool.js
+
+import { Entity3D } from '../project/world3d/Entity3D.js';
 
 class EntityPool {
 

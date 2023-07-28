@@ -37,6 +37,7 @@ export const SCRIPT_FORMAT = {
 export const MESH_REBUILD_TYPES = [
     'geometry',
     'material',
+    'palette',
     'shape',
     'texture',
 ]

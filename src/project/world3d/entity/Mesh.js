@@ -1,8 +1,6 @@
 import * as THREE from 'three';
 import { ComponentManager } from '../../../app/ComponentManager.js';
 
-// https://github.com/Cloud9c/taro/blob/main/src/components/Renderable.js
-
 class Mesh {
 
     //

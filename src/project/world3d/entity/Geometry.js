@@ -1,3 +1,5 @@
+// https://github.com/Cloud9c/taro/blob/main/src/components/Geometry.js
+
 import * as THREE from 'three';
 import { LoopSubdivision } from 'three-subdivide';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
@@ -10,8 +12,6 @@ import { CapsuleGeometry } from '../../../utils/three/geometry/CapsuleGeometry.j
 import { CylinderGeometry } from '../../../utils/three/geometry/CylinderGeometry.js';
 import { GeometryUtils } from '../../../utils/three/GeometryUtils.js';
 import { Maths } from '../../../utils/Maths.js';
-
-// https://github.com/Cloud9c/taro/blob/main/src/components/Geometry.js
 
 const boxGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
 const circleShape = new THREE.Shape().absarc(0, 0, 0.5 /* radius */);

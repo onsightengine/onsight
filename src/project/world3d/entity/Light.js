@@ -1,5 +1,4 @@
-import * as THREE from 'three';
-import { ComponentManager } from '../../../app/ComponentManager.js';
+// https://github.com/Cloud9c/taro/blob/main/src/components/Light.js
 
 // LIGHT       SHADOW      DESCRIPTION
 // Ambient     -           Globally illuminates all objects in the scene equally
@@ -13,7 +12,8 @@ import { ComponentManager } from '../../../app/ComponentManager.js';
 // 'Sky' - Hemisphere light
 // 'Sun' - Directional light
 
-// https://github.com/Cloud9c/taro/blob/main/src/components/Light.js
+import * as THREE from 'three';
+import { ComponentManager } from '../../../app/ComponentManager.js';
 
 class Light {
 

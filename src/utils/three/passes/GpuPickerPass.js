@@ -1,8 +1,8 @@
+// https://github.com/bzztbomb/three_js_gpu_picking - Dec 29, 2021
+
 import * as THREE from 'three';
 import { Pass } from 'three/addons/postprocessing/Pass.js';
 import { ObjectUtils } from '../ObjectUtils.js';
-
-// https://github.com/bzztbomb/three_js_gpu_picking - Dec 29, 2021
 
 const _clearColor = new THREE.Color(0xffffff);
 const _materialCache = [];

@@ -1,8 +1,8 @@
+// https://github.com/Cloud9c/taro/blob/main/src/components/Camera.js
+
 import * as THREE from 'three';
 import { Camera3D } from '../Camera3D.js';
 import { ComponentManager } from '../../../app/ComponentManager.js';
-
-// https://github.com/Cloud9c/taro/blob/main/src/components/Camera.js
 
 const _renderSize = new THREE.Vector2(1, 1);
 

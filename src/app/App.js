@@ -1,3 +1,8 @@
+// https://github.com/mrdoob/three.js/blob/dev/editor/js/libs/app.js
+// https://github.com/mrdoob/three.js/blob/dev/examples/jsm/physics/RapierPhysics.js
+// https://github.com/Cloud9c/taro/blob/main/src/core/App.js
+// https://github.com/Cloud9c/taro/blob/main/src/core/Physics.js
+
 import * as THREE from 'three';
 import { APP_EVENTS } from '../constants.js';
 import { AssetManager } from './AssetManager.js';
@@ -10,12 +15,6 @@ import { RapierPhysics } from './RapierPhysics.js';
 import { Renderer3D } from './Renderer3D.js';
 import { Scene3D } from '../project/world3d/Scene3D.js';
 import { SceneManager } from './SceneManager.js';
-
-// https://github.com/mrdoob/three.js/blob/dev/editor/js/libs/app.js
-// https://github.com/mrdoob/three.js/blob/dev/examples/jsm/physics/RapierPhysics.js
-
-// https://github.com/Cloud9c/taro/blob/main/src/core/App.js
-// https://github.com/Cloud9c/taro/blob/main/src/core/Physics.js
 
 // Game Loop
 let animationID = null;

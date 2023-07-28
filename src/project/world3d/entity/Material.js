@@ -1,12 +1,4 @@
-import * as THREE from 'three';
-// import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
-
-import { AssetManager } from '../../../app/AssetManager.js';
-import { ComponentManager } from '../../../app/ComponentManager.js';
-import { GeometryUtils } from '../../../utils/three/GeometryUtils.js';
-import { ObjectUtils } from '../../../utils/three/ObjectUtils.js';
-import { SceneManager } from '../../../app/SceneManager.js';
-import { System } from '../../../utils/System.js';
+// https://github.com/Cloud9c/taro/blob/main/src/components/Material.js
 
 // MeshBasicMaterial        not affected by lights
 // MeshLambertMaterial      non-physically based material for non-shiny surfaces, without specular highlights
@@ -14,7 +6,14 @@ import { System } from '../../../utils/System.js';
 // MeshStandardMaterial     standard physically based material, using Metallic-Roughness workflow
 // MeshPhysicalMaterial     extension of MeshStandardMaterial, providing even more advanced physically-based rendering
 
-// https://github.com/Cloud9c/taro/blob/main/src/components/Material.js
+import * as THREE from 'three';
+// import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { AssetManager } from '../../../app/AssetManager.js';
+import { ComponentManager } from '../../../app/ComponentManager.js';
+import { GeometryUtils } from '../../../utils/three/GeometryUtils.js';
+import { ObjectUtils } from '../../../utils/three/ObjectUtils.js';
+import { SceneManager } from '../../../app/SceneManager.js';
+import { System } from '../../../utils/System.js';
 
 const blendingModes = [ 'NoBlending', 'NormalBlending', 'AdditiveBlending', 'SubstractiveBlending', 'MultiplyBlending', 'CustomBlending' ];
 const sides = [ 'FrontSide', 'BackSide', 'DoubleSide' ];

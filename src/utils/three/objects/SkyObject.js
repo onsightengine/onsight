@@ -1,7 +1,7 @@
-import * as THREE from 'three';
-
 // https://github.com/mrdoob/three.js/blob/master/examples/jsm/objects/Sky.js
 // https://github.com/tentone/nunuStudio/blob/master/source/core/objects/misc/Sky.js
+
+import * as THREE from 'three';
 
 const SCALE = 500;
 

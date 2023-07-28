@@ -1,8 +1,8 @@
+// https://github.com/Cloud9c/taro/blob/main/src/components/physics/Rigidbody.js
+
 import * as THREE from 'three';
 // import { Body, Material } from '../../../libs/cannon-es.js';
 import { ComponentManager } from '../../../app/ComponentManager.js';
-
-// https://github.com/Cloud9c/taro/blob/main/src/components/physics/Rigidbody.js
 
 const styles = [ 'dynamic', 'static', 'kinematic' ];
 const indexedTypes = [ undefined, 'dynamic', 'static', undefined, 'kinematic' ];

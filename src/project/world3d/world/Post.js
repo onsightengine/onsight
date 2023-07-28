@@ -1,3 +1,4 @@
+import { AssetManager } from '../../AssetManager.js';
 import { ComponentManager } from '../../ComponentManager.js';
 import { Iris } from '../../../utils/Iris.js';
 
@@ -48,6 +49,19 @@ class Post {
 
             case 'dither':
                 pass = new ShaderPass(DitherShader);
+                const palette = AssetManager.getAsset(data.palette);
+                if (palette && palette.isPalette) {
+                    const colors = palette.colors;
+                    if (colors && colors.length > 0) {
+                        const numColors = Math.min(colors.length, 256);
+                        const colorArray = [];
+                        for (let i = 0; i < 256; i++) {
+                            colorArray.push(new THREE.Color((i < numColors) ? colors[i] : 0));
+                        }
+                        pass.uniforms['uPaletteRgb'].value = colorArray;
+                        pass.uniforms['uPaletteSize'].value = numColors;
+                    }
+                }
                 pass.uniforms['uBias'].value = data.bias;
                 pass.setSize = function(width, height) {
                     pass.uniforms['resolution'].value.x = width;

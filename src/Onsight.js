@@ -24,6 +24,7 @@ export { SceneManager } from './app/SceneManager.js'
 /******************** CLASSES - Assets  ********************/
 
 // Assets
+export { Palette } from './assets/Palette.js';
 export { Script } from './assets/Script.js';
 
 // Assets, Scripts, Camera

@@ -1,4 +1,5 @@
 import { ComponentManager } from '../../ComponentManager.js';
+import { Iris } from '../../../utils/Iris.js';
 
 import { PixelPerfectPass } from '../../../utils/three/passes/PixelPerfectPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
@@ -10,6 +11,8 @@ import { DitherShader } from '../../../utils/three/shaders/DitherShader.js';
 import { LevelsShader } from '../../../utils/three/shaders/LevelsShader.js';
 import { PixelatedShader } from '../../../utils/three/shaders/PixelatedShader.js';
 import { SobelOperatorShader } from 'three/addons/shaders/SobelOperatorShader.js';
+
+const _clr = new Iris();
 
 class Post {
 
@@ -143,6 +146,7 @@ Post.config = {
 
         // Dither
         bias: { type: 'slider', default: 0, min: -1, max: 1, if: { style: [ 'dither' ] } },
+        palette: { type: 'asset', class: 'palette', if: { style: [ 'dither' ] } },
 
         // Edge
         // ...

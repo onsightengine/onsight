@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { Palette } from '../assets/Palette.js';
 import { RenderUtils } from '../utils/three/RenderUtils.js';
 import { Script } from '../assets/Script.js';
 import { Strings } from '../utils/Strings.js';
@@ -196,12 +197,11 @@ class AssetManager {
         const palettes = {};
         if (json.palettes) {
             for (let i = 0; i < json.palettes.length; i++) {
-                const palette = new Script().fromJSON(json.palettes[i]);
+                const palette = new Palette().fromJSON(json.palettes[i]);
                 palettes[palette.uuid] = palette;
             }
             addLibraryToAssets(palettes);
         }
-
 
         // Load Prefabs
         //

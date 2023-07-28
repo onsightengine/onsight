@@ -1,4 +1,5 @@
 import { Iris } from '../utils/Iris.js';
+import { Maths } from '../utils/Maths.js';
 
 class Palette {
 
@@ -8,7 +9,7 @@ class Palette {
         this.type = 'Palette';
 
         // Properties
-        this.name ='New Palette';
+        this.name = 'New Palette';
         this.uuid = Maths.uuid();
         this.colors = [];
     }
@@ -19,7 +20,6 @@ class Palette {
             0x808080,   // gray
             0xc0c0c0,   // silver
             0xffffff,   // white
-
             0x00ffff,   // aqua
             0x0000ff,   // blue
             0x000080,   // navy
@@ -33,6 +33,7 @@ class Palette {
             0x008000,   // green
             0x008080,   // teal
         ];
+        return this;
     }
 
     fromJSON(json) {

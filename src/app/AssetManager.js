@@ -165,7 +165,7 @@ class AssetManager {
             // Add to AssetManager on finished loading...
             AssetManager.addAsset(newTexture);
 
-            // Signals (now finished loading)
+            // Signals (finished loading)
             if (window.signals && signals.assetChanged) signals.assetChanged.dispatch('texture', newTexture);
         }
 
@@ -181,7 +181,7 @@ class AssetManager {
 
     /******************** JSON */
 
-    static fromJSON(json) {
+    static fromJSON(json, onLoad = () => {}) {
 
         // Clear Assets
         AssetManager.clear()
@@ -223,7 +223,8 @@ class AssetManager {
         /***** THREE *****/
 
         // Load Assets
-        const objectLoader = new THREE.ObjectLoader();
+        const manager = new THREE.LoadingManager(onLoad);
+        const objectLoader = new THREE.ObjectLoader(manager);
         const animations = objectLoader.parseAnimations(json.animations);
         const shapes = objectLoader.parseShapes(json.shapes);
         const geometries = objectLoader.parseGeometries(json.geometries, {});

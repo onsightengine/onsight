@@ -127,7 +127,7 @@ class Project {
 
     /******************** JSON */
 
-    fromJSON(json, loadAssets = true) {
+    fromJSON(json, loadAssets = true, onLoad = () => {}) {
         // Check proper JSON type
         const metaType = (json.metadata) ? json.metadata.type : 'Undefined';
         if (metaType !== 'Onsight') {
@@ -152,7 +152,7 @@ class Project {
 
         // Load Assets into AssetManager
         if (loadAssets) {
-            AssetManager.fromJSON(json);
+            AssetManager.fromJSON(json, onLoad);
         }
 
         // Properties

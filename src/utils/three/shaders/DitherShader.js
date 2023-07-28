@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 
-// http://devlog-martinsh.blogspot.com/2011/03/glsl-8x8-bayer-matrix-dithering.html
 // http://alex-charlton.com/posts/Dithering_on_the_GPU/
 
 const empty256 = [];
@@ -40,6 +39,7 @@ export const DitherShader = {
         ]},
         'uPaletteSize': { value: 16 },
         'uBias': { value: 0 },
+        'uScale': { value: 1 },
     },
 
     vertexShader: /* glsl */`
@@ -57,6 +57,7 @@ export const DitherShader = {
         uniform vec3[256] uPaletteRgb;
         uniform int uPaletteSize;
         uniform float uBias;
+        uniform float uScale;
 
         varying vec2 vUv;
 
@@ -90,12 +91,17 @@ export const DitherShader = {
             return abs(hsv1.x - hsv2.x);
         }
 
+        float lumDistance(vec3 clr1, vec3 clr2) {
+            float l1 = luminance(clr1);
+            float l2 = luminance(clr2);
+            return abs(l1 - l2);
+        }
+
         float colorDistance(vec3 clr1, vec3 clr2) {
-            vec3 hsv1 = rgbToHsv(clr1);
-            vec3 hsv2 = rgbToHsv(clr2);
-            float hd = hueDistance(hsv1, hsv2);
+            float hd = hueDistance(rgbToHsv(clr1), rgbToHsv(clr2));
+            float ld = lumDistance(clr1, clr2);
             float ed = euclideanDistance(clr1, clr2);
-            return ((hd * 1.0) + (ed * 3.0)) / 4.0;
+            return ((hd * 0.75) + (ld * 0.25) + (ed * 3.0)) / 4.0;
         }
 
         vec3[2] closestColors(vec3 color) {
@@ -132,7 +138,7 @@ export const DitherShader = {
 
         void main() {
             vec4 texel = texture2D(tDiffuse, vUv);
-            texel.rgb = dither(gl_FragCoord.xy, texel.rgb);
+            texel.rgb = dither(gl_FragCoord.xy / uScale, texel.rgb);
             gl_FragColor = texel;
         }
         `

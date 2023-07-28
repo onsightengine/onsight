@@ -18,9 +18,9 @@ export const PixelatedShader = {
         'resolution': { value: new THREE.Vector2() },
         'tDiffuse': { value: null },
         'tPixel': { value: null },
+        'uCamera': { value: new THREE.Vector2() },
         'uCellSize': { value: new THREE.Vector2() },
         'uDiscard': { value: 0 },
-        'uCamera': { value: new THREE.Vector2() },
     },
 
     vertexShader: /* glsl */`
@@ -36,9 +36,9 @@ export const PixelatedShader = {
         uniform vec2 resolution;
         uniform sampler2D tDiffuse;
         uniform sampler2D tPixel;
+        uniform vec2 uCamera;
         uniform vec2 uCellSize;
         uniform float uDiscard;
-        uniform vec2 uCamera;
 
         varying vec2 vUv;
 

@@ -1,6 +1,5 @@
 import { AssetManager } from '../../AssetManager.js';
 import { ComponentManager } from '../../ComponentManager.js';
-import { Iris } from '../../../utils/Iris.js';
 
 import { PixelPerfectPass } from '../../../utils/three/passes/PixelPerfectPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
@@ -12,8 +11,6 @@ import { DitherShader } from '../../../utils/three/shaders/DitherShader.js';
 import { LevelsShader } from '../../../utils/three/shaders/LevelsShader.js';
 import { PixelatedShader } from '../../../utils/three/shaders/PixelatedShader.js';
 import { SobelOperatorShader } from 'three/addons/shaders/SobelOperatorShader.js';
-
-const _clr = new Iris();
 
 class Post {
 
@@ -63,7 +60,8 @@ class Post {
                     }
                 }
                 pass.uniforms['uBias'].value = data.bias;
-                pass.setSize = function(width, height) {
+                pass.uniforms['uScale'].value = data.scale;
+                pass.setFixedSize = function(width, height) {
                     pass.uniforms['resolution'].value.x = width;
                     pass.uniforms['resolution'].value.y = height;
                 };
@@ -159,8 +157,9 @@ Post.config = {
         gradient: { type: 'slider', default: 5, min: 2, max: 32, step: 1, precision: 0, if: { style: [ 'cartoon' ] } },
 
         // Dither
-        bias: { type: 'slider', default: 0, min: -1, max: 1, if: { style: [ 'dither' ] } },
         palette: { type: 'asset', class: 'palette', if: { style: [ 'dither' ] } },
+        bias: { type: 'slider', default: 0.25, min: -1, max: 1, precision: 2, step: 0.05, if: { style: [ 'dither' ] } },
+        scale: { type: 'slider', default: 1, min: 1, max: 9, precision: 2, step: 1, if: { style: [ 'dither' ] } },
 
         // Edge
         // ...

@@ -61,7 +61,7 @@ class Post {
                 }
                 pass.uniforms['uBias'].value = data.bias;
                 pass.uniforms['uScale'].value = data.scale;
-                pass.setFixedSize = function(width, height) {
+                pass.setSize = function(width, height) {
                     pass.uniforms['resolution'].value.x = width;
                     pass.uniforms['resolution'].value.y = height;
                 };

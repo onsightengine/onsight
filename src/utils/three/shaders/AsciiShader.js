@@ -9,12 +9,13 @@ export const AsciiShader = {
 
     uniforms: {
         'resolution': { value: new THREE.Vector2() },
+        'fixedsize': { value: new THREE.Vector2() },
+        'uCamera': { value: new THREE.Vector2() },
+        'uCellSize': { value: 16 },
         'tDiffuse': { value: null },
         'tCharacters': { value: null },
         'uCharacterCount': { value: 0 },
-        'uCellSize': { value: 16 },
         'uColor': { value: new THREE.Color() },
-        'uCamera': { value: new THREE.Vector2() },
     },
 
     vertexShader: /* glsl */`
@@ -28,21 +29,23 @@ export const AsciiShader = {
         #include <common>
 
         uniform vec2 resolution;
+        uniform vec2 fixedsize;
+        uniform vec2 uCamera;
+        uniform vec2 uCellSize;
         uniform sampler2D tDiffuse;
         uniform sampler2D tCharacters;
         uniform float uCharacterCount;
-        uniform vec2 uCellSize;
         uniform vec3 uColor;
-        uniform vec2 uCamera;
 
         varying vec2 vUv;
 
         const vec2 SIZE = vec2(${CHARACTERS_PER_ROW});
 
         void main() {
-            vec2 cell = resolution / uCellSize;
+            vec2 cell = fixedsize / uCellSize;
             vec2 grid = 1.0 / cell;
-            vec2 pixel = 1.0 / resolution;
+            vec2 pixel = 1.0 / fixedsize;
+            vec2 actual = 1.0 / resolution;
 
             // Camera Offset
             vec2 fract = pixel * mod(uCamera, uCellSize);

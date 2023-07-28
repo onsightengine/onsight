@@ -7,6 +7,12 @@ const _camRotation = new THREE.Quaternion();
 const _camRight = new THREE.Vector3();
 const _camUp = new THREE.Vector3();
 
+// PixelPerfectPass shaders require the following uniforms:
+// uniform vec2 resolution;     Actual writebuffer width/height (auto)
+// uniform vec2 fixedsize;      Theoretical desired width/height (auto)
+// uniform vec2 uCamera;        Camera position (auto)
+// uniform vec2 uCellSize;      Pixel cell width/height (used defined)
+
 class PixelPerfectPass extends Pass {
 
     constructor(shader, pixelX = 1, pixelY = 1) {
@@ -71,9 +77,14 @@ class PixelPerfectPass extends Pass {
     }
 
     setFixedSize(width, height) {
+        this.uniforms['fixedsize'].value.x = width;
+        this.uniforms['fixedsize'].value.y = height;
+    }
+
+    setSize(width, height) {
         this.uniforms['resolution'].value.x = width;
         this.uniforms['resolution'].value.y = height;
-    }
+    };
 
 }
 

@@ -72,23 +72,10 @@ export const DitherShader = {
             63, 31, 55, 23, 61, 29, 53, 21
         );
 
-        vec3 rgbToHsv(vec3 c) {
-            vec4  K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
-            vec4  p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
-            vec4  q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
-            float d = q.x - min(q.w, q.y);
-            float e = 1.0e-10;
-            return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
-        }
-
         float euclideanDistance(vec3 clr1, vec3 clr2) {
             vec3 diff = abs(clr1 - clr2);
             vec3 sqrd = diff * diff;
             return sqrt(diff.x + diff.y + diff.z);
-        }
-
-        float hueDistance(vec3 hsv1, vec3 hsv2) {
-            return abs(hsv1.x - hsv2.x);
         }
 
         float lumDistance(vec3 clr1, vec3 clr2) {
@@ -98,10 +85,9 @@ export const DitherShader = {
         }
 
         float colorDistance(vec3 clr1, vec3 clr2) {
-            float hd = hueDistance(rgbToHsv(clr1), rgbToHsv(clr2));
             float ld = lumDistance(clr1, clr2);
             float ed = euclideanDistance(clr1, clr2);
-            return ((hd * 0.75) + (ld * 0.25) + (ed * 3.0)) / 4.0;
+            return ((ld * 1.0) + (ed * 3.0)) / 4.0;
         }
 
         vec3[2] closestColors(vec3 color) {

@@ -16,10 +16,11 @@ export const PixelatedShader = {
 
     uniforms: {
         'resolution': { value: new THREE.Vector2() },
-        'tDiffuse': { value: null },
-        'tPixel': { value: null },
+        'fixedsize': { value: new THREE.Vector2() },
         'uCamera': { value: new THREE.Vector2() },
         'uCellSize': { value: new THREE.Vector2() },
+        'tDiffuse': { value: null },
+        'tPixel': { value: null },
         'uDiscard': { value: 0 },
     },
 
@@ -34,18 +35,19 @@ export const PixelatedShader = {
         #include <common>
 
         uniform vec2 resolution;
-        uniform sampler2D tDiffuse;
-        uniform sampler2D tPixel;
+        uniform vec2 fixedsize;
         uniform vec2 uCamera;
         uniform vec2 uCellSize;
+        uniform sampler2D tDiffuse;
+        uniform sampler2D tPixel;
         uniform float uDiscard;
 
         varying vec2 vUv;
 
         void main() {
-            vec2 cell = resolution / uCellSize;
+            vec2 cell = fixedsize / uCellSize;
             vec2 grid = 1.0 / cell;
-            vec2 pixel = 1.0 / resolution;
+            vec2 pixel = 1.0 / fixedsize;
 
             // Camera Offset
             vec2 fract = pixel * mod(uCamera, uCellSize);

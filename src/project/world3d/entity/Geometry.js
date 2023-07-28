@@ -4,8 +4,8 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 // import { SimplifyModifier } from 'three/addons/modifiers/SimplifyModifier.js';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 
-import { AssetManager } from '../../AssetManager.js';
-import { ComponentManager } from '../../ComponentManager.js';
+import { AssetManager } from '../../../app/AssetManager.js';
+import { ComponentManager } from '../../../app/ComponentManager.js';
 import { CapsuleGeometry } from '../../../utils/three/geometry/CapsuleGeometry.js';
 import { CylinderGeometry } from '../../../utils/three/geometry/CylinderGeometry.js';
 import { GeometryUtils } from '../../../utils/three/GeometryUtils.js';

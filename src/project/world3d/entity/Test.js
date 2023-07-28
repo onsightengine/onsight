@@ -1,4 +1,4 @@
-import { ComponentManager } from '../../ComponentManager.js';
+import { ComponentManager } from '../../../app/ComponentManager.js';
 
 const exampleSelect = [ 'Apple', 'Banana', 'Cherry', 'Zebra', 'Red' ];
 

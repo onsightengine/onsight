@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ComponentManager } from '../ComponentManager.js';
+import { ComponentManager } from '../../app/ComponentManager.js';
 import { EntityUtils } from '../../utils/three/EntityUtils.js';
 import { ObjectUtils } from '../../utils/three/ObjectUtils.js';
 import { Strings } from '../../utils/Strings.js';

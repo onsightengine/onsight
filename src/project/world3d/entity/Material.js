@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 // import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
-import { AssetManager } from '../../AssetManager.js';
-import { ComponentManager } from '../../ComponentManager.js';
+import { AssetManager } from '../../../app/AssetManager.js';
+import { ComponentManager } from '../../../app/ComponentManager.js';
 import { GeometryUtils } from '../../../utils/three/GeometryUtils.js';
 import { ObjectUtils } from '../../../utils/three/ObjectUtils.js';
 import { SceneManager } from '../../../app/SceneManager.js';

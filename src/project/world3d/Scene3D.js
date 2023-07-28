@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { AssetManager } from '../AssetManager.js';
+import { AssetManager } from '../../app/AssetManager.js';
 import { Entity3D } from './Entity3D.js';
 
 class Scene3D extends Entity3D {

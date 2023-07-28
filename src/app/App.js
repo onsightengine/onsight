@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { APP_EVENTS } from '../constants.js';
-import { AssetManager } from '../project/AssetManager.js';
+import { AssetManager } from './AssetManager.js';
 import { CameraUtils } from '../utils/three/CameraUtils.js';
 import { Clock } from '../utils/Clock.js';
 import { EntityUtils } from '../utils/three/EntityUtils.js';

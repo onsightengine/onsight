@@ -50,12 +50,12 @@ class PixelPerfectPass extends Pass {
         _camUp.set(0.0, 1.0, 0.0).applyQuaternion(_camRotation);
 
         // Find how far along its position is along these bases
-        const camPosX = _camPosition.dot(_camRight);
-        const camPosY = _camPosition.dot(_camUp);
+        const camPosX = _camPosition.dot(_camRight) * camera.zoom;
+        const camPosY = _camPosition.dot(_camUp) * camera.zoom;
 
         // Camera Position (in Pixels)
-        this.uniforms['uCamera'].value.x = camPosX * camera.zoom;
-        this.uniforms['uCamera'].value.y = camPosY * camera.zoom;
+        this.uniforms['uCamera'].value.x = camPosX;
+        this.uniforms['uCamera'].value.y = camPosY;
 
         // Fullscreen Quad using PixelatedShader
         this.uniforms['tDiffuse'].value = readBuffer.texture;

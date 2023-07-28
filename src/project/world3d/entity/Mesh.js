@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ComponentManager } from '../../ComponentManager.js';
+import { ComponentManager } from '../../../app/ComponentManager.js';
 
 // https://github.com/Cloud9c/taro/blob/main/src/components/Renderable.js
 

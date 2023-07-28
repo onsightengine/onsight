@@ -1,7 +1,7 @@
 import { APP_ORIENTATION } from '../constants.js';
 import { VERSION, WORLD_TYPES } from '../constants.js';
 
-import { AssetManager } from './AssetManager.js';
+import { AssetManager } from '../app/AssetManager.js';
 import { Maths } from '../utils/Maths.js';
 import { World3D } from './world3d/World3D.js';
 

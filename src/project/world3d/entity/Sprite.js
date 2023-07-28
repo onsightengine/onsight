@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { AssetManager } from '../../AssetManager.js';
-import { ComponentManager } from '../../ComponentManager.js';
+import { AssetManager } from '../../../app/AssetManager.js';
+import { ComponentManager } from '../../../app/ComponentManager.js';
 
 class Sprite {
 

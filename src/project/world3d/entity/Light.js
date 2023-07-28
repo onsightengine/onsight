@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ComponentManager } from '../../ComponentManager.js';
+import { ComponentManager } from '../../../app/ComponentManager.js';
 
 // LIGHT       SHADOW      DESCRIPTION
 // Ambient     -           Globally illuminates all objects in the scene equally

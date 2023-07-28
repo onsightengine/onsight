@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { APP_EVENTS } from '../constants.js';
 import { APP_SIZE } from '../constants.js';
-import { AssetManager } from '../project/AssetManager.js';
+import { AssetManager } from './AssetManager.js';
 import { Camera3D } from '../project/world3d/Camera3D.js';
 import { EntityUtils } from '../utils/three/EntityUtils.js';
 import { ObjectUtils } from '../utils/three/ObjectUtils.js';

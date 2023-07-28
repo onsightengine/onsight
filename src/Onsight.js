@@ -17,6 +17,8 @@ export { ORBIT_STATES } from './utils/three/controls/OrbitControls.js';
 
 // App
 export { App } from './app/App.js';
+export { AssetManager } from './app/AssetManager.js';
+export { ComponentManager } from './app/ComponentManager.js';
 export { EntityPool } from './app/EntityPool.js';
 export { Renderer3D } from './app/Renderer3D.js';
 export { SceneManager } from './app/SceneManager.js'
@@ -44,8 +46,6 @@ export { RotateEntity } from './assets/scripts/RotateEntity.js';
 /******************** CLASSES - Project  ********************/
 
 // Core
-export { AssetManager } from './project/AssetManager.js';
-export { ComponentManager } from './project/ComponentManager.js';
 export { Project } from './project/Project.js';
 
 // Core, Scene3D

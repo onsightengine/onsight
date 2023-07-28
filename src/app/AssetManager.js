@@ -83,12 +83,11 @@ class AssetManager {
     static getLibrary(type, category) {
         const library = [];
         for (const [uuid, asset] of Object.entries(_assets)) {
-            if (AssetManager.checkType(asset) === type) {
-                if (!category) {
-                    library.push(asset);
-                } else if (asset.category && asset.category === category) {
-                    library.push(asset);
-                }
+            if (type && AssetManager.checkType(asset) !== type) continue;
+            if (!category) {
+                library.push(asset);
+            } else if (asset.category && asset.category === category) {
+                library.push(asset);
             }
         }
         return library;
@@ -165,6 +164,9 @@ class AssetManager {
 
             // Add to AssetManager on finished loading...
             AssetManager.addAsset(newTexture);
+
+            // Signals (now finished loading)
+            if (window.signals && signals.assetChanged) signals.assetChanged.dispatch('texture', newTexture);
         }
 
         function onTextureLoadError() {

@@ -36,6 +36,16 @@ class Palette {
         return this;
     }
 
+    purpleGold() {
+        this.colors = [
+            0x000000,   // black
+            0xffffff,   // white
+            0xd400ff,   // purple
+            0xffc800,   // gold
+        ];
+        return this;
+    }
+
     fromJSON(json) {
         const data = json.object;
 

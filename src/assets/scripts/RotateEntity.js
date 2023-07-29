@@ -14,7 +14,7 @@ let variables = {
     // Rotation in degress per second
     rotateX: { type: 'number', default: 0 },
     rotateY: { type: 'number', default: 0 },
-    rotateZ: { type: 'number', default: -360 },
+    rotateZ: { type: 'number', default: 180 },
 };
 
 function update(event) {

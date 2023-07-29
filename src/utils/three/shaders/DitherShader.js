@@ -10,36 +10,41 @@ export const DitherShader = {
 
     uniforms: {
         'resolution': { value: new THREE.Vector2() },
+        'fixedsize': { value: new THREE.Vector2() },
+        'uCamera': { value: new THREE.Vector2() },
+        'uCellSize': { value: new THREE.Vector2() },
         'tDiffuse': { value: null },
         'uPaletteRgb': { value: [
+            // Two
+            new THREE.Vector3(0.00, 0.00, 0.00),    // rgb black
+            new THREE.Vector3(1.00, 1.00, 1.00),    // rgb white
             // Five
             // new THREE.Vector3(0.00, 0.00, 0.00),    // rgb black
             // new THREE.Vector3(1.00, 1.00, 1.00),    // rgb white
             // new THREE.Vector3(1.00, 0.00, 0.00),    // rgb red
             // new THREE.Vector3(0.00, 1.00, 0.00),    // rgb green
             // new THREE.Vector3(0.00, 0.00, 1.00),    // rgb blue
-            // Sixteen
-            new THREE.Vector3(0.00, 0.00, 0.00),    // rgb black
-            new THREE.Vector3(0.33, 0.33, 0.33),    // rgb gray
-            new THREE.Vector3(0.66, 0.66, 0.66),    // rgb silver
-            new THREE.Vector3(1.00, 1.00, 1.00),    // rgb white
-            new THREE.Vector3(0.00, 1.00, 1.00),    // rgb aqua
-            new THREE.Vector3(0.00, 0.00, 1.00),    // rgb blue
-            new THREE.Vector3(0.00, 0.00, 0.50),    // rgb navy
-            new THREE.Vector3(0.50, 0.00, 0.50),    // rgb purple
-            new THREE.Vector3(1.00, 0.00, 1.00),    // rgb fuchsia
-            new THREE.Vector3(1.00, 0.00, 0.00),    // rgb red
-            new THREE.Vector3(0.50, 0.00, 0.00),    // rgb maroon
-            new THREE.Vector3(0.50, 0.50, 0.00),    // rgb olive
-            new THREE.Vector3(1.00, 1.00, 0.00),    // rgb yellow
-            new THREE.Vector3(0.00, 1.00, 0.00),    // rgb lime
-            new THREE.Vector3(0.00, 0.50, 0.00),    // rgb green
-            new THREE.Vector3(0.00, 0.50, 0.50),    // rgb teal
+            // // Sixteen
+            // new THREE.Vector3(0.00, 0.00, 0.00),    // rgb black
+            // new THREE.Vector3(0.33, 0.33, 0.33),    // rgb gray
+            // new THREE.Vector3(0.66, 0.66, 0.66),    // rgb silver
+            // new THREE.Vector3(1.00, 1.00, 1.00),    // rgb white
+            // new THREE.Vector3(0.00, 1.00, 1.00),    // rgb aqua
+            // new THREE.Vector3(0.00, 0.00, 1.00),    // rgb blue
+            // new THREE.Vector3(0.00, 0.00, 0.50),    // rgb navy
+            // new THREE.Vector3(0.50, 0.00, 0.50),    // rgb purple
+            // new THREE.Vector3(1.00, 0.00, 1.00),    // rgb fuchsia
+            // new THREE.Vector3(1.00, 0.00, 0.00),    // rgb red
+            // new THREE.Vector3(0.50, 0.00, 0.00),    // rgb maroon
+            // new THREE.Vector3(0.50, 0.50, 0.00),    // rgb olive
+            // new THREE.Vector3(1.00, 1.00, 0.00),    // rgb yellow
+            // new THREE.Vector3(0.00, 1.00, 0.00),    // rgb lime
+            // new THREE.Vector3(0.00, 0.50, 0.00),    // rgb green
+            // new THREE.Vector3(0.00, 0.50, 0.50),    // rgb teal
             ...empty256,
         ]},
-        'uPaletteSize': { value: 16 },
+        'uPaletteSize': { value: 2 },
         'uBias': { value: 0 },
-        'uScale': { value: 1 },
     },
 
     vertexShader: /* glsl */`
@@ -53,11 +58,13 @@ export const DitherShader = {
         #include <common>
 
         uniform vec2 resolution;
+        uniform vec2 fixedsize;
+        uniform vec2 uCamera;
+        uniform vec2 uCellSize;
         uniform sampler2D tDiffuse;
         uniform vec3[256] uPaletteRgb;
         uniform int uPaletteSize;
         uniform float uBias;
-        uniform float uScale;
 
         varying vec2 vUv;
 
@@ -112,8 +119,8 @@ export const DitherShader = {
         }
 
         vec3 dither(vec2 pos, vec3 color) {
-            int x = int(mod(pos.x, 8.0));
-            int y = int(mod(pos.y, 8.0));
+            int x = int(pos.x);
+            int y = int(pos.y);
             float limit = (float(ditherTable[x + y * 8] + 1) / 64.0) + uBias;
 
             vec3 cs[2] = closestColors(color);
@@ -124,7 +131,18 @@ export const DitherShader = {
 
         void main() {
             vec4 texel = texture2D(tDiffuse, vUv);
-            texel.rgb = dither(gl_FragCoord.xy / uScale, texel.rgb);
+
+            // // Simple
+            // vec2 pos = gl_FragCoord.xy / uCellSize;
+
+            // // Camera Align
+            vec2 cell = resolution / (uCellSize * 8.0);
+            vec2 pixel = 1.0 / resolution;
+            vec2 ratio = resolution / fixedsize;
+            vec2 fract = pixel * mod(uCamera * ratio, (uCellSize * 8.0));
+            vec2 pos = mod((vUv + fract) * cell, 1.0) * 8.0;
+
+            texel.rgb = dither(pos, texel.rgb);
             gl_FragColor = texel;
         }
         `

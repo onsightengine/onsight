@@ -23,7 +23,6 @@ class Post {
                 pass = new PixelPerfectPass(AsciiShader, data.textSize, data.textSize);
                 pass.uniforms['tCharacters'].value = AsciiShader.createCharactersTexture(data.characters);
                 pass.uniforms['uCharacterCount'].value = data.characters.length;
-                pass.uniforms['uCellSize'].value.set(data.textSize, data.textSize);
                 pass.uniforms['uColor'].value.set(data.textColor);
                 break;
 
@@ -45,7 +44,7 @@ class Post {
                 break;
 
             case 'dither':
-                pass = new ShaderPass(DitherShader);
+                pass = new PixelPerfectPass(DitherShader, data.scale, data.scale);
                 const palette = AssetManager.getAsset(data.palette);
                 if (palette && palette.isPalette) {
                     const colors = palette.colors;
@@ -60,11 +59,6 @@ class Post {
                     }
                 }
                 pass.uniforms['uBias'].value = data.bias;
-                pass.uniforms['uScale'].value = data.scale;
-                pass.setSize = function(width, height) {
-                    pass.uniforms['resolution'].value.x = width;
-                    pass.uniforms['resolution'].value.y = height;
-                };
                 break;
 
             case 'edge':
@@ -140,7 +134,7 @@ Post.config = {
     schema: {
 
         style: [
-            { type: 'select', default: 'dither', select: [ 'ascii', 'cartoon', 'dither', 'edge', 'levels', 'pixel', 'tint' ] },
+            { type: 'select', default: 'levels', select: [ 'ascii', 'cartoon', 'dither', 'edge', 'levels', 'pixel', 'tint' ] },
         ],
 
         // Divider

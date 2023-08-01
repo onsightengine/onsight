@@ -23,6 +23,11 @@ export const CAMERA_TYPES = {
     ORTHOGRAPHIC:   'orthographic',
 };
 
+export const LAYERS = {
+    BASE:   0,
+    BLOOM:  30,
+};
+
 export const WORLD_TYPES = {
     World2D:        'World2D',
     World3D:        'World3D',

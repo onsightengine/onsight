@@ -1,6 +1,5 @@
 import * as THREE from 'three';
-import { APP_EVENTS } from '../constants.js';
-import { APP_SIZE } from '../constants.js';
+import { APP_EVENTS, APP_SIZE, LAYERS } from '../constants.js';
 import { AssetManager } from './AssetManager.js';
 import { Camera3D } from '../project/world3d/Camera3D.js';
 import { EntityUtils } from '../utils/three/EntityUtils.js';
@@ -67,6 +66,12 @@ class SceneManager {
             const clone = entity.cloneEntity(false /* recursive? */);
             SceneManager.loadScriptsFromComponents(clone, entity);
             SceneManager.copyChildren(clone, entity);
+            if (clone.bloom) {
+                clone.traverse(function(child) {
+                    child.layers.disable(LAYERS.BASE);
+                    child.layers.enable(LAYERS.BLOOM);
+                });
+            }
             toEntity.add(clone);
         }
     }
@@ -147,21 +152,21 @@ class SceneManager {
             composer.addPass(renderPass);
 
             // Custom Passes
-            const passes = world.getComponentsWithProperties('type', 'post');
-            passes.forEach((component) => {
+            const components = world.getComponentsWithProperties('type', 'post');
+            components.forEach((component) => {
                 const pass = component.three();
-                if (!pass) return;
-                pass.clear = false;
-                pass.scene = SceneManager.app.scene;
-                pass.camera = SceneManager.app.camera;
-                composer.addPass(pass);
+                if (pass) {
+                    pass.scene = SceneManager.app.scene;
+                    pass.camera = SceneManager.app.camera;
+                    composer.addPass(pass);
+                }
             });
 
             // Copy to Screen
             const copyPass = new ShaderPass(OpaqueShader);
-            copyPass.clear = false;
             composer.addPass(copyPass);
 
+            // Save Composer
             _composers[world.uuid] = composer;
         }
 
@@ -183,28 +188,24 @@ class SceneManager {
 
             // Passes with Fixed Size
             composer.passes.forEach((pass) => {
-                if (typeof pass.setFixedSize === 'function') {
-                    pass.setFixedSize(fixedWidth, fixedHeight);
-                }
+                if (typeof pass.setFixedSize === 'function') pass.setFixedSize(fixedWidth, fixedHeight);
             });
         }
     }
 
     /********** DISPOSE */
 
-    static dispose(project) {
-        if (!project || !project.isProject) return;
-
-        // Dispose World Composers
-        for (const uuid in project.worlds) {
+    static dispose() {
+        // Clean-up Effect Composers
+        for (const uuid in _composers) {
             const composer = _composers[uuid];
             if (composer) {
                 composer.passes.forEach((pass) => {
                     if (typeof pass.dispose === 'function') pass.dispose();
                 });
-                if (typeof composer.dispose === 'function') composer.dispose();
-                delete _composers[uuid];
+                composer.dispose();
             }
+            delete _composers[uuid];
         }
     }
 

@@ -43,12 +43,13 @@ class Entity3D extends THREE.Object3D {
         this.isLocked = false;                  // locked in Editor (do not allow selection, deletion, duplication, etc.)
         this.lookAtCamera = false;              // implemented in updateMatrix() overload
 
+        // Properties, Lighting
+        this.castShadow = true;                 // enable shadows, inherited from THREE.Object3D
+        this.receiveShadow = true;              // enable shadows, inherited from THREE.Object3D
+        this.bloom = false;
+
         // Collections
         this.components = [];                   // geometry, material, audio, light, etc.
-
-        // Enable Shadows by Default
-        this.castShadow = true;                 // inherited from THREE.Object3D
-        this.receiveShadow = true;              // inherited from THREE.Object3D
 
     } // end ctor
 
@@ -448,8 +449,14 @@ class Entity3D extends THREE.Object3D {
         // Standard Object3D Copy
         this.copy(source, false /* recursive */);
 
-        // Copy Properties, Basic
+        // Entity3D Basic Properties
         this.name = source.name;
+        this.category = source.category;
+        this.isLocked = source.isLocked;
+        this.lookAtCamera = source.lookAtCamera;
+
+        // Entity3D Lighting Properties
+        this.bloom = source.bloom;
 
         // Copy Components
         const components = source.components;
@@ -505,6 +512,7 @@ class Entity3D extends THREE.Object3D {
         if (data.category !== undefined) this.category = data.category;
         if (data.isLocked !== undefined) this.isLocked = data.isLocked;
         if (data.lookAtCamera !== undefined) this.lookAtCamera = data.lookAtCamera;
+        if (data.bloom !== undefined) this.bloom = data.bloom;
 
         // Components
         for (let i = 0; i < json.object.components.length; i++) {
@@ -565,10 +573,13 @@ class Entity3D extends THREE.Object3D {
             json.object.userData = (typeof structuredClone === 'function') ? structuredClone(this.userData) : JSON.parse(JSON.stringify(this.userData));
         }
 
-        // Entity3D Properties
+        // Entity3D Basic Properties
         json.object.category = this.category;
         json.object.isLocked = this.isLocked;
         json.object.lookAtCamera = this.lookAtCamera;
+
+        // Entity3D Lighting Properties
+        json.object.bloom = this.bloom;
 
         // Components
         for (let i = 0; i < this.components.length; i++) {

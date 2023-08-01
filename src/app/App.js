@@ -81,7 +81,7 @@ class App {
 
     dispose() {
         // Clear Renderer
-        SceneManager.dispose(this.project);
+        SceneManager.dispose();
 
         // Clear Objects
         ObjectUtils.clearObject(this.camera);

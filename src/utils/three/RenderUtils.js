@@ -43,7 +43,7 @@ class RenderUtils {
     /** Render mesh to camera, camera centered on mesh */
     static renderMeshToCanvas(canvas, mesh) {
         const scene = new THREE.Scene();
-        const light = new THREE.HemisphereLight(0xffffff, 0x202020, 2.5);
+        const light = new THREE.HemisphereLight(0xffffff, 0x202020, 7.5);
         scene.add(light);
 
         const camera = new THREE.PerspectiveCamera(50, canvas.width / canvas.height);

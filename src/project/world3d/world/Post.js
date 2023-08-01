@@ -2,8 +2,8 @@ import { AssetManager } from '../../../app/AssetManager.js';
 import { ComponentManager } from '../../../app/ComponentManager.js';
 
 import { PixelPerfectPass } from '../../../utils/three/passes/PixelPerfectPass.js';
+import { SelectiveBloomPass } from '../../../utils/three/passes/SelectiveBloomPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
 import { AsciiShader } from '../../../utils/three/shaders/AsciiShader.js';
 import { CartoonShader } from '../../../utils/three/shaders/CartoonShader.js';
@@ -28,8 +28,7 @@ class Post {
                 break;
 
             case 'bloom':
-                // pass = new BloomPass(data.strength, 25 /* kernel size */, 4 /* sigma */);
-                pass = new UnrealBloomPass(new THREE.Vector2(), data.strength, data.radius, data.threshold);
+                pass = new SelectiveBloomPass(data.strength, data.radius, data.threshold);
                 break;
 
             case 'cartoon':
@@ -77,8 +76,6 @@ class Post {
                 pass.uniforms['hue'].value = data.hue;
                 pass.uniforms['grayscale'].value = data.grayscale;
                 pass.uniforms['negative'].value = data.negative;
-                // const exp = Math.pow(1.992078554292416, data.bitrate - 8);
-                // const colors = (data.bitrate <= 8) ? data.bitrate : 8 + exp;
                 pass.uniforms['bitrate'].value = Math.pow(2, data.bitrate);
                 break;
 
@@ -102,7 +99,7 @@ class Post {
         if (pass) {
 
         } else {
-            // console.log('Error with post pass!');
+            // console.log('Error with pass!');
         }
 
         // Save Backend / Data

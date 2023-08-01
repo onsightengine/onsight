@@ -3,6 +3,7 @@ import { ComponentManager } from '../../../app/ComponentManager.js';
 
 import { PixelPerfectPass } from '../../../utils/three/passes/PixelPerfectPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
 import { AsciiShader } from '../../../utils/three/shaders/AsciiShader.js';
 import { CartoonShader } from '../../../utils/three/shaders/CartoonShader.js';
@@ -27,9 +28,11 @@ class Post {
                 break;
 
             case 'bloom':
-
-                // TODO
-
+                const resolution = new THREE.Vector2();
+                pass = new UnrealBloomPass(resolution, 1 /* strength */, 0 /* radius */, 0 /* threshold */);
+                pass.threshold = data.threshold;
+				pass.strength = data.strength;
+				pass.radius = data.radius;
                 break;
 
             case 'cartoon':
@@ -134,7 +137,7 @@ Post.config = {
     schema: {
 
         style: [
-            { type: 'select', default: 'levels', select: [ 'ascii', 'cartoon', 'dither', 'edge', 'levels', 'pixel', 'tint' ] },
+            { type: 'select', default: 'levels', select: [ 'ascii', 'bloom', 'cartoon', 'dither', 'edge', 'levels', 'pixel', 'tint' ] },
         ],
 
         // Divider
@@ -144,6 +147,11 @@ Post.config = {
         textSize: { type: 'slider', default: 16, min: 4, max: 64, step: 1, precision: 0, if: { style: [ 'ascii' ] } },
         textColor: { type: 'color', default: 0xffffff, if: { style: [ 'ascii' ] } },
         characters: { type: 'string', default: ` .,•:-+=*!?%X0#@`, if: { style: [ 'ascii' ] } },
+
+        // Bloom
+        threshold: { type: 'slider', default: 0, min: 0, max: 1, step: 0.05, precision: 2, if: { style: [ 'bloom' ] } },
+        strength: { type: 'slider', default: 1, min: 0, max: 3, step: 0.1, precision: 2, if: { style: [ 'bloom' ] } },
+        radius: { type: 'slider', default: 0, min: 0, max: 1, step: 0.05, precision: 2, if: { style: [ 'bloom' ] } },
 
         // Cartoon
         edgeColor: { type: 'color', default: 0x000000, if: { style: [ 'cartoon' ] } },
@@ -156,7 +164,6 @@ Post.config = {
         scale: { type: 'slider', default: 1, min: 1, max: 9, precision: 2, step: 1, if: { style: [ 'dither' ] } },
 
         // Edge
-        // ...
 
         // Levels
         bitrate: { type: 'slider', promode: true, default: 8, min: 0, max: 8, step: 1, precision: 0, if: { style: [ 'levels' ] } },

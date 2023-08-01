@@ -116,14 +116,14 @@ Light.config = {
         ],
         groundColor: { type: 'color', default: 0x806040, if: { style: [ 'hemisphere' ] } },
         intensity: [
-            { type: 'slider', default: 0.50 /* 0.5 */, step: 0.05, min: 0, max: 2, if: { style: [ 'ambient' ] } },
-            { type: 'slider', default: 0.50 /* 0.5 */, step: 0.05, min: 0, max: 3, if: { style: [ 'hemisphere' ] } },
-            { type: 'slider', default: 1.00 /* 0.5 */, step: 0.05, min: 0, max: 4, if: { style: [ 'directional' ] } },
-            { type: 'slider', default: 1.00 /* 1.0 */, step: 0.05, min: 0, max: 5, if: { style: [ 'point', 'spot' ] } },
+            { type: 'slider', default: 1.5, step: 0.1, min: 0, max: 10, if: { style: [ 'ambient' ] } },
+            { type: 'slider', default: 1.5, step: 0.1, min: 0, max: 10, if: { style: [ 'hemisphere' ] } },
+            { type: 'slider', default: 3.0, step: 0.1, min: 0, max: 10, if: { style: [ 'directional' ] } },
+            { type: 'slider', default: 10, step: 1, min: 0, max: 1000, if: { style: [ 'point', 'spot' ] } },
         ],
-        distance: { type: 'number', default: 0, if: { style: [ 'point', 'spot' ] } },
-        decay: { type: 'number', default: 1, if: { style: [ 'point', 'spot' ] } },
-        angle: { type: 'number', default: 45, unit: '°', if: { style: [ 'spot' ] } },
+        distance: { type: 'number', default: 0, min: 0, if: { style: [ 'point', 'spot' ] } },
+        decay: { type: 'number', default: 2, min: 0, if: { style: [ 'point', 'spot' ] } },
+        angle: { type: 'number', default: 120, min: 0, max: 180,unit: '°', if: { style: [ 'spot' ] } },
         penumbra: { type: 'number', default: 0, min: 0, max: 1, if: { style: [ 'spot' ] } },
 
         shadowBias: { type: 'number', default: 0, step: 0.00001, precision: 6, promode: true, if: { style: [ 'directional', 'point', 'spot' ] } }

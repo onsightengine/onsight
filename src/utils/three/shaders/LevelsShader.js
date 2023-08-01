@@ -2,7 +2,7 @@
 // https://github.com/mrdoob/three.js/blob/dev/examples/jsm/shaders/HueSaturationShader.js
 
 export const LevelsShader = {
-    name: 'Levels Shader',
+    name: 'LevelsShader',
 
     uniforms: {
         'tDiffuse': { value: null },

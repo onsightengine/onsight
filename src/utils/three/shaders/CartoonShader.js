@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 export const CartoonShader = {
-    name: 'Cartoon Shader',
+    name: 'CartoonShader',
 
     uniforms: {
         'resolution': { value: new THREE.Vector2() },

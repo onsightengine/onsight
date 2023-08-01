@@ -28,11 +28,8 @@ class Post {
                 break;
 
             case 'bloom':
-                const resolution = new THREE.Vector2();
-                pass = new UnrealBloomPass(resolution, 1 /* strength */, 0 /* radius */, 0 /* threshold */);
-                pass.threshold = data.threshold;
-				pass.strength = data.strength;
-				pass.radius = data.radius;
+                // pass = new BloomPass(data.strength, 25 /* kernel size */, 4 /* sigma */);
+                pass = new UnrealBloomPass(new THREE.Vector2(), data.strength, data.radius, data.threshold);
                 break;
 
             case 'cartoon':

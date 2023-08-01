@@ -150,12 +150,10 @@ class SceneManager {
             const passes = world.getComponentsWithProperties('type', 'post');
             passes.forEach((component) => {
                 const pass = component.three();
-                if (pass) {
-                    pass.clear = false;
-                    pass.scene = SceneManager.app.scene;
-                    pass.camera = SceneManager.app.camera;
-                    pass.renderCamera = SceneManager.app.camera;
-                }
+                if (!pass) return;
+                pass.clear = false;
+                pass.scene = SceneManager.app.scene;
+                pass.camera = SceneManager.app.camera;
                 composer.addPass(pass);
             });
 

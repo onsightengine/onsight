@@ -21,7 +21,7 @@ class PixelPerfectPass extends Pass {
         // Pixel Shader
         this.uniforms = THREE.UniformsUtils.clone(shader.uniforms);
         this.material = new THREE.ShaderMaterial({
-            name: shader.name ?? 'unspecified',
+            name: shader.name ?? 'NamelessShader',
             defines: Object.assign({}, shader.defines),
             uniforms: this.uniforms,
             vertexShader: shader.vertexShader,

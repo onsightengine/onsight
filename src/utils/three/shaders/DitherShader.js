@@ -6,7 +6,7 @@ const empty256 = [];
 for (let i = 0; i < 256; i++) empty256.push(new THREE.Vector3());
 
 export const DitherShader = {
-    name: 'Dither Shader',
+    name: 'DitherShader',
 
     uniforms: {
         'resolution': { value: new THREE.Vector2() },

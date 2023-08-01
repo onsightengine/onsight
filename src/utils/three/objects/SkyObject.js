@@ -5,41 +5,7 @@ import * as THREE from 'three';
 
 const SCALE = 500;
 
-class SkyObject extends THREE.Mesh {
-
-    constructor() {
-        const shader = SkyObject.SkyShader;
-
-        super(new THREE.SphereGeometry(1), new THREE.ShaderMaterial({
-            name:           'SkyShader',
-            fragmentShader: shader.fragmentShader,
-            vertexShader:   shader.vertexShader,
-            uniforms:       THREE.UniformsUtils.clone(shader.uniforms),
-            side:           THREE.BackSide,
-            depthTest:      false,
-            depthWrite:     false,
-        }));
-
-        this.isSky = true;
-
-        this.baseScale = SCALE;
-        this.scale.setScalar(this.baseScale);
-    }
-
-    copy(source, recursive) {
-        super.copy(source, recursive);
-
-        this.baseScale = source.baseScale;
-        this.scale.setScalar(this.baseScale);
-
-        return this;
-    }
-
-}
-
-/******************** SHADER ********************/
-
-SkyObject.SkyShader = {
+const SkyShader = {
 
     uniforms: {
         //'uSky':   { value: new THREE.Color(0.32, 0.51, 0.74) },   // sky blue
@@ -84,8 +50,37 @@ SkyObject.SkyShader = {
 
             // Output Color
             gl_FragColor = vec4(outColor, 1.0);
-        }`
-
+        }`,
 };
+
+class SkyObject extends THREE.Mesh {
+
+    constructor() {
+        super(new THREE.SphereGeometry(1), new THREE.ShaderMaterial({
+            name:           'SkyShader',
+            fragmentShader: SkyShader.fragmentShader,
+            vertexShader:   SkyShader.vertexShader,
+            uniforms:       THREE.UniformsUtils.clone(SkyShader.uniforms),
+            side:           THREE.BackSide,
+            depthTest:      false,
+            depthWrite:     false,
+        }));
+
+        this.isSky = true;
+
+        this.baseScale = SCALE;
+        this.scale.setScalar(this.baseScale);
+    }
+
+    copy(source, recursive) {
+        super.copy(source, recursive);
+
+        this.baseScale = source.baseScale;
+        this.scale.setScalar(this.baseScale);
+
+        return this;
+    }
+
+}
 
 export { SkyObject };

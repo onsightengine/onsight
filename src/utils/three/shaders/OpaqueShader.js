@@ -1,7 +1,7 @@
 // https://github.com/mrdoob/three.js/blob/master/examples/jsm/shaders/CopyShader.js
 
 export const OpaqueShader = {
-    name: 'Opaque Shader',
+    name: 'OpaqueShader',
 
     uniforms: {
         'tDiffuse': { value: null },

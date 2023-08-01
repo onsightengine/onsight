@@ -5,7 +5,7 @@ import * as THREE from 'three';
 const CHARACTERS_PER_ROW = 16;
 
 export const AsciiShader = {
-    name: 'Ascii Shader',
+    name: 'AsciiShader',
 
     uniforms: {
         'resolution': { value: new THREE.Vector2() },

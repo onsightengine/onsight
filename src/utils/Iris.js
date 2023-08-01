@@ -1,13 +1,74 @@
 /**
  * @description Iris
- * @about       Color library with support for RGB, RYB, HSL color models and RYB hue shifting
+ * @about       Color library with support for RGB, RYB, HSL color models and RYB hue shifting.
  * @author      Stephens Nunnally <@stevinz>
- * @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally and Scidian Studios
- * @source      https://github.com/scidian/iris
- *
- *      See end of file for license details
+ * @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally
+ * @source      https://github.com/onsightengine/iris
  */
 
+/******************** SEE END OF FILE FOR LICENSE / ACKNOWLEDGEMENTS ********************/
+
+//  Initialization
+//      const color = new Iris();
+//      ...
+//      new Iris();                                 // Defaults to white, 0xffffff
+//      new Iris(0xff0000);                         // Hexadecimal (0xff0000, i.e. 16711680)
+//
+//      new Iris(1.0, 0.0, 0.0);                    // RGB Values (0.0 to 1.0)
+//
+//      new Iris(255,   0,   0, 'rgb');             // RGB Values (0 to 255)
+//      new Iris(255,   0,   0, 'ryb');             // RYB Values (0 to 255)
+//      new Iris(360, 1.0, 0.5, 'hsl');             // HSL Values (H: 0 to 360, SL: 0.0 to 1.0)
+//
+//      new Iris({ r: 1.0, g: 0.0, b: 0.0 });       // Object with RGB Properties (0.0 to 1.0)
+//      new Iris({ r: 1.0, y: 0.0, b: 0.0 });       // Object with RYB Properties (0.0 to 1.0)
+//      new Iris({ h: 1.0, s: 1.0, l: 0.5 });       // Object with HSL Properties (0.0 to 1.0)
+//
+//      new Iris([ 1.0, 0.0, 0.0 ], offset);        // RGB Array (0.0 to 1.0), optional array offset
+//
+//      new Iris('#ff0000');                        // Hex String (also 3 digits: #f00)
+//      new Iris('rgb(255, 0, 0)');                 // CSS Color String
+//      new Iris('red');                            // X11 Color Name
+//
+//      new Iris(fromIris);                         // Copy from Iris Object
+//      new Iris(fromThreeColor);                   // Copy from Three.js Color Object
+
+//  Properties
+//      color.r                                     // 0.0 to 1.0
+//      color.g                                     // 0.0 to 1.0
+//      color.b                                     // 0.0 to 1.0
+
+//  Static
+//      Iris.hexString(inputColorData)              // Color (i.e. 0xff0000 / 16711680) to hex string, ex: '#ff0000'
+//      Iris.randomHex();                           // Returns random color as integer (i.e. 16711680)
+
+//  Output
+//      color.cssString();                          // Returns string, ex: 'rgb(255, 0, 0)'
+//      color.hex();                                // Returns number, ex: 16711680 (equivalent to 0xff0000)
+//      color.hexString();                          // Returns string, ex: '#ff0000'
+//      color.rgbString();                          // Returns string, ex: '255, 0, 0'
+//
+//      color.getHSL(target);                       // Copies HSL values into target, values from 0.0 to 1.0
+//      color.getRGB(target);                       // Copies RGB values into target, values from 0.0 to 1.0
+//      color.getRYB(target);                       // Copies RYB values into target, values from 0.0 to 1.0
+//      color.toArray(array);                       // Copies RGB values into array, values from 0.0 to 1.0
+//
+//      color.red();                                // Returns red value of color, 0 to 255
+//      color.green();                              // Returns green value of color, 0 to 255
+//      color.blue();                               // Returns blue value of color, 0 to 255
+//
+//      color.redF();                               // Returns red value of color, 0.0 to 1.0
+//      color.greenF();                             // Returns green value of color, 0.0 to 1.0
+//      color.blueF();                              // Returns blue value of color, 0.0 to 1.0
+//
+//      color.hue();                                // Returns hue value of color, 0 to 360
+//      color.saturation();                         // Returns saturation value of color, 0 to 1.0
+//      color.lightness();                          // Returns lightness value of color, 0 to 1.0
+//
+//      color.hueF();                               // Returns hue value of color, 0.0 to 1.0
+//      color.hueRYB();                             // Returns RGB hue mapped to hue in the RYB, 0 to 360
+
+/** Color library with support for RGB, RYB, HSL color models and RYB hue shifting */
 class Iris {
 
     static get NAMES() { return COLOR_KEYWORDS; }
@@ -23,11 +84,17 @@ class Iris {
         this.set(r, g, b, format);
     }
 
-    /***** Assignment *****/
+    /******************** COPY / CLONE */
 
     copy(colorObject) {
         return this.set(colorObject);
     }
+
+    clone() {
+        return new this.constructor(this.r, this.g, this.b);
+    }
+
+    /******************** ASSIGNMENT */
 
     set(r = 0, g, b, format = '') {
         // No arguments passed
@@ -45,7 +112,7 @@ class Iris {
             } else if (value && isHSL(value)) { return this.setHSL(value.h * 360, value.s, value.l);
             } else if (value && isRYB(value)) { return this.setRYB(value.r * 255, value.y * 255, value.b * 255);
             } else if (Array.isArray(value) && value.length > 2) {
-                let offset = (g != null && !Number.isNaN(g) && g > 0) ? g : 0;
+                let offset = (g != null && ! Number.isNaN(g) && g > 0) ? g : 0;
                 return this.setRGBF(value[offset], value[offset + 1], value[offset + 2])
             } else if (typeof value === 'string') {
                 return this.setStyle(value);
@@ -75,9 +142,9 @@ class Iris {
             console.warn(`Iris: Given decimal outside of range, value was ${hexColor}`);
             hexColor = clamp(hexColor, 0, 0xffffff);
         }
-        let r = (hexColor & 0xff0000) >> 16;
-        let g = (hexColor & 0x00ff00) >>  8;
-        let b = (hexColor & 0x0000ff);
+        const r = (hexColor & 0xff0000) >> 16;
+        const g = (hexColor & 0x00ff00) >>  8;
+        const b = (hexColor & 0x0000ff);
         return this.setRGB(r, g, b);
     }
 
@@ -118,7 +185,7 @@ class Iris {
 
     /** 0 to 255 */
     setRYB(r, y, b) {
-        let hexColor = cubicInterpolation(clamp(r, 0, 255), clamp(y, 0, 255), clamp(b, 0, 255), 255, CUBE.RYB_TO_RGB);
+        const hexColor = cubicInterpolation(clamp(r, 0, 255), clamp(y, 0, 255), clamp(b, 0, 255), 255, CUBE.RYB_TO_RGB);
         return this.setHex(hexColor);
     }
 
@@ -144,16 +211,16 @@ class Iris {
                 case 'rgba':
                     if (color = /^\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*(\d*\.?\d+)\s*)?$/.exec(components)) {
                         // rgb(255,0,0) rgba(255,0,0,0.5)
-                        let r = Math.min(255, parseInt(color[1], 10));
-                        let g = Math.min(255, parseInt(color[2], 10));
-                        let b = Math.min(255, parseInt(color[3], 10));
+                        const r = Math.min(255, parseInt(color[1], 10));
+                        const g = Math.min(255, parseInt(color[2], 10));
+                        const b = Math.min(255, parseInt(color[3], 10));
                         return this.setRGB(r, g, b);
                     }
                     if (color = /^\s*(\d+)\%\s*,\s*(\d+)\%\s*,\s*(\d+)\%\s*(?:,\s*(\d*\.?\d+)\s*)?$/.exec(components)) {
                         // rgb(100%,0%,0%) rgba(100%,0%,0%,0.5)
-                        let r = (Math.min(100, parseInt(color[1], 10)) / 100);
-                        let g = (Math.min(100, parseInt(color[2], 10)) / 100);
-                        let b = (Math.min(100, parseInt(color[3], 10)) / 100);
+                        const r = (Math.min(100, parseInt(color[1], 10)) / 100);
+                        const g = (Math.min(100, parseInt(color[2], 10)) / 100);
+                        const b = (Math.min(100, parseInt(color[3], 10)) / 100);
                         return this.setRGBF(r, g, b);
                     }
                     break;
@@ -174,15 +241,15 @@ class Iris {
             const size = hex.length;
             // #FF0
             if (size === 3) {
-                let r = parseInt(hex.charAt(0) + hex.charAt(0), 16);
-                let g = parseInt(hex.charAt(1) + hex.charAt(1), 16);
-                let b = parseInt(hex.charAt(2) + hex.charAt(2), 16);
+                const r = parseInt(hex.charAt(0) + hex.charAt(0), 16);
+                const g = parseInt(hex.charAt(1) + hex.charAt(1), 16);
+                const b = parseInt(hex.charAt(2) + hex.charAt(2), 16);
                 return this.setRGB(r, g, b);
             // #FF0000
             } else if (size === 6) {
-                let r = parseInt(hex.charAt(0) + hex.charAt(1), 16);
-                let g = parseInt(hex.charAt(2) + hex.charAt(3), 16);
-                let b = parseInt(hex.charAt(4) + hex.charAt(5), 16);
+                const r = parseInt(hex.charAt(0) + hex.charAt(1), 16);
+                const g = parseInt(hex.charAt(2) + hex.charAt(3), 16);
+                const b = parseInt(hex.charAt(4) + hex.charAt(5), 16);
                 return this.setRGB(r, g, b);
             }
         }
@@ -193,7 +260,7 @@ class Iris {
         return this;
     }
 
-    /***** Output *****/
+    /******************** OUTPUT */
 
     /** Example output: 'rgb(255, 0, 0)' */
     cssString(alpha /* optional */) {
@@ -206,26 +273,26 @@ class Iris {
     }
 
     /** Example output: '#ff0000' */
-    hexString(hexColor /* optional */){
-        if (hexColor === undefined || typeof value !== 'number') hexColor = this.hex();
-        return Iris.hexString(hexColor);
+    hexString(inputColorData /* optional */){
+        if (inputColorData) this.set(inputColorData);
+        return Iris.hexString(this.hex());
     }
 
     /** Example output: '#ff0000' */
-    static hexString(hexColor = 0){
-        return '#' + ('000000' + ((hexColor) >>> 0).toString(16)).slice(-6);
+    static hexString(inputColorData = 0x000000){
+        _temp.set(inputColorData);
+        return '#' + ('000000' + ((_temp.hex()) >>> 0).toString(16)).slice(-6);
     }
 
-    /** Returns decimal (hex) of a random color */
+    /** Returns random color as integer (i.e. 16711680) */
     static randomHex() {
         return _random.setRandom().hex();
     }
 
     /** Example output: '255, 0, 0' */
     rgbString(alpha) {
-        let rgb = this.red() + ', ' + this.green() + ', ' + this.blue();
-        let rgba = (alpha != undefined) ? rgb + ', ' + alpha : rgb;
-        return rgba;
+        const rgb = this.red() + ', ' + this.green() + ', ' + this.blue();
+        return ((alpha != undefined) ? String(rgb + ', ' + alpha) : rgb);
     }
 
     /** Export to JSON */
@@ -233,11 +300,7 @@ class Iris {
         return this.hex();
     }
 
-    /***** Retrieving Data *****/
-
-    clone() {
-        return new this.constructor(this.r, this.g, this.b);
-    }
+    /******************** COLOR DATA */
 
     /** Copies HSL values into optional target, or returns new Object, values range from 0.0 to 1.0 */
     getHSL(target) {
@@ -268,9 +331,13 @@ class Iris {
             target.r = redF(rybAsHex);
             target.y = greenF(rybAsHex);
             target.b = blueF(rybAsHex);
-        } else {
-            return { r: redF(rybAsHex), y: greenF(rybAsHex), b: blueF(rybAsHex) };
+            return target;
         }
+        return {
+            r: redF(rybAsHex),
+            y: greenF(rybAsHex),
+            b: blueF(rybAsHex)
+        };
     }
 
     /** Copies RGB values into optional array, or returns a new Array, values range from 0.0 to 1.0 */
@@ -281,7 +348,7 @@ class Iris {
         return array;
     }
 
-    /***** Spectrum Components *****/
+    /******************** COMPONENTS */
 
     red() { return clamp(Math.floor(this.r * 255), 0, 255); }
     green() { return clamp(Math.floor(this.g * 255), 0, 255); }
@@ -304,11 +371,11 @@ class Iris {
         }
     }
 
-    /***** Color Functions *****/
+    /******************** ADJUSTMENT */
 
     /** Adds RGB values from color to this color */
     add(color) {
-        if (!color.isColor) console.warn(`Iris: add() was not called with a 'Color' object`);
+        if (! color.isColor) console.warn(`Iris: add() was not called with a 'Color' object`);
         return this.setRGBF(this.r + color.r, this.g + color.g, this.b + color.b);
     }
 
@@ -359,9 +426,9 @@ class Iris {
                 gray = (this.r + this.g + this.b) / 3;
         }
         percent = clamp(percent, 0, 1);
-        let r = (this.r * (1.0 - percent)) + (percent * gray);
-        let g = (this.g * (1.0 - percent)) + (percent * gray);
-        let b = (this.b * (1.0 - percent)) + (percent * gray);
+        const r = (this.r * (1.0 - percent)) + (percent * gray);
+        const g = (this.g * (1.0 - percent)) + (percent * gray);
+        const b = (this.b * (1.0 - percent)) + (percent * gray);
         return this.setRGBF(r, g, b);
     }
 
@@ -371,16 +438,16 @@ class Iris {
 
     /** Mixes in 'color' by percent to this color */
     mix(color, percent = 0.5) {
-        if (!color.isColor) console.warn(`Iris: mix() was not called with a 'Color' object`);
+        if (! color.isColor) console.warn(`Iris: mix() was not called with a 'Color' object`);
         percent = clamp(percent, 0, 1);
-        let r = (this.r * (1.0 - percent)) + (percent * color.r);
-        let g = (this.g * (1.0 - percent)) + (percent * color.g);
-        let b = (this.b * (1.0 - percent)) + (percent * color.b);
+        const r = (this.r * (1.0 - percent)) + (percent * color.r);
+        const g = (this.g * (1.0 - percent)) + (percent * color.g);
+        const b = (this.b * (1.0 - percent)) + (percent * color.b);
         return this.setRGBF(r, g, b);
     }
 
     multiply(color) {
-        if (!color.isColor) console.warn(`Iris: multiply() was not called with a 'Color' object`);
+        if (! color.isColor) console.warn(`Iris: multiply() was not called with a 'Color' object`);
         return this.setRGBF(this.r * color.r, this.g * color.g, this.b * color.b);
     }
 
@@ -395,7 +462,7 @@ class Iris {
 
     /** Rotates the hue of a color in the RGB spectrum by degrees */
     rgbRotateHue(degrees = 90) {
-        let newHue = keepInRange(this.hue() + degrees);
+        const newHue = keepInRange(this.hue() + degrees);
         return this.setHSL(newHue, this.saturation(), this.lightness());
     }
 
@@ -410,21 +477,21 @@ class Iris {
 
     /** Rotates the hue of a color in the RYB spectrum by degrees */
     rybRotateHue(degrees = 90) {
-        let newHue = keepInRange(this.hueRYB() + degrees);
+        const newHue = keepInRange(this.hueRYB() + degrees);
         return this.setHSL(hue(matchSpectrum(newHue, SPECTRUM.RYB)), this.saturation(), this.lightness());
     }
 
     /** Subtract RGB values from color to this color */
     subtract(color) {
-        if (!color.isColor) console.warn(`Iris: subtract() was not called with a 'Color' object`);
+        if (! color.isColor) console.warn(`Iris: subtract() was not called with a 'Color' object`);
         return this.setRGBF(this.r - color.r, this.g - color.g, this.b - color.b);
     }
 
-    /***** Comparison *****/
+    /******************** COMPARISON */
 
     /** Returns true if the RGB values of 'color' are the same as those of this object. */
     equals(color) {
-        if (!color.isColor) console.warn(`Iris: equals() was not called with a 'Color' object`);
+        if (! color.isColor) console.warn(`Iris: equals() was not called with a 'Color' object`);
         return (fuzzy(this.r, color.r) && fuzzy(this.g, color.g) && fuzzy(this.b, color.b));
     }
 
@@ -442,12 +509,14 @@ class Iris {
 
     /** Returns true if color is generally light-ish, false if dark-ish */
     isLight() {
-        return (!this.isDark());
+        return (! this.isDark());
     }
 
 }
 
-/***** Utility Functions *****/
+export { Iris };
+
+/******************** INTERNAL ********************/
 
 function isRGB(object) { return (object.r !== undefined && object.g !== undefined && object.b !== undefined); }
 function isHSL(object) { return (object.h !== undefined && object.s !== undefined && object.l !== undefined); }
@@ -475,13 +544,9 @@ function keepInRange(value, min = 0, max = 360) {
     return value;
 }
 
-/***** Return hue (0 to 360), saturation (0 to 1), and lightness (0 to 1) *****/
+let _hslHex, _hslH, _hslS, _hslL;
 
-let _hslHex;
-let _hslH;
-let _hslS;
-let _hslL;
-
+/** Return hue (0 to 360), saturation (0 to 1), and lightness (0 to 1) */
 function hsl(hexColor, channel = 'h') {
     if (hexColor !== _hslHex) {
         if (hexColor === undefined || hexColor === null) return 0;
@@ -517,12 +582,13 @@ function hsl(hexColor, channel = 'h') {
     return 0;
 }
 
-/***** Match to 'matchHue' into 'spectrum' *****/
-
+const _interpolate = new Iris();
 const _mix1 = new Iris();
 const _mix2 = new Iris();
 const _random = new Iris();
+const _temp = new Iris();
 
+/** Match to 'matchHue' into 'spectrum' */
 function matchSpectrum(matchHue, spectrum = SPECTRUM.RYB) {
     let colorDegrees = 360 / spectrum.length;
     let degreeCount = colorDegrees;
@@ -540,10 +606,6 @@ function matchSpectrum(matchHue, spectrum = SPECTRUM.RYB) {
     }
 }
 
-/***** Cubic Interpolation *****/
-
-const _interpolate = new Iris();
-
 /**
  * cubicInterpolation
  * @param {*} v1 Input number 1 (probably r of rgb, or r of ryb)
@@ -560,30 +622,28 @@ function cubicInterpolation(v1, v2, v3, scale = 255, table = CUBE.RYB_TO_RGB) {
 
     // Cube Points
     // f0=000, f1=001, f2=010, f3=011, f4=100, f5=101, f6=110, f7=111
-    let f0 = table[0], f1 = table[1], f2 = table[2], f3 = table[3];
-    let f4 = table[4], f5 = table[5], f6 = table[6], f7 = table[7];
+    const f0 = table[0], f1 = table[1], f2 = table[2], f3 = table[3];
+    const f4 = table[4], f5 = table[5], f6 = table[6], f7 = table[7];
 
-    let i1 = 1.0 - v1;
-    let i2 = 1.0 - v2;
-    let i3 = 1.0 - v3;
+    const i1 = 1.0 - v1;
+    const i2 = 1.0 - v2;
+    const i3 = 1.0 - v3;
 
-    let c0 = i1 * i2 * i3;
-    let c1 = i1 * i2 * v3;
-    let c2 = i1 * v2 * i3;
-    let c3 = v1 * i2 * i3;
-    let c4 = i1 * v2 * v3;
-    let c5 = v1 * i2 * v3;
-    let c6 = v1 * v2 * i3;
-    let v7 = v1 * v2 * v3;
+    const c0 = i1 * i2 * i3;
+    const c1 = i1 * i2 * v3;
+    const c2 = i1 * v2 * i3;
+    const c3 = v1 * i2 * i3;
+    const c4 = i1 * v2 * v3;
+    const c5 = v1 * i2 * v3;
+    const c6 = v1 * v2 * i3;
+    const v7 = v1 * v2 * v3;
 
-    let o1 = c0*f0[0] + c1*f1[0] + c2*f2[0] + c3*f3[0] + c4*f4[0] + c5*f5[0] + c6*f6[0] + v7*f7[0];
-    let o2 = c0*f0[1] + c1*f1[1] + c2*f2[1] + c3*f3[1] + c4*f4[1] + c5*f5[1] + c6*f6[1] + v7*f7[1];
-    let o3 = c0*f0[2] + c1*f1[2] + c2*f2[2] + c3*f3[2] + c4*f4[2] + c5*f5[2] + c6*f6[2] + v7*f7[2];
+    const o1 = c0*f0[0] + c1*f1[0] + c2*f2[0] + c3*f3[0] + c4*f4[0] + c5*f5[0] + c6*f6[0] + v7*f7[0];
+    const o2 = c0*f0[1] + c1*f1[1] + c2*f2[1] + c3*f3[1] + c4*f4[1] + c5*f5[1] + c6*f6[1] + v7*f7[1];
+    const o3 = c0*f0[2] + c1*f1[2] + c2*f2[2] + c3*f3[2] + c4*f4[2] + c5*f5[2] + c6*f6[2] + v7*f7[2];
 
     return _interpolate.set(o1, o2, o3, 'gl').hex();
 }
-
-/***** Color Data *****/
 
 const CUBE = {
     RYB_TO_RGB: [
@@ -642,7 +702,7 @@ const RYB_OFFSET = [
     999
 ];
 
-// X11 Color Names - http://www.w3.org/TR/css3-color/#svg-color
+// X11 Color Names (http://www.w3.org/TR/css3-color/#svg-color)
 const COLOR_KEYWORDS = {
     'aliceblue': 0xF0F8FF, 'antiquewhite': 0xFAEBD7, 'aqua': 0x00FFFF, 'aquamarine': 0x7FFFD4,
     'azure': 0xF0FFFF, 'beige': 0xF5F5DC, 'bisque': 0xFFE4C4, 'black': 0x000000, 'blanchedalmond': 0xFFEBCD,
@@ -680,30 +740,63 @@ const COLOR_KEYWORDS = {
     'white': 0xFFFFFF, 'whitesmoke': 0xF5F5F5, 'yellow': 0xFFFF00, 'yellowgreen': 0x9ACD32
 };
 
-/***** Exports *****/
+/////////////////////////////////////////////////////////////////////////////////////
+/////   Acknowledgements
+/////////////////////////////////////////////////////////////////////////////////////
+//
+// Some portions of this code adapted from:
+//      Description:    Color Schemer
+//      Author:         Scott Kellum <@scottkellum> and Mason Wendell <@canarymason>
+//      License:        Distributed under the MIT License
+//      Source(s):      https://github.com/at-import/color-schemer/blob/master/stylesheets/color-schemer/_ryb.scss
+//
+//      Description:    three.js
+//      Author:         mrdoob and three.js authors
+//      License:        Distributed under the MIT License
+//      Source(s):      https://github.com/mrdoob/three.js/blob/master/src/math/Color.js
+//
+//      Description:    RYB
+//      Author:         Ilya Kolbin
+//      License:        Distributed under the MIT License
+//      Source(s):      https://github.com/iskolbin/lryb/blob/master/ryb.lua
+//
+// Thanks to:
+//      Description:    RYB and RGB Color Space Conversion
+//      Author:         Jean-Olivier Irisson
+//      Source(s):      https://math.stackexchange.com/questions/305395/ryb-and-rgb-color-space-conversion
+//
+//      Description:    Paint Inspired Color Mixing and Compositing for Visualization
+//      Author:         Nathan Gossett & Baoquan Chen
+//      Source(s):      http://vis.computer.org/vis2004/DVD/infovis/papers/gossett.pdf
 
-export { Iris };
-
-/**
- * MIT License
- *
- * Copyright (c) 2021-2023 Stephens Nunnally <@stevinz>
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+/////////////////////////////////////////////////////////////////////////////////////
+/////   License
+/////////////////////////////////////////////////////////////////////////////////////
+//
+// MIT License
+//
+// Iris
+//      Copyright (c) 2021-2023 Stephens Nunnally <@stevinz>
+//
+// Some Portions
+//      Copyright (c) 2011 Scott Kellum <@scottkellum> and Mason Wendell <@canarymason>
+//      Copyright (c) 2010-2022 mrdoob and three.js authors
+//      Copyright (c) 2018 Ilya Kolbin
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.

@@ -70,36 +70,19 @@ class App {
         this.isPlaying = false;
     }
 
-    /******************** LOAD */
+    /******************** EVENT DISPATCH */
 
     dispatch(array, ...args) {
         for (let i = 0; i < array.length; i++) {
             const callback = array[i];
-            if (typeof callback === 'function') callback(...args);
+            if (typeof callback === 'function') {
+                try { callback(...args); }
+                catch (error) { console.error((error.message || error), (error.stack || '')); }
+            }
         }
     }
 
-    dispose() {
-        // Clear Renderer
-        SceneManager.dispose();
-
-        // Clear Objects
-        ObjectUtils.clearObject(this.camera);
-        ObjectUtils.clearObject(this.scene);
-
-        // Clear Project
-        this.project.clear();
-
-        // Clear Events
-        for (let key in this.events) {
-            this.events[key].length = 0;
-        }
-
-        // Clear Physics
-        if (physics) {
-            physics.world.free();
-        }
-    }
+    /******************** LOAD */
 
     load(json, loadAssets = true) {
         // Load Project
@@ -119,50 +102,60 @@ class App {
         this.dispatch(this.events.init);
     }
 
-    /******************** ANIMATE / RENDER */
+    /******************** CLEAN UP */
+
+    dispose() {
+        // Clear Renderer
+        SceneManager.dispose();
+
+        // Clear Objects
+        ObjectUtils.clearObject(this.camera);
+        ObjectUtils.clearObject(this.scene);
+        this.project.clear();
+
+        // Clear Events
+        for (let key in this.events) this.events[key].length = 0;
+
+        // Clear Physics
+        if (physics) physics.world.free();
+    }
+
+    /******************** ANIMATE (RENDER) */
 
     animate() {
-        const self = this;
-
         if (this.gameClock.isRunning()) {
             // Delta / Time Elapsed
             const delta = this.gameClock.getDeltaTime();
             const total = this.gameClock.getElapsedTime();
 
             // // Debug
-            // if (total > time) {
+            // if (total > time++) {
             //     console.log(`Time: ${time}, FPS: ${this.gameClock.fps()}, Framerate: ${this.gameClock.averageDelta()}`);
-            //     time++;
             // }
 
-            // Call 'update()' functions, catch errors
-            try { this.dispatch(this.events.update, { delta, total }); }
-            catch (error) { console.error((error.message || error), (error.stack || '')); }
+            // Call 'update()' functions
+            this.dispatch(this.events.update, { delta, total });
 
             // Physics Update
-            let boxIndex = Math.floor(Math.random() * boxes.count);
-            let ballIndex = Math.floor(Math.random() * balls.count);
+            const boxIndex = Math.floor(Math.random() * boxes.count);
+            const ballIndex = Math.floor(Math.random() * balls.count);
             physics.setMeshPosition(boxes, _position.set(0, Math.random() + 1, 0), boxIndex);
             physics.setMeshPosition(balls, _position.set(0, Math.random() + 1, 0), ballIndex);
 
             // Step
-            if (delta > 0.01) {
-                physics.step(delta);
-            }
+            if (delta > 0.01) physics.step(delta);
         }
 
         // Render
         SceneManager.renderWorld(this.world);
 
         // New Frame
-        if (this.isPlaying) {
-            animationID = requestAnimationFrame(() => { self.animate(); });
-        }
+        if (this.isPlaying) animationID = requestAnimationFrame(function() { this.animate(); }.bind(this));
     }
 
     /******************** GAME STATE */
 
-    async init() {
+    async buildPhysics() {
         physics = await RapierPhysics();
 
         const material = new THREE.MeshLambertMaterial();
@@ -213,13 +206,12 @@ class App {
 
     async start() {
         if (this.isPlaying) return;
-        const self = this;
 
         // Flag
         this.isPlaying = true;
 
-        // Init
-        await this.init();
+        // Physics
+        await this.buildPhysics();
 
         // Events
         this._onKeyDown = onKeyDown.bind(this);
@@ -234,15 +226,14 @@ class App {
         document.addEventListener('pointermove', this._onPointerMove);
 
         // Clock
-        this.gameClock.reset();
-        this.gameClock.start();
+        this.gameClock.start(true /* reset */);
 
         // Initial Render (to build EffectComposer)
         SceneManager.renderWorld(this.world);
 
         // Animate
         cancelAnimationFrame(animationID);
-        animationID = requestAnimationFrame(() => { self.animate(); });
+        animationID = requestAnimationFrame(function() { this.animate(); }.bind(this));
     }
 
     pause() {
@@ -288,11 +279,7 @@ class App {
     gameCoordinates(event) {
         this.updatePointer(event);
         const worldPoint = CameraUtils.worldPoint(
-            { x: this.pointer.x, y: this.pointer.y },
-            this.camera,
-            this.camera.target,
-            'none'
-        );
+            { x: this.pointer.x, y: this.pointer.y }, this.camera, this.camera.target, 'none');
         return worldPoint;
     }
 
@@ -329,7 +316,7 @@ function onKeyUp(event) {
 
 function onPointerDown(event) {
     if (this.isPlaying) {
-        // Entity?
+        // Down on Entity?
         this.updatePointer(event);
         _raycaster.setFromCamera(this.pointer, this.camera);
         const intersects = _raycaster.intersectObjects(this.scene.children, true);

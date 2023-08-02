@@ -18,7 +18,8 @@ class Clock {
         this.#lastChecked -= msRewind;
     }
 
-    start() {
+    start(reset = false) {
+        if (reset) this.reset();
         this.#startTime = _timer.now();
         this.#lastChecked = this.#startTime;
         this.#running = true;

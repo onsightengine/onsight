@@ -41,17 +41,27 @@ class SVGBuilder {
                     const scaleDown = 0.001; /* 1 unit === 1000 pixels */
 
                     function scaleCurve(curve) {
-                        if (curve.v0) curve.v0.multiplyScalar(scaleDown);
-                        if (curve.v1) curve.v1.multiplyScalar(scaleDown);
-                        if (curve.v2) curve.v2.multiplyScalar(scaleDown);
-                        if (curve.v3) curve.v3.multiplyScalar(scaleDown);
+                        // SCALE CURVE PROPERTIES:
+                        // ArcCurve                 aX, aY, xRadius, yRadius
+                        // CubicBezierCurve         v0, v1, v2, v3
+                        // EllipseCurve             aX, aY, xRadius, yRadius
+                        // LineCurve                v1, v2
+                        // LineCurve3               v1, v2
+                        // QuadraticBezierCurve     v0, v1, v2
+                        // QuadraticBezierCurve3    v0, v1, v2
+                        //
+                        // CURRENTLY UNSUPPORTED:
+                        // CatmullRomCurve3         points[Vector3]
+                        // SplineCurve (Catmull2D)  points[Vector2]
+                        //
                         if (curve.aX) curve.aX *= scaleDown;
                         if (curve.aY) curve.aY *= scaleDown;
                         if (curve.xRadius) curve.xRadius *= scaleDown;
                         if (curve.yRadius) curve.yRadius *= scaleDown;
-                        //
-                        // TODO: Scale down CatmullRomCurve3 points?
-                        //
+                        if (curve.v0) curve.v0.multiplyScalar(scaleDown);
+                        if (curve.v1) curve.v1.multiplyScalar(scaleDown);
+                        if (curve.v2) curve.v2.multiplyScalar(scaleDown);
+                        if (curve.v3) curve.v3.multiplyScalar(scaleDown);
                     }
 
                     // Scale Down Curves

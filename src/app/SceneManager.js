@@ -134,12 +134,12 @@ class SceneManager {
         if (!toScene || !toScene.isScene) return;
         if (!fromWorld || !fromWorld.isWorld3D) return;
 
-        if (fromWorld.background !== null) this.background = fromWorld.background.clone();
-		if (fromWorld.environment !== null) this.environment = fromWorld.environment.clone();
-		if (fromWorld.fog !== null) this.fog = fromWorld.fog.clone();
-		this.backgroundBlurriness = fromWorld.backgroundBlurriness;
-		this.backgroundIntensity = fromWorld.backgroundIntensity;
-		if (fromWorld.overrideMaterial !== null) this.overrideMaterial = fromWorld.overrideMaterial.clone();
+        if (fromWorld.background !== null) toScene.background = fromWorld.background.clone();
+		if (fromWorld.environment !== null) toScene.environment = fromWorld.environment.clone();
+		if (fromWorld.fog !== null) toScene.fog = fromWorld.fog.clone();
+		toScene.backgroundBlurriness = fromWorld.backgroundBlurriness;
+		toScene.backgroundIntensity = fromWorld.backgroundIntensity;
+		if (fromWorld.overrideMaterial !== null) toScene.overrideMaterial = fromWorld.overrideMaterial.clone();
     }
 
     static loadScene(toScene, fromScene) {

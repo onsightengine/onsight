@@ -131,7 +131,11 @@ class World3D extends Entity3D {
         super.copyEntity(source, recursive);
 
         // THREE.Scene Properties
-        if (source.background !== null) this.background = source.background.clone();
+        if (source.background) {
+            if (source.background.isColor) {
+                this.background = source.background.clone();
+            }
+        }
 		if (source.environment !== null) this.environment = source.environment.clone();
 		if (source.fog !== null) this.fog = source.fog.clone();
 		this.backgroundBlurriness = source.backgroundBlurriness;
@@ -141,7 +145,8 @@ class World3D extends Entity3D {
         // World3D Properties
         this.xPos = source.xPos;
         this.yPos = source.yPos;
-        // this.activeSceneUUID???
+        const sceneIndex = source.children.indexOf(source.activeScene());
+        if (sceneIndex >= 0) this.activeSceneUUID = this.children[sceneIndex].uuid;
 
         return this;
     }
@@ -174,6 +179,8 @@ class World3D extends Entity3D {
                 this.fog = new THREE.FogExp2(data.fog.color, data.fog.density);
             }
         }
+        if (data.backgroundBlurriness !== undefined) this.backgroundBlurriness = data.backgroundBlurriness;
+		if (data.backgroundIntensity !== undefined) this.backgroundIntensity = data.backgroundIntensity;
 
         // World3D Properties
         if (data.xPos !== undefined) this.xPos = data.xPos;
@@ -202,6 +209,14 @@ class World3D extends Entity3D {
         const json = super.toJSON();
 
         // THREE.Scene Properties
+        if (this.background) {
+            if (this.background.isColor) {
+                json.object.background = this.background.toJSON();
+            }
+        }
+        if (this.environment) {
+
+        }
         if (this.fog) json.object.fog = this.fog.toJSON();
         if (this.backgroundBlurriness > 0) json.object.backgroundBlurriness = this.backgroundBlurriness;
 		if (this.backgroundIntensity !== 1) json.object.backgroundIntensity = this.backgroundIntensity;

@@ -96,7 +96,7 @@ class App {
         SceneManager.app = this;
         this.camera = SceneManager.cameraFromScene(this.world.activeScene());
         this.camera.changeFit(this.project.settings?.orientation);
-        this.scene = new World3D();
+        this.scene = new Scene3D();
 
         // Load Scene
         SceneManager.backgroundFromWorld(this.scene, this.world);

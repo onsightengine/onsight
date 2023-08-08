@@ -11,6 +11,14 @@ class Scene3D extends Entity3D {
         this.isScene3D = true;
         this.type = 'Scene3D';
 
+        // Properties, THREE.Scene (set from World3D)
+        this.background = null;
+        this.environment = null;
+        this.fog = null;
+        this.backgroundBlurriness = 0;
+		this.backgroundIntensity = 1;
+        this.overrideMaterial = null;
+
         // Properties, Usage
         this.start = 0;
         this.end = -1;

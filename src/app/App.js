@@ -15,6 +15,7 @@ import { RapierPhysics } from './RapierPhysics.js';
 import { Renderer3D } from './Renderer3D.js';
 import { Scene3D } from '../project/world3d/Scene3D.js';
 import { SceneManager } from './SceneManager.js';
+import { World3D } from '../project/world3d/World3D.js';
 
 // Game Loop
 let animationID = null;
@@ -95,9 +96,10 @@ class App {
         SceneManager.app = this;
         this.camera = SceneManager.cameraFromScene(this.world.activeScene());
         this.camera.changeFit(this.project.settings?.orientation);
-        this.scene = new Scene3D();
+        this.scene = new World3D();
 
         // Load Scene
+        SceneManager.backgroundFromWorld(this.scene, this.world);
         SceneManager.loadScene(this.scene, this.world.activeScene());
         this.dispatch(this.events.init);
     }

@@ -130,6 +130,18 @@ class SceneManager {
 
     /********** SCENE */
 
+    static backgroundFromWorld(toScene, fromWorld) {
+        if (!toScene || !toScene.isScene) return;
+        if (!fromWorld || !fromWorld.isWorld3D) return;
+
+        if (fromWorld.background !== null) this.background = fromWorld.background.clone();
+		if (fromWorld.environment !== null) this.environment = fromWorld.environment.clone();
+		if (fromWorld.fog !== null) this.fog = fromWorld.fog.clone();
+		this.backgroundBlurriness = fromWorld.backgroundBlurriness;
+		this.backgroundIntensity = fromWorld.backgroundIntensity;
+		if (fromWorld.overrideMaterial !== null) this.overrideMaterial = fromWorld.overrideMaterial.clone();
+    }
+
     static loadScene(toScene, fromScene) {
         SceneManager.copyChildren(toScene, fromScene);
     }

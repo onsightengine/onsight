@@ -12,6 +12,14 @@ class World3D extends Entity3D {
         this.isWorld3D = true;
         this.type = 'World3D';
 
+        // Properties, THREE.Scene
+        this.background = null;
+        this.environment = null;
+        this.fog = null;
+        this.backgroundBlurriness = 0;
+		this.backgroundIntensity = 1;
+        this.overrideMaterial = null;
+
         // Properties, Nodes
         this.xPos = 0;
         this.yPos = 0;
@@ -122,13 +130,18 @@ class World3D extends Entity3D {
         // Entity3D.copy()
         super.copyEntity(source, recursive);
 
+        // THREE.Scene Properties
+        if (source.background !== null) this.background = source.background.clone();
+		if (source.environment !== null) this.environment = source.environment.clone();
+		if (source.fog !== null) this.fog = source.fog.clone();
+		this.backgroundBlurriness = source.backgroundBlurriness;
+		this.backgroundIntensity = source.backgroundIntensity;
+		if (source.overrideMaterial !== null) this.overrideMaterial = source.overrideMaterial.clone();
+
         // World3D Properties
         this.xPos = source.xPos;
         this.yPos = source.yPos;
-
-        //
-        // TODO: Active Scene?
-        //
+        // this.activeSceneUUID???
 
         return this;
     }
@@ -140,6 +153,27 @@ class World3D extends Entity3D {
 
         // Entity3D Properties
         super.fromJSON(json);
+
+        // THREE.Scene Properties
+        if (data.background !== undefined) {
+            if (Number.isInteger(data.background)) {
+                this.background = new THREE.Color(data.background);
+            } else {
+                const backgroundTexture = AssetManager.getAsset(data.background);
+                if (backgroundTexture && backgroundTexture.isTexture) this.background = backgroundTexture;
+            }
+        }
+        if (data.environment !== undefined) {
+            const environmentTexture = AssetManager.getAsset(data.background);
+            if (environmentTexture && environmentTexture.isTexture) this.environment = environmentTexture;
+        }
+        if (data.fog !== undefined) {
+            if (data.fog.type === 'Fog') {
+                this.fog = new THREE.Fog(data.fog.color, data.fog.near, data.fog.far);
+            } else if (data.fog.type === 'FogExp2') {
+                this.fog = new THREE.FogExp2(data.fog.color, data.fog.density);
+            }
+        }
 
         // World3D Properties
         if (data.xPos !== undefined) this.xPos = data.xPos;
@@ -166,6 +200,11 @@ class World3D extends Entity3D {
     toJSON() {
         // Entity3D Properties
         const json = super.toJSON();
+
+        // THREE.Scene Properties
+        if (this.fog) json.object.fog = this.fog.toJSON();
+        if (this.backgroundBlurriness > 0) json.object.backgroundBlurriness = this.backgroundBlurriness;
+		if (this.backgroundIntensity !== 1) json.object.backgroundIntensity = this.backgroundIntensity;
 
         // World3D Properties
         json.object.xPos = this.xPos;

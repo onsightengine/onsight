@@ -2,6 +2,7 @@
 //  arrayFromArguments()    Converts argument list to Array
 //  isIterable()            Checks if a javascript object is iterable
 //  isObject()              Checks if a variable is an object (and not null / array / function)
+//  swapArrayItems()        Swaps two items in an array
 // FILE SYSTEM
 //  save()                  Saves an URL object to the host system
 // PLATFORM
@@ -34,6 +35,12 @@ class System {
     /** Checks if a variable is an object (and not null / array / function) */
     static isObject(variable) {
         return (typeof variable === 'object' && !Array.isArray(variable) && variable !== null);
+    }
+
+    /** Swaps two items in an array */
+    static swapArrayItems(array, a, b) {
+        array[a] = array.splice(b, 1, array[a])[0];
+        return array;
     }
 
     /******************** FILE SYSTEM ********************/

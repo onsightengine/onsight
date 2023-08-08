@@ -172,6 +172,7 @@ class ComponentManager {
                 // Properties
                 this.attached = true;
                 this.expanded = true;
+                this.order = 0;
                 this.tag = '';
 
                 // Owner
@@ -222,7 +223,7 @@ class ComponentManager {
 
                 // Set Schema Defaults (keep new data)
                 for (let i = 0, l = arguments.length; i < l; i += 2) {
-                    data[arguments[i]] = arguments[i+1];
+                    data[arguments[i]] = arguments[i + 1];
                 }
                 ComponentManager.sanitizeData(this.type, data);
 
@@ -231,6 +232,7 @@ class ComponentManager {
                     isComponent:    true,
                     attached:       this.attached,
                     expanded:       this.expanded,
+                    order:          this.order,
                     tag:            this.tag,
                     type:           this.type,
                 };

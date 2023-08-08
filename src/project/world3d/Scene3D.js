@@ -50,6 +50,17 @@ class Scene3D extends Entity3D {
         return this;
     }
 
+    /******************** DISPOSE */
+
+    dispose() {
+        super.dispose();
+
+        if (this.background && typeof this.background.dispose === 'function') this.background.dispose();
+        if (this.environment && typeof this.environment.dispose === 'function') this.environment.dispose();
+        if (this.fog && typeof this.fog.dispose === 'function') this.fog.dispose();
+        if (this.overrideMaterial && typeof this.overrideMaterial.dispose === 'function') this.overrideMaterial.dispose();
+    }
+
     /******************** JSON */
 
     fromJSON(json) {

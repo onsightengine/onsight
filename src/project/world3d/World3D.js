@@ -134,6 +134,8 @@ class World3D extends Entity3D {
         if (source.background) {
             if (source.background.isColor) {
                 this.background = source.background.clone();
+            } else {
+                this.background = source.background; /* texture uuid */
             }
         }
 		if (source.environment !== null) this.environment = source.environment.clone();
@@ -151,6 +153,17 @@ class World3D extends Entity3D {
         return this;
     }
 
+    /******************** DISPOSE */
+
+    dispose() {
+        super.dispose();
+
+        if (this.background && typeof this.background.dispose === 'function') this.background.dispose();
+        if (this.environment && typeof this.environment.dispose === 'function') this.environment.dispose();
+        if (this.fog && typeof this.fog.dispose === 'function') this.fog.dispose();
+        if (this.overrideMaterial && typeof this.overrideMaterial.dispose === 'function') this.overrideMaterial.dispose();
+    }
+
     /******************** JSON */
 
     fromJSON(json) {
@@ -164,8 +177,7 @@ class World3D extends Entity3D {
             if (Number.isInteger(data.background)) {
                 this.background = new THREE.Color(data.background);
             } else {
-                const backgroundTexture = AssetManager.getAsset(data.background);
-                if (backgroundTexture && backgroundTexture.isTexture) this.background = backgroundTexture;
+                this.background = data.background; /* texture uuid */
             }
         }
         if (data.environment !== undefined) {
@@ -212,6 +224,8 @@ class World3D extends Entity3D {
         if (this.background) {
             if (this.background.isColor) {
                 json.object.background = this.background.toJSON();
+            } else {
+                json.object.background = this.background; /* texture uuid */
             }
         }
         if (this.environment) {

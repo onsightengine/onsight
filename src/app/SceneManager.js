@@ -134,12 +134,21 @@ class SceneManager {
         if (!toScene || !toScene.isScene) return;
         if (!fromWorld || !fromWorld.isWorld3D) return;
 
-        if (fromWorld.background !== null) toScene.background = fromWorld.background.clone();
-		if (fromWorld.environment !== null) toScene.environment = fromWorld.environment.clone();
-		if (fromWorld.fog !== null) toScene.fog = fromWorld.fog.clone();
+        if (fromWorld.background != null) {
+            if (fromWorld.background.isColor) {
+                toScene.background = fromWorld.background.clone();
+            } else {
+                const texture = AssetManager.getAsset(fromWorld.background);
+                if (texture && texture.isTexture) {
+                    toScene.background = texture.clone();
+                }
+            }
+        }
+		if (fromWorld.environment != null) toScene.environment = fromWorld.environment.clone();
+		if (fromWorld.fog != null) toScene.fog = fromWorld.fog.clone();
 		toScene.backgroundBlurriness = fromWorld.backgroundBlurriness;
 		toScene.backgroundIntensity = fromWorld.backgroundIntensity;
-		if (fromWorld.overrideMaterial !== null) toScene.overrideMaterial = fromWorld.overrideMaterial.clone();
+		if (fromWorld.overrideMaterial != null) toScene.overrideMaterial = fromWorld.overrideMaterial.clone();
     }
 
     static loadScene(toScene, fromScene) {

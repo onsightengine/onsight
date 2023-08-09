@@ -78,23 +78,48 @@ class RenderUtils {
     /** Render texture to canvas */
     static renderTextureToCanvas(canvas, texture) {
         const scene = new THREE.Scene();
-        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-        const material = new THREE.MeshBasicMaterial({ map: texture, alphaTest: true });
-        const quad = new THREE.PlaneGeometry(2, 2);
-        const mesh = new THREE.Mesh(quad, material);
-        scene.add(mesh);
 
-        const image = texture.image;
+        let sAspect = 1;
+        let camera, material, geometry, mesh;
+        if (!texture.isCubeTexture) {
+            const image = texture.image;
+            if (!image || !image.complete) return;
+            sAspect = image.width / image.height;
+            camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+            material = new THREE.MeshBasicMaterial({ map: texture, alphaTest: true });
+            geometry = new THREE.PlaneGeometry(2, 2);
+            mesh = new THREE.Mesh(geometry, material);
+            scene.add(mesh);
+        } else if (texture.isCubeTexture) {
+            camera = new THREE.PerspectiveCamera(50, canvas.width / canvas.height);
+            camera.position.set(0, 0, -3);
+            camera.lookAt(new THREE.Vector3(0, 0, 0));
+            const shader = THREE.ShaderLib.cube;
+            material = new THREE.ShaderMaterial({
+                fragmentShader: shader.fragmentShader,
+                vertexShader: shader.vertexShader,
+                uniforms: THREE.UniformsUtils.clone(shader.uniforms),
+                depthWrite: false,
+                side: THREE.BackSide,
+            });
+            material.uniforms.tCube.value = texture;
+            material.needsUpdate = true;
+            geometry = new THREE.BoxGeometry(2, 2, 2);
+            mesh = new THREE.Mesh(geometry, material);
+            scene.add(mesh);
+        }
+
         const renderWidth = canvas.width;
         const renderHeight = canvas.height
         const renderer = RenderUtils.offscreenRenderer(renderWidth, renderHeight);
         renderer.render(scene, camera);
-        quad.dispose();
-        material.dispose();
+
+        if (material && typeof material.dispose === 'function') material.dispose();
+        if (geometry && typeof geometry.dispose === 'function') geometry.dispose();
+        if (mesh && typeof mesh.dispose === 'function') mesh.dispose();
 
         const context = canvas.getContext('2d');
         if (context) {
-            const sAspect = image.width / image.height;
             const dAspect = canvas.width / canvas.height;
             let dx, dy, dw, dh, shrink;
             if (sAspect < dAspect) {

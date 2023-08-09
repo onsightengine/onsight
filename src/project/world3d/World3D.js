@@ -14,11 +14,11 @@ class World3D extends Entity3D {
 
         // Properties, THREE.Scene
         this.background = null;
-        this.environment = null;
+        this.environment = null;            // not implemented
         this.fog = null;
-        this.backgroundBlurriness = 0;
-		this.backgroundIntensity = 1;
-        this.overrideMaterial = null;
+        this.backgroundBlurriness = 0;      // not implemented
+		this.backgroundIntensity = 1;       // not implemented
+        this.overrideMaterial = null;       // not implemented
 
         // Properties, Nodes
         this.xPos = 0;

@@ -74,7 +74,8 @@ class App {
         if (!owner || !owner.uuid) return;
         if (typeof callback !== 'function') return;
         if (!this.events[name]) this.events[name] = {};
-        this.events[name][owner.uuid] = callback;
+        if (!this.events[name][owner.uuid]) this.events[name][owner.uuid] = [];
+        this.events[name][owner.uuid].push(callback);
     }
 
     clearEvents(names = [], uuids = []) {
@@ -95,10 +96,13 @@ class App {
         if (typeof events !== 'object') return;
         if (uuids.length === 0) uuids = Object.keys(events);
         for (const uuid of uuids) {
-            const callback = events[uuid];
-            if (typeof callback === 'function') {
-                try { callback(event); }
-                catch (error) { console.error((error.message || error), (error.stack || '')); }
+            const callbacks = events[uuid];
+            if (!Array.isArray(callbacks)) continue;
+            for (const callback of callbacks) {
+                if (typeof callback === 'function') {
+                    try { callback(event); }
+                    catch (error) { console.error((error.message || error), (error.stack || '')); }
+                }
             }
         }
         if (name === 'init') {
@@ -108,7 +112,7 @@ class App {
         }
     }
 
-    /******************** LOAD / UNLOAD */
+    /******************** LOAD */
 
     load(json, loadAssets = true) {
         // Scene Manager
@@ -128,20 +132,6 @@ class App {
         this.scene = new Scene3D();
         SceneManager.backgroundFromWorld(this.scene, this.world);
         SceneManager.loadScene(this.scene, this.world.activeScene());
-    }
-
-    dispose() {
-        // Clear Renderer
-        SceneManager.dispose();
-
-        // Clear Objects
-        ObjectUtils.clearObject(this.camera);
-        ObjectUtils.clearObject(this.scene);
-        this.project.clear();
-        this.clearEvents();
-
-        // Clear Physics
-        if (physics) physics.world.free();
     }
 
     /******************** ANIMATE (RENDER) */
@@ -286,8 +276,17 @@ class App {
         // Clock
         this.gameClock.stop();
 
-        // Clean Up
-        this.dispose();
+        // Clear Renderer
+        SceneManager.dispose();
+
+        // Clear Objects
+        ObjectUtils.clearObject(this.camera);
+        ObjectUtils.clearObject(this.scene);
+        this.project.clear();
+        this.clearEvents();
+
+        // Clear Physics
+        if (physics) physics.world.free();
     }
 
     /******************** GAME HELPERS */

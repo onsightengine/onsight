@@ -50,10 +50,6 @@ class App {
 
         // Scripts
         this.events = {};
-        for (let key in APP_EVENTS) {
-            const event = APP_EVENTS[key];
-            this.events[event] = [];
-        }
 
         // Active Scene
         this.world = null;
@@ -71,19 +67,48 @@ class App {
         this.isPlaying = false;
     }
 
-    /******************** EVENT DISPATCH */
+    /******************** EVENT DISPATCHER */
 
-    dispatch(array, ...args) {
-        for (let i = 0; i < array.length; i++) {
-            const callback = array[i];
-            if (typeof callback === 'function') {
-                try { callback(...args); }
-                catch (error) { console.error((error.message || error), (error.stack || '')); }
+    addEvent(name, owner, callback) {
+        if (APP_EVENTS.indexOf(name) === -1) return; // unknown event name
+        if (!owner || !owner.uuid) return;
+        if (typeof callback !== 'function') return;
+        if (!this.events[name]) this.events[name] = {};
+        this.events[name][owner.uuid] = callback;
+    }
+
+    clearEvents(names = [], uuids = []) {
+        if (names.length === 0) names = [...APP_EVENTS];
+        const original = [...uuids];
+        for (const name of names) {
+            const events = this.events[name];
+            if (typeof events !== 'object') return;
+            uuids = (original.length === 0) ? Object.keys(events) : [...original];
+            for (const uuid of uuids) {
+                delete events[uuid];
             }
         }
     }
 
-    /******************** LOAD */
+    dispatch(name, event = {}, uuids = [] /* leaving empty dispatches for all */) {
+        const events = this.events[name];
+        if (typeof events !== 'object') return;
+        if (uuids.length === 0) uuids = Object.keys(events);
+        for (const uuid of uuids) {
+            const callback = events[uuid];
+            if (typeof callback === 'function') {
+                try { callback(event); }
+                catch (error) { console.error((error.message || error), (error.stack || '')); }
+            }
+        }
+        if (name === 'init') {
+            this.clearEvents([ name ], uuids);
+        } else if (name === 'destroy') {
+            this.clearEvents([], uuids);
+        }
+    }
+
+    /******************** LOAD / UNLOAD */
 
     load(json, loadAssets = true) {
         // Scene Manager
@@ -103,10 +128,7 @@ class App {
         this.scene = new Scene3D();
         SceneManager.backgroundFromWorld(this.scene, this.world);
         SceneManager.loadScene(this.scene, this.world.activeScene());
-        this.dispatch(this.events.init);
     }
-
-    /******************** CLEAN UP */
 
     dispose() {
         // Clear Renderer
@@ -116,9 +138,7 @@ class App {
         ObjectUtils.clearObject(this.camera);
         ObjectUtils.clearObject(this.scene);
         this.project.clear();
-
-        // Clear Events
-        for (let key in this.events) this.events[key].length = 0;
+        this.clearEvents();
 
         // Clear Physics
         if (physics) physics.world.free();
@@ -138,7 +158,7 @@ class App {
             // }
 
             // Call 'update()' functions
-            this.dispatch(this.events.update, { delta, total });
+            this.dispatch('update', { delta, total });
 
             // Physics Update
             const boxIndex = Math.floor(Math.random() * boxes.count);
@@ -307,14 +327,14 @@ export { App };
 function onKeyDown(event) {
     if (this.isPlaying) {
         this.keys[event.key] = true;
-        this.dispatch(this.events.keydown, event);
+        this.dispatch('keydown', event);
     }
 }
 
 function onKeyUp(event) {
     if (this.isPlaying) {
         this.keys[event.key] = false;
-        this.dispatch(this.events.keyup, event);
+        this.dispatch('keyup', event);
     }
 }
 
@@ -335,18 +355,18 @@ function onPointerDown(event) {
         // console.log(coords? `Coords X:${coords.x}, Y: ${coords.y}, Z: ${coords.z}` : 'Unknown');
 
         // Dispatch Events
-        this.dispatch(this.events.pointerdown, event);
+        this.dispatch('pointerdown', event);
     }
 }
 
 function onPointerUp(event) {
     if (this.isPlaying) {
-        this.dispatch(this.events.pointerup, event);
+        this.dispatch('pointerup', event);
     }
 }
 
 function onPointerMove(event) {
     if (this.isPlaying) {
-        this.dispatch(this.events.pointermove, event);
+        this.dispatch('pointermove', event);
     }
 }

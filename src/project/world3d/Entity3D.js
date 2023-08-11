@@ -488,13 +488,13 @@ class Entity3D extends THREE.Object3D {
         for (let i = 0; i < children.length; i++) {
             const child = children[i];
             this.removeEntity(child, true /* forceDelete */);
-            if (child.dispose) child.dispose();
+            if (typeof child.dispose === 'function') child.dispose();
         }
 
         while (this.components.length > 0) {
             const component = this.components[0];
             this.removeComponent(component);
-            component.dispose();
+            if (typeof component.dispose === 'function') component.dispose();
         }
     }
 

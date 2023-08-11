@@ -2,16 +2,16 @@ export const VERSION = '0.0.6';
 
 export const APP_SIZE = 1000;
 
-export const APP_EVENTS = {
-    init:           'init',
-    update:         'update',
-    destroy:        'destroy',
-    keydown:        'keydown',
-    keyup:          'keyup',
-    pointerdown:    'pointerdown',
-    pointerup:      'pointerup',
-    pointermove:    'pointermove',
-}
+export const APP_EVENTS = [
+    'init',
+    'update',
+    'destroy',
+    'keydown',
+    'keyup',
+    'pointerdown',
+    'pointerup',
+    'pointermove',
+];
 
 export const APP_ORIENTATION = {
     PORTRAIT:       'portrait',
@@ -37,7 +37,7 @@ export const WORLD_TYPES = {
 export const SCRIPT_FORMAT = {
     JAVASCRIPT:     'js',
     PYTHON:         'python',
-}
+};
 
 export const MESH_REBUILD_TYPES = [
     'geometry',
@@ -45,4 +45,4 @@ export const MESH_REBUILD_TYPES = [
     'palette',
     'shape',
     'texture',
-]
+];

@@ -14,19 +14,14 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
 // Script Functions
-let scriptFunctions = '';
-let scriptReturnObject = {};
-for (let eventKey in APP_EVENTS) {
-    scriptFunctions += eventKey + ',';
-    scriptReturnObject[eventKey] = eventKey;
-}
-scriptFunctions = scriptFunctions.replace(/.$/, '');                                /* remove last comma */
+const scriptFunctions = APP_EVENTS.toString();
+const scriptReturnObject = {};
+for (const event of APP_EVENTS) scriptReturnObject[event] = event;
 const scriptParameters = 'app,' + scriptFunctions;
 const scriptReturnString = JSON.stringify(scriptReturnObject).replace(/\"/g, '');   /* remove all qoutes */
 
 // Local
 const _composers = {};
-const _position = new THREE.Vector3();
 
 // Class
 class SceneManager {
@@ -123,24 +118,23 @@ class SceneManager {
             body = body + `return ${scriptReturnString};`;
 
             // Returns object holding script functions (with proper 'this' bound and access to globals / script variables)
-            const buildFunctionObject = new Function(scriptParameters /* parameters */, body /* source */).bind(toEntity);
-            const functions = buildFunctionObject(SceneManager.app);
+            const returnFunctionObject = new Function(scriptParameters /* parameters */, body /* source */).bind(toEntity);
+            const functions = returnFunctionObject(SceneManager.app);
 
-            // Add functions to event dispatch handler
-            for (let name in functions) {
-                if (APP_EVENTS[name] === undefined) {
-                    console.warn(`App: Event type not supported ('${name}')`);
-                    continue;
-                }
+            // Add functions to Event Dispatcher
+            for (const name in functions) {
                 if (typeof functions[name] !== 'function') continue;
                 const callback = functions[name].bind(toEntity);
-                SceneManager.app.events[name].push(callback);
+                SceneManager.app.addEvent(name, toEntity, callback);
             }
         }
     }
 
-    static removeEntity() {
-
+    static removeEntity(entity) {
+        if (!entity || !entity.isEntity) return;
+        SceneManager.app.dispatch('destroy', {}, [ entity.uuid ]);
+        SceneManager.app.scene.removeEntity(entity, true /* forceDelete */);
+        if (typeof entity.dispose === 'function') entity.dispose();
     }
 
     /********** SCENE */
@@ -171,6 +165,7 @@ class SceneManager {
         const loadRotate = new THREE.Quaternion();
 
         SceneManager.cloneChildren(toScene, fromScene, loadTranslate, loadScale, loadRotate);
+        SceneManager.app.dispatch('init');
     }
 
     /********** RENDER */

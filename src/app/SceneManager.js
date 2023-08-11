@@ -38,7 +38,7 @@ class SceneManager {
     static cameraFromScene(scene) {
         // Look for Camera Component
         if (scene && scene.isScene3D) {
-            let component = EntityUtils.findCameraComponent(scene);
+            const component = EntityUtils.findCameraComponent(scene);
             if (component) {
                 const componentCamera = component.three();
                 if (componentCamera) {
@@ -58,20 +58,35 @@ class SceneManager {
 
     /********** ENTITY */
 
-    // Copy Cloned Children
-    static copyChildren(toEntity, fromEntity) {
+    /** Clone and copy children */
+    static cloneChildren(toEntity, fromEntity, translate = new THREE.Vector3(), scale = new THREE.Vector3(1, 1, 1), rotate = new THREE.Quaternion()) {
         const children = fromEntity.getEntities();
         for (let i = 0; i < children.length; i++) {
             const entity = children[i];
+
+            // Clone
             const clone = entity.cloneEntity(false /* recursive? */);
+
+            // Map position to scene load location
+            if (toEntity.isScene) {
+                clone.scale.multiply(scale);
+                clone.applyQuaternion(rotate);
+                clone.position.add(translate);
+            }
+
+            // Scripts & children
             SceneManager.loadScriptsFromComponents(clone, entity);
-            SceneManager.copyChildren(clone, entity);
+            SceneManager.cloneChildren(clone, entity);
+
+            // Bloom rendering layers
             if (clone.bloom) {
                 clone.traverse(function(child) {
                     child.layers.disable(LAYERS.BASE);
                     child.layers.enable(LAYERS.BLOOM);
                 });
             }
+
+            // Add clone
             toEntity.add(clone);
         }
     }
@@ -139,9 +154,7 @@ class SceneManager {
                 toScene.background = fromWorld.background.clone();
             } else {
                 const texture = AssetManager.getAsset(fromWorld.background);
-                if (texture && texture.isTexture) {
-                    toScene.background = texture.clone();
-                }
+                if (texture && texture.isTexture) toScene.background = texture.clone();
             }
         }
 		if (fromWorld.environment != null) toScene.environment = fromWorld.environment.clone();
@@ -152,7 +165,12 @@ class SceneManager {
     }
 
     static loadScene(toScene, fromScene) {
-        SceneManager.copyChildren(toScene, fromScene);
+        // TODO: Incorporate scene loading ('Scene Boundary' object) to last known load location
+        const loadTranslate = new THREE.Vector3(0, 0, 0);
+        const loadScale = new THREE.Vector3(1, 1, 1)
+        const loadRotate = new THREE.Quaternion();
+
+        SceneManager.cloneChildren(toScene, fromScene, loadTranslate, loadScale, loadRotate);
     }
 
     /********** RENDER */
@@ -194,6 +212,16 @@ class SceneManager {
         // Composer Render
         const composer = _composers[world.uuid];
         if (composer) composer.render();
+    }
+
+    static setCamera(world, camera) {
+        SceneManager.app.camera = camera;
+
+        const components = world.getComponentsWithProperties('type', 'post');
+        components.forEach((component) => {
+            const pass = component.three();
+            if (pass) pass.camera = camera;
+        });
     }
 
     static setSize(width, height) {

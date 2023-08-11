@@ -86,19 +86,21 @@ class App {
     /******************** LOAD */
 
     load(json, loadAssets = true) {
+        // Scene Manager
+        SceneManager.app = this;
+
         // Load Project
         this.project.fromJSON(json, loadAssets);
 
         // Active World/Scene/Camera
         this.world = this.project.getFirstWorld();
 
-        // Scene Manager
-        SceneManager.app = this;
+        // Camera
         this.camera = SceneManager.cameraFromScene(this.world.activeScene());
         this.camera.changeFit(this.project.settings?.orientation);
-        this.scene = new Scene3D();
 
         // Load Scene
+        this.scene = new Scene3D();
         SceneManager.backgroundFromWorld(this.scene, this.world);
         SceneManager.loadScene(this.scene, this.world.activeScene());
         this.dispatch(this.events.init);

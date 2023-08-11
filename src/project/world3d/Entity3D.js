@@ -156,7 +156,6 @@ class Entity3D extends THREE.Object3D {
     }
 
     /** Custom replacement for THREE.Object3D.attach() that accounts for Entity3D.lookAtCamera */
-
     safeAttach(object) {
         if (!object || !object.isObject3D) return;
         object.getWorldQuaternion(_worldQuaternion);

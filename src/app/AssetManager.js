@@ -245,6 +245,7 @@ class AssetManager {
 
         if (!meta) meta = {};
         if (!meta.palettes) meta.palettes = {};
+        if (!meta.prefabs) meta.prefabs = {};
         if (!meta.scripts) meta.scripts = {};
         if (!meta.shapes) meta.shapes = {};
         if (!meta.geometries) meta.geometries = {};

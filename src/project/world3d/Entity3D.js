@@ -6,6 +6,7 @@ import { Strings } from '../../utils/Strings.js';
 
 // INTERNAL FLAGS
 //  Object3D.userData.flagIgnore    Ignore object during selction, focus, saving, etc. (for Editor)
+//  Object3D.userData.flagSelect    When combined with flagIgnore, still allows selection of object
 //  Object3D.userData.entityId      Used for transform controls to link a transform clone with original entity
 
 const _m1 = new THREE.Matrix4();

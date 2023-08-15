@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { Entity3D } from './Entity3D.js';
+import { ObjectUtils } from '../../utils/three/ObjectUtils.js';
 
 class Scene3D extends Entity3D {
 
@@ -19,16 +20,18 @@ class Scene3D extends Entity3D {
 		this.backgroundIntensity = 1;
         this.overrideMaterial = null;
 
-        // Properties, Usage
+        // Properties, Display
         this.start = 0;
-        this.end = -1;
+        this.finish = -1;
+        this.beginPosition = new THREE.Matrix4().setPosition(-2, 0, 0);
+        this.endPosition = new THREE.Matrix4().setPosition(2, 0, 0);
 
         // Shadow Plane (added as Object3D, NOT saved to JSON)
         this.shadowPlane = new THREE.Mesh(
             new THREE.PlaneGeometry(100000, 100000),
             new THREE.ShadowMaterial({ color: 0, transparent: true, opacity: 0.2, depthWrite: false })
         );
-        this.shadowPlane.name = 'ShadowPlane';
+        this.shadowPlane.name = 'Shadow Plane';
         this.shadowPlane.userData.flagIgnore = true;
         this.shadowPlane.rotation.x = - Math.PI / 2;
         this.shadowPlane.castShadow = false;
@@ -45,7 +48,9 @@ class Scene3D extends Entity3D {
 
         // Scene3D Properties
         this.start = source.start;
-        this.end = source.end;
+        this.finish = source.finish;
+        this.beginPosition.copy(source.beginPosition);
+        this.endPosition.copy(source.endPosition);
 
         return this;
     }
@@ -59,6 +64,8 @@ class Scene3D extends Entity3D {
         if (this.environment && typeof this.environment.dispose === 'function') this.environment.dispose();
         if (this.fog && typeof this.fog.dispose === 'function') this.fog.dispose();
         if (this.overrideMaterial && typeof this.overrideMaterial.dispose === 'function') this.overrideMaterial.dispose();
+
+        if (this.shadowPlane) ObjectUtils.clearObject(this.shadowPlane);
     }
 
     /******************** JSON */
@@ -71,7 +78,9 @@ class Scene3D extends Entity3D {
 
         // Scene3D Properties
         if (data.start !== undefined) this.start = data.start;
-        if (data.end !== undefined) this.end = data.end;
+        if (data.finish !== undefined) this.finish = data.finish;
+        if (data.beginPosition !== undefined) this.beginPosition.fromArray(data.beginPosition);
+        if (data.endPosition !== undefined) this.endPosition.fromArray(data.endPosition);
 
         return this;
     }
@@ -82,7 +91,9 @@ class Scene3D extends Entity3D {
 
         // Scene3D Properties
         json.object.start = this.start;
-        json.object.end = this.end;
+        json.object.finish = this.finish;
+        json.object.beginPosition = this.beginPosition.toArray();
+        json.object.endPosition = this.endPosition.toArray();
 
         return json;
     }

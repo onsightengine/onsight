@@ -4,9 +4,10 @@ import { System } from '../System.js';
 import { Vectors } from '../Vectors.js';
 
 // allowSelection()         Check if object should be allowed to be interacted with in Editor
-// compareQuaternions()     Compares array of objects to see if quaternions are all the same
+// childByProperty()        Retrieves a child by property
 // clearObject()            Completely deletes object (including geomtries/materials), and all of it's children
 // clearMaterial()          Disposes of a material
+// compareQuaternions()     Compares array of objects to see if quaternions are all the same
 // computeBounds()          Finds bounding box of an object or array of objects
 // computeCenter()          Finds center point of an object or array of objects
 // containsObject()         Checks array to see if it has an object (by Object3D.uuid)
@@ -36,20 +37,19 @@ class ObjectUtils {
     static allowSelection(object) {
         let allowSelect = (!object.isLocked);
         if (object.userData) {
-            if (object.userData.flagIgnore) allowSelect = false;
+            if (object.userData.flagIgnore && object.userData.flagSelect !== true) {
+                allowSelect = false;
+            }
         }
         return allowSelect;
     }
 
-    /** Compares array of objects to see if quaternions are all the same */
-    static compareQuaternions(array) {
-        if (array.length <= 1) return true;
-        array[0].getWorldQuaternion(_startQuaternion);
-        for (let i = 1; i < array.length; i++) {
-            array[i].getWorldQuaternion(_testQuaternion);
-            if (Maths.fuzzyQuaternion(_startQuaternion, _testQuaternion) === false) return false;
+    /** Retrieves a child by property */
+    static childByProperty(object, property, value) {
+        for (let i = 0; i < object.children.length; i++) {
+            const child = object.children[i];
+            if (child[property] === value) return child;
         }
-        return true;
     }
 
     /** Completely deletes 'object' (including geomtries and materials), and all of it's children */
@@ -81,6 +81,17 @@ class ObjectUtils {
             });
             if (material.dispose) material.dispose();
         }
+    }
+
+    /** Compares array of objects to see if quaternions are all the same */
+    static compareQuaternions(array) {
+        if (array.length <= 1) return true;
+        array[0].getWorldQuaternion(_startQuaternion);
+        for (let i = 1; i < array.length; i++) {
+            array[i].getWorldQuaternion(_testQuaternion);
+            if (Maths.fuzzyQuaternion(_startQuaternion, _testQuaternion) === false) return false;
+        }
+        return true;
     }
 
     /** Finds bounding box of an object or array of objects  (recursively adding children meshes) */

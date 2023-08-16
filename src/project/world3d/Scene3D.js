@@ -42,6 +42,10 @@ class Scene3D extends Entity3D {
 
     /******************** COPY */
 
+    cloneEntity(recursive = true) {
+        return new this.constructor().copyEntity(this, recursive);
+    }
+
     copyEntity(source, recursive = true) {
         // Entity3D.copy()
         super.copyEntity(source, recursive);

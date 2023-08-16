@@ -31,17 +31,10 @@ class SceneManager {
     /********** CAMERA */
 
     static cameraFromScene(scene) {
-        // Look for Camera Component
+        // Look for Camera
         if (scene && scene.isScene3D) {
-            const component = EntityUtils.findCameraComponent(scene);
-            if (component) {
-                const componentCamera = component.three();
-                if (componentCamera) {
-                    const camera = componentCamera.clone();
-                    ObjectUtils.copyWorldTransform(componentCamera, camera, true /* updateMatrix */);
-                    return camera;
-                }
-            }
+            const camera = EntityUtils.findCamera(scene);
+            if (camera) return camera;
         }
 
         // No Camera Found
@@ -165,7 +158,6 @@ class SceneManager {
         const loadRotate = new THREE.Quaternion();
 
         SceneManager.cloneChildren(toScene, fromScene, loadTranslate, loadScale, loadRotate);
-        SceneManager.app.dispatch('init');
     }
 
     /********** RENDER */

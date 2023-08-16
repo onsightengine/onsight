@@ -1,12 +1,14 @@
 import * as THREE from 'three';
 import { APP_SIZE } from '../../constants.js';
 import { CAMERA_TYPES } from '../../constants.js';
+import { Entity3D } from './Entity3D.js';
 import { Maths } from '../../utils/Maths.js';
 import { ObjectUtils } from '../../utils/three/ObjectUtils.js';
 
-class Camera3D extends THREE.Camera {
+class Camera3D extends Entity3D {
 
     constructor({
+        name,
         type = CAMERA_TYPES.PERSPECTIVE,
         width = APP_SIZE,           // initial dom element width
         height = APP_SIZE,          // initial dom element height
@@ -18,11 +20,18 @@ class Camera3D extends THREE.Camera {
         // orthographic
         // ... EMPTY
     } = {}) {
-        super(type);
+        super(name ?? 'Camera');
 
         // Prototype
+        this.isCamera = true;
         this.isCamera3D = true;
         this.type = 'Camera3D';
+
+        // Properties, THREE.Camera
+        this.matrixWorldInverse = new THREE.Matrix4();
+		this.projectionMatrix = new THREE.Matrix4();
+		this.projectionMatrixInverse = new THREE.Matrix4();
+		this.coordinateSystem = THREE.WebGLCoordinateSystem;
 
         // Properties
         if (fit !== 'width' && fit !== 'height') fit = 'none';
@@ -53,6 +62,31 @@ class Camera3D extends THREE.Camera {
         // Init Size
         this.setSize(width, height);
     }
+
+    /******************** THREE.CAMERA */
+
+    updateMatrix() {
+        const superUpdateMatrix = THREE.Object3D.prototype.updateMatrix.bind(this);
+        superUpdateMatrix();
+    }
+
+    getWorldDirection(target) {
+		this.updateWorldMatrix(true, false);
+		const e = this.matrixWorld.elements;
+		return target.set(- e[8], - e[9], - e[10]).normalize();
+	}
+
+	updateMatrixWorld(force) {
+		super.updateMatrixWorld(force);
+		this.matrixWorldInverse.copy(this.matrixWorld).invert();
+	}
+
+	updateWorldMatrix(updateParents, updateChildren) {
+		super.updateWorldMatrix(updateParents, updateChildren);
+		this.matrixWorldInverse.copy(this.matrixWorld).invert();
+	}
+
+    /******************** SIZE / FIT */
 
     setSize(width = APP_SIZE, height = APP_SIZE) {
         this.lastWidth = width;
@@ -202,9 +236,23 @@ class Camera3D extends THREE.Camera {
 
     /******************** COPY */
 
-    copy(source, recursive = true) {
-        // THREE.Object3D.copy()
+    clone() {
+		return new this.constructor().copy(this);
+	}
+
+    cloneEntity(recursive = true) {
+        return new this.constructor().copyEntity(this, recursive);
+    }
+
+    copy(source, recursive) {
+        // Entity3D.copy()
         super.copy(source, recursive);
+
+        // THREE.Camera Properties
+        this.matrixWorldInverse.copy(source.matrixWorldInverse);
+		this.projectionMatrix.copy(source.projectionMatrix);
+		this.projectionMatrixInverse.copy(source.projectionMatrixInverse);
+		this.coordinateSystem = source.coordinateSystem;
 
         // Camera3D Properties
         this.fit = source.fit;
@@ -245,6 +293,10 @@ class Camera3D extends THREE.Camera {
         // Orthographic Properties
         // ... EMPTY
 
+        // Flags
+        if (data.isPerspectiveCamera !== undefined) this.isPerspectiveCamera = data.isPerspectiveCamera;
+        if (data.isOrthographicCamera !== undefined) this.isOrthographicCamera = data.isOrthographicCamera;
+
         // Projection Matrix
         this.updateProjectionMatrix();
 
@@ -265,6 +317,10 @@ class Camera3D extends THREE.Camera {
 
         // Orthographic Properties
         // ... EMPTY
+
+        // Flags
+        json.object.isPerspectiveCamera = this.isPerspectiveCamera;
+        json.object.isOrthographicCamera = this.isOrthographicCamera;
 
         return json;
     }

@@ -6,6 +6,7 @@
 import * as THREE from 'three';
 import { APP_EVENTS } from '../constants.js';
 import { AssetManager } from './AssetManager.js';
+import { Camera3D } from '../project/world3d/Camera3D.js';
 import { CameraUtils } from '../utils/three/CameraUtils.js';
 import { Clock } from '../utils/Clock.js';
 import { EntityUtils } from '../utils/three/EntityUtils.js';
@@ -54,7 +55,7 @@ class App {
         // Active Scene
         this.world = null;
         this.scene = null;
-        this.camera = null;
+        this.camera = new Camera3D();
 
         // Game Clock
         this.gameClock = new Clock(false /* autostart */);
@@ -124,14 +125,17 @@ class App {
         // Active World/Scene/Camera
         this.world = this.project.getFirstWorld();
 
-        // Camera
-        this.camera = SceneManager.cameraFromScene(this.world.activeScene());
-        this.camera.changeFit(this.project.settings?.orientation);
-
         // Load Scene
         this.scene = new Scene3D();
         SceneManager.backgroundFromWorld(this.scene, this.world);
         SceneManager.loadScene(this.scene, this.world.activeScene());
+
+        // Camera
+        this.camera = SceneManager.cameraFromScene(this.scene);
+        this.camera.changeFit(this.project.settings?.orientation);
+
+        // Script 'init()' functions
+        this.dispatch('init');
     }
 
     /******************** ANIMATE (RENDER) */
@@ -147,7 +151,7 @@ class App {
             //     console.log(`Time: ${time}, FPS: ${this.gameClock.fps()}, Framerate: ${this.gameClock.averageDelta()}`);
             // }
 
-            // Call 'update()' functions
+            // Script 'update()' functions
             this.dispatch('update', { delta, total });
 
             // Physics Update

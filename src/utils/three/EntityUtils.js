@@ -3,7 +3,7 @@
 // compareArrayOfEntities()     Checks if two entity arrays hold the same entities (i.e. are the same collections)
 // containsEntity()             Checks array to see if it has an entity (by entity.uuid)
 // containsMesh()               Checks if entity contains Mesh
-// findCameraComponent()        Attempts to find a camera component within an entity
+// findCamera()                 Attempts to find a camera within an entity
 // isImportant()                Checks if entity is important and should be protected
 // parentEntity()               Returns parent most entity that is not a Scene
 // parentScene()                Returns parent scene of an entity
@@ -83,19 +83,13 @@ class EntityUtils {
     }
 
     /** Attempts to find a camera component within an entity */
-    static findCameraComponent(entity) {
+    static findCamera(entity) {
         if (!entity || !entity.isEntity) return undefined;
-        let cameraComponent = undefined;
-        entity.traverseEntities((entity) => {
-            entity.traverseComponents((component) => {
-                if (component.type === 'camera') {
-                    cameraComponent = component;
-                    return cameraComponent;
-                }
-            })
-            if (cameraComponent) return cameraComponent;
+        let camera = undefined;
+        entity.traverseEntities((child) => {
+            if (child.isCamera) camera = child;
         });
-        return cameraComponent;
+        return camera;
     }
 
     /** Checks if entity is important and should be protected */

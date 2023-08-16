@@ -101,7 +101,6 @@ export { Vectors } from './utils/Vectors.js';
 /******************** REGISTER COMPONENTS ********************/
 
 // Entity
-import './project/world3d/entity/Camera.js';
 import './project/world3d/entity/Geometry.js';
 import './project/world3d/entity/Light.js';
 import './project/world3d/entity/Material.js';

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Camera3D } from './Camera3D.js';
 import { Entity3D } from './Entity3D.js';
 import { Scene3D } from './Scene3D.js';
 
@@ -126,6 +127,10 @@ class World3D extends Entity3D {
 
     /******************** COPY */
 
+    cloneEntity(recursive = true) {
+        return new this.constructor().copyEntity(this, recursive);
+    }
+
     copyEntity(source, recursive = true) {
         // Entity3D.copy()
         super.copyEntity(source, recursive);
@@ -202,15 +207,17 @@ class World3D extends Entity3D {
         return this;
     }
 
+    /** Adds additional types from Entity3D.loadChildren */
     loadChildren(json) {
         if (!json || !json.object || !json.object.entities) return;
         for (let i = 0; i < json.object.entities.length; i++) {
             const entityJSON = json.object.entities[i];
             let entity = undefined;
-            if (entityJSON.object.type === 'Scene3D') {
-                entity = new Scene3D().fromJSON(entityJSON);
-            } else if (entityJSON.object.type === 'Entity3D') {
-                entity = new Entity3D().fromJSON(entityJSON);
+            switch (entityJSON.object.type) {
+                case 'Camera3D':    entity = new Camera3D().fromJSON(entityJSON); break;
+                case 'Scene3D':     entity = new Scene3D().fromJSON(entityJSON); break;
+                case 'Entity3D':
+                default:            entity = new Entity3D().fromJSON(entityJSON);
             }
             if (entity) this.add(entity);
         }

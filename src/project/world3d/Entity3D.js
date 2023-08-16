@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Camera3D } from './Camera3D.js';
 import { ComponentManager } from '../../app/ComponentManager.js';
 import { EntityUtils } from '../../utils/three/EntityUtils.js';
 import { ObjectUtils } from '../../utils/three/ObjectUtils.js';
@@ -57,8 +58,9 @@ class Entity3D extends THREE.Object3D {
     /******************** INFO */
 
     getReducedType() {
-        if (this.isScene) return 'Scene';
-        return (this.components.length === 1) ? Strings.capitalize(this.components[0].type.toLowerCase()) : 'Entity3D';
+        if (this.type !== 'Entity3D') return this.type;
+        if (this.components.length === 1) return Strings.capitalize(this.components[0].type.toLowerCase());
+        return this.type;
     }
 
     /******************** UPDATE MATRIX */
@@ -500,6 +502,8 @@ class Entity3D extends THREE.Object3D {
             this.removeComponent(component);
             if (typeof component.dispose === 'function') component.dispose();
         }
+
+        this.dispatchEvent({ type: 'destroy' });
     }
 
     /******************** JSON */
@@ -543,8 +547,13 @@ class Entity3D extends THREE.Object3D {
         if (!json || !json.object || !json.object.entities) return;
         for (let i = 0; i < json.object.entities.length; i++) {
             const entityJSON = json.object.entities[i];
-            const entity = new Entity3D().fromJSON(entityJSON);
-            this.add(entity);
+            let entity = undefined;
+            switch (entityJSON.object.type) {
+                case 'Camera3D':    entity = new Camera3D().fromJSON(entityJSON); break;
+                case 'Entity3D':
+                default:            entity = new Entity3D().fromJSON(entityJSON);
+            }
+            if (entity) this.add(entity);
         }
     }
 

@@ -112,7 +112,7 @@ class EntityUtils {
         while (entity && entity.parent && !entity.parent.isScene) {
             entity = entity.parent;
             if (immediateOnly && entity.isEntity) {
-                if (entity.userData && entity.userData.flagIgnore) {
+                if (entity.userData.flagIgnore || entity.userData.flagTemp) {
                     // IGNORE
                 } else {
                     return entity;

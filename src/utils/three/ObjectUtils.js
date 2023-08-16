@@ -37,9 +37,7 @@ class ObjectUtils {
     static allowSelection(object) {
         let allowSelect = (!object.isLocked);
         if (object.userData) {
-            if (object.userData.flagIgnore && object.userData.flagSelect !== true) {
-                allowSelect = false;
-            }
+            if (object.userData.flagIgnore) allowSelect = false;
         }
         return allowSelect;
     }

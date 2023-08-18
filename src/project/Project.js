@@ -13,9 +13,12 @@ class Project {
         this.isProject = true;
         this.type = 'Project';
 
-        // Members
+        // Properties
         this.name = name;
         this.uuid = Maths.uuid();
+
+        // Properties, World
+        this.activeWorldUUID = null;
 
         // Settings
         this.settings = {
@@ -28,20 +31,33 @@ class Project {
 
     /******************** WORLD */
 
+    activeWorld() {
+        // Active World?
+        let world = this.getWorldByUUID(this.activeWorldUUID);
+
+        // First World?
+        if (!world || !world.isWorld) {
+            const worldUUIDs = Object.keys(this.worlds);
+            if (worldUUIDs.length > 0) world = this.worlds[worldUUIDs[0]];
+        }
+        return world;
+    }
+
+    setActiveWorld(world) {
+        if (!world || !world.isWorld) return this;
+        if (this.worlds[world.uuid]) this.activeWorldUUID = world.uuid;
+        return this;
+    }
+
     addWorld(world) {
-        if (world && WORLD_TYPES[world.type]) {
+        if (!world || !world.isWorld) return this;
+        if (WORLD_TYPES[world.type]) {
             this.worlds[world.uuid] = world;
             if (this.activeWorldUUID == null) this.activeWorldUUID = world.uuid;
         } else {
             console.error(`Project.addWorld: World type (${world.type}) not a valid world type`, world);
         }
-
         return this;
-    }
-
-    getFirstWorld() {
-        const worldList = Object.keys(this.worlds);
-        return (worldList.length > 0) ? this.worlds[worldList[0]] : null;
     }
 
     getWorldByName(name) {
@@ -49,6 +65,7 @@ class Project {
     }
 
     getWorldByUUID(uuid) {
+        if (!uuid) return undefined;
         return this.worlds[uuid];
     }
 
@@ -61,12 +78,12 @@ class Project {
 
     /** Removes world, does not call 'dispose()' on World!! */
     removeWorld(world) {
-        if (!world.isWorld) return;
+        if (!world || !world.isWorld) return;
         delete this.worlds[world.uuid];
     }
 
     traverseWorlds(callback, recursive = true) {
-        for (let uuid in this.worlds) {
+        for (const uuid in this.worlds) {
             const world = this.worlds[uuid];
             if (typeof callback === 'function') callback(world);
             if (recursive) world.traverseStages(callback, recursive);
@@ -80,13 +97,14 @@ class Project {
     /******************** ENTITY */
 
     findEntityByUUID(uuid, searchAllWorlds = false) {
-        const activeWorld = (editor && editor.viewport) ? editor.viewport.world : null;
+        const activeWorld = editor.viewport.world;
 
-        let worldList;
+        let worldList = [];
         if (searchAllWorlds) worldList = [...this.worlds];
         else if (activeWorld) worldList = [ activeWorld ];
 
         for (const world of worldList) {
+            if (uuid && world.uuid && uuid === world.uuid) return world;
             const entity = world.getEntityByProperty('uuid', uuid);
             if (entity) return entity;
         }
@@ -98,16 +116,16 @@ class Project {
 
     clear() {
         // Remove Worlds
-        const worldIds = Object.keys(this.worlds);
-        for (let i = 0; i < worldIds.length; i++) {
-            const world = this.worlds[worldIds[i]]
+        for (const uuid in this.worlds) {
+            const world = this.worlds[uuid];
             this.removeWorld(world);
-            world.dispose();
+            if (typeof world.dispose === 'function') world.dispose();
         }
 
         // Reset Properties
         this.name = 'My Project';
         this.uuid = Maths.uuid();
+        this.activeWorldUUID = null;
     }
 
     /******************** JSON */
@@ -143,18 +161,18 @@ class Project {
         // Properties
         this.name = json.object.name;
         this.uuid = json.object.uuid;
+        this.activeWorldUUID = json.object.activeWorldUUID;
 
         // Settings
         this.settings = structuredClone(json.settings);
 
         // Worlds
-        for (let i = 0; i < json.worlds.length; i++) {
-            switch (json.worlds[i].object.type) {
-                case 'World3D':
-                    const world = new World3D().fromJSON(json.worlds[i])
-                    this.addWorld(world);
-                    break;
+        for (const worldData of json.worlds) {
+            let world = undefined;
+            switch (worldData.object.type) {
+                case 'World3D': world = new World3D().fromJSON(worldData); break;
             }
+            if (world && world.isWorld) this.addWorld(world);
         }
 
         return this;
@@ -177,6 +195,7 @@ class Project {
             type: this.type,
             name: this.name,
             uuid: this.uuid,
+            activeWorldUUID: this.activeWorldUUID,
         };
 
         // Settings

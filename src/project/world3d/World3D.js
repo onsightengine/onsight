@@ -10,7 +10,7 @@ class World3D extends Entity3D {
         super(name);
 
         // Prototype
-        this.isScene = true;                // for THREE.Render()
+        this.isScene = true;                // for THREE.Render() compatibility
         this.isWorld = true;
         this.isWorld3D = true;
         this.type = 'World3D';
@@ -52,7 +52,7 @@ class World3D extends Entity3D {
     }
 
     setActiveStage(stage) {
-        this.activeStageUUID = (stage && stage.uuid) ? stage.uuid : null;
+        this.activeStageUUID = (stage && stage.isEntity3D && stage.uuid !== this.uuid) ? stage.uuid : null;
         return this;
     }
 
@@ -146,7 +146,7 @@ class World3D extends Entity3D {
         this.xPos = source.xPos;
         this.yPos = source.yPos;
         const stageIndex = source.children.indexOf(source.activeStage());
-        if (stageIndex >= 0) this.activeStageUUID = this.children[stageIndex].uuid;
+        if (stageIndex !== -1) this.activeStageUUID = this.children[stageIndex].uuid;
 
         return this;
     }
@@ -202,19 +202,11 @@ class World3D extends Entity3D {
         return this;
     }
 
-    /** Adds additional types from Entity3D.loadChildren */
-    loadChildren(json) {
-        if (!json || !json.object || !json.object.entities) return;
-        for (let i = 0; i < json.object.entities.length; i++) {
-            const entityJSON = json.object.entities[i];
-            let entity = undefined;
-            switch (entityJSON.object.type) {
-                case 'Stage3D':     entity = new Stage3D().fromJSON(entityJSON); break;
-                case 'Camera3D':    entity = new Camera3D().fromJSON(entityJSON); break;
-                case 'Entity3D':
-                default:            entity = new Entity3D().fromJSON(entityJSON);
-            }
-            if (entity) this.add(entity);
+    /** Overloaded to add access to additional Entity3D types */
+    loadChildren(jsonEntities = []) {
+        for (const entityData of jsonEntities) {
+            const entity = new (eval(entityData.object.type))();
+            this.add(entity.fromJSON(entityData));
         }
     }
 

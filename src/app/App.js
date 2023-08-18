@@ -122,15 +122,15 @@ class App {
         // Load Project
         this.project.fromJSON(json, loadAssets);
 
-        // Active World/Scene/Camera
-        this.world = this.project.getFirstWorld();
+        // Active World
+        this.world = this.project.activeWorld();
 
-        // Load Scene
+        // Create Scene
         this.scene = new World3D();
         SceneManager.loadWorld(this.scene, this.world);
         SceneManager.loadStage(this.scene, this.world.activeStage());
 
-        // Camera
+        // Find Camera
         this.camera = SceneManager.findCamera(this.scene);
         this.camera.changeFit(this.project.settings?.orientation);
 

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Camera3D } from './Camera3D.js';
 import { Entity3D } from './Entity3D.js';
 
 class Stage3D extends Entity3D {
@@ -58,6 +59,14 @@ class Stage3D extends Entity3D {
         if (data.endPosition !== undefined) this.endPosition.fromArray(data.endPosition);
 
         return this;
+    }
+
+    /** Overloaded to add access to additional Entity3D types */
+    loadChildren(jsonEntities = []) {
+        for (const entityData of jsonEntities) {
+            const entity = new (eval(entityData.object.type))();
+            this.add(entity.fromJSON(entityData));
+        }
     }
 
     toJSON() {

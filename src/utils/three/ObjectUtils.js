@@ -17,6 +17,7 @@ import { Vectors } from '../Vectors.js';
 // flattenGroup()           Puts an object's children into parent, deletes original containing object
 // fromJSON()               Sets base THREE.Object3D properties from JSON
 // resetTransform()         Normalize / zero / reset object 3D transform
+// uuidArray()              Converts object array to UUID array
 
 const _boxCenter = new THREE.Box3();
 const _tempMatrix = new THREE.Matrix4();
@@ -52,9 +53,9 @@ class ObjectUtils {
         if (!object) return;
         if (!object.isObject3D) return;
 
-        if (object.geometry) object.geometry.dispose();
+        if (object.geometry && typeof object.geometry.dispose === 'function') object.geometry.dispose();
         if (object.material) ObjectUtils.clearMaterial(object.material);
-        if (object.dispose) object.dispose();
+        if (object.dispose && typeof object.dispose === 'function') object.dispose();
 
         while (object.children.length > 0) {
             ObjectUtils.clearObject(object.children[0], true);
@@ -236,6 +237,16 @@ class ObjectUtils {
         object.scale.set(1, 1, 1);
         object.updateMatrix();
         object.updateMatrixWorld(true /* force */);
+    }
+
+    /** Converts object array to UUID array */
+    static uuidArray(objects = []) {
+        if (!Array.isArray(objects)) objects = [...arguments];
+        const uuids = [];
+        for (const object of objects) {
+            if (typeof object === 'object' && object.uuid) uuids.push(object.uuid);
+        }
+        return uuids;
     }
 
 }

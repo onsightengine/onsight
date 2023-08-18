@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { Camera3D } from './Camera3D.js';
 import { ComponentManager } from '../../app/ComponentManager.js';
 import { EntityUtils } from '../../utils/three/EntityUtils.js';
 import { ObjectUtils } from '../../utils/three/ObjectUtils.js';
@@ -454,13 +453,8 @@ class Entity3D extends THREE.Object3D {
         this.bloom = source.bloom;
 
         // Copy Components
-        const components = source.components;
-        for (let i = 0; i < components.length; i++) {
-            const component = components[i];
-
-            // Add Component Clone
+        for (const component of source.components) {
             const clonedComponent = this.addComponent(component.type, component.toJSON(), false);
-
             // Copy Component Properties
             clonedComponent.tag = component.tag;
         }
@@ -478,17 +472,14 @@ class Entity3D extends THREE.Object3D {
     /******************** DISPOSE */
 
     dispose() {
-        const children = this.children;
-        for (let i = 0; i < children.length; i++) {
-            const child = children[i];
-            this.removeEntity(child, true /* forceDelete */);
-            if (typeof child.dispose === 'function') child.dispose();
-        }
-
         while (this.components.length > 0) {
             const component = this.components[0];
             this.removeComponent(component);
             if (typeof component.dispose === 'function') component.dispose();
+        }
+
+        while (this.children.length > 0) {
+            ObjectUtils.clearObject(this.children[0], true /* removeFromParent */);
         }
 
         this.dispatchEvent({ type: 'destroy' });
@@ -510,20 +501,16 @@ class Entity3D extends THREE.Object3D {
         if (data.bloom !== undefined) this.bloom = data.bloom;
 
         // Components
-        for (let i = 0; i < json.object.components.length; i++) {
-            const componentData = json.object.components[i];
-
-            // Add Component
+        for (const componentData of json.object.components) {
             if (componentData && componentData.base && componentData.base.type) {
                 const component = this.addComponent(componentData.base.type, componentData, false);
-
                 // Properties
                 component.tag = componentData.base.tag;
             }
         }
 
         // Children
-        this.loadChildren(json);
+        this.loadChildren(data.entities);
 
         // Matrix
         this.updateMatrix();
@@ -531,17 +518,11 @@ class Entity3D extends THREE.Object3D {
         return this;
     }
 
-    loadChildren(json) {
-        if (!json || !json.object || !json.object.entities) return;
-        for (let i = 0; i < json.object.entities.length; i++) {
-            const entityJSON = json.object.entities[i];
-            let entity = undefined;
-            switch (entityJSON.object.type) {
-                case 'Camera3D':    entity = new Camera3D().fromJSON(entityJSON); break;
-                case 'Entity3D':
-                default:            entity = new Entity3D().fromJSON(entityJSON);
-            }
-            if (entity) this.add(entity);
+    /** Overload when inheriting Entity3D to add access to additional Entity3D types */
+    loadChildren(jsonEntities = []) {
+        for (const entityData of jsonEntities) {
+            const entity = new (eval(entityData.object.type))();
+            this.add(entity.fromJSON(entityData));
         }
     }
 
@@ -553,6 +534,7 @@ class Entity3D extends THREE.Object3D {
                 name: this.name,
                 uuid: this.uuid,
                 components: [],
+                entities: [],
             }
         };
 
@@ -582,12 +564,11 @@ class Entity3D extends THREE.Object3D {
         json.object.bloom = this.bloom;
 
         // Components
-        for (let i = 0; i < this.components.length; i++) {
-            json.object.components.push(this.components[i].toJSON());
+        for (const component of this.components) {
+            json.object.components.push(component.toJSON());
         }
 
         // Children
-        json.object.entities = [];
         for (const child of this.getEntities()) {
             json.object.entities.push(child.toJSON());
         }

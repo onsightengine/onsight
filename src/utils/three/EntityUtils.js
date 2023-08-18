@@ -5,10 +5,10 @@
 // containsMesh()               Checks if entity contains Mesh
 // findCamera()                 Attempts to find a camera within an entity
 // isImportant()                Checks if entity is important and should be protected
-// parentEntity()               Returns parent most entity that is not a world or stage
-// parentStage()                Returns parent world or stage of an entity
+// parentEntity()               Returns top level entity that is not a world or stage
+// parentStage()                Returns parent stage (fallback to world) of an entity
+// parentWorld()                Returns parent world of an entity
 // removeEntityFromArray()      Removes all instances of an entity (by uuid) from an array of entities
-// uuidArray()                  Converts entity array to UUID array
 
 class EntityUtils {
 
@@ -103,7 +103,7 @@ class EntityUtils {
         return important;
     }
 
-    /** Returns parent most entity that is not a world or stage */
+    /** Returns top level entity that is not a world or stage */
     static parentEntity(entity, immediateOnly = false) {
         while (entity && entity.parent && !entity.parent.isWorld && !entity.parent.isStage) {
             entity = entity.parent;
@@ -118,13 +118,24 @@ class EntityUtils {
         return entity;
     }
 
-    /** Returns parent world or stage of an entity */
+    /** Returns parent stage (fallback to world) of an entity */
     static parentStage(entity) {
+        if (entity.isStage || entity.isWorld) return entity;
         while (entity && entity.parent) {
             entity = entity.parent;
             if (entity.isStage || entity.isWorld) return entity;
         }
-        return undefined;
+        return null;
+    }
+
+    /** Returns parent world of an entity */
+    static parentWorld(entity) {
+        if (entity.isWorld) return entity;
+        while (entity && entity.parent) {
+            entity = entity.parent;
+            if (entity.isWorld) return entity;
+        }
+        return null;
     }
 
     /** Removes all instances of an entity (by uuid) from an array of entities */
@@ -136,15 +147,6 @@ class EntityUtils {
                 length = entityArray.length;
             }
         }
-    }
-
-    /** Converts entity array to UUID array */
-    static uuidArray(entityArray) {
-        let uuidArray = [];
-        for (let i = 0; i < entityArray.length; i++) {
-            uuidArray.push(entityArray[i].uuid);
-        }
-        return uuidArray;
     }
 
 }

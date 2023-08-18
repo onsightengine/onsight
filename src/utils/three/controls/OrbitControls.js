@@ -225,6 +225,7 @@ class OrbitControls extends THREE.EventDispatcher {
 
         /** Recenter the camera to orbit target, maintains current zoom and rotation */
         this.centerOnTarget = function(target) {
+            if (!target || !target.isObject3D) return;
             if (state !== ORBIT_STATES.NONE) return;
 
             // Get "actual" target position
@@ -245,13 +246,17 @@ class OrbitControls extends THREE.EventDispatcher {
 
         /** Recenter the camera to orbit target, zoom to match target's size */
         this.focusOnTarget = function(target) {
+            if (!target || !target.isObject3D) return;
             if (state !== ORBIT_STATES.NONE) return;
 
             const boundingBox = new THREE.Box3();
 
             // Custom 'boundingBox.expandByObject' (to ignore Object3D with 'flagIgnore')
-            target.traverse((child) => {
-                if (child.userData && child.userData.flagIgnore) return;
+            target.traverseVisible((child) => {
+                if (!child || !child.isObject3D) return;
+                if (child.isWorld) return;
+                if (child.isStage) return;
+                if (child.userData.flagIgnore) return;
 
                 const geometry = child.geometry;
                 if (!geometry || !geometry.isBufferGeometry) return;
@@ -269,7 +274,7 @@ class OrbitControls extends THREE.EventDispatcher {
                 distance = tempSphere.radius;
                 distance = Math.pow(distance, 0.7); /* equalize large / small Object3Ds */
             }
-            distance *= 7; /* zoom out */
+            distance *= 5; /* zoom out */
 
             // Use distance to calculate new desired camera location
             tempDelta.set(0, 0, distance);

@@ -23,6 +23,10 @@ const scriptReturnString = JSON.stringify(scriptReturnObject).replace(/\"/g, '')
 // Local
 const _composers = {};
 
+const _translate = new THREE.Vector3();
+const _scale = new THREE.Vector3(1, 1, 1);
+const _rotate = new THREE.Quaternion();
+
 // Class
 class SceneManager {
 
@@ -30,15 +34,15 @@ class SceneManager {
 
     /********** CAMERA */
 
-    static cameraFromScene(scene) {
+    static findCamera(entity) {
+        let camera;
+
         // Look for Camera
-        if (scene && scene.isPhase3D) {
-            const camera = EntityUtils.findCamera(scene);
-            if (camera) return camera;
-        }
+        camera = EntityUtils.findCamera(entity);
+        if (camera) return camera;
 
         // No Camera Found
-        const camera = new Camera3D({ width: 1000, height: 1000 });
+        camera = new Camera3D({ width: 1000, height: 1000 });
         camera.position.set(0, 0, 10);
         camera.lookAt(0, 0, 0);
         return camera;
@@ -47,7 +51,7 @@ class SceneManager {
     /********** ENTITY */
 
     /** Clone and copy children */
-    static cloneChildren(toEntity, fromEntity, translate = new THREE.Vector3(), scale = new THREE.Vector3(1, 1, 1), rotate = new THREE.Quaternion()) {
+    static cloneChildren(toEntity, fromEntity, recursive = true) {
         const children = fromEntity.getEntities();
         for (let i = 0; i < children.length; i++) {
             const entity = children[i];
@@ -56,15 +60,15 @@ class SceneManager {
             const clone = entity.cloneEntity(false /* recursive? */);
 
             // Map position to scene load location
-            if (toEntity.isPhase) {
-                clone.scale.multiply(scale);
-                clone.applyQuaternion(rotate);
-                clone.position.add(translate);
+            if (fromEntity.isStage) {
+                clone.scale.multiply(_scale);
+                clone.applyQuaternion(_rotate);
+                clone.position.add(_translate);
             }
 
             // Scripts & children
             SceneManager.loadScriptsFromComponents(clone, entity);
-            SceneManager.cloneChildren(clone, entity);
+            if (recursive) SceneManager.cloneChildren(clone, entity);
 
             // Bloom rendering layers
             if (clone.bloom) {
@@ -132,10 +136,14 @@ class SceneManager {
 
     /********** SCENE */
 
-    static loadBackground(toScene, fromWorld) {
-        if (!toScene || !toScene.isPhase) return;
+    static loadWorld(toScene, fromWorld) {
+        if (!toScene || !toScene.isScene) return;
         if (!fromWorld || !fromWorld.isWorld3D) return;
 
+        // Children
+        SceneManager.cloneChildren(toScene, fromWorld, false /* recursive */);
+
+        // Background
         if (fromWorld.background != null) {
             if (fromWorld.background.isColor) {
                 toScene.background = fromWorld.background.clone();
@@ -151,18 +159,25 @@ class SceneManager {
 		if (fromWorld.overrideMaterial != null) toScene.overrideMaterial = fromWorld.overrideMaterial.clone();
     }
 
-    static loadScene(toScene, fromScene) {
-        // TODO: Incorporate scene loading ('Scene Boundary' object) to last known load location
-        const loadTranslate = new THREE.Vector3(0, 0, 0);
-        const loadScale = new THREE.Vector3(1, 1, 1)
-        const loadRotate = new THREE.Quaternion();
+    static loadStage(toScene, fromStage) {
+        if (!toScene || !toScene.isWorld3D) return;
+        if (!fromStage || !fromStage.isStage3D) return;
 
-        SceneManager.cloneChildren(toScene, fromScene, loadTranslate, loadScale, loadRotate);
+        // TODO: Incorporate scene loading ('Scene Boundary' object) to last known load location
+
+        _translate.set(0, 0, 0);
+        _scale.set(1, 1, 1);
+        _rotate.set(0, 0, 0, 1);
+
+        SceneManager.cloneChildren(toScene, fromStage);
+
     }
 
     /********** RENDER */
 
     static renderWorld(world) {
+        if (!world || !world.isWorld3D) return;
+
         // Build Composer
         if (!_composers[world.uuid]) {
             const composer = new EffectComposer(SceneManager.app.renderer);
@@ -179,14 +194,14 @@ class SceneManager {
 
             // Custom Passes
             const components = world.getComponentsWithProperties('type', 'post');
-            components.forEach((component) => {
+            for (const component of components) {
                 const pass = component.three();
                 if (pass) {
                     pass.scene = SceneManager.app.scene;
                     pass.camera = SceneManager.app.camera;
                     composer.addPass(pass);
                 }
-            });
+            }
 
             // Copy to Screen
             const copyPass = new ShaderPass(OpaqueShader);

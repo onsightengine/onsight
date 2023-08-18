@@ -33,13 +33,10 @@ const _tempScale = new THREE.Vector3();
 
 class ObjectUtils {
 
-    /** Check if object should be allowed to be interacted with in Editor */
+    /** Check if object should be allowed to be interacted with in Viewport */
     static allowSelection(object) {
-        let allowSelect = (!object.isLocked);
-        if (object.userData) {
-            if (object.userData.flagIgnore) allowSelect = false;
-        }
-        return allowSelect;
+        if (object.userData.flagIgnore) return false;
+        return (!object.isLocked);
     }
 
     /** Retrieves a child by property */

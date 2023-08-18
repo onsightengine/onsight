@@ -51,7 +51,7 @@ export { Project } from './project/Project.js';
 // Core, Scene3D
 export { Camera3D } from './project/world3d/Camera3D.js';
 export { Entity3D } from './project/world3d/Entity3D.js';
-export { Phase3D } from './project/world3d/Phase3D.js';
+export { Stage3D } from './project/world3d/Stage3D.js';
 export { World3D } from './project/world3d/World3D.js';
 
 // Core, Scene3D, Builders

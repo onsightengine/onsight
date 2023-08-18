@@ -5,8 +5,8 @@
 // containsMesh()               Checks if entity contains Mesh
 // findCamera()                 Attempts to find a camera within an entity
 // isImportant()                Checks if entity is important and should be protected
-// parentEntity()               Returns parent most entity that is not a phase
-// parentPhase()                Returns parent phase of an entity
+// parentEntity()               Returns parent most entity that is not a world or stage
+// parentStage()                Returns parent world or stage of an entity
 // removeEntityFromArray()      Removes all instances of an entity (by uuid) from an array of entities
 // uuidArray()                  Converts entity array to UUID array
 
@@ -15,7 +15,7 @@ class EntityUtils {
     /** Adds entities from 'entityArrayToAdd' into 'intoEntityArray' */
     static combineEntityArrays(intoEntityArray, entityArrayToAdd) {
         for (let i = 0; i < entityArrayToAdd.length; i++) {
-            let entity = entityArrayToAdd[i];
+            const entity = entityArrayToAdd[i];
             if (EntityUtils.containsEntity(intoEntityArray, entity) === false) {
                 intoEntityArray.push(entity);
             }
@@ -87,7 +87,10 @@ class EntityUtils {
         if (!entity || !entity.isEntity) return undefined;
         let camera = undefined;
         entity.traverseEntities((child) => {
-            if (child.isCamera) camera = child;
+            if (child.isCamera) {
+                camera = child;
+                return true; /* cancels recursion */
+            }
         });
         return camera;
     }
@@ -100,9 +103,9 @@ class EntityUtils {
         return important;
     }
 
-    /** Returns parent most entity that is not a phase */
+    /** Returns parent most entity that is not a world or stage */
     static parentEntity(entity, immediateOnly = false) {
-        while (entity && entity.parent && !entity.parent.isPhase) {
+        while (entity && entity.parent && !entity.parent.isWorld && !entity.parent.isStage) {
             entity = entity.parent;
             if (immediateOnly && entity.isEntity) {
                 if (entity.userData.flagIgnore || entity.userData.flagTemp) {
@@ -115,11 +118,11 @@ class EntityUtils {
         return entity;
     }
 
-    /** Returns parent phase of an entity */
-    static parentPhase(entity) {
+    /** Returns parent world or stage of an entity */
+    static parentStage(entity) {
         while (entity && entity.parent) {
             entity = entity.parent;
-            if (entity.isPhase) return entity;
+            if (entity.isStage || entity.isWorld) return entity;
         }
         return undefined;
     }

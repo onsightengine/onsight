@@ -1,16 +1,15 @@
 import * as THREE from 'three';
 import { Entity3D } from './Entity3D.js';
 
-class Phase3D extends Entity3D {
+class Stage3D extends Entity3D {
 
     constructor(name = 'Start') {
         super(name);
 
         // Prototype
-        this.isScene = true;
-        this.isPhase = true;
-        this.isPhase3D = true;
-        this.type = 'Phase3D';
+        this.isStage = true;
+        this.isStage3D = true;
+        this.type = 'Stage3D';
 
         // Properties, Display
         this.start = 0;
@@ -29,7 +28,7 @@ class Phase3D extends Entity3D {
         // Entity3D.copy()
         super.copyEntity(source, recursive);
 
-        // Phase3D Properties
+        // Stage3D Properties
         this.start = source.start;
         this.finish = source.finish;
         this.beginPosition.copy(source.beginPosition);
@@ -52,7 +51,7 @@ class Phase3D extends Entity3D {
         // Entity3D Properties
         super.fromJSON(json);
 
-        // Phase3D Properties
+        // Stage3D Properties
         if (data.start !== undefined) this.start = data.start;
         if (data.finish !== undefined) this.finish = data.finish;
         if (data.beginPosition !== undefined) this.beginPosition.fromArray(data.beginPosition);
@@ -65,7 +64,7 @@ class Phase3D extends Entity3D {
         // Entity3D Properties
         const json = super.toJSON();
 
-        // Phase3D Properties
+        // Stage3D Properties
         json.object.start = this.start;
         json.object.finish = this.finish;
         json.object.beginPosition = this.beginPosition.toArray();
@@ -76,4 +75,4 @@ class Phase3D extends Entity3D {
 
 }
 
-export { Phase3D };
+export { Stage3D };

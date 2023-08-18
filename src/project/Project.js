@@ -69,7 +69,7 @@ class Project {
         for (let uuid in this.worlds) {
             const world = this.worlds[uuid];
             if (typeof callback === 'function') callback(world);
-            if (recursive) world.traversePhases(callback, recursive);
+            if (recursive) world.traverseStages(callback, recursive);
         }
     }
 
@@ -80,29 +80,14 @@ class Project {
     /******************** ENTITY */
 
     findEntityByUUID(uuid, searchAllWorlds = false) {
-        const activePhase = (editor && editor.viewport) ? editor.viewport.scene : null;
-        const sceneList = [];
+        const activeWorld = (editor && editor.viewport) ? editor.viewport.world : null;
 
-        if (searchAllWorlds) {
-            for (let uuid in this.worlds) {
-                const world = this.worlds[uuid];
-                sceneList.concat(Array.from(world.getPhases()));
-            }
+        let worldList;
+        if (searchAllWorlds) worldList = [...this.worlds];
+        else if (activeWorld) worldList = [ activeWorld ];
 
-            // Put active phase at front of 'sceneList'
-            if (activePhase) {
-                const fromIndex = sceneList.indexOf(activePhase);
-                if (fromIndex !== -1) {
-                    sceneList.splice(fromIndex, 1);         // Remove from list
-                    sceneList.splice(0, 0, activePhase);    // Place at front
-                }
-            }
-        } else if (activePhase) {
-            sceneList.push(activePhase);
-        }
-
-        for (let i = 0; i < sceneList.length; i++) {
-            const entity = sceneList[i].getEntityByProperty('uuid', uuid);
+        for (const world of worldList) {
+            const entity = world.getEntityByProperty('uuid', uuid);
             if (entity) return entity;
         }
 

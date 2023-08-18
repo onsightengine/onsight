@@ -15,7 +15,7 @@ import { Project } from '../project/Project.js';
 import { RapierPhysics } from './RapierPhysics.js';
 import { Renderer3D } from './Renderer3D.js';
 import { SceneManager } from './SceneManager.js';
-import { Phase3D } from '../project/world3d/Phase3D.js';
+import { Stage3D } from '../project/world3d/Stage3D.js';
 import { World3D } from '../project/world3d/World3D.js';
 
 // Game Loop
@@ -52,10 +52,10 @@ class App {
         // Scripts
         this.events = {};
 
-        // Active Scene
-        this.world = null;
-        this.scene = null;
-        this.camera = new Camera3D();
+        // Scene
+        this.world = null;                  // Active Project World
+        this.scene = null;                  // Active Render Scene
+        this.camera = new Camera3D();       // Active Render Camera
 
         // Game Clock
         this.gameClock = new Clock(false /* autostart */);
@@ -126,12 +126,12 @@ class App {
         this.world = this.project.getFirstWorld();
 
         // Load Scene
-        this.scene = new Phase3D();
-        SceneManager.loadBackground(this.scene, this.world);
-        SceneManager.loadScene(this.scene, this.world.activePhase());
+        this.scene = new World3D();
+        SceneManager.loadWorld(this.scene, this.world);
+        SceneManager.loadStage(this.scene, this.world.activeStage());
 
         // Camera
-        this.camera = SceneManager.cameraFromScene(this.scene);
+        this.camera = SceneManager.findCamera(this.scene);
         this.camera.changeFit(this.project.settings?.orientation);
 
         // Script 'init()' functions
@@ -347,10 +347,10 @@ function onPointerDown(event) {
         this.updatePointer(event);
         _raycaster.setFromCamera(this.pointer, this.camera);
         const intersects = _raycaster.intersectObjects(this.scene.children, true);
+        event.entity = undefined;
         for (let i = 0; i < intersects.length; i++) {
             event.entity = EntityUtils.parentEntity(intersects[i].object);
             if (event.entity && event.entity.isEntity) break;
-            event.entity = undefined;
         }
 
         // // DEBUG: Mouse position in game coordinates

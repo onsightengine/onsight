@@ -74,7 +74,7 @@ class Entity3D extends THREE.Object3D {
 
         // Should look at camera?
         const camera = window.activeCamera;
-        let lookAtCamera = Boolean(this.lookAtCamera && camera && !this.isScene);
+        let lookAtCamera = Boolean(this.lookAtCamera && camera);
         if (lookAtCamera && this.parent && this.parent.isObject3D) {
             this.traverseAncestors((parent) => {
                 if (parent.lookAtCamera) lookAtCamera = false;
@@ -331,10 +331,7 @@ class Entity3D extends THREE.Object3D {
     /******************** CHILDREN */
 
     addEntity(entity, index = -1, maintainWorldTransform = false) {
-        if (!entity || !entity.isObject3D) return this;
-        if (index === undefined || index === null) index = -1;
-
-        // Check if already a child
+        if (!entity || !entity.isEntity3D) return this;
         if (this.children.indexOf(entity) !== -1) return this;
 
         // Add Entity
@@ -355,13 +352,10 @@ class Entity3D extends THREE.Object3D {
 
     getEntities() {
         const filteredChildren = [];
-        const children = this.children;
-        for (let i = 0; i < children.length; i++) {
-            const child = children[i];
-            if (child.isEntity3D &&
-                child.userData.flagIgnore !== true &&
-                child.userData.flagTemp !== true)
-            {
+        for (const child of this.children) {
+            if (child.isEntity3D) {
+                if (child.userData.flagIgnore) continue;
+                if (child.userData.flagTemp) continue;
                 filteredChildren.push(child);
             }
         }
@@ -383,9 +377,7 @@ class Entity3D extends THREE.Object3D {
     /** Recursively searches for a child Entity */
     getEntityByProperty(property, value) {
         if (this[property] === value) return this;
-        const entities = this.getEntities();
-        for (let i = 0; i < entities.length; i++) {
-            const child = entities[i];
+        for (const child of this.getEntities()) {
             const entity = child.getEntityByProperty(property, value);
             if (entity) return entity;
         }
@@ -395,9 +387,7 @@ class Entity3D extends THREE.Object3D {
     /** Removes entity, does not call 'dispose()' on Entity!! */
     removeEntity(entity, forceDelete = false) {
         if (!entity) return;
-
-        // Check for Scene, Locked, etc
-        if (!forceDelete && EntityUtils.isImportant(entity)) return;
+        if (!forceDelete && EntityUtils.isImportant(entity)) return; /* locked? temp? */
 
         // Remove entity (i.e. out of Project)
         this.remove(entity);
@@ -407,9 +397,8 @@ class Entity3D extends THREE.Object3D {
         if (typeof callback === 'function') callback(this);
 
         if (recursive) {
-            for (let i = 0; i < this.children.length; i++) {
-                const child = this.children[i];
-                if (child.isEntity3D) child.traverseEntities(callback);
+            for (const child of this.getEntities()) {
+                child.traverseEntities(callback);
             }
         }
     }
@@ -476,11 +465,9 @@ class Entity3D extends THREE.Object3D {
         }
 
         // Copy Children
-        if (recursive === true) {
-            const entities = source.getEntities();
-            for (let i = 0; i < entities.length; i++) {
-                const entity = entities[i];
-                this.add(entity.cloneEntity(recursive));
+        if (recursive) {
+            for (const child of source.getEntities()) {
+                this.add(child.cloneEntity(recursive));
             }
         }
 
@@ -534,7 +521,7 @@ class Entity3D extends THREE.Object3D {
             }
         }
 
-        // Child Entities
+        // Children
         this.loadChildren(json);
 
         // Matrix
@@ -598,13 +585,10 @@ class Entity3D extends THREE.Object3D {
             json.object.components.push(this.components[i].toJSON());
         }
 
-        // Child Entities
-        const childEntities = this.getEntities();
-        if (childEntities.length > 0) {
-            json.object.entities = [];
-            for (let i = 0; i < childEntities.length; i++) {
-                json.object.entities.push(childEntities[i].toJSON());
-            }
+        // Children
+        json.object.entities = [];
+        for (const child of this.getEntities()) {
+            json.object.entities.push(child.toJSON());
         }
 
         return json;

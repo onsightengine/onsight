@@ -14,8 +14,8 @@ import { ObjectUtils } from '../utils/three/ObjectUtils.js';
 import { Project } from '../project/Project.js';
 import { RapierPhysics } from './RapierPhysics.js';
 import { Renderer3D } from './Renderer3D.js';
-import { Scene3D } from '../project/world3d/Scene3D.js';
 import { SceneManager } from './SceneManager.js';
+import { Phase3D } from '../project/world3d/Phase3D.js';
 import { World3D } from '../project/world3d/World3D.js';
 
 // Game Loop
@@ -126,9 +126,9 @@ class App {
         this.world = this.project.getFirstWorld();
 
         // Load Scene
-        this.scene = new Scene3D();
-        SceneManager.backgroundFromWorld(this.scene, this.world);
-        SceneManager.loadScene(this.scene, this.world.activeScene());
+        this.scene = new Phase3D();
+        SceneManager.loadBackground(this.scene, this.world);
+        SceneManager.loadScene(this.scene, this.world.activePhase());
 
         // Camera
         this.camera = SceneManager.cameraFromScene(this.scene);

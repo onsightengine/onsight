@@ -32,7 +32,7 @@ class SceneManager {
 
     static cameraFromScene(scene) {
         // Look for Camera
-        if (scene && scene.isScene3D) {
+        if (scene && scene.isPhase3D) {
             const camera = EntityUtils.findCamera(scene);
             if (camera) return camera;
         }
@@ -56,7 +56,7 @@ class SceneManager {
             const clone = entity.cloneEntity(false /* recursive? */);
 
             // Map position to scene load location
-            if (toEntity.isScene) {
+            if (toEntity.isPhase) {
                 clone.scale.multiply(scale);
                 clone.applyQuaternion(rotate);
                 clone.position.add(translate);
@@ -132,8 +132,8 @@ class SceneManager {
 
     /********** SCENE */
 
-    static backgroundFromWorld(toScene, fromWorld) {
-        if (!toScene || !toScene.isScene) return;
+    static loadBackground(toScene, fromWorld) {
+        if (!toScene || !toScene.isPhase) return;
         if (!fromWorld || !fromWorld.isWorld3D) return;
 
         if (fromWorld.background != null) {

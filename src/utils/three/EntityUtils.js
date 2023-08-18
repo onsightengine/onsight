@@ -5,8 +5,8 @@
 // containsMesh()               Checks if entity contains Mesh
 // findCamera()                 Attempts to find a camera within an entity
 // isImportant()                Checks if entity is important and should be protected
-// parentEntity()               Returns parent most entity that is not a Scene
-// parentScene()                Returns parent scene of an entity
+// parentEntity()               Returns parent most entity that is not a phase
+// parentPhase()                Returns parent phase of an entity
 // removeEntityFromArray()      Removes all instances of an entity (by uuid) from an array of entities
 // uuidArray()                  Converts entity array to UUID array
 
@@ -96,14 +96,13 @@ class EntityUtils {
     static isImportant(entity) {
         let important = false;
         important = important || entity.parent == null;     // Avoid deleting cameras / scenes
-        important = important || entity.isScene;            // Avoid deleting scenes
         important = important || entity.isLocked;           // Avoid locked entities
         return important;
     }
 
-    /** Returns parent most entity that is not a Scene */
+    /** Returns parent most entity that is not a phase */
     static parentEntity(entity, immediateOnly = false) {
-        while (entity && entity.parent && !entity.parent.isScene) {
+        while (entity && entity.parent && !entity.parent.isPhase) {
             entity = entity.parent;
             if (immediateOnly && entity.isEntity) {
                 if (entity.userData.flagIgnore || entity.userData.flagTemp) {
@@ -116,11 +115,11 @@ class EntityUtils {
         return entity;
     }
 
-    /** Returns parent scene of an entity */
-    static parentScene(entity) {
+    /** Returns parent phase of an entity */
+    static parentPhase(entity) {
         while (entity && entity.parent) {
             entity = entity.parent;
-            if (entity.isScene) return entity;
+            if (entity.isPhase) return entity;
         }
         return undefined;
     }

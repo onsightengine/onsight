@@ -234,7 +234,7 @@ class Camera3D extends Entity3D {
         }
     }
 
-    /******************** COPY */
+    /******************** COPY / CLONE */
 
     clone() {
 		return new this.constructor().copy(this);

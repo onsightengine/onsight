@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Camera3D } from './Camera3D.js';
 import { Entity3D } from './Entity3D.js';
-import { Scene3D } from './Scene3D.js';
+import { Phase3D } from './Phase3D.js';
 
 class World3D extends Entity3D {
 
@@ -25,107 +25,99 @@ class World3D extends Entity3D {
         this.xPos = 0;
         this.yPos = 0;
 
-        // Properties, Scene
-        this.activeSceneUUID = undefined;
+        // Properties, Phase
+        this.activePhaseUUID = undefined;
+
+        // Shadow Plane (added as Object3D, NOT saved to JSON)
+        this.shadowPlane = new THREE.Mesh(
+            new THREE.PlaneGeometry(100000, 100000),
+            new THREE.ShadowMaterial({ color: 0, transparent: true, opacity: 0.2, depthWrite: false })
+        );
+        this.shadowPlane.name = 'Shadow Plane';
+        this.shadowPlane.userData.flagIgnore = true;
+        this.shadowPlane.rotation.x = - Math.PI / 2;
+        this.shadowPlane.castShadow = false;
+        this.shadowPlane.receiveShadow = true;
+        this.shadowPlane.visible = false;
+        this.add(this.shadowPlane);
     }
 
-    /******************** CHILDREN (SCENES) */
+    /******************** CHILDREN */
 
-    activeScene() {
-        return this.getSceneByUUID(this.activeSceneUUID);
+    activePhase() {
+        return this.getPhaseByUUID(this.activePhaseUUID);
     }
 
-    setActiveScene(scene) {
-        if (scene && scene.uuid) {
-            this.activeSceneUUID = scene.uuid;
+    setActivePhase(phase) {
+        if (phase && phase.uuid) {
+            this.activePhaseUUID = phase.uuid;
         }
     }
 
-    addEntity(entity, index = -1) {
-        return this.addScene(entity, index);
-    }
-
-    addScene(scene, index = -1) {
-        if (!scene || !scene.isScene3D) return this;
-        if (index === undefined || index === null) index = -1;
-
-        // Check if already a child
-        if (this.children.indexOf(scene) !== -1) return this;
-
-        // Add Scene
-        if (this.getScenes().length === 0) this.setActiveScene(scene);
-        this.add(scene);
-
-        // Preserve desired index
-        if (index !== -1) {
-            this.children.splice(index, 0, scene);
-            this.children.pop();
+    addEntity(entity, index = -1, maintainWorldTransform = false) {
+        if (!entity || !entity.isEntity3D) return this;
+        if (this.children.indexOf(entity) !== -1) return this;
+        if (entity.isWorld) return this;
+        if (entity.isPhase) {
+            maintainWorldTransform = false;
+            if (this.getPhases().length === 0) this.setActivePhase(entity);
         }
-
-        return this;
+        return super.addEntity(entity, index, maintainWorldTransform);
     }
 
-    getFirstScene() {
-        if (this.children.length > 0) return this.children[0];
-    }
-
-    getScenes() {
+    getEntities(includePhases = true) {
         const filteredChildren = [];
-        const children = this.children;
-        for (let i = 0; i < children.length; i++) {
-            if (children[i].isScene) filteredChildren.push(children[i]);
+        for (const child of super.getEntities()) {
+            if (!includePhases && child.isPhase) continue;
+            filteredChildren.push(child);
         }
         return filteredChildren;
     }
 
-    getSceneById(id) {
-        const scene = this.getEntityByProperty('id', id);
-        if (scene && scene.isScene) return scene;
+    getFirstPhase() {
+        const phases = this.getPhases();
+        if (phases.length > 0) return phases[0];
     }
 
-    getSceneByName(name) {
-        const scene = this.getEntityByProperty('name', name);
-        if (scene && scene.isScene) return scene;
+    getPhases() {
+        const filteredChildren = [];
+        for (const child of super.getEntities()) {
+            if (child.isPhase) filteredChildren.push(child);
+        }
+        return filteredChildren;
     }
 
-    getSceneByUUID(uuid) {
-        const scene = this.getEntityByProperty('uuid', uuid);
-        if (scene && scene.isScene) return scene;
+    getPhaseByName(name) {
+        const phase = this.getEntityByProperty('name', name);
+        if (phase && phase.isPhase) return phase;
     }
 
-    getSceneByProperty(property, value) {
-        const scenes = this.getScenes();
-        for (let i = 0, l = scenes.length; i < l; i++) {
-            const scene = scenes[i];
-            if (scene[property] === value) return scene;
+    getPhaseByUUID(uuid) {
+        const phase = this.getEntityByProperty('uuid', uuid);
+        if (phase && phase.isPhase) return phase;
+    }
+
+    getPhaseByProperty(property, value) {
+        const phases = this.getPhases();
+        for (let i = 0; i < phases.length; i++) {
+            const phase = phases[i];
+            if (phase[property] === value) return phase;
         }
     }
 
-    removeEntity(entity) {
-        return this.removeScene(entity);
-    }
-
-    /** Removes scene, does not call 'dispose()' on Scene!! */
-    removeScene(scene) {
-        if (!scene || !scene.isScene) return;
-
-        // Remove scene (out of World, and Project)
-        this.remove(scene);
-    }
-
-    traverseScenes(callback, recursive = true) {
+    traversePhases(callback, recursive = true) {
         if (typeof callback === 'function') callback(this);
 
         if (recursive) {
-            const scenes = this.getScenes();
-            for (let i = 0; i < scenes.length; i++) {
-                const scene = scenes[i];
-                scene.traverseEntities(callback, recursive);
+            const phases = this.getPhases();
+            for (let i = 0; i < phases.length; i++) {
+                const phase = phases[i];
+                phase.traverseEntities(callback, recursive);
             }
         }
     }
 
-    /******************** COPY */
+    /******************** COPY / CLONE */
 
     cloneEntity(recursive = true) {
         return new this.constructor().copyEntity(this, recursive);
@@ -152,8 +144,8 @@ class World3D extends Entity3D {
         // World3D Properties
         this.xPos = source.xPos;
         this.yPos = source.yPos;
-        const sceneIndex = source.children.indexOf(source.activeScene());
-        if (sceneIndex >= 0) this.activeSceneUUID = this.children[sceneIndex].uuid;
+        const phaseIndex = source.children.indexOf(source.activePhase());
+        if (phaseIndex >= 0) this.activePhaseUUID = this.children[phaseIndex].uuid;
 
         return this;
     }
@@ -167,6 +159,8 @@ class World3D extends Entity3D {
         if (this.environment && typeof this.environment.dispose === 'function') this.environment.dispose();
         if (this.fog && typeof this.fog.dispose === 'function') this.fog.dispose();
         if (this.overrideMaterial && typeof this.overrideMaterial.dispose === 'function') this.overrideMaterial.dispose();
+
+        if (this.shadowPlane) ObjectUtils.clearObject(this.shadowPlane);
     }
 
     /******************** JSON */
@@ -202,7 +196,7 @@ class World3D extends Entity3D {
         // World3D Properties
         if (data.xPos !== undefined) this.xPos = data.xPos;
         if (data.yPos !== undefined) this.yPos = data.yPos;
-        if (data.activeSceneUUID !== undefined) this.activeSceneUUID = data.activeSceneUUID;
+        if (data.activePhaseUUID !== undefined) this.activePhaseUUID = data.activePhaseUUID;
 
         return this;
     }
@@ -215,7 +209,7 @@ class World3D extends Entity3D {
             let entity = undefined;
             switch (entityJSON.object.type) {
                 case 'Camera3D':    entity = new Camera3D().fromJSON(entityJSON); break;
-                case 'Scene3D':     entity = new Scene3D().fromJSON(entityJSON); break;
+                case 'Phase3D':     entity = new Phase3D().fromJSON(entityJSON); break;
                 case 'Entity3D':
                 default:            entity = new Entity3D().fromJSON(entityJSON);
             }
@@ -245,7 +239,7 @@ class World3D extends Entity3D {
         // World3D Properties
         json.object.xPos = this.xPos;
         json.object.yPos = this.yPos;
-        json.object.activeSceneUUID = this.activeSceneUUID;
+        json.object.activePhaseUUID = this.activePhaseUUID;
 
         return json;
     }

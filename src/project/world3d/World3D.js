@@ -52,7 +52,12 @@ class World3D extends Entity3D {
     }
 
     setActiveStage(stage) {
-        this.activeStageUUID = (stage && stage.isEntity3D && stage.uuid !== this.uuid) ? stage.uuid : null;
+        if (!stage || !stage.isEntity) return this;
+        if (stage.uuid === this.uuid) {
+            this.activeStageUUID = null;
+        } else if (this.getStageByUUID(stage.uuid)) {
+            this.activeStageUUID = stage.uuid;
+        }
         return this;
     }
 
@@ -60,11 +65,10 @@ class World3D extends Entity3D {
         if (!entity || !entity.isEntity3D) return this;
         if (this.children.indexOf(entity) !== -1) return this;
         if (entity.isWorld) return this;
-        if (entity.isStage) {
-            maintainWorldTransform = false;
-            if (this.getStages().length === 0) this.setActiveStage(entity);
-        }
-        return super.addEntity(entity, index, maintainWorldTransform);
+        if (entity.isStage) maintainWorldTransform = false;
+        super.addEntity(entity, index, maintainWorldTransform);
+        if (entity.isStage && this.getStages().length === 1) this.setActiveStage(entity);
+        return this;
     }
 
     getEntities(includeStages = true) {

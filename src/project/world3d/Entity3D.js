@@ -30,7 +30,7 @@ const _worldRotation = new THREE.Euler();
 
 class Entity3D extends THREE.Object3D {
 
-    constructor(name = '') {
+    constructor(name = 'Entity') {
         super();
 
         // Prototype

@@ -52,11 +52,10 @@ class World3D extends Entity3D {
     }
 
     setActiveStage(stage) {
-        if (!stage || !stage.isEntity) return this;
-        if (stage.uuid === this.uuid) {
-            this.activeStageUUID = null;
-        } else if (this.getStageByUUID(stage.uuid)) {
+        if (stage && stage.isEntity && this.getStageByUUID(stage.uuid)) {
             this.activeStageUUID = stage.uuid;
+        } else {
+            this.activeStageUUID = null;
         }
         return this;
     }
@@ -149,8 +148,9 @@ class World3D extends Entity3D {
         // World3D Properties
         this.xPos = source.xPos;
         this.yPos = source.yPos;
-        const stageIndex = source.children.indexOf(source.activeStage());
-        if (stageIndex !== -1) this.activeStageUUID = this.children[stageIndex].uuid;
+        const sourceStages = source.getStages();
+        const stageIndex = sourceStages.indexOf(source.activeStage());
+        this.activeStageUUID = (stageIndex !== -1) ? this.getStages()[stageIndex].uuid : null;
 
         return this;
     }

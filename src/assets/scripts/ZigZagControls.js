@@ -6,7 +6,7 @@ class ZigZagControls extends Script {
         super();
 
         this.name = 'Zig Zag Controls';
-        this.category = 'controls';
+        this.category = 'control';
         this.source =
 `
 // Properties

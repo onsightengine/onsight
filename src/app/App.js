@@ -166,6 +166,7 @@ class App {
             if (this.camera && this.camera.target && this.camera.target.isVector3) {
                 if (this.scene && this.scene.isWorld3D) {
                     const preload = this.project.setting('preload');
+                    const unload = this.project.setting('unload');
                     _position.set(0, 0, 0).applyMatrix4(this.scene.loadPosition);
                     const distanceFromEnd = this.camera.target.distanceTo(_position);
                     const playerDistance = this.scene.loadDistance - distanceFromEnd;
@@ -175,9 +176,9 @@ class App {
                     // Check for Removal
                     } else {
                         this.scene.traverse((object) => {
-                            if (isNaN(object._loadedDistance)) return;
-                            if (playerDistance < object._loadedDistance + preload) return;
-                            if (this.camera.target.distanceTo(object.position) < preload) return;
+                            if (isNaN(object.userData.loadedDistance)) return;
+                            if (playerDistance < object.userData.loadedDistance + preload) return;
+                            if (this.camera.target.distanceTo(object.position) < unload) return;
                             SceneManager.removeEntity(this.scene, object);
                         }, false /* recursive? */);
                     }

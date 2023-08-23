@@ -93,7 +93,7 @@ class SceneManager {
                 clone.scale.multiply(_beginScale);
                 // Flag for Unloading
                 if (toEntity.isWorld3D) {
-                    clone._loadedDistance = toEntity.loadDistance + Math.abs(clone.position.length());
+                    clone.userData.loadedDistance = toEntity.loadDistance + Math.abs(clone.position.length());
                 }
                 // Add world load position
                 clone.scale.multiply(_worldScale);

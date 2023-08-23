@@ -159,7 +159,7 @@ class World3D extends Entity3D {
 
         // World3D Properties, Gameplay
         this.loadPosition.copy(source.loadPosition);
-        this.loadDistance.copy(source.loadDistance);
+        this.loadDistance = source.loadDistance;
 
         return this;
     }
@@ -257,7 +257,7 @@ class World3D extends Entity3D {
 
         // World3D Properties, Gameplay
         json.object.loadPosition = this.loadPosition.toArray();
-        json.object.loadPosition = this.loadDistance;
+        json.object.loadDistance = this.loadDistance;
 
         return json;
     }

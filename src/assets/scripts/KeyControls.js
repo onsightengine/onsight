@@ -6,7 +6,7 @@ class KeyControls extends Script {
         super();
 
         this.name = 'Key Controls';
-        this.category = 'controls';
+        this.category = 'control';
         this.source =
 `
 // Properties

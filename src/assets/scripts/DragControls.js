@@ -6,7 +6,7 @@ class DragControls extends Script {
         super();
 
         this.name = 'Drag Controls';
-        this.category = 'controls';
+        this.category = 'control';
         this.source =
 `
 // Properties

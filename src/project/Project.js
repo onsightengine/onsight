@@ -23,7 +23,8 @@ class Project {
         // Settings
         this.settings = {
             orientation: APP_ORIENTATION.PORTRAIT,
-            preload: 5,
+            preload: 10,
+            unload: 10,
         };
 
         // Worlds
@@ -36,7 +37,8 @@ class Project {
         if (typeof this.settings === 'object') this.settings = {};
         switch (key) {
             case 'orientation': case 'orient': return this.settings.orientation ?? APP_ORIENTATION.PORTRAIT;
-            case 'preload': return this.settings.preload ?? 10;
+            case 'preload': case 'add': return this.settings.preload ?? 10;
+            case 'unload': case 'remove': return this.settings.unload ?? 10;
         }
         return undefined;
     }

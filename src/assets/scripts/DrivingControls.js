@@ -6,7 +6,7 @@ class DrivingControls extends Script {
         super();
 
         this.name = 'Driving Controls';
-        this.category = 'controls';
+        this.category = 'control';
         this.source =
 `
 // Properties

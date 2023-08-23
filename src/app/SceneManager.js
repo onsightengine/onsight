@@ -60,7 +60,7 @@ class SceneManager {
     /********** ENTITY */
 
     /** Clone and copy children */
-    static cloneChildren(toEntity, fromEntity, recursive = true) {
+    static cloneChildren(toEntity, fromEntity) {
         const children = fromEntity.getEntities();
         for (let i = 0; i < children.length; i++) {
             const entity = children[i];
@@ -72,7 +72,7 @@ class SceneManager {
             SceneManager.loadScriptsFromComponents(clone, entity);
 
             // Children
-            if (recursive) SceneManager.cloneChildren(clone, entity);
+            if (!entity.isStage) SceneManager.cloneChildren(clone, entity);
 
             // Bloom rendering layers
             if (clone.bloom) {
@@ -220,7 +220,7 @@ class SceneManager {
         if (!fromWorld || !fromWorld.isWorld3D) return;
 
         // Children
-        SceneManager.cloneChildren(toScene, fromWorld, false /* recursive */);
+        SceneManager.cloneChildren(toScene, fromWorld);
 
         // Background
         if (fromWorld.background != null) {

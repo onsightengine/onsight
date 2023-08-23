@@ -41,6 +41,7 @@ export { ZigZagControls } from './assets/scripts/ZigZagControls.js';
 
 // Assets, Scripts, Entity
 export { ColorChange } from './assets/scripts/ColorChange.js';
+export { FollowCamera } from './assets/scripts/FollowCamera.js';
 export { RotateEntity } from './assets/scripts/RotateEntity.js';
 
 /******************** CLASSES - Project  ********************/

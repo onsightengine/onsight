@@ -129,6 +129,10 @@ class App {
         this.scene = new World3D();
         SceneManager.loadWorld(this.scene, this.world);
         SceneManager.loadStage(this.scene, this.world.activeStage());
+        // const stages = this.world.getStages();
+        // SceneManager.loadStage(this.scene, stages[0]);
+        // SceneManager.loadStage(this.scene, stages[1]);
+        // SceneManager.loadStage(this.scene, stages[2]);
 
         // Find Camera
         this.camera = SceneManager.findCamera(this.scene);

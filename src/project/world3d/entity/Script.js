@@ -11,15 +11,40 @@ class Script {
 
             // Build 'data'
             data = this.defaultData();
-            data.asset = assetUUID;
+            data.script = assetUUID;
         }
 
         // Generate Backend
-        const script = AssetManager.getAsset(data.asset);
+        const script = AssetManager.getAsset(data.script);
 
         // Add Variables
         if (script && script.isScript) {
+            if (!data.variables) data.variables = {};
 
+            // Find Script & Variables
+            let variables = {};
+            if (script.source) {
+                try {
+                    const body = `${script.source}\nreturn variables;`;
+                    variables = (new Function('' /* parameters */, body /* source */))();
+                } catch (error) { /* error */ }
+            }
+
+            // Ensure Values
+            for (const key in variables) {
+                const variable = variables[key];
+                if (variable.type) {
+                    // Persistent data when component changes
+                    if (key in data.variables) variable.value = data.variables[key].value;
+
+                    // Try to set initial value
+                    if (variable.value === undefined) variable.value = variable.default;
+                    if (variable.value === undefined) variable.value = ComponentManager.defaultValue(variable.type);
+                } else {
+                    variable.value = null;
+                }
+            }
+            data.variables = structuredClone(variables);
         }
 
         // Save Backend / Data

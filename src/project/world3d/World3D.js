@@ -6,8 +6,9 @@ import { ObjectUtils } from '../../utils/three/ObjectUtils.js';
 
 class World3D extends Entity3D {
 
-    constructor(name = 'World 1') {
+    constructor(name = 'World 1', locked = false) {
         super(name);
+        this.isLocked = locked;
 
         // Prototype
         this.isScene = true;                // for THREE.Render() compatibility
@@ -29,6 +30,7 @@ class World3D extends Entity3D {
 
         // Properties, Stage
         this.activeStageUUID = null;
+        this.loadPosition = new THREE.Matrix4();
 
         // Shadow Plane (added as Object3D, NOT saved to JSON)
         this.shadowPlane = new THREE.Mesh(
@@ -110,11 +112,11 @@ class World3D extends Entity3D {
         }
     }
 
-    /** Return true in callback to stop further recursion */
+    /** Return 'true' in callback to stop further recursion */
     traverseStages(callback, recursive = true) {
         const cancel = (typeof callback === 'function') ? callback(this) : false;
 
-        if (recursive && cancel !== true) {
+        if (recursive && !cancel) {
             for (const stage of this.getStages()) {
                 stage.traverseEntities(callback, recursive);
             }
@@ -151,6 +153,7 @@ class World3D extends Entity3D {
         const sourceStages = source.getStages();
         const stageIndex = sourceStages.indexOf(source.activeStage());
         this.activeStageUUID = (stageIndex !== -1) ? this.getStages()[stageIndex].uuid : null;
+        this.loadPosition.copy(source.loadPosition);
 
         return this;
     }
@@ -202,6 +205,7 @@ class World3D extends Entity3D {
         if (data.xPos !== undefined) this.xPos = data.xPos;
         if (data.yPos !== undefined) this.yPos = data.yPos;
         if (data.activeStageUUID !== undefined) this.activeStageUUID = data.activeStageUUID;
+        if (data.loadPosition !== undefined) this.loadPosition.fromArray(data.loadPosition);
 
         return this;
     }
@@ -237,6 +241,7 @@ class World3D extends Entity3D {
         json.object.xPos = this.xPos;
         json.object.yPos = this.yPos;
         json.object.activeStageUUID = this.activeStageUUID;
+        json.object.loadPosition = this.loadPosition.toArray();
 
         return json;
     }

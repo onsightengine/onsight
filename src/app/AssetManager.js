@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+
 import { Palette } from '../assets/Palette.js';
 import { RenderUtils } from '../utils/three/RenderUtils.js';
 import { Script } from '../assets/Script.js';
@@ -39,9 +40,10 @@ class AssetManager {
         return 'asset';
     }
 
-    static addAsset(assetOrArray) {
-        if (!assetOrArray) return;
-        const assetArray = (Array.isArray(assetOrArray)) ? assetOrArray : [ assetOrArray ];
+    static addAsset(assets = []) {
+        if (!arguments[0]) return;
+        const assetArray = (Array.isArray(arguments[0])) ? arguments[0] : [...arguments];
+        let firstAsset = undefined;
         for (let i = 0; i < assetArray.length; i++) {
             let asset = assetArray[i];
             const type = AssetManager.checkType(asset);
@@ -71,7 +73,9 @@ class AssetManager {
 
             // Add Asset
             _assets[asset.uuid] = asset;
+            if (i === 0) firstAsset = asset;
         }
+        return firstAsset;
     }
 
     static getAsset(uuid) {
@@ -94,8 +98,8 @@ class AssetManager {
     }
 
     static removeAsset(assetOrArray, dispose = true) {
-        if (!assetOrArray) return;
-        const assetArray = (Array.isArray(assetOrArray)) ? assetOrArray : [ assetOrArray ];
+        if (!arguments[0]) return;
+        const assetArray = (Array.isArray(arguments[0])) ? arguments[0] : [...arguments];
         for (let i = 0; i < assetArray.length; i++) {
             const asset = assetArray[i];
             // Remove if present

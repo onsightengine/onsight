@@ -20,12 +20,23 @@ for (const event of APP_EVENTS) scriptReturnObject[event] = event;
 const scriptParameters = 'app,' + scriptFunctions;
 const scriptReturnString = JSON.stringify(scriptReturnObject).replace(/\"/g, '');   /* remove all qoutes */
 
+// Temp
+const _localPosition = new THREE.Vector3();
+const _localRotation = new THREE.Quaternion();
+const _invQuaternion = new THREE.Quaternion();
+
+const _beginPosition = new THREE.Vector3();
+const _beginScale = new THREE.Vector3(1, 1, 1);
+const _beginQuaternion = new THREE.Quaternion();
+const _endPosition = new THREE.Vector3();
+const _endScale = new THREE.Vector3(1, 1, 1);
+const _endQuaternion = new THREE.Quaternion();
+const _worldPosition = new THREE.Vector3();
+const _worldScale = new THREE.Vector3(1, 1, 1);
+const _worldQuaternion = new THREE.Quaternion();
+
 // Local
 const _composers = {};
-
-const _translate = new THREE.Vector3();
-const _scale = new THREE.Vector3(1, 1, 1);
-const _rotate = new THREE.Quaternion();
 
 // Class
 class SceneManager {
@@ -59,13 +70,6 @@ class SceneManager {
             // Clone
             const clone = entity.cloneEntity(false /* recursive? */);
 
-            // Map position to scene load location
-            if (fromEntity.isStage) {
-                clone.scale.multiply(_scale);
-                clone.applyQuaternion(_rotate);
-                clone.position.add(_translate);
-            }
-
             // Scripts & children
             SceneManager.loadScriptsFromComponents(clone, entity);
             if (recursive) SceneManager.cloneChildren(clone, entity);
@@ -78,8 +82,30 @@ class SceneManager {
                 });
             }
 
-            // Add clone
-            toEntity.add(clone);
+            // Add clone, map position of top level stage entities to world load position
+            if (fromEntity.isStage) {
+                fromEntity.beginPosition.decompose(_beginPosition, _beginQuaternion, _beginScale);
+                _invQuaternion.copy(_beginQuaternion).invert();
+
+                // Position
+                clone.position.sub(_beginPosition);
+                clone.position.applyQuaternion(_invQuaternion);
+
+                // Rotation
+                _localRotation.setFromEuler(clone.rotation);
+                _localRotation.premultiply(_beginQuaternion);
+                clone.rotation.setFromQuaternion(_localRotation);
+
+                // Scale
+                clone.position.multiply(_beginScale);
+                clone.scale.multiply(_beginScale);
+
+                // World
+                clone.scale.multiply(_worldScale);
+                clone.applyQuaternion(_worldQuaternion);
+                clone.position.add(_worldPosition);
+            }
+            toEntity.attach(clone);
         }
     }
 
@@ -137,7 +163,7 @@ class SceneManager {
     /********** SCENE */
 
     static loadWorld(toScene, fromWorld) {
-        if (!toScene || !toScene.isScene) return;
+        if (!toScene || !toScene.isWorld3D) return;
         if (!fromWorld || !fromWorld.isWorld3D) return;
 
         // Children
@@ -163,14 +189,36 @@ class SceneManager {
         if (!toScene || !toScene.isWorld3D) return;
         if (!fromStage || !fromStage.isStage3D) return;
 
-        // TODO: Incorporate scene loading ('Scene Boundary' object) to last known load location
-
-        _translate.set(0, 0, 0);
-        _scale.set(1, 1, 1);
-        _rotate.set(0, 0, 0, 1);
-
+        toScene.loadPosition.decompose(_worldPosition, _worldQuaternion, _worldScale);
         SceneManager.cloneChildren(toScene, fromStage);
 
+        // Update End Position
+        //
+        // ... TODO
+        //
+
+
+        // fromEntity.beginPosition.decompose(_beginPosition, _beginQuaternion, _beginScale);
+        // _invQuaternion.copy(_beginQuaternion).invert();
+
+        // // Position
+        // _localPosition.set(0, 0, 0).sub(_beginPosition);
+        // clone.position.add(_localPosition);
+        // clone.position.applyQuaternion(_invQuaternion);
+
+        // // Rotation
+        // _localRotation.setFromEuler(clone.rotation);
+        // _localRotation.premultiply(_beginQuaternion);
+        // clone.rotation.setFromQuaternion(_localRotation);
+
+        // // Scale
+        // clone.position.multiply(_beginScale);
+        // clone.scale.multiply(_beginScale);
+
+        // // World
+        // clone.scale.multiply(_worldScale);
+        // clone.applyQuaternion(_worldQuaternion);
+        // clone.position.add(_worldPosition);
     }
 
     /********** RENDER */

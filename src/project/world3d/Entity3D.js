@@ -392,13 +392,24 @@ class Entity3D extends THREE.Object3D {
         this.remove(entity);
     }
 
-    /** Return true in callback to stop further recursion */
+    /** Return 'true' in callback to stop further recursion */
+    traverse(callback, recursive = true) {
+		const cancel = (typeof callback === 'function') ? callback(this) : false;
+
+        if (recursive && !cancel) {
+            for (const child of this.children) {
+                child.traverse(callback, recursive);
+            }
+        }
+	}
+
+    /** Return 'true' in callback to stop further recursion */
     traverseEntities(callback, recursive = true) {
         const cancel = (typeof callback === 'function') ? callback(this) : false;
 
-        if (recursive && cancel !== true) {
+        if (recursive && !cancel) {
             for (const child of this.getEntities()) {
-                child.traverseEntities(callback);
+                child.traverseEntities(callback, recursive);
             }
         }
     }

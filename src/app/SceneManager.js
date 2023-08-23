@@ -97,7 +97,7 @@ class SceneManager {
                 }
                 // Add world load position
                 clone.scale.multiply(_worldScale);
-                clone.applyQuaternion(_worldQuaternion);
+                clone.rotation.setFromQuaternion(_tempRotation.setFromEuler(clone.rotation).premultiply(_worldQuaternion));
                 clone.position.applyQuaternion(_worldQuaternion);
                 clone.position.add(_worldPosition);
             }

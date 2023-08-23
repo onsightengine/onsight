@@ -23,10 +23,22 @@ class Project {
         // Settings
         this.settings = {
             orientation: APP_ORIENTATION.PORTRAIT,
+            preload: 5,
         };
 
         // Worlds
         this.worlds = {};
+    }
+
+    /******************** SETTINGS */
+
+    setting(key) {
+        if (typeof this.settings === 'object') this.settings = {};
+        switch (key) {
+            case 'orientation': case 'orient': return this.settings.orientation ?? APP_ORIENTATION.PORTRAIT;
+            case 'preload': return this.settings.preload ?? 10;
+        }
+        return undefined;
     }
 
     /******************** WORLD */

@@ -30,7 +30,10 @@ class World3D extends Entity3D {
 
         // Properties, Stage
         this.activeStageUUID = null;
+
+        // Properties, Gameplay
         this.loadPosition = new THREE.Matrix4();
+        this.loadDistance = 0;
 
         // Shadow Plane (added as Object3D, NOT saved to JSON)
         this.shadowPlane = new THREE.Mesh(
@@ -115,11 +118,10 @@ class World3D extends Entity3D {
     /** Return 'true' in callback to stop further recursion */
     traverseStages(callback, recursive = true) {
         const cancel = (typeof callback === 'function') ? callback(this) : false;
+        if (cancel) return;
 
-        if (recursive && !cancel) {
-            for (const stage of this.getStages()) {
-                stage.traverseEntities(callback, recursive);
-            }
+        for (const stage of this.getStages()) {
+            stage.traverseEntities(callback, recursive);
         }
     }
 
@@ -147,13 +149,17 @@ class World3D extends Entity3D {
 		this.backgroundIntensity = source.backgroundIntensity;
 		if (source.overrideMaterial !== null) this.overrideMaterial = source.overrideMaterial.clone();
 
-        // World3D Properties
+        // World3D Properties, Node
         this.xPos = source.xPos;
         this.yPos = source.yPos;
-        const sourceStages = source.getStages();
-        const stageIndex = sourceStages.indexOf(source.activeStage());
+
+        // World3D Properties, Stage
+        const stageIndex = source.getStages().indexOf(source.activeStage());
         this.activeStageUUID = (stageIndex !== -1) ? this.getStages()[stageIndex].uuid : null;
+
+        // World3D Properties, Gameplay
         this.loadPosition.copy(source.loadPosition);
+        this.loadDistance.copy(source.loadDistance);
 
         return this;
     }
@@ -201,11 +207,16 @@ class World3D extends Entity3D {
         if (data.backgroundBlurriness !== undefined) this.backgroundBlurriness = data.backgroundBlurriness;
 		if (data.backgroundIntensity !== undefined) this.backgroundIntensity = data.backgroundIntensity;
 
-        // World3D Properties
+        // World3D Properties, Node
         if (data.xPos !== undefined) this.xPos = data.xPos;
         if (data.yPos !== undefined) this.yPos = data.yPos;
+
+        // World3D Properties, Stage
         if (data.activeStageUUID !== undefined) this.activeStageUUID = data.activeStageUUID;
+
+        // World3D Properties, Gameplay
         if (data.loadPosition !== undefined) this.loadPosition.fromArray(data.loadPosition);
+        if (data.loadDistance !== undefined) this.loadDistance = data.loadDistance;
 
         return this;
     }
@@ -237,11 +248,16 @@ class World3D extends Entity3D {
         if (this.backgroundBlurriness > 0) json.object.backgroundBlurriness = this.backgroundBlurriness;
 		if (this.backgroundIntensity !== 1) json.object.backgroundIntensity = this.backgroundIntensity;
 
-        // World3D Properties
+        // World3D Properties, Node
         json.object.xPos = this.xPos;
         json.object.yPos = this.yPos;
+
+        // World3D Properties, Stage
         json.object.activeStageUUID = this.activeStageUUID;
+
+        // World3D Properties, Gameplay
         json.object.loadPosition = this.loadPosition.toArray();
+        json.object.loadPosition = this.loadDistance;
 
         return json;
     }

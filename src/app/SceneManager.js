@@ -23,7 +23,6 @@ const scriptReturnString = JSON.stringify(scriptReturnObject).replace(/\"/g, '')
 // Temp
 const _invQuaternion = new THREE.Quaternion();
 const _tempRotation = new THREE.Quaternion();
-
 const _beginPosition = new THREE.Vector3();
 const _beginScale = new THREE.Vector3(1, 1, 1);
 const _beginQuaternion = new THREE.Quaternion();
@@ -92,6 +91,10 @@ class SceneManager {
                 clone.position.multiply(_beginScale);
                 clone.rotation.setFromQuaternion(_tempRotation.setFromEuler(clone.rotation).premultiply(_beginQuaternion));
                 clone.scale.multiply(_beginScale);
+                // Flag for Unloading
+                if (toEntity.isWorld3D) {
+                    clone._loadedDistance = toEntity.loadDistance + Math.abs(clone.position.length());
+                }
                 // Add world load position
                 clone.scale.multiply(_worldScale);
                 clone.applyQuaternion(_worldQuaternion);
@@ -100,7 +103,7 @@ class SceneManager {
             }
 
             // Add clone
-            toEntity.attach(clone);
+            toEntity.add(clone);
         }
     }
 
@@ -148,39 +151,17 @@ class SceneManager {
         }
     }
 
-    static removeEntity(entity) {
-        if (!entity || !entity.isEntity) return;
+    static removeEntity(fromScene, entity) {
+        if (!fromScene || !fromScene.isWorld3D) return;
+        if (!entity || !entity.isObject3D) return;
         SceneManager.app.dispatch('destroy', {}, [ entity.uuid ]);
-        SceneManager.app.scene.removeEntity(entity, true /* forceDelete */);
+        fromScene.removeEntity(entity, true /* forceDelete */);
         if (typeof entity.dispose === 'function') entity.dispose();
     }
 
     /********** SCENE */
 
-    static loadWorld(toScene, fromWorld) {
-        if (!toScene || !toScene.isWorld3D) return;
-        if (!fromWorld || !fromWorld.isWorld3D) return;
-
-        // Children
-        SceneManager.cloneChildren(toScene, fromWorld, false /* recursive */);
-
-        // Background
-        if (fromWorld.background != null) {
-            if (fromWorld.background.isColor) {
-                toScene.background = fromWorld.background.clone();
-            } else {
-                const texture = AssetManager.getAsset(fromWorld.background);
-                if (texture && texture.isTexture) toScene.background = texture.clone();
-            }
-        }
-		if (fromWorld.environment != null) toScene.environment = fromWorld.environment.clone();
-		if (fromWorld.fog != null) toScene.fog = fromWorld.fog.clone();
-		toScene.backgroundBlurriness = fromWorld.backgroundBlurriness;
-		toScene.backgroundIntensity = fromWorld.backgroundIntensity;
-		if (fromWorld.overrideMaterial != null) toScene.overrideMaterial = fromWorld.overrideMaterial.clone();
-    }
-
-    static loadStage(toScene, fromStage, updateLoadPosition = true) {
+    static cloneStage(toScene, fromStage, updateLoadPosition = true) {
         if (!toScene || !toScene.isWorld3D) return;
         if (!fromStage || !fromStage.isStage3D) return;
 
@@ -204,7 +185,57 @@ class SceneManager {
             _worldQuaternion.premultiply(_endQuaternion);
             _worldPosition.add(_endPosition);
             toScene.loadPosition.compose(_worldPosition, _worldQuaternion, _worldScale);
+            // Load distance
+            toScene.loadDistance += Math.abs(_endPosition.length());
         }
+    }
+
+    static loadStages(toScene, fromWorld, preload = 10) {
+        if (!toScene || !toScene.isWorld3D) return;
+        if (!fromWorld || !fromWorld.isWorld3D) return;
+
+        const startDistance = toScene.loadDistance;
+        while (toScene.loadDistance - startDistance < preload) {
+            // Possible Stages
+            const stages = [];
+            for (const stage of fromWorld.getStages()) {
+                if (stage.start > 0 && stage.start > toScene.loadDistance) continue;
+                if (stage.finish > 0 && stage.finish < toScene.loadDistance) continue;
+                stages.push(stage);
+            }
+
+            // No Stages Available
+            if (stages.length === 0) {
+                toScene.loadDistance += preload;
+                return;
+            }
+
+            // Load Stage
+            SceneManager.cloneStage(toScene, stages[Math.floor(Math.random() * stages.length)]);
+        }
+    }
+
+    static loadWorld(toScene, fromWorld) {
+        if (!toScene || !toScene.isWorld3D) return;
+        if (!fromWorld || !fromWorld.isWorld3D) return;
+
+        // Children
+        SceneManager.cloneChildren(toScene, fromWorld, false /* recursive */);
+
+        // Background
+        if (fromWorld.background != null) {
+            if (fromWorld.background.isColor) {
+                toScene.background = fromWorld.background.clone();
+            } else {
+                const texture = AssetManager.getAsset(fromWorld.background);
+                if (texture && texture.isTexture) toScene.background = texture.clone();
+            }
+        }
+		if (fromWorld.environment != null) toScene.environment = fromWorld.environment.clone();
+		if (fromWorld.fog != null) toScene.fog = fromWorld.fog.clone();
+		toScene.backgroundBlurriness = fromWorld.backgroundBlurriness;
+		toScene.backgroundIntensity = fromWorld.backgroundIntensity;
+		if (fromWorld.overrideMaterial != null) toScene.overrideMaterial = fromWorld.overrideMaterial.clone();
     }
 
     /********** RENDER */

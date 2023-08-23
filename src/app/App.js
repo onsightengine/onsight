@@ -5,6 +5,7 @@
 
 import * as THREE from 'three';
 import { APP_EVENTS } from '../constants.js';
+import { APP_ORIENTATION } from '../constants.js';
 import { AssetManager } from './AssetManager.js';
 import { Camera3D } from '../project/world3d/Camera3D.js';
 import { CameraUtils } from '../utils/three/CameraUtils.js';
@@ -21,14 +22,12 @@ import { World3D } from '../project/world3d/World3D.js';
 // Game Loop
 let animationID = null;
 
-///// TODO: Game Variables
-let distance = 0;
-let framerate = 60;
-/////
-
 // Globals
 const _position = new THREE.Vector3();
 const _raycaster = new THREE.Raycaster();
+const _worldPosition = new THREE.Vector3();
+const _worldScale = new THREE.Vector3(1, 1, 1);
+const _worldQuaternion = new THREE.Quaternion();
 
 // TEMP
 let physics;
@@ -128,15 +127,11 @@ class App {
         // Create Scene
         this.scene = new World3D();
         SceneManager.loadWorld(this.scene, this.world);
-        SceneManager.loadStage(this.scene, this.world.activeStage());
-        // const stages = this.world.getStages();
-        // SceneManager.loadStage(this.scene, stages[0]);
-        // SceneManager.loadStage(this.scene, stages[1]);
-        // SceneManager.loadStage(this.scene, stages[2]);
+        SceneManager.loadStages(this.scene, this.world, this.project.setting('preload'));
 
         // Find Camera
         this.camera = SceneManager.findCamera(this.scene);
-        this.camera.changeFit(this.project.settings?.orientation);
+        this.camera.changeFit(this.project.setting('orientation'));
 
         // Script 'init()' functions
         this.dispatch('init');
@@ -166,6 +161,28 @@ class App {
 
             // Step
             if (delta > 0.01) physics.step(delta);
+
+            // Add / Remove Entities
+            if (this.camera && this.camera.target && this.camera.target.isVector3) {
+                if (this.scene && this.scene.isWorld3D) {
+                    const preload = this.project.setting('preload');
+                    _position.set(0, 0, 0).applyMatrix4(this.scene.loadPosition);
+                    const distanceFromEnd = this.camera.target.distanceTo(_position);
+                    const playerDistance = this.scene.loadDistance - distanceFromEnd;
+                    // Load Stage(s)?
+                    if (distanceFromEnd < preload) {
+                        SceneManager.loadStages(this.scene, this.world, preload - distanceFromEnd);
+                    // Check for Removal
+                    } else {
+                        this.scene.traverse((object) => {
+                            if (isNaN(object._loadedDistance)) return;
+                            if (playerDistance < object._loadedDistance + preload) return;
+                            if (this.camera.target.distanceTo(object.position) < preload) return;
+                            SceneManager.removeEntity(this.scene, object);
+                        }, false /* recursive? */);
+                    }
+                }
+            }
         }
 
         // Render

@@ -54,14 +54,6 @@ class Entity3D extends THREE.Object3D {
 
     } // end ctor
 
-    /******************** INFO */
-
-    getReducedType() {
-        if (this.type !== 'Entity3D') return this.type;
-        if (this.components.length === 1) return Strings.capitalize(this.components[0].type.toLowerCase());
-        return this.type;
-    }
-
     /******************** UPDATE MATRIX */
 
     updateMatrix() {

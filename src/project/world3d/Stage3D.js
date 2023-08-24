@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Camera3D } from './Camera3D.js';
 import { Entity3D } from './Entity3D.js';
+import { Light3D } from './Light3D.js';
 
 class Stage3D extends Entity3D {
 
@@ -27,7 +28,7 @@ class Stage3D extends Entity3D {
     }
 
     copyEntity(source, recursive = true) {
-        // Entity3D.copy()
+        // Entity3D.copyEntity()
         super.copyEntity(source, recursive);
 
         // Stage3D Properties

@@ -18,11 +18,6 @@ export const APP_ORIENTATION = {
     LANDSCAPE:      'landscape',
 };
 
-export const CAMERA_TYPES = {
-    PERSPECTIVE:    'perspective',
-    ORTHOGRAPHIC:   'orthographic',
-};
-
 export const LAYERS = {
     BASE:   0,
     BLOOM:  30,

@@ -1,15 +1,13 @@
 import * as THREE from 'three';
 import { APP_SIZE } from '../../constants.js';
-import { CAMERA_TYPES } from '../../constants.js';
 import { Entity3D } from './Entity3D.js';
 import { Maths } from '../../utils/Maths.js';
-import { ObjectUtils } from '../../utils/three/ObjectUtils.js';
 
 class Camera3D extends Entity3D {
 
     constructor({
         name,
-        type = CAMERA_TYPES.PERSPECTIVE,
+        type = 'PerspectiveCamera',
         width = APP_SIZE,           // initial dom element width
         height = APP_SIZE,          // initial dom element height
         fit,                        // 'none', 'width', 'height'
@@ -22,10 +20,15 @@ class Camera3D extends Entity3D {
     } = {}) {
         super(name ?? 'Camera');
 
+        // Type Check
+        if (type !== 'OrthographicCamera' && type !== 'PerspectiveCamera') {
+            type = 'PerspectiveCamera';
+        }
+
         // Prototype
         this.isCamera = true;
         this.isCamera3D = true;
-        this.type = 'Camera3D';
+        this.type = type;
 
         // Properties, THREE.Camera
         this.matrixWorldInverse = new THREE.Matrix4();
@@ -36,8 +39,8 @@ class Camera3D extends Entity3D {
         // Properties
         if (fit !== 'width' && fit !== 'height') fit = 'none';
         this.fit = fit;
-        this.near = near ?? ((type === CAMERA_TYPES.PERSPECTIVE) ? 0.01 : - 1000);
-        this.far = far ?? ((type === CAMERA_TYPES.PERSPECTIVE) ? 1000 : 1000);
+        this.near = near ?? ((type === 'PerspectiveCamera') ? 0.01 : - 1000);
+        this.far = far ?? ((type === 'OrthographicCamera') ? 1000 : 1000);
 
         // Properties, Perspective
         this.fieldOfView = fieldOfView ?? 58.10;
@@ -46,8 +49,8 @@ class Camera3D extends Entity3D {
         // ... EMPTY
 
         // Flags
-        this.isPerspectiveCamera = (type === CAMERA_TYPES.PERSPECTIVE);
-        this.isOrthographicCamera = (type === CAMERA_TYPES.ORTHOGRAPHIC);
+        this.isPerspectiveCamera = (type === 'PerspectiveCamera');
+        this.isOrthographicCamera = (type === 'OrthographicCamera');
         this.aspect = 1;
         this.rotateLock = false;
         this.view = null; /* view offset */
@@ -124,6 +127,7 @@ class Camera3D extends Entity3D {
 
         // Update
         this.updateProjectionMatrix();
+        return this;
     }
 
     changeFit(fit) {
@@ -131,16 +135,21 @@ class Camera3D extends Entity3D {
         if (fit === 'portrait') fit = 'height';
         if (fit !== 'width' && fit !== 'height') fit = 'none';
         this.fit = fit;
+        return this;
     }
 
-    changeType(newType) {
-        this.isPerspectiveCamera = (newType === CAMERA_TYPES.PERSPECTIVE);
-        this.isOrthographicCamera = (newType === CAMERA_TYPES.ORTHOGRAPHIC);
+    changeType(type) {
+        if (type !== 'OrthographicCamera' && type !== 'PerspectiveCamera') return this;
+        this.type = type;
+
+        this.isPerspectiveCamera = (type === 'PerspectiveCamera');
+        this.isOrthographicCamera = (type === 'OrthographicCamera');
 
         if (this.isPerspectiveCamera) this.near = (10 / this.far);
         if (this.isOrthographicCamera) this.near = (this.far * -1);
 
         this.updateProjectionMatrix();
+        return this;
     }
 
     /******************** PROJECTION MATRIX (FRUSTUM) */
@@ -236,17 +245,17 @@ class Camera3D extends Entity3D {
 
     /******************** COPY / CLONE */
 
-    clone() {
-		return new this.constructor().copy(this);
-	}
-
-    cloneEntity(recursive = true) {
-        return new this.constructor().copyEntity(this, recursive);
+    clone(recursive) {
+        return new this.constructor().copy(this, recursive);
     }
 
-    copy(source, recursive) {
+    copy(source, recursive = true) {
         // Entity3D.copy()
         super.copy(source, recursive);
+
+        // Camera3D Type
+        this.type = source.type;
+        this.changeType(this.type);
 
         // THREE.Camera Properties
         this.matrixWorldInverse.copy(source.matrixWorldInverse);
@@ -265,12 +274,19 @@ class Camera3D extends Entity3D {
         // Orthographic Properties
         // ... EMPTY
 
-        // Flags
-        this.isPerspectiveCamera = source.isPerspectiveCamera;
-        this.isOrthographicCamera = source.isOrthographicCamera;
-
         // Attempt to Copy Size
         this.setSize(source.lastWidth, source.lastHeight);
+        return this;
+    }
+
+    cloneEntity(recursive = true) {
+        return new this.constructor().copyEntity(this, recursive);
+    }
+
+    copyEntity(source, recursive = true) {
+        // Entity3D.copyEntity()
+        super.copyEntity(source, recursive);
+
         return this;
     }
 
@@ -279,8 +295,14 @@ class Camera3D extends Entity3D {
     fromJSON(json) {
         const data = json.object;
 
-        // Object3D Properties
-        ObjectUtils.fromJSON(json, this);
+        // Entity3D Properties
+        super.fromJSON(json, this);
+
+        // Camera3D Type
+        if (data.cameraType !== undefined) {
+            this.type = data.cameraType;
+            this.changeType(this.type);
+        }
 
         // Camera3D Properties
         if (data.fit !== undefined) this.fit = data.fit;
@@ -293,10 +315,6 @@ class Camera3D extends Entity3D {
         // Orthographic Properties
         // ... EMPTY
 
-        // Flags
-        if (data.isPerspectiveCamera !== undefined) this.isPerspectiveCamera = data.isPerspectiveCamera;
-        if (data.isOrthographicCamera !== undefined) this.isOrthographicCamera = data.isOrthographicCamera;
-
         // Projection Matrix
         this.updateProjectionMatrix();
 
@@ -305,7 +323,11 @@ class Camera3D extends Entity3D {
 
     toJSON() {
         // Entity3D Properties
-        const json = super.toJSON(null /* !isRootObject */);
+        const json = super.toJSON();
+
+        // Camera3D Type
+        json.object.cameraType = this.type;
+        json.object.type = 'Camera3D';
 
         // Camera3D Properties
         json.object.fit = this.fit;
@@ -317,10 +339,6 @@ class Camera3D extends Entity3D {
 
         // Orthographic Properties
         // ... EMPTY
-
-        // Flags
-        json.object.isPerspectiveCamera = this.isPerspectiveCamera;
-        json.object.isOrthographicCamera = this.isOrthographicCamera;
 
         return json;
     }

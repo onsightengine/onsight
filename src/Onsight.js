@@ -104,7 +104,6 @@ export { Vectors } from './utils/Vectors.js';
 
 // Entity
 import './project/world3d/entity/Geometry.js';
-import './project/world3d/entity/Light.js';
 import './project/world3d/entity/Material.js';
 import './project/world3d/entity/Mesh.js';
 import './project/world3d/entity/Script.js';

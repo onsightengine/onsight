@@ -43,27 +43,21 @@ class Light3D extends Entity3D {
         distance = 0,
         decay = 2,
         // spot
-        angle = Math.PI / 3,
+        angle = Math.PI / 3, /* 60 degrees */
         penumbra = 0,
     } = {}) {
         super(name ?? 'Light');
 
-        // Verify Type
-        switch (type) {
-            case 'AmbientLight': case 'HemisphereLight': if (isNaN(intensity)) intensity = 1.5; break;
-            case 'DirectionalLight': if (isNaN(intensity)) intensity = 3.0; break;
-            case 'PointLight': case 'SpotLight': if (isNaN(intensity)) intensity = 10; break;
-            default: type = 'AmbientLight'; if (isNaN(intensity)) intensity = 1.5;
-        }
+        // Validate Type
+        type = Light3D.validateType(type);
 
         // Prototype
         this.isLight = true;
         this.isLight3D = true;
-        this.type = type;
+        this.type = 'Light3D';
 
         // THREE.Light Properties
         this.color = new THREE.Color((type === 'HemisphereLight') ? skyColor : color);
-        this.intensity = intensity;
 
         this.position.copy(THREE.Object3D.DEFAULT_UP);
         this.shadow = undefined;
@@ -71,6 +65,7 @@ class Light3D extends Entity3D {
 
         // THREE.HemisphereLight Properties
         this.groundColor = new THREE.Color(groundColor);
+        this.intensity = isNaN(intensity) ? Light3D.defaultIntensity(type) : intensity;
 
         // THREE.PointLight Properties
         this.distance = distance;
@@ -82,22 +77,24 @@ class Light3D extends Entity3D {
         this.map = null;
 
         // Init Type
-        this.changeType(type, false /* returnNewLight */);
+        this.changeType(type, false /* returnNewLight */); /* initial set of 'this.type' */
         this.updateMatrix();
     }
 
     /******************** TYPE */
 
     changeType(type, returnsNewLight = true) {
-        if (type) this.type = type;
-        switch (this.type) {
-            case 'AmbientLight':
-            case 'DirectionalLight':
-            case 'HemisphereLight':
-            case 'PointLight':
-            case 'SpotLight': break;
-            default: this.type = 'AmbientLight';
+        const oldType = this.type;
+
+        // No Change?
+        if (type) {
+            type = Light3D.validateType(type);
+            if (this.type && type === this.type) return this;
+            this.type = type;
         }
+
+        // Validate Type
+        this.type = Light3D.validateType(this.type);
 
         // Prototype
         this.isAmbientLight = (this.type === 'AmbientLight');
@@ -126,6 +123,7 @@ class Light3D extends Entity3D {
             light = new this.constructor().copyEntity(this, true /* recursive */);
             light.uuid = this.uuid;
         }
+        light.intensity = Light3D.mapIntensity(light.intensity, oldType, light.type);
 
         // New Shadow
         switch (this.type) {
@@ -133,6 +131,26 @@ class Light3D extends Entity3D {
             case 'PointLight': light.shadow = new _point.shadow.constructor(); break;
             case 'SpotLight': light.shadow = new _spot.shadow.constructor(); break;
         }
+
+        // SHADOW CAMERA
+        // DirectionalLight     new OrthographicCamera(-5, 5, 5, -5, 0.5, 500)
+        // PointLight           new PerspectiveCamera(90, 1, 0.5, 500)
+        // SpotLight            new PerspectiveCamera(50, 1, 0.5, 500)
+        if (light.shadow) {
+            light.shadow.mapSize.width = 2048;      // default: 512
+            light.shadow.mapSize.height = 2048;     // default: 512
+            if (light.shadow.camera.isOthographicCamera) {
+                light.shadow.camera.left = -10;
+                light.shadow.camera.right = 10;
+                light.shadow.camera.top = 10;
+                light.shadow.camera.bottom = -10;
+                light.shadow.camera.near = -500;
+                light.shadow.camera.far = 500;
+            }
+            light.shadow.camera.updateProjectionMatrix();
+        }
+
+        // Copy Old Shadow Data
         if (oldShadow) {
             light.shadow.copy(oldShadow);
             ObjectUtils.clearObject(oldShadow);
@@ -140,6 +158,48 @@ class Light3D extends Entity3D {
 
         // Return
         return light;
+    }
+
+    static defaultIntensity(type) {
+        type = Light3D.validateType(type);
+        switch (type) {
+            case 'AmbientLight': return 1.5;
+            case 'DirectionalLight': return 1.5;
+            case 'HemisphereLight': return 3.0;
+            case 'PointLight': return 10;
+            case 'SpotLight': return 10;
+        }
+    }
+
+    static mapIntensity(intensity, oldType, newType) {
+        if (isNaN(intensity)) return intensity;
+        switch (oldType) {
+            case 'AmbientLight':
+            case 'HemisphereLight':
+                if (newType === 'DirectionalLight') return intensity * 2;
+                if (newType === 'PointLight' || newType === 'SpotLight') return intensity * 6.6666666;
+                break;
+            case 'HemisphereLight':
+                if (newType === 'AmbientLight' || newType === 'HemisphereLight') return intensity / 2;
+                if (newType === 'PointLight' || newType === 'SpotLight') return intensity * 3.3333333;
+                break;
+            case 'PointLight':
+            case 'SpotLight':
+                if (newType === 'AmbientLight' || newType === 'HemisphereLight') return intensity / 6.6666666;
+                if (newType === 'DirectionalLight') return intensity / 3.3333333;
+        }
+        return intensity;
+    }
+
+    static validateType(type) {
+        switch (type) {
+            case 'AmbientLight':
+            case 'DirectionalLight':
+            case 'HemisphereLight':
+            case 'PointLight':
+            case 'SpotLight': return type;
+            default: return 'AmbientLight';
+        }
     }
 
     /******************** POINT / SPOT POWER */

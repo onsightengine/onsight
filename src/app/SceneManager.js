@@ -193,6 +193,7 @@ class SceneManager {
     static loadStages(toScene, fromWorld, preload = 10) {
         if (!toScene || !toScene.isWorld3D) return;
         if (!fromWorld || !fromWorld.isWorld3D) return;
+        if (preload < 0) return;
 
         const startDistance = toScene.loadDistance;
         while (toScene.loadDistance - startDistance < preload) {

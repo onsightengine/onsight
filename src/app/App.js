@@ -125,9 +125,10 @@ class App {
         this.world = this.project.activeWorld();
 
         // Create Scene
+        const preload = this.project.setting('preload');
         this.scene = new World3D();
         SceneManager.loadWorld(this.scene, this.world);
-        SceneManager.loadStages(this.scene, this.world, this.project.setting('preload'));
+        SceneManager.loadStages(this.scene, this.world, preload);
 
         // Find Camera
         this.camera = SceneManager.findCamera(this.scene);
@@ -171,13 +172,13 @@ class App {
                     const distanceFromEnd = this.camera.target.distanceTo(_position);
                     const playerDistance = this.scene.loadDistance - distanceFromEnd;
                     // Load Stage(s)?
-                    if (distanceFromEnd < preload) {
+                    if (preload >= 0 && distanceFromEnd < preload) {
                         SceneManager.loadStages(this.scene, this.world, preload - distanceFromEnd);
                     // Check for Removal
-                    } else {
+                    } else if (unload >= 0) {
                         this.scene.traverse((object) => {
                             if (isNaN(object.userData.loadedDistance)) return;
-                            if (playerDistance < object.userData.loadedDistance + preload) return;
+                            if (playerDistance < object.userData.loadedDistance) return;
                             if (this.camera.target.distanceTo(object.position) < unload) return;
                             SceneManager.removeEntity(this.scene, object);
                         }, false /* recursive? */);

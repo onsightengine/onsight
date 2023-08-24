@@ -34,7 +34,7 @@ class Project {
     /******************** SETTINGS */
 
     setting(key) {
-        if (typeof this.settings === 'object') this.settings = {};
+        if (typeof this.settings !== 'object') this.settings = {};
         switch (key) {
             case 'orientation': case 'orient': return this.settings.orientation ?? APP_ORIENTATION.PORTRAIT;
             case 'preload': case 'add': return this.settings.preload ?? 10;

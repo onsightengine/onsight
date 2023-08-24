@@ -13,6 +13,7 @@ class Stage3D extends Entity3D {
         this.type = 'Stage3D';
 
         // Properties, Display
+        this.enabled = true;
         this.start = 0;
         this.finish = -1;
         this.beginPosition = new THREE.Matrix4().setPosition(-2, 0, 0);
@@ -30,6 +31,7 @@ class Stage3D extends Entity3D {
         super.copyEntity(source, recursive);
 
         // Stage3D Properties
+        this.enabled = source.enabled;
         this.start = source.start;
         this.finish = source.finish;
         this.beginPosition.copy(source.beginPosition);
@@ -53,6 +55,7 @@ class Stage3D extends Entity3D {
         super.fromJSON(json);
 
         // Stage3D Properties
+        if (data.enabled !== undefined) this.enabled = data.enabled;
         if (data.start !== undefined) this.start = data.start;
         if (data.finish !== undefined) this.finish = data.finish;
         if (data.beginPosition !== undefined) this.beginPosition.fromArray(data.beginPosition);
@@ -74,6 +77,7 @@ class Stage3D extends Entity3D {
         const json = super.toJSON();
 
         // Stage3D Properties
+        json.object.enabled = this.enabled;
         json.object.start = this.start;
         json.object.finish = this.finish;
         json.object.beginPosition = this.beginPosition.toArray();

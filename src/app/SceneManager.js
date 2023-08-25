@@ -13,14 +13,12 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
-// Script Functions
 const scriptFunctions = APP_EVENTS.toString();
 const scriptReturnObject = {};
 for (const event of APP_EVENTS) scriptReturnObject[event] = event;
 const scriptParameters = 'app,' + scriptFunctions;
 const scriptReturnString = JSON.stringify(scriptReturnObject).replace(/\"/g, '');   /* remove all qoutes */
 
-// Temp
 const _invQuaternion = new THREE.Quaternion();
 const _tempRotation = new THREE.Quaternion();
 const _beginPosition = new THREE.Vector3();
@@ -33,10 +31,8 @@ const _worldPosition = new THREE.Vector3();
 const _worldScale = new THREE.Vector3(1, 1, 1);
 const _worldQuaternion = new THREE.Quaternion();
 
-// Local
 const _composers = {};
 
-// Class
 class SceneManager {
 
     static app = undefined;
@@ -61,11 +57,7 @@ class SceneManager {
 
     /** Clone and copy children */
     static cloneChildren(toEntity, fromEntity) {
-        const children = fromEntity.getEntities();
-        for (let i = 0; i < children.length; i++) {
-            const entity = children[i];
-
-            // Clone
+        for (const entity of fromEntity.getEntities()) {
             const clone = entity.cloneEntity(false /* recursive? */);
 
             // Scripts
@@ -76,7 +68,7 @@ class SceneManager {
 
             // Bloom rendering layers
             if (clone.bloom) {
-                clone.traverse(function(child) {
+                clone.traverse((child) => {
                     child.layers.disable(LAYERS.BASE);
                     child.layers.enable(LAYERS.BLOOM);
                 });
@@ -92,8 +84,9 @@ class SceneManager {
                 clone.rotation.setFromQuaternion(_tempRotation.setFromEuler(clone.rotation).premultiply(_beginQuaternion));
                 clone.scale.multiply(_beginScale);
                 // Flag for Unloading
-                if (toEntity.isWorld3D) {
-                    clone.userData.loadedDistance = toEntity.loadDistance + Math.abs(clone.position.length());
+                if (toEntity.isWorld) {
+                    const loadedDistance = toEntity.loadDistance + Math.abs(clone.position.length());
+                    clone.traverse((child) => { child.userData.loadedDistance = loadedDistance; });
                 }
                 // Add world load position
                 clone.scale.multiply(_worldScale);

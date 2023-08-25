@@ -176,12 +176,12 @@ class App {
                         SceneManager.loadStages(this.scene, this.world, preload - distanceFromEnd);
                     // Check for Removal
                     } else if (unload >= 0) {
-                        this.scene.traverse((object) => {
-                            if (isNaN(object.userData.loadedDistance)) return;
-                            if (playerDistance < object.userData.loadedDistance) return;
-                            if (this.camera.target.distanceTo(object.position) < unload) return;
-                            SceneManager.removeEntity(this.scene, object);
-                        }, false /* recursive? */);
+                        for (const child of this.scene.children) {
+                            if (isNaN(child.userData.loadedDistance)) continue;
+                            if (playerDistance < child.userData.loadedDistance) continue;
+                            if (this.camera.target.distanceTo(child.position) < unload) continue;
+                            SceneManager.removeEntity(this.scene, child);
+                        }
                     }
                 }
             }

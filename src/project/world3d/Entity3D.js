@@ -5,8 +5,8 @@ import { ObjectUtils } from '../../utils/three/ObjectUtils.js';
 import { Strings } from '../../utils/Strings.js';
 
 // INTERNAL FLAGS
-//  Object3D.userData.flagIgnore        Ignore object during focus / clone / saving -- AND selection
-//  Object3D.userData.flagTemp          Ignore object during focus / clone / saving
+//  Object3D.userData.flagIgnore        Ignore object during: Focus, Clone, toJSON, Select
+//  Object3D.userData.flagTemp          Ignore object during: Focus, Clone, toJSON, Delete (SceneUtils)
 //  Object3D.userData.entityId          Used for transform controls to link a transform clone with original entity
 //  Object3D.userData.loadedDistance    Used for loading entities into World during Play (tracks removal)
 
@@ -161,6 +161,7 @@ class Entity3D extends THREE.Object3D {
         object.scale.copy(_worldScale);
         object.position.copy(_worldPosition);
         this.attach(object);
+        return this;
     }
 
     /******************** COMPONENTS */
@@ -182,10 +183,9 @@ class Entity3D extends THREE.Object3D {
 
         // Check for and add Dependent Components
         if (config.dependencies && includeDependencies) {
-            const dependencies = config.dependencies;
-            for (let i = 0, len = dependencies.length; i < len; i++) {
-                if (this.getComponent(dependencies[i]) === undefined) {
-                    this.addComponent(dependencies[i], {}, false /* includeDependencies */);
+            for (const dependency of config.dependencies) {
+                if (this.getComponent(dependency) == undefined) {
+                    this.addComponent(dependency, {}, false /* includeDependencies */);
                 }
             }
         }
@@ -209,12 +209,14 @@ class Entity3D extends THREE.Object3D {
         component.entity = this;
         component.init(component.toJSON());
         component.attach();
+        return component;
     }
 
     updateComponent(type, data = {}, index = 0) {
         const component = this.getComponentsWithProperties('type', type)[index];
         if (!component || !component.isComponent) return;
         component.update(data);
+        return component;
     }
 
     replaceComponent(type, data = {}, index = 0) {
@@ -224,6 +226,7 @@ class Entity3D extends THREE.Object3D {
         component.detach();
         component.init(data);
         component.attach();
+        return component;
     }
 
     /** Get component by type (string, required) and tag (string, optional - in case of multiple components with type) */
@@ -242,10 +245,13 @@ class Entity3D extends THREE.Object3D {
         return this.getComponentByProperty('type', type);
     }
 
+    getComponentsByType(type) {
+        return this.getComponentsWithProperties('type', type);
+    }
+
     /** Returns first component found with property === value */
     getComponentByProperty(property, value) {
-        for (let i = 0, l = this.components.length; i < l; i++) {
-            const component = this.components[i];
+        for (const component of this.components) {
             if (component[property] === value) return component;
         }
         return undefined;
@@ -253,13 +259,13 @@ class Entity3D extends THREE.Object3D {
 
     /** Returns all components that match all key, value pairs */
     getComponentsWithProperties(/* key, value, key, value, etc. */) {
-        let components = [];
-        for (let i = 0; i < this.components.length; i++) {
-            const component = this.components[i];
-
+        const components = [];
+        for (const component of this.components) {
             let hasProperties = true;
-            for (let j = 0; j < arguments.length; j += 2) {
-                if (component[arguments[j]] !== arguments[j+1]) {
+            for (let i = 0; i < arguments.length; i += 2) {
+                const key = arguments[i];
+                const value = arguments[i + 1];
+                if (component[key] !== value) {
                     hasProperties = false;
                     break;
                 }
@@ -272,27 +278,29 @@ class Entity3D extends THREE.Object3D {
     /** NOTE: Does not call dispose on component! */
     removeComponent(component) {
         let index = this.components.indexOf(component);
-        if (index !== -1) {
+        if (index === -1) {
+            console.warn(`Entity3D.removeComponent: Component ${component.uuid}, type '${component.type}' not found`);
+        } else {
             this.components.splice(index, 1);
             component.detach();
-        } else {
-            console.warn(`Entity3D.removeComponent: Component ${component.uuid}, type '${component.type}' not found`);
         }
         return component;
     }
 
     rebuildComponents() {
-        for (let i = 0; i < this.components.length; i++) {
-            const component = this.components[i];
+        for (const component of this.components) {
             component.detach();
             component.init(component.toJSON());
             component.attach();
         }
+        return this;
     }
 
+    /** Return 'true' in callback to stop further recursion */
     traverseComponents(callback) {
-        for (let i = 0; i < this.components.length; i++) {
-            callback(this.components[i]);
+        for (const component of this.components) {
+            const cancel = (typeof callback === 'function') ? callback(component) : false;
+            if (cancel) return;
         }
     }
 
@@ -318,6 +326,8 @@ class Entity3D extends THREE.Object3D {
             newParent.children.splice(newIndex, 0, this);
             newParent.children.pop();
         }
+
+        return this;
     }
 
     /******************** CHILDREN */
@@ -380,9 +390,8 @@ class Entity3D extends THREE.Object3D {
     removeEntity(entity, forceDelete = false) {
         if (!entity) return;
         if (!forceDelete && EntityUtils.isImportant(entity)) return; /* locked? temp? */
-
-        // Remove entity (i.e. out of Project)
-        this.remove(entity);
+        this.remove(entity); /* entity is now out of Project */
+        return entity;
     }
 
     /** Return 'true' in callback to stop further recursion */
@@ -509,7 +518,7 @@ class Entity3D extends THREE.Object3D {
         for (const componentData of json.object.components) {
             if (componentData && componentData.base && componentData.base.type) {
                 const component = this.addComponent(componentData.base.type, componentData, false);
-                // Properties
+                // Component Properties
                 component.tag = componentData.base.tag;
             }
         }

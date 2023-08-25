@@ -86,15 +86,9 @@ class Light3D extends Entity3D {
     changeType(type, returnsNewLight = true) {
         const oldType = this.type;
 
-        // No Change?
-        if (type) {
-            type = Light3D.validateType(type);
-            if (this.type && type === this.type) return this;
-            this.type = type;
-        }
-
         // Validate Type
-        this.type = Light3D.validateType(this.type);
+        type = Light3D.validateType(type);
+        this.type = type;
 
         // Prototype
         this.isAmbientLight = (this.type === 'AmbientLight');
@@ -235,8 +229,7 @@ class Light3D extends Entity3D {
         super.copy(source, recursive);
 
         // Light3D Type
-        this.type = source.type;
-        this.changeType(this.type, false /* returnNewLight */);
+        this.changeType(source.type, false /* returnNewLight */);
 
         // THREE.Light Properties
         this.color.copy(source.color);

@@ -89,7 +89,31 @@ class Camera3D extends Entity3D {
 		this.matrixWorldInverse.copy(this.matrixWorld).invert();
 	}
 
+    /******************** TYPE */
+
+    changeType(type) {
+        if (type !== 'OrthographicCamera' && type !== 'PerspectiveCamera') return this;
+        this.type = type;
+
+        this.isPerspectiveCamera = (type === 'PerspectiveCamera');
+        this.isOrthographicCamera = (type === 'OrthographicCamera');
+
+        if (this.isPerspectiveCamera) this.near = (10 / this.far);
+        if (this.isOrthographicCamera) this.near = (this.far * -1);
+
+        this.updateProjectionMatrix();
+        return this;
+    }
+
     /******************** SIZE / FIT */
+
+    changeFit(fit) {
+        if (fit === 'landscape') fit = 'width';
+        if (fit === 'portrait') fit = 'height';
+        if (fit !== 'width' && fit !== 'height') fit = 'none';
+        this.fit = fit;
+        return this;
+    }
 
     setSize(width = APP_SIZE, height = APP_SIZE) {
         this.lastWidth = width;
@@ -126,28 +150,6 @@ class Camera3D extends Entity3D {
         }
 
         // Update
-        this.updateProjectionMatrix();
-        return this;
-    }
-
-    changeFit(fit) {
-        if (fit === 'landscape') fit = 'width';
-        if (fit === 'portrait') fit = 'height';
-        if (fit !== 'width' && fit !== 'height') fit = 'none';
-        this.fit = fit;
-        return this;
-    }
-
-    changeType(type) {
-        if (type !== 'OrthographicCamera' && type !== 'PerspectiveCamera') return this;
-        this.type = type;
-
-        this.isPerspectiveCamera = (type === 'PerspectiveCamera');
-        this.isOrthographicCamera = (type === 'OrthographicCamera');
-
-        if (this.isPerspectiveCamera) this.near = (10 / this.far);
-        if (this.isOrthographicCamera) this.near = (this.far * -1);
-
         this.updateProjectionMatrix();
         return this;
     }
@@ -254,8 +256,7 @@ class Camera3D extends Entity3D {
         super.copy(source, recursive);
 
         // Camera3D Type
-        this.type = source.type;
-        this.changeType(this.type);
+        this.changeType(source.type);
 
         // THREE.Camera Properties
         this.matrixWorldInverse.copy(source.matrixWorldInverse);

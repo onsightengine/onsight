@@ -5,9 +5,10 @@ import { ObjectUtils } from '../../utils/three/ObjectUtils.js';
 import { Strings } from '../../utils/Strings.js';
 
 // INTERNAL FLAGS
-//  Object3D.userData.flagIgnore    Ignore object during focus, saving, etc. AND selection
-//  Object3D.userData.flagTemp      Ignore object during focus, saving, etc.
-//  Object3D.userData.entityId      Used for transform controls to link a transform clone with original entity
+//  Object3D.userData.flagIgnore        Ignore object during focus / clone / saving -- AND selection
+//  Object3D.userData.flagTemp          Ignore object during focus / clone / saving
+//  Object3D.userData.entityId          Used for transform controls to link a transform clone with original entity
+//  Object3D.userData.loadedDistance    Used for loading entities into World during Play (tracks removal)
 
 const _m1 = new THREE.Matrix4();
 const _camPosition = new THREE.Vector3();
@@ -424,9 +425,10 @@ class Entity3D extends THREE.Object3D {
 
         // Copy Children
         if (recursive) {
-            for (let i = 0; i < source.children.length; i++) {
-                const clone = source.children[i].clone();
-                this.add(clone);
+            for (const child of source.children) {
+                if (child.userData.flagIgnore) continue;
+                if (child.userData.flagTemp) continue;
+                this.add(child.clone());
             }
         }
 
@@ -463,7 +465,9 @@ class Entity3D extends THREE.Object3D {
         // Copy Children
         if (recursive) {
             for (const child of source.getEntities()) {
-                this.add(child.cloneEntity(recursive));
+                if (child.userData.flagIgnore) continue;
+                if (child.userData.flagTemp) continue;
+                this.add(child.cloneEntity());
             }
         }
 

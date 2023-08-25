@@ -14,11 +14,14 @@
 //  Space (EM) ' '      &emsp;
 // MATH
 //  Amperstand  &       &amp;
+//  Big Dot     ●
 //  Degrees     °       &deg;
 //  Delta       Δ       &Delta;
 //  Dot         •       &sdot;
 //  Fuzzy       ~       &sim;
 //  Infinity    ∞       &infin;
+//  Line        ―
+//  Line (Wide) ⎯
 //  Multiply    ×
 //  Not Equal   ≠       &ne;
 // SYMBOLS

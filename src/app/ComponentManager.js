@@ -12,7 +12,7 @@ import { System } from '../utils/System.js';
 //  sanitizeData()      Build default data of 'type', remove any properties that should not be included
 //  stripData()         Removes data from 'newData' if conditions from schema on 'newData' don't match 'oldData'
 
-/******************** Property Types ********************/
+/******************** PROPERTY TYPES ********************/
 //
 //  NOTE: See 'test' component for examples of all property types
 //

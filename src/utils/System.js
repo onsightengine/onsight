@@ -1,5 +1,6 @@
 // ARRAYS
 //  arrayFromArguments()    Converts argument list to Array
+//  isIterable()            Checks if a javascript object is iterable
 //  isObject()              Checks if a variable is an object (and not null / array / function)
 //  swapArrayItems()        Swaps two items in an array
 // FILE SYSTEM
@@ -23,6 +24,12 @@ class System {
         } else {
             return Array.from(arguments);
         }
+    }
+
+    /** Checks if a javascript object is iterable */
+    static isIterable(obj) {
+        if (obj == null) return false;
+        return typeof obj[Symbol.iterator] === 'function';
     }
 
     /** Checks if a variable is an object (and not null / array / function) */

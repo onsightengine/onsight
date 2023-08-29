@@ -1,8 +1,13 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
+import { Camera3D } from '../project/world3d/Camera3D.js';
+import { Entity3D } from '../project/world3d/Entity3D.js';
+import { Light3D } from '../project/world3d/Light3D.js';
+import { Stage3D } from '../project/world3d/Stage3D.js';
+import { World3D } from '../project/world3d/World3D.js';
+
 import { Palette } from '../assets/Palette.js';
-import { RenderUtils } from '../utils/three/RenderUtils.js';
 import { Script } from '../assets/Script.js';
 import { Strings } from '../utils/Strings.js';
 
@@ -15,14 +20,10 @@ class AssetManager {
     /******************** MANAGER */
 
     static clear() {
-        // Assets
-        for (let uuid in _assets) {
+        for (const uuid in _assets) {
             const asset = _assets[uuid];
-
-            // FIXME: Don't clear prefabs for now
-            if (!asset.isEntity) {
-                AssetManager.removeAsset(_assets[uuid], true);
-            }
+            if (asset.isBuiltIn) continue; /* keep built-in assets */
+            AssetManager.removeAsset(_assets[uuid], true);
         }
     }
 
@@ -36,19 +37,22 @@ class AssetManager {
         if (asset.isPalette) return 'palette';
         if (asset.isScript) return 'script';
         if (asset.isTexture) return 'texture';
-        if (asset.isEntity || asset.isPrefab) return 'prefab';
+        if (asset.isEntity) return 'prefab';
         return 'asset';
     }
 
-    static addAsset(assets = []) {
-        if (!arguments[0]) return;
-        const assetArray = (Array.isArray(arguments[0])) ? arguments[0] : [...arguments];
-        let firstAsset = undefined;
-        for (let i = 0; i < assetArray.length; i++) {
-            let asset = assetArray[i];
-            const type = AssetManager.checkType(asset);
+    static addAsset(asset) {
+        const assets = Array.isArray(asset) ? asset : [...arguments];
+        let returnAsset = undefined;
+        for (let i = 0; i < assets.length; i++) {
+            let asset = assets[i];
 
-            // Ensure asset has a name
+            // Checks
+            if (!asset || !asset.uuid) continue;
+            const type = AssetManager.checkType(asset);
+            if (type === undefined) continue;
+
+            // Ensure asset has a Name
             if (!asset.name || asset.name === '') asset.name = asset.constructor.name;
 
             // Geometry: Force 'BufferGeometry' type (strip ExtrudeGeometry, TextGeometry, etc...)
@@ -64,18 +68,22 @@ class AssetManager {
                 asset = bufferGeometry;
             }
 
-            // Script / Prefab: Ensure asset has a category assigned
+            // Flag Entity Assets as 'Prefab'
+            if (asset.isEntity) {
+                asset.isPrefab = true;
+            }
+
+            // Types: [ Script, Prefab ]
             if (type === 'script' || type === 'prefab') {
-                if (asset.category == null || asset.category === '') {
-                    asset.category = 'unknown';
-                }
+                // Ensure asset has a category assigned
+                if (!asset.category || asset.category === '') asset.category = 'unknown';
             }
 
             // Add Asset
             _assets[asset.uuid] = asset;
-            if (i === 0) firstAsset = asset;
+            if (returnAsset === undefined) returnAsset = asset;
         }
-        return firstAsset;
+        return returnAsset;
     }
 
     static getAsset(uuid) {
@@ -88,25 +96,23 @@ class AssetManager {
         const library = [];
         for (const [uuid, asset] of Object.entries(_assets)) {
             if (type && AssetManager.checkType(asset) !== type) continue;
-            if (!category) {
-                library.push(asset);
-            } else if (asset.category && asset.category === category) {
+            if (category == undefined || (asset.category && asset.category === category)) {
                 library.push(asset);
             }
         }
         return library;
     }
 
-    static removeAsset(assetOrArray, dispose = true) {
-        if (!arguments[0]) return;
-        const assetArray = (Array.isArray(arguments[0])) ? arguments[0] : [...arguments];
-        for (let i = 0; i < assetArray.length; i++) {
-            const asset = assetArray[i];
+    static removeAsset(asset, dispose = true) {
+        const assets = Array.isArray(asset) ? asset : [ asset ];
+        for (const asset of assets) {
+            if (!asset || !asset.uuid) continue;
+
             // Remove if present
             if (_assets[asset.uuid]) {
                 // Remove textures from cache
                 if (asset.isTexture) {
-                    for (let url in _textureCache) {
+                    for (const url in _textureCache) {
                         if (_textureCache[url].uuid === asset.uuid) delete _textureCache[url];
                     }
                 }
@@ -202,23 +208,29 @@ class AssetManager {
         // Load Palettes
         const palettes = {};
         if (json.palettes) {
-            for (let i = 0; i < json.palettes.length; i++) {
-                const palette = new Palette().fromJSON(json.palettes[i]);
+            for (const paletteData of json.palettes) {
+                const palette = new Palette().fromJSON(paletteData);
                 palettes[palette.uuid] = palette;
             }
             addLibraryToAssets(palettes);
         }
 
         // Load Prefabs
-        //
-        // TODO!!! Project Only!
-        //
+        const prefabs = {};
+        if (json.prefabs) {
+            for (const prefabData of json.prefabs) {
+                const prefab = new (eval(prefabData.object.type))();
+                prefab.fromJSON(prefabData);
+                prefabs[prefab.uuid] = prefab;
+            }
+            addLibraryToAssets(prefabs);
+        }
 
         // Load Scripts
         const scripts = {};
         if (json.scripts) {
-            for (let i = 0; i < json.scripts.length; i++) {
-                const script = new Script().fromJSON(json.scripts[i]);
+            for (const scriptData of json.scripts) {
+                const script = new Script().fromJSON(scriptData);
                 scripts[script.uuid] = script;
             }
             addLibraryToAssets(scripts);
@@ -269,24 +281,23 @@ class AssetManager {
 
         // Save Palettes
         const palettes = AssetManager.getLibrary('palette');
-        for (let i = 0; i < palettes.length; i++) {
-            const palette = palettes[i];
-            if (!palette.uuid) continue;
-            if (meta.palettes[palette.uuid]) continue;
+        for (const palette of palettes) {
+            if (!palette.uuid || meta.palettes[palette.uuid]) continue;
             meta.palettes[palette.uuid] = palette.toJSON();
         }
 
         // Save Prefabs
-        //
-        // TODO!!!
-        //
+        const prefabs = AssetManager.getLibrary('prefab');
+        for (const prefab of prefabs) {
+            if (!prefab.uuid || meta.prefabs[prefab.uuid]) continue;
+            if (prefab.isBuiltIn) continue;
+            meta.prefabs[prefab.uuid] = prefab.toJSON();
+        }
 
         // Save Scripts
         const scripts = AssetManager.getLibrary('script');
-        for (let i = 0; i < scripts.length; i++) {
-            const script = scripts[i];
-            if (!script.uuid) continue;
-            if (meta.scripts[script.uuid]) continue;
+        for (const script of scripts) {
+            if (!script.uuid || meta.scripts[script.uuid]) continue;
             meta.scripts[script.uuid] = script.toJSON();
         }
 
@@ -294,10 +305,8 @@ class AssetManager {
 
         // Save Geometries
         const geometries = AssetManager.getLibrary('geometry');
-        for (let i = 0; i < geometries.length; i++) {
-            const geometry = geometries[i];
-            if (!geometry.uuid) continue;
-            if (meta.geometries[geometry.uuid]) continue;
+        for (const geometry of geometries) {
+            if (!geometry.uuid || meta.geometries[geometry.uuid]) continue;
             meta.geometries[geometry.uuid] = geometry.toJSON(meta);
 
             // // Save Shapes
@@ -313,28 +322,22 @@ class AssetManager {
 
         // Save Materials
         const materials = AssetManager.getLibrary('material');
-        for (let i = 0; i < materials.length; i++) {
-            const material = materials[i];
-            if (!material.uuid) continue;
-            if (meta.materials[material.uuid]) continue;
+        for (const material of materials) {
+            if (!material.uuid || meta.materials[material.uuid]) continue;
             meta.materials[material.uuid] = material.toJSON(stopRoot);
         }
 
         // Save Shapes
         const shapes = AssetManager.getLibrary('shape');
-        for (let i = 0; i < shapes.length; i++) {
-            const shape = shapes[i];
-            if (!shape.uuid) continue;
-            if (meta.shapes[shape.uuid]) continue;
+        for (const shape of shapes) {
+            if (!shape.uuid || meta.shapes[shape.uuid]) continue;
             meta.shapes[shape.uuid] = shape.toJSON(stopRoot);
         }
 
         // Save Textures
         const textures = AssetManager.getLibrary('texture');
-        for (let i = 0; i < textures.length; i++) {
-            const texture = textures[i];
-            if (!texture.uuid) continue;
-            if (meta.textures[texture.uuid]) continue
+        for (const texture of textures) {
+            if (!texture.uuid || meta.textures[texture.uuid]) continue
             meta.textures[texture.uuid] = texture.toJSON(meta);
         }
 

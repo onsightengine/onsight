@@ -36,7 +36,7 @@ class ObjectUtils {
     /** Check if object should be allowed to be interacted with in Viewport */
     static allowSelection(object) {
         if (object.userData.flagIgnore) return false;
-        return (!object.isLocked);
+        return (!object.locked);
     }
 
     /** Retrieves a child by property */

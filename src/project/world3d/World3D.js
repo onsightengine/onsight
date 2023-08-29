@@ -7,9 +7,8 @@ import { ObjectUtils } from '../../utils/three/ObjectUtils.js';
 
 class World3D extends Entity3D {
 
-    constructor(name = 'World 1', locked = false) {
+    constructor(name = 'World 1') {
         super(name);
-        this.isLocked = locked;
 
         // Prototype
         this.isScene = true;                // for THREE.Render() compatibility

@@ -39,8 +39,8 @@ class Entity3D extends THREE.Object3D {
 
         // Properties, Basic
         this.name = name;
-        this.category = null;                   // used for organizing prefabs
-        this.isLocked = false;                  // locked in Editor (do not allow selection, deletion, duplication, etc.)
+        this.category = null;                   // used for organizing Prefabs
+        this.locked = false;                    // locked in Editor (do not allow selection, deletion, duplication, etc.)
         this.lookAtCamera = false;              // implemented in updateMatrix() overload
 
         // Properties, Lighting
@@ -53,14 +53,18 @@ class Entity3D extends THREE.Object3D {
 
         // Properties, Flags
         Object.defineProperty(this, 'componentGroup', { value: 'Entity3D', writable: false, configurable: true });
-        Object.defineProperty(this, 'isTemp', { get() { return (this.userData.flagTemp); } });
     }
 
     /** Checks if entity is important and should be protected */
     isImportant() {
-        if (this.isLocked) return true;         // avoid locked entities
-        if (this.isTemp) return true;           // avoid temp entities (i.e. SceneBoundary)
+        if (this.locked) return true;           // avoid locked entities
+        if (this.isTemp()) return true;         // avoid temp entities (i.e. SceneBoundary)
         return false;
+    }
+
+     /** Checks if entity is temporary */
+     isTemp() {
+        return (this.userData.flagTemp);
     }
 
     /******************** UPDATE MATRIX */
@@ -450,7 +454,7 @@ class Entity3D extends THREE.Object3D {
         this.position.copy(source.position);
         this.rotation.copy(source.rotation);
         this.scale.copy(source.scale);
-        this.isLocked = source.isLocked;                // Entity3D property, attempt to copy
+        this.locked = source.locked;                    // Entity3D property, attempt to copy
         this.lookAtCamera = source.lookAtCamera;        // Entity3D property, attempt to copy
         this.updateMatrix();
 
@@ -480,7 +484,7 @@ class Entity3D extends THREE.Object3D {
         // Entity3D Basic Properties
         this.name = source.name;
         this.category = source.category;
-        this.isLocked = source.isLocked;
+        this.locked = source.locked;
         this.lookAtCamera = source.lookAtCamera;
 
         // Entity3D Lighting Properties
@@ -532,7 +536,7 @@ class Entity3D extends THREE.Object3D {
         // Entity3D Properties
         if (data.name !== undefined) this.name = data.name;
         if (data.category !== undefined) this.category = data.category;
-        if (data.isLocked !== undefined) this.isLocked = data.isLocked;
+        if (data.locked !== undefined) this.locked = data.locked;
         if (data.lookAtCamera !== undefined) this.lookAtCamera = data.lookAtCamera;
         if (data.bloom !== undefined) this.bloom = data.bloom;
 
@@ -593,7 +597,7 @@ class Entity3D extends THREE.Object3D {
 
         // Entity3D Basic Properties
         json.object.category = this.category;
-        json.object.isLocked = this.isLocked;
+        json.object.locked = this.locked;
         json.object.lookAtCamera = this.lookAtCamera;
 
         // Entity3D Lighting Properties

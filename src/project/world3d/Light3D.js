@@ -47,6 +47,8 @@ class Light3D extends Entity3D {
         penumbra = 0,
     } = {}) {
         super(name ?? 'Light');
+        this.castShadow = false;                // disable shadows by default, inherited from THREE.Object3D
+        this.receiveShadow = false;             // disable shadows by default, inherited from THREE.Object3D
 
         // Validate Type
         type = Light3D.validateType(type);

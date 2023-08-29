@@ -2,11 +2,10 @@ import * as THREE from 'three';
 import { Maths } from '../Maths.js';
 import { Vectors } from '../Vectors.js';
 
-// allowSelection()         Check if object should be allowed to be interacted with in Editor
 // childByProperty()        Retrieves a child by property
 // clearObject()            Completely deletes object (including geomtries/materials), and all of it's children
 // clearMaterial()          Disposes of a material
-// compareQuaternions()     Compares array of objects to see if quaternions are all the same
+// compareQuaternions()     Compares objects to see if quaternions are all the same
 // computeBounds()          Finds bounding box of an object or array of objects
 // computeCenter()          Finds center point of an object or array of objects
 // containsObject()         Checks array to see if it has an object (by Object3D.uuid)
@@ -14,7 +13,6 @@ import { Vectors } from '../Vectors.js';
 // copyWorldTransform()     Copies world transform from one object to another
 // countGeometry()          Counts total geometris in an object or array of objects
 // flattenGroup()           Puts an object's children into parent, deletes original containing object
-// fromJSON()               Sets base THREE.Object3D properties from JSON
 // resetTransform()         Normalize / zero / reset object 3D transform
 // uuidArray()              Converts object array to UUID array
 
@@ -33,12 +31,6 @@ const _tempScale = new THREE.Vector3();
 
 class ObjectUtils {
 
-    /** Check if object should be allowed to be interacted with in Viewport */
-    static allowSelection(object) {
-        if (object.userData.flagIgnore) return false;
-        return (!object.locked);
-    }
-
     /** Retrieves a child by property */
     static childByProperty(object, property, value) {
         for (const child of object.children) {
@@ -48,15 +40,14 @@ class ObjectUtils {
 
     /** Completely deletes 'object' (including geomtries and materials), and all of it's children */
     static clearObject(object, removeFromParent = true) {
-        if (!object) return;
-        if (!object.isObject3D) return;
+        if (!object || !object.isObject3D) return;
 
         if (object.geometry && typeof object.geometry.dispose === 'function') object.geometry.dispose();
         if (object.material) ObjectUtils.clearMaterial(object.material);
         if (object.dispose && typeof object.dispose === 'function') object.dispose();
 
         while (object.children.length > 0) {
-            ObjectUtils.clearObject(object.children[0], true);
+            ObjectUtils.clearObject(object.children[0], true /* removeFromParent */);
         }
 
         ObjectUtils.resetTransform(object);
@@ -67,7 +58,7 @@ class ObjectUtils {
     /** Disposes of a material */
     static clearMaterial(materials) {
         if (!materials) return;
-        materials = Array.isArray(materials) ? materials : [ materials ];
+        materials = Array.isArray(materials) ? materials : [...arguments];
         for (const material of materials) {
             const keys = Object.keys(material);
             for (const key of keys) {
@@ -81,11 +72,11 @@ class ObjectUtils {
     }
 
     /** Compares array of objects to see if quaternions are all the same */
-    static compareQuaternions(array) {
-        if (array.length <= 1) return true;
-        array[0].getWorldQuaternion(_startQuaternion);
-        for (let i = 1; i < array.length; i++) {
-            array[i].getWorldQuaternion(_testQuaternion);
+    static compareQuaternions(objects) {
+        objects = Array.isArray(objects) ? objects : [...arguments];
+        objects[0].getWorldQuaternion(_startQuaternion);
+        for (let i = 1; i < objects.length; i++) {
+            objects[i].getWorldQuaternion(_testQuaternion);
             if (Maths.fuzzyQuaternion(_startQuaternion, _testQuaternion) === false) return false;
         }
         return true;
@@ -143,9 +134,9 @@ class ObjectUtils {
     }
 
     /** Checks array to see if it has an object (by Object3D.uuid) */
-    static containsObject(arrayOfObjects, object) {
-        if (object && object.uuid && Array.isArray(arrayOfObjects)) {
-            for (const arrayObject of arrayOfObjects) {
+    static containsObject(objectArray, object) {
+        if (object && object.uuid && Array.isArray(objectArray)) {
+            for (const arrayObject of objectArray) {
                 if (arrayObject.uuid && arrayObject.uuid === object.uuid) return true;
             }
         }
@@ -195,28 +186,6 @@ class ObjectUtils {
         ObjectUtils.clearObject(group, true);
     }
 
-    /** Sets base THREE.Object3D properties from JSON (replaces THREE.ObjectLoader()) */
-    static fromJSON(json, object) {
-        const data = json.object;
-        if (!data || !object || !object.isObject3D) return;
-
-        if (data.uuid !== undefined) object.uuid = data.uuid;
-
-        if (data.position !== undefined) object.position.fromArray(data.position);
-        if (data.rotation !== undefined) object.rotation.fromArray(data.rotation);
-        if (data.scale !== undefined) object.scale.fromArray(data.scale);
-
-        if (data.castShadow !== undefined) object.castShadow = data.castShadow;
-        if (data.receiveShadow !== undefined) object.receiveShadow = data.receiveShadow;
-        if (data.matrixAutoUpdate !== undefined) object.matrixAutoUpdate = data.matrixAutoUpdate;
-        if (data.layers !== undefined) object.layers.mask = data.layers;
-
-        if (data.visible !== undefined) object.visible = data.visible;
-        if (data.frustumCulled !== undefined) object.frustumCulled = data.frustumCulled;
-        if (data.renderOrder !== undefined) object.renderOrder = data.renderOrder;
-        if (data.userData !== undefined) object.userData = data.userData;
-    }
-
     /** Calculate identity size (scale 1, 1, 1), stores result in 'target' (THREE.Vector3) */
     static identityBoundsCalculate(object, target) {
         target = target ?? new THREE.Vector3();
@@ -241,8 +210,8 @@ class ObjectUtils {
     }
 
     /** Converts object array to UUID array */
-    static uuidArray(objects = []) {
-        if (!Array.isArray(objects)) objects = [...arguments];
+    static uuidArray(objects) {
+        objects = Array.isArray(objects) ? objects : [...arguments];
         const uuids = [];
         for (const object of objects) {
             if (typeof object === 'object' && object.uuid) uuids.push(object.uuid);

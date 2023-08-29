@@ -100,14 +100,15 @@ class EntityUtils {
 
     /** Returns top level entity that is not a world or stage */
     static parentEntity(entity, immediateOnly = false) {
-        while (entity && entity.parent && !entity.parent.isWorld && !entity.parent.isStage) {
+        while (entity && entity.parent) {
+            if (entity.parent.isStage) return entity;
+            if (entity.parent.isWorld) return entity;
             entity = entity.parent;
-            if (immediateOnly && entity.isEntity) {
-                if (entity.userData.flagIgnore || entity.userData.flagTemp) {
-                    // IGNORE
-                } else {
-                    return entity;
-                }
+            if (immediateOnly) {
+                let validEntity = entity.isEntity;
+                validEntity = validEntity || entity.userData.flagIgnore;
+                validEntity = validEntity || entity.userData.flagHelper;
+                if (validEntity) return entity;
             }
         }
         return entity;
@@ -115,20 +116,18 @@ class EntityUtils {
 
     /** Returns parent stage (fallback to world) of an entity */
     static parentStage(entity) {
-        if (entity && (entity.isStage || entity.isWorld)) return entity;
-        while (entity && entity.parent) {
+        while (entity) {
+            if (entity.isStage || entity.isWorld) return entity;
             entity = entity.parent;
-            if (entity && (entity.isStage || entity.isWorld)) return entity;
         }
         return null;
     }
 
     /** Returns parent world of an entity */
     static parentWorld(entity) {
-        if (entity && entity.isWorld) return entity;
-        while (entity && entity.parent) {
+        while (entity) {
+            if (entity.isWorld) return entity;
             entity = entity.parent;
-            if (entity && entity.isWorld) return entity;
         }
         return null;
     }

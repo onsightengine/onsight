@@ -2,11 +2,12 @@ import * as THREE from 'three';
 import { ComponentManager } from '../../app/ComponentManager.js';
 import { ObjectUtils } from '../../utils/three/ObjectUtils.js';
 
-// INTERNAL FLAGS
-//  Object3D.userData.flagIgnore        Ignore object during: Focus, Clone, toJSON, Select
-//  Object3D.userData.flagTemp          Ignore object during: Focus, Clone, toJSON, Delete (SceneUtils)
-//  Object3D.userData.entityId          Used for transform controls to link a transform clone with original entity
-//  Object3D.userData.loadedDistance    Used for loading entities into World during Play (tracks removal)
+// FLAGS
+//  Object3D.userData.flagIgnore        Temporary Object - ignore during: Focus, Clone, toJSON, Select
+//  Object3D.userData.flagHelper        Helper Object - ignore during: Focus, Clone, toJSON, Delete (SceneUtils)
+// DATA
+//  Object3D.userData.entityID          Used for transform controls to link a transform clone with original entity
+//  Object3D.userData.loadedDistance    Used for tracking removal of Entities loaded into World during App.play()
 
 const _m1 = new THREE.Matrix4();
 const _camPosition = new THREE.Vector3();
@@ -30,7 +31,11 @@ const _worldRotation = new THREE.Euler();
 class Entity3D extends THREE.Object3D {
 
     constructor(name = 'Entity') {
+        // Object3D
         super();
+        this.name = name;
+        this.castShadow = true;                 // enable shadows by default
+        this.receiveShadow = true;              // enable shadows by default
 
         // Prototype
         this.isEntity = true;
@@ -38,33 +43,22 @@ class Entity3D extends THREE.Object3D {
         this.type = 'Entity3D';
 
         // Properties, Basic
-        this.name = name;
-        this.category = null;                   // used for organizing Prefabs
         this.locked = false;                    // locked in Editor (do not allow selection, deletion, duplication, etc.)
-        this.lookAtCamera = false;              // implemented in updateMatrix() overload
+        this.lookAtCamera = false;              // implemented in Entity3D.updateMatrix() overload
 
         // Properties, Lighting
-        this.castShadow = true;                 // enable shadows, inherited from THREE.Object3D
-        this.receiveShadow = true;              // enable shadows, inherited from THREE.Object3D
         this.bloom = false;
+
+        // Properties, Prefab
+        this.category = null;                   // used for organizing
 
         // Collections
         this.components = [];                   // geometry, material, audio, light, etc.
-
-        // Properties, Flags
-        Object.defineProperty(this, 'componentGroup', { value: 'Entity3D', writable: false, configurable: true });
     }
 
-    /** Checks if entity is important and should be protected */
-    isImportant() {
-        if (this.locked) return true;           // avoid locked entities
-        if (this.isTemp()) return true;         // avoid temp entities (i.e. SceneBoundary)
-        return false;
-    }
-
-     /** Checks if entity is temporary */
-     isTemp() {
-        return (this.userData.flagTemp);
+    /** Override to set component.group */
+    componentGroup() {
+        return 'Entity3D';
     }
 
     /******************** UPDATE MATRIX */
@@ -289,14 +283,14 @@ class Entity3D extends THREE.Object3D {
 
     /** NOTE: Does not call dispose on component! */
     removeComponent(component) {
+        if (!component) return;
         const index = this.components.indexOf(component);
-        if (index === -1) {
-            console.warn(`Entity3D.removeComponent: Component ${component.uuid}, type '${component.type}' not found`);
-        } else {
+        if (index !== -1) {
             this.components.splice(index, 1);
             component.detach();
+            return component;
         }
-        return component;
+        console.warn(`Entity3D.removeComponent: Component ${component.uuid}, type '${component.type}' not found`);
     }
 
     rebuildComponents() {
@@ -311,8 +305,7 @@ class Entity3D extends THREE.Object3D {
     /** Return 'true' in callback to stop further recursion */
     traverseComponents(callback) {
         for (const component of this.components) {
-            const cancel = (typeof callback === 'function') ? callback(component) : false;
-            if (cancel) return;
+            if (typeof callback === 'function' && callback(component)) return;
         }
     }
 
@@ -379,15 +372,14 @@ class Entity3D extends THREE.Object3D {
     }
 
     getEntities() {
-        const filteredChildren = [];
-        for (const child of this.children) {
-            if (child.isEntity3D) {
-                if (child.userData.flagIgnore) continue;
-                if (child.userData.flagTemp) continue;
-                filteredChildren.push(child);
-            }
+        const entities = [];
+        for (const entity of this.children) {
+            if (!entity || !entity.isEntity3D) continue;
+            if (entity.userData.flagIgnore) continue;
+            if (entity.userData.flagHelper) continue;
+            entities.push(entity);
         }
-        return filteredChildren;
+        return entities;
     }
 
     getEntityById(id) {
@@ -415,16 +407,17 @@ class Entity3D extends THREE.Object3D {
     /** Removes entity, does not call 'dispose()' on Entity!! */
     removeEntity(entity, forceDelete = false) {
         if (!entity) return;
-        if (!forceDelete && entity.isImportant()) return; /* locked? temp? */
+        if (!forceDelete) {
+            if (entity.locked) return;
+            if (entity.userData.flagHelper) return;
+        }
         this.remove(entity); /* entity is now out of Project */
         return entity;
     }
 
     /** Return 'true' in callback to stop further recursion */
     traverse(callback, recursive = true) {
-		const cancel = (typeof callback === 'function') ? callback(this) : false;
-        if (cancel) return;
-
+		if (typeof callback === 'function' && callback(this)) return;
         for (const child of this.children) {
             child.traverse(callback, recursive);
         }
@@ -432,9 +425,7 @@ class Entity3D extends THREE.Object3D {
 
     /** Return 'true' in callback to stop further recursion */
     traverseEntities(callback, recursive = true) {
-        const cancel = (typeof callback === 'function') ? callback(this) : false;
-        if (cancel) return;
-
+        if (typeof callback === 'function' && callback(this)) return;
         for (const child of this.getEntities()) {
             child.traverseEntities(callback, recursive);
         }
@@ -454,15 +445,15 @@ class Entity3D extends THREE.Object3D {
         this.position.copy(source.position);
         this.rotation.copy(source.rotation);
         this.scale.copy(source.scale);
-        this.locked = source.locked;                    // Entity3D property, attempt to copy
-        this.lookAtCamera = source.lookAtCamera;        // Entity3D property, attempt to copy
+        if (source.locked) this.locked = true;                  // Entity3D property (attempt to copy)
+        if (source.lookAtCamera) this.lookAtCamera = true;      // Entity3D property (attempt to copy)
         this.updateMatrix();
 
         // Copy Children
         if (recursive) {
             for (const child of source.children) {
                 if (child.userData.flagIgnore) continue;
-                if (child.userData.flagTemp) continue;
+                if (child.userData.flagHelper) continue;
                 this.add(child.clone());
             }
         }
@@ -482,26 +473,23 @@ class Entity3D extends THREE.Object3D {
         this.copy(source, false /* recursive */);
 
         // Entity3D Basic Properties
-        this.name = source.name;
-        this.category = source.category;
         this.locked = source.locked;
         this.lookAtCamera = source.lookAtCamera;
-
-        // Entity3D Lighting Properties
         this.bloom = source.bloom;
+
+        // Prefab Properties
+        this.category = source.category;
 
         // Copy Components
         for (const component of source.components) {
             const clonedComponent = this.addComponent(component.type, component.toJSON(), false);
-            // Copy Component Properties
+            // Component Properties
             clonedComponent.tag = component.tag;
         }
 
         // Copy Children
         if (recursive) {
             for (const child of source.getEntities()) {
-                if (child.userData.flagIgnore) continue;
-                if (child.userData.flagTemp) continue;
                 this.add(child.cloneEntity());
             }
         }
@@ -531,14 +519,33 @@ class Entity3D extends THREE.Object3D {
         const data = json.object;
 
         // Object3D Properties
-        ObjectUtils.fromJSON(json, this);
+        if (data.name !== undefined) this.name = data.name;
+        if (data.uuid !== undefined) this.uuid = data.uuid;
+
+        if (data.position !== undefined) this.position.fromArray(data.position);
+        if (data.rotation !== undefined) this.rotation.fromArray(data.rotation);
+        if (data.scale !== undefined) this.scale.fromArray(data.scale);
+
+        if (data.castShadow !== undefined) this.castShadow = data.castShadow;
+        if (data.receiveShadow !== undefined) this.receiveShadow = data.receiveShadow;
+        if (data.visible !== undefined) this.visible = data.visible;
+        if (data.frustumCulled !== undefined) this.frustumCulled = data.frustumCulled;
+        if (data.renderOrder !== undefined) this.renderOrder = data.renderOrder;
+
+        if (data.layers !== undefined) this.layers.mask = data.layers;
+        if (data.up !== undefined) this.up.fromArray(data.up);
+        if (data.matrixAutoUpdate !== undefined) this.matrixAutoUpdate = data.matrixAutoUpdate;
+
+        // User Data
+        if (typeof data.userData === 'object') this.userData = structuredClone(data.userData);
 
         // Entity3D Properties
-        if (data.name !== undefined) this.name = data.name;
-        if (data.category !== undefined) this.category = data.category;
         if (data.locked !== undefined) this.locked = data.locked;
         if (data.lookAtCamera !== undefined) this.lookAtCamera = data.lookAtCamera;
         if (data.bloom !== undefined) this.bloom = data.bloom;
+
+        // Prefab Properties
+        if (data.category !== undefined) this.category = data.category;
 
         // Components
         for (const componentData of json.object.components) {
@@ -585,23 +592,28 @@ class Entity3D extends THREE.Object3D {
 
         json.object.castShadow = this.castShadow;
         json.object.receiveShadow = this.receiveShadow;
-        json.object.matrixAutoUpdate = this.matrixAutoUpdate;
-        json.object.layers = this.layers.mask;
+        json.object.visible = this.visible;
+        json.object.frustumCulled = this.frustumCulled;
+        json.object.renderOrder = this.renderOrder;
 
-        if (this.visible === false) json.object.visible = false;
-        if (this.frustumCulled === false) json.object.frustumCulled = false;
-        if (this.renderOrder !== 0) json.object.renderOrder = this.renderOrder;
-        if (JSON.stringify(this.userData) !== '{}') {
-            json.object.userData = (typeof structuredClone === 'function') ? structuredClone(this.userData) : JSON.parse(JSON.stringify(this.userData));
+        json.object.layers = this.layers.mask;
+        json.object.up = this.up.toArray();
+        json.object.matrixAutoUpdate = this.matrixAutoUpdate;
+
+        // User Data
+        if (Object.keys(this.userData).length > 0) {
+            json.object.userData = structuredClone(this.userData);
         }
 
         // Entity3D Basic Properties
-        json.object.category = this.category;
         json.object.locked = this.locked;
         json.object.lookAtCamera = this.lookAtCamera;
 
         // Entity3D Lighting Properties
         json.object.bloom = this.bloom;
+
+        // Prefab Properties
+        json.object.category = this.category;
 
         // Components
         for (const component of this.components) {

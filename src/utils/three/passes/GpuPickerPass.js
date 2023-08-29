@@ -73,9 +73,10 @@ class GpuPickerPass extends Pass {
 
             if (!object || !object.isObject3D) return;
             if (!object.visible) return;
-            if (!ObjectUtils.allowSelection(object)) return;
+            if (object.locked) return;
+            if (object.userData.flagIgnore) return;
 
-            const objId = object.id;
+            const objID = object.id;
             const material = object.material; // renderItem.material;
             const geometry = object.geometry; // renderItem.geometry;
 
@@ -177,10 +178,10 @@ class GpuPickerPass extends Pass {
             }
 
             renderMaterial.uniforms.objectId.value = [
-                (objId >> 0 & 255) / 255,
-                (objId >> 8 & 255) / 255,
-                (objId >> 16 & 255) / 255,
-                (objId >> 24 & 255) / 255,
+                (objID >> 0 & 255) / 255,
+                (objID >> 8 & 255) / 255,
+                (objID >> 16 & 255) / 255,
+                (objID >> 24 & 255) / 255,
             ];
 
             // // Opacity, OPTION: Render objects to gpu picker as fully transparent
@@ -207,8 +208,8 @@ class GpuPickerPass extends Pass {
     /******************** RENDER */
 
     dispose() {
-        this.pickingTarget.dispose();
-        this.spriteMap.dispose();
+        if (this.pickingTarget && this.pickingTarget.dispose) this.pickingTarget.dispose();
+        if (this.spriteMap && this.spriteMap.dispose) this.spriteMap.dispose();
         console.warn('GpuPickerPass: Instance was disposed!');
     }
 

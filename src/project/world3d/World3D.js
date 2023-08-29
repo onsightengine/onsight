@@ -47,9 +47,10 @@ class World3D extends Entity3D {
         this.shadowPlane.receiveShadow = true;
         this.shadowPlane.visible = false;
         this.add(this.shadowPlane);
+    }
 
-        // Properties, Flags
-        Object.defineProperty(this, 'componentGroup', { get() { return 'World3D'; } });
+    componentGroup() {
+        return 'World3D';
     }
 
     /******************** CHILDREN */
@@ -245,7 +246,7 @@ class World3D extends Entity3D {
             }
         }
         if (this.environment) {
-
+            // ??
         }
         if (this.fog) json.object.fog = this.fog.toJSON();
         if (this.backgroundBlurriness > 0) json.object.backgroundBlurriness = this.backgroundBlurriness;

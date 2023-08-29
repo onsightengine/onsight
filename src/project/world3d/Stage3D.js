@@ -19,9 +19,10 @@ class Stage3D extends Entity3D {
         this.finish = -1;
         this.beginPosition = new THREE.Matrix4().setPosition(-2, 0, 0);
         this.endPosition = new THREE.Matrix4().setPosition(2, 0, 0);
+    }
 
-        // Properties, Flags
-        Object.defineProperty(this, 'componentGroup', { get() { return 'Stage3D'; } });
+    componentGroup() {
+        return 'Stage3D';
     }
 
     /******************** COPY / CLONE */

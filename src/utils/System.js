@@ -1,5 +1,4 @@
 // ARRAYS
-//  arrayFromArguments()    Converts argument list to Array
 //  isIterable()            Checks if a javascript object is iterable
 //  isObject()              Checks if a variable is an object (and not null / array / function)
 //  swapArrayItems()        Swaps two items in an array
@@ -16,15 +15,6 @@
 class System {
 
     /******************** ARRAYS ********************/
-
-    /** Returns argument list as array, or if array was passed as argument, returns array */
-    static arrayFromArguments() {
-        if (arguments.length === 1 && Array.isArray(arguments[0])) {
-            return arguments[0];
-        } else {
-            return Array.from(arguments);
-        }
-    }
 
     /** Checks if a javascript object is iterable */
     static isIterable(obj) {

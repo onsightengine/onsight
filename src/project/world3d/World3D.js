@@ -48,6 +48,9 @@ class World3D extends Entity3D {
         this.shadowPlane.receiveShadow = true;
         this.shadowPlane.visible = false;
         this.add(this.shadowPlane);
+
+        // Properties, Flags
+        Object.defineProperty(this, 'componentGroup', { get() { return 'World3D'; } });
     }
 
     /******************** CHILDREN */

@@ -277,28 +277,26 @@ class ComponentManager {
     static includeData(item, data1, data2 = undefined) {
 
         // Check all 'if' keys, ex: bevelSize: { type: 'number', if: { style: [ 'shape' ], bevelEnabled: [ true ] } } }
-        for (let key in item.if) {
-            let conditions = item.if[key];
-            if (System.isIterable(conditions) !== true) conditions = [ conditions ];
+        for (const key in item.if) {
+            const conditions = Array.isArray(item.if[key]) ? item.if[key] : [ item.if[key] ];
 
             let check1 = false, check2 = false;
-            for (let j = 0; j < conditions.length; j++) {
-                check1 = check1 || (data1[key] === conditions[j]);
-                check2 = check2 || (data2 === undefined) ? true : (data2[key] === conditions[j]);
+            for (const condition of conditions) {
+                check1 = check1 || (data1[key] === condition);
+                check2 = check2 || (data2 === undefined) ? true : (data2[key] === condition);
             }
 
             if (!check1 || !check2) return false;
         }
 
         // Check all 'not' keys, EXAMPLE: height: { type: 'number', not: { style: [ 'shape' ] } },
-        for (let key in item.not) {
-            let conditions = item.not[key];
-            if (System.isIterable(conditions) !== true) conditions = [ conditions ];
+        for (const key in item.not) {
+            const conditions = Array.isArray(item.not[key]) ? item.not[key] : [ item.not[key] ];
 
             let check1 = false, check2 = false;
-            for (let j = 0; j < conditions.length; j++) {
-                check1 = check1 || (data1[key] === conditions[j]);
-                check2 = check2 || (data2 === undefined) ? false : (data2[key] === conditions[j]);
+            for (const condition of conditions) {
+                check1 = check1 || (data1[key] === condition);
+                check2 = check2 || (data2 === undefined) ? false : (data2[key] === condition);
             }
 
             if (check1 || check2) return false;
@@ -317,23 +315,20 @@ class ComponentManager {
         if (!System.isObject(schema)) return;
 
         // PARSE KEYS
-        for (let schemaKey in schema) {
-
-            // Get Value as Array (which is a list of properties with different 'if' conditions)
-            let itemArray = schema[schemaKey];
-            if (System.isIterable(itemArray) !== true) itemArray = [ schema[schemaKey] ];
+        for (const schemaKey in schema) {
+            // List of properties with different 'if' conditions
+            const itemArray = Array.isArray(schema[schemaKey]) ? schema[schemaKey] : [ schema[schemaKey] ];
 
             // Process each item in property array, include first item that is allowed (matches 'if', 'not', etc.)
             let itemToInclude = undefined;
-            for (let i = 0; i < itemArray.length; i++) {
-                let item = itemArray[i];
-
+            for (const item of itemArray) {
                 // FORMATTING ONLY
                 if (item.type === 'divider') continue;
 
                 // PROCESS 'IF' / 'NOT'
                 if (!ComponentManager.includeData(item, data)) continue;
 
+                // INCLUDE
                 itemToInclude = item;
                 break;
             }
@@ -369,23 +364,21 @@ class ComponentManager {
         if (!System.isObject(schema)) return;
 
         // PARSE KEYS
-        for (let schemaKey in schema) {
+        for (const schemaKey in schema) {
             let matchedConditions = false;
 
-            // Get Value as Array (list of properties with different 'if' conditions)
-            let itemArray = schema[schemaKey];
-            if (System.isIterable(itemArray) !== true) itemArray = [ schema[schemaKey] ];
+            // List of properties with different 'if' conditions
+            const itemArray = Array.isArray(schema[schemaKey]) ? schema[schemaKey] : [ schema[schemaKey] ];
 
-            // Process each item in property array, check if that we satisfy 'if' condition
-            for (let i = 0; i < itemArray.length; i++) {
-                let item = itemArray[i];
-
+            // Process each item, check if that we satisfy 'if' condition
+            for (const item of itemArray) {
                 // FORMATTING ONLY
                 if (item.type === 'divider') continue;
 
                 // PROCESS 'IF' / 'NOT'
                 if (!ComponentManager.includeData(item, oldData, newData)) continue;
 
+                // MATCHED
                 matchedConditions = true;
                 break;
             }

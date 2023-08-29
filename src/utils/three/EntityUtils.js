@@ -4,7 +4,6 @@
 // containsEntity()             Checks array to see if it has an entity (by entity.uuid)
 // containsMesh()               Checks if entity contains Mesh
 // findCamera()                 Attempts to find a camera within an entity
-// isImportant()                Checks if entity is important and should be protected
 // parentEntity()               Returns top level entity that is not a world or stage
 // parentStage()                Returns parent stage (fallback to world) of an entity
 // parentWorld()                Returns parent world of an entity
@@ -52,7 +51,7 @@ class EntityUtils {
         if (!Array.isArray(arrayOfEntities)) return false;
         if (!entity || !entity.isEntity) return false;
         for (const checkEntity of arrayOfEntities) {
-            if (checkEntity && checkEntity.isEntity && checkEntity.uuid === entity.uuid) return true;
+            if (checkEntity.isEntity && checkEntity.uuid === entity.uuid) return true;
         }
         return false;
     }
@@ -97,15 +96,6 @@ class EntityUtils {
             }
         });
         return camera;
-    }
-
-    /** Checks if entity is important and should be protected */
-    static isImportant(entity) {
-        if (!entity || !entity.isEntity) return false;
-        let important = false;
-        important = important || entity.parent == null;     // Avoid deleting cameras / scenes
-        important = important || entity.isLocked;           // Avoid locked entities
-        return important;
     }
 
     /** Returns top level entity that is not a world or stage */

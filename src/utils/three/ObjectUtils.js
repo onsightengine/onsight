@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { Maths } from '../Maths.js';
-import { System } from '../System.js';
 import { Vectors } from '../Vectors.js';
 
 // allowSelection()         Check if object should be allowed to be interacted with in Editor
@@ -42,8 +41,7 @@ class ObjectUtils {
 
     /** Retrieves a child by property */
     static childByProperty(object, property, value) {
-        for (let i = 0; i < object.children.length; i++) {
-            const child = object.children[i];
+        for (const child of object.children) {
             if (child[property] === value) return child;
         }
     }
@@ -68,14 +66,17 @@ class ObjectUtils {
 
     /** Disposes of a material */
     static clearMaterial(materials) {
-        if (System.isIterable(materials) !== true) materials = [ materials ];
-        for (let i = 0, il = materials.length; i < il; i++) {
-            const material = materials[i];
-            Object.keys(material).forEach((prop) => { /* in case of map, bumpMap, normalMap, envMap, etc. */
-                if (!material[prop]) return;
-                if (typeof material[prop].dispose === 'function') material[prop].dispose();
-            });
-            if (material.dispose) material.dispose();
+        if (!materials) return;
+        materials = Array.isArray(materials) ? materials : [ materials ];
+        for (const material of materials) {
+            const keys = Object.keys(material);
+            for (const key of keys) {
+                const property = material[key];
+                if (property && typeof property.dispose === 'function') {
+                    property.dispose();
+                }
+            }
+            if (typeof material.dispose === 'function') material.dispose();
         }
     }
 
@@ -90,20 +91,20 @@ class ObjectUtils {
         return true;
     }
 
-    /** Finds bounding box of an object or array of objects  (recursively adding children meshes) */
-    static computeBounds(groupOrArray, targetBox, checkIfSingleGeometry = false) {
+    /** Finds bounding box of an object or array of objects (recursively adding children meshes) */
+    static computeBounds(objects, targetBox, checkIfSingleGeometry = false) {
         if (targetBox === undefined || targetBox.isBox3 !== true) targetBox = new THREE.Box3();
-        const objects = (System.isIterable(groupOrArray)) ? groupOrArray : [ groupOrArray ];
+        objects = Array.isArray(objects) ? objects : [ objects ];
         targetBox.makeEmpty();
 
         // If object contains single geometry, we might want un-rotated box
-        if (checkIfSingleGeometry && ObjectUtils.countGeometry(groupOrArray) === 1) {
+        if (checkIfSingleGeometry && ObjectUtils.countGeometry(objects) === 1) {
             let geomObject = undefined;
-            objects.forEach((object) => {
+            for (const object of objects) {
                 object.traverse((child) => {
                     if (child.geometry) geomObject = child;
                 });
-            });
+            }
 
             // Use unrotated geometry for box
             if (geomObject && geomObject.geometry) {
@@ -123,15 +124,15 @@ class ObjectUtils {
     }
 
     /** Finds center point of an object or array of objects (recursively adding children meshes) */
-    static computeCenter(groupOrArray, targetVec3) {
-        const objects = (System.isIterable(groupOrArray)) ? groupOrArray : [ groupOrArray ];
+    static computeCenter(objects, targetVec3) {
+        objects = Array.isArray(objects) ? objects : [ objects ];
 
         // Get Bounds
         ObjectUtils.computeBounds(objects, _boxCenter);
 
         // If still empty, no geometries were found, use object locations
         if (_boxCenter.isEmpty()) {
-            for (let object of objects) {
+            for (const object of objects) {
                 object.getWorldPosition(_tempVector);
                 _boxCenter.expandByPoint(_tempVector);
             }
@@ -143,9 +144,9 @@ class ObjectUtils {
 
     /** Checks array to see if it has an object (by Object3D.uuid) */
     static containsObject(arrayOfObjects, object) {
-        if (object && object.uuid && System.isIterable(arrayOfObjects)) {
-            for (let i = 0; i < arrayOfObjects.length; i++) {
-                if (arrayOfObjects[i].uuid === object.uuid) return true;
+        if (object && object.uuid && Array.isArray(arrayOfObjects)) {
+            for (const arrayObject of arrayOfObjects) {
+                if (arrayObject.uuid && arrayObject.uuid === object.uuid) return true;
             }
         }
         return false;
@@ -175,14 +176,14 @@ class ObjectUtils {
     }
 
     /** Counts total geometries in an object or array of objects */
-    static countGeometry(groupOrArray) {
-        const objects = (System.isIterable(groupOrArray)) ? groupOrArray : [ groupOrArray ];
+    static countGeometry(objects) {
+        objects = Array.isArray(objects) ? objects : [ objects ];
         let geometryCount = 0;
-        objects.forEach((object) => {
+        for (const object of objects) {
             object.traverse((child) => {
                 if (child.geometry) geometryCount++;
             });
-        });
+        }
         return geometryCount;
     }
 

@@ -47,7 +47,7 @@ class Material {
 
                 // Check if wants map (texture)
                 let variable = Material.config.schema[key];
-                if (System.isIterable(variable) && variable.length > 0) variable = variable[0];
+                if (Array.isArray(variable) && variable.length > 0) variable = variable[0];
                 if (value && variable && variable.type === 'asset') {
 
                     // Make sure texture is in AssetManager

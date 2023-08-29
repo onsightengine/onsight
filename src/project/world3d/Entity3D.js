@@ -1,8 +1,6 @@
 import * as THREE from 'three';
 import { ComponentManager } from '../../app/ComponentManager.js';
-import { EntityUtils } from '../../utils/three/EntityUtils.js';
 import { ObjectUtils } from '../../utils/three/ObjectUtils.js';
-import { Strings } from '../../utils/Strings.js';
 
 // INTERNAL FLAGS
 //  Object3D.userData.flagIgnore        Ignore object during: Focus, Clone, toJSON, Select
@@ -53,7 +51,17 @@ class Entity3D extends THREE.Object3D {
         // Collections
         this.components = [];                   // geometry, material, audio, light, etc.
 
-    } // end ctor
+        // Properties, Flags
+        Object.defineProperty(this, 'componentGroup', { value: 'Entity3D', writable: false, configurable: true });
+        Object.defineProperty(this, 'isTemp', { get() { return (this.userData.flagTemp); } });
+    }
+
+    /** Checks if entity is important and should be protected */
+    isImportant() {
+        if (this.isLocked) return true;         // avoid locked entities
+        if (this.isTemp) return true;           // avoid temp entities (i.e. SceneBoundary)
+        return false;
+    }
 
     /******************** UPDATE MATRIX */
 
@@ -232,7 +240,7 @@ class Entity3D extends THREE.Object3D {
     /** Get component by type (string, required) and tag (string, optional - in case of multiple components with type) */
     getComponent(type, tag /* optional */) {
         if (tag === undefined) return this.getComponentByProperty('type', type);
-        let components = this.getComponentsWithProperties('type', type, 'tag', tag);
+        const components = this.getComponentsWithProperties('type', type, 'tag', tag);
         if (components.length > 0) return components[0];
         return undefined;
     }
@@ -277,7 +285,7 @@ class Entity3D extends THREE.Object3D {
 
     /** NOTE: Does not call dispose on component! */
     removeComponent(component) {
-        let index = this.components.indexOf(component);
+        const index = this.components.indexOf(component);
         if (index === -1) {
             console.warn(`Entity3D.removeComponent: Component ${component.uuid}, type '${component.type}' not found`);
         } else {
@@ -328,6 +336,20 @@ class Entity3D extends THREE.Object3D {
         }
 
         return this;
+    }
+
+    /** Returns parent stage (fallback to world) of an entity */
+    parentStage() {
+        if (this.isStage || this.isWorld) return this;
+        if (this.parent && this.parent.isEntity3D) return this.parent.parentStage();
+        return null;
+    }
+
+    /** Returns parent world of an entity */
+    parentWorld() {
+        if (this.isWorld) return this;
+        if (this.parent && this.parent.isEntity3D) return this.parent.parentWorld();
+        return null;
     }
 
     /******************** CHILDREN */
@@ -389,7 +411,7 @@ class Entity3D extends THREE.Object3D {
     /** Removes entity, does not call 'dispose()' on Entity!! */
     removeEntity(entity, forceDelete = false) {
         if (!entity) return;
-        if (!forceDelete && EntityUtils.isImportant(entity)) return; /* locked? temp? */
+        if (!forceDelete && entity.isImportant()) return; /* locked? temp? */
         this.remove(entity); /* entity is now out of Project */
         return entity;
     }

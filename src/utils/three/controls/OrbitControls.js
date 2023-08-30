@@ -251,7 +251,7 @@ class OrbitControls extends THREE.EventDispatcher {
 
             const boundingBox = new THREE.Box3();
 
-            // Custom 'boundingBox.expandByObject' (to ignore Object3D with 'flagIgnore')
+            // Custom 'boundingBox.expandByObject'
             target.traverseVisible((child) => {
                 if (!child || !child.isObject3D) return;
                 if (child.isWorld) return;

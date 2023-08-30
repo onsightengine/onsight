@@ -43,7 +43,8 @@ class GpuPickerPass extends Pass {
         ctx.arc(32, 32, 32, 0, 2 * Math.PI);
         ctx.closePath();
         ctx.fill();
-        this.spriteMap = new THREE.CanvasTexture(spriteCanvas);
+        const spriteMap = new THREE.CanvasTexture(spriteCanvas);
+        this.spriteMap = spriteMap;
 
         // We need to be inside of .render in order to call renderBufferDirect in renderList() so,
         // create empty scene and use the onAfterRender callback to actually render geometry for picking
@@ -189,11 +190,7 @@ class GpuPickerPass extends Pass {
 
             renderMaterial.uniforms.useMap.value = (material.map) ? 1.0 : 0.0;
             if (material.map) {
-                if (object.isSpriteHelper) {
-                    renderMaterial.uniforms.map.value = self.spriteMap;
-                } else {
-                    renderMaterial.uniforms.map.value = material.map;
-                }
+                renderMaterial.uniforms.map.value = (object.isSpriteHelper) ? spriteMap : material.map;
             }
 
             // Schedule Uniform Update

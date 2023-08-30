@@ -3,8 +3,8 @@ import { ComponentManager } from '../../app/ComponentManager.js';
 import { ObjectUtils } from '../../utils/three/ObjectUtils.js';
 
 // FLAGS
-//  Object3D.userData.flagIgnore        Temporary Object - ignore during: Focus, Clone, toJSON, Select
-//  Object3D.userData.flagHelper        Helper Object - ignore during: Focus, Clone, toJSON, Delete (SceneUtils)
+//  Object3D.userData.flagIgnore        IGNORE: Select, Focus, Transform, Rubberband, GpuPick, copy(), parentEntity(), getEntities()
+//  Object3D.userData.flagHelper        IGNORE: Delete, copy(), parentEntity(), getEntities()
 // DATA
 //  Object3D.userData.entityID          Used for transform controls to link a transform clone with original entity
 //  Object3D.userData.loadedDistance    Used for tracking removal of Entities loaded into World during App.play()

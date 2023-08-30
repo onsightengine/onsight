@@ -102,9 +102,10 @@ class SceneManager {
 
     // Add Scripts
     static loadScriptsFromComponents(toEntity, fromEntity) {
-        if (!fromEntity.components) return;
-        for (let i = 0; i < fromEntity.components.length; i++) {
-            const component = fromEntity.components[i];
+        if (!toEntity || !toEntity.isEntity) return;
+        if (!fromEntity || !fromEntity.isEntity || !fromEntity.components) return;
+
+        for (const component of fromEntity.components) {
             if (component.type !== 'script' || !component.data) continue;
 
             // Find Script
@@ -115,7 +116,7 @@ class SceneManager {
 
             // Script Body
             let body = `${script.source}\n`;
-            for (let variable in component.data.variables) {
+            for (const variable in component.data.variables) {
                 const value = component.data.variables[variable];
                 if (value && typeof value === 'object') {
                     // console.log(value);
@@ -297,10 +298,10 @@ class SceneManager {
             const composer = _composers[uuid];
             composer.setSize(width, height);
 
-            // Passes with Fixed Size
-            composer.passes.forEach((pass) => {
+            // Update passes with 'setFixedSize' function
+            for (const pass of composer.passes) {
                 if (typeof pass.setFixedSize === 'function') pass.setFixedSize(fixedWidth, fixedHeight);
-            });
+            }
         }
     }
 
@@ -311,10 +312,10 @@ class SceneManager {
         for (const uuid in _composers) {
             const composer = _composers[uuid];
             if (composer) {
-                composer.passes.forEach((pass) => {
+                for (const pass of composer.passes) {
                     if (typeof pass.dispose === 'function') pass.dispose();
-                });
-                composer.dispose();
+                }
+                if (typeof composer.dispose === 'function') composer.dispose();
             }
             delete _composers[uuid];
         }

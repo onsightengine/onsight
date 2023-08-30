@@ -5,8 +5,6 @@
 // containsMesh()               Checks if entity contains Mesh
 // findCamera()                 Attempts to find a camera within an entity
 // parentEntity()               Returns top level entity that is not a world or stage
-// parentStage()                Returns parent stage (fallback to world) of an entity
-// parentWorld()                Returns parent world of an entity
 // removeEntityFromArray()      Removes all instances of an entity (by uuid) from an array of entities
 
 class EntityUtils {
@@ -112,24 +110,6 @@ class EntityUtils {
             }
         }
         return entity;
-    }
-
-    /** Returns parent stage (fallback to world) of an entity */
-    static parentStage(entity) {
-        while (entity) {
-            if (entity.isStage || entity.isWorld) return entity;
-            entity = entity.parent;
-        }
-        return null;
-    }
-
-    /** Returns parent world of an entity */
-    static parentWorld(entity) {
-        while (entity) {
-            if (entity.isWorld) return entity;
-            entity = entity.parent;
-        }
-        return null;
     }
 
     /** Removes all instances of an entity (by uuid) from an array of entities */

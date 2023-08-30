@@ -135,14 +135,11 @@ class ComponentManager {
         if (!System.isObject(ComponentClass.config)) ComponentClass.config = {};
         if (!System.isObject(ComponentClass.config.schema)) ComponentClass.config.schema = {};
 
-        // Ensure Default Values for Properties
+        // Ensure Property Default Values
         const schema = ComponentClass.config.schema;
         for (const key in schema) {
-            const prop = Array.isArray(schema[key]) ? schema[key] : [ schema[key] ];
-
-            for (let i = 0, l = prop.length; i < l; i++) {
-                const property = prop[i];
-
+            const properties = Array.isArray(schema[key]) ? schema[key] : [ schema[key] ];
+            for (const property of properties) {
                 if (property.type === undefined) {
                     console.warn(`ComponentManager.register(): All schema properties require a 'type' value`);
                 } else if (property.type === 'divider') {
@@ -150,13 +147,8 @@ class ComponentManager {
                     continue;
                 }
 
-                if (property.default === undefined) {
-                    property.default = ComponentManager.defaultValue(property.type);
-                }
-
-                if (property.proMode !== undefined) {
-                    property.promode = property.proMode;
-                }
+                if (property.default === undefined) property.default = ComponentManager.defaultValue(property.type);
+                if (property.proMode !== undefined) property.promode = property.proMode;
             }
         }
 
@@ -248,18 +240,15 @@ class ComponentManager {
                 }
 
                 // Copy existing 'data' properties
-                for (let key in data) {
+                for (const key in data) {
                     if (this.data[key] !== undefined) {
-
                         // Make sure to save 'texture' as UUID only
                         if (this.data[key] && this.data[key].isTexture) {
                             data[key] = this.data[key].uuid;
-
                         // All other data
                         } else {
                             data[key] = this.data[key];
                         }
-
                     }
                 }
 

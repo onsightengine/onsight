@@ -112,9 +112,7 @@ class World3D extends Entity3D {
     }
 
     getStageByProperty(property, value) {
-        const stages = this.getStages();
-        for (let i = 0; i < stages.length; i++) {
-            const stage = stages[i];
+        for (const stage of this.getStages()) {
             if (stage[property] === value) return stage;
         }
     }

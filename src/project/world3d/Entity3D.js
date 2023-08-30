@@ -61,115 +61,6 @@ class Entity3D extends THREE.Object3D {
         return 'Entity3D';
     }
 
-    /******************** UPDATE MATRIX */
-
-    updateMatrix() {
-        // Disable callbacks
-        const onRotationChange = this.rotation._onChangeCallback;
-        const onQuaternionChange = this.rotation._onChangeCallback;
-        this.rotation._onChange(() => {});
-        this.quaternion._onChange(() => {});
-
-        // Should look at camera?
-        const camera = window.activeCamera;
-        let lookAtCamera = Boolean(this.lookAtCamera && camera);
-        if (lookAtCamera && this.parent && this.parent.isObject3D) {
-            this.traverseAncestors((parent) => {
-                if (parent.lookAtCamera) lookAtCamera = false;
-            });
-        }
-
-        // Use 'rotation' Property
-        if (!lookAtCamera) {
-            this.quaternion.setFromEuler(this.rotation, false);
-
-        // Look at Camera
-        } else {
-
-            // Subtract parent rotation
-            if (this.parent && this.parent.isObject3D) {
-                this.parent.getWorldQuaternion(_parentQuaternion, false /* ignoreBillboard */);
-                _parentQuaternionInv.copy(_parentQuaternion).invert();
-                this.quaternion.copy(_parentQuaternionInv);
-            } else {
-                this.quaternion.identity();
-            }
-
-            // // Match Camera Plane
-            // if (camera.isOrthographicCamera) {
-
-                // Gather Transform Data
-                camera.matrixWorld.decompose(_camPosition, _camQuaternion, _camScale);
-                _rotationQuaternion.setFromEuler(this.rotation, false);
-
-                // Apply Rotations
-                this.quaternion.multiply(_camQuaternion);                       // Start with rotate to camera
-                this.quaternion.multiply(_rotationQuaternion);                  // Add in 'rotation' property
-
-            // // Look Directly at Camera
-            // } else if (camera.isPerspectiveCamera) {
-
-            //     // Gather Transform Data
-            //     camera.matrixWorld.decompose(_camPosition, _camQuaternion, _camScale);
-            //     this.matrixWorld.decompose(_worldPosition, _worldQuaternion, _worldScale);
-            //     _rotationQuaternion.setFromEuler(this.rotation, false);
-
-            //     // // OPTION 1: Look at Camera
-            //     _lookUpVector.copy(camera.up).applyQuaternion(_camQuaternion);  // Rotate up vector by cam rotation
-            //     _m1.lookAt(_camPosition, _worldPosition, _lookUpVector);        // Create look at matrix
-            //     _lookQuaternion.setFromRotationMatrix(_m1);
-
-            //     // // OPTION 2: Only 'Y' Axis
-            //     // _rotationDirection.set(0, 0, 0);
-            //     // _rotationDirection.y = Math.atan2((_camPosition.x - _worldPosition.x), (_camPosition.z - _worldPosition.z));
-            //     // _lookQuaternion.setFromEuler(_rotationDirection, false);
-
-            //     // Apply Rotations
-            //     this.quaternion.copy(_lookQuaternion);                          // Start with rotate to camera
-            //     this.quaternion.multiply(_rotationQuaternion);                  // Add in 'rotation' property
-
-            // }
-        }
-
-        ///// ORIGINAL (same as THREE.Object3D.updateMatrix())
-        this.matrix.compose(this.position, this.quaternion, this.scale);
-        this.matrixWorldNeedsUpdate = true;
-        /////
-
-        // Restore callbacks
-        this.rotation._onChange(onRotationChange);
-        this.quaternion._onChange(onQuaternionChange);
-    }
-
-    /** Extracts World Quaternion without rotating to camera, good for Viewport Transform Group! :) */
-    getWorldQuaternion(targetQuaternion, ignoreBillboard = true) {
-        let beforeBillboard = this.lookAtCamera;
-        if (ignoreBillboard && beforeBillboard) {
-            this.lookAtCamera = false;
-        }
-        this.updateWorldMatrix(true, false);
-        this.matrixWorld.decompose(_objPosition, targetQuaternion, _objScale);
-        if (ignoreBillboard && beforeBillboard) {
-            this.lookAtCamera = true;
-            this.updateWorldMatrix(true, false);
-        }
-        return targetQuaternion;
-    }
-
-    /** Custom replacement for THREE.Object3D.attach() that accounts for Entity3D.lookAtCamera */
-    safeAttach(object) {
-        if (!object || !object.isObject3D) return;
-        object.getWorldQuaternion(_worldQuaternion);
-        object.getWorldScale(_worldScale);
-        object.getWorldPosition(_worldPosition);
-        object.removeFromParent();
-        object.rotation.copy(_worldRotation.setFromQuaternion(_worldQuaternion, undefined, false));
-        object.scale.copy(_worldScale);
-        object.position.copy(_worldPosition);
-        this.attach(object);
-        return this;
-    }
-
     /******************** COMPONENTS */
 
     /** Adds component of 'type' using 'data' object */
@@ -309,46 +200,6 @@ class Entity3D extends THREE.Object3D {
         }
     }
 
-    /******************** PARENT */
-
-    changeParent(newParent = undefined, newIndex = -1) {
-        if (!newParent) newParent = this.parent;
-        if (!newParent || !newParent.isObject3D) return;
-
-        // Check if we have a parent
-        const oldParent = this.parent;
-        if (newIndex === -1 && oldParent) newIndex = oldParent.children.indexOf(this);
-
-        // // MOVE
-        // newParent.add(this);
-        // // OR
-        // newParent.attach(this);
-        // // OR
-        newParent.safeAttach(this);
-
-        // If desired array index was supplied, move entity to that index
-        if (newIndex !== -1) {
-            newParent.children.splice(newIndex, 0, this);
-            newParent.children.pop();
-        }
-
-        return this;
-    }
-
-    /** Returns parent stage (fallback to world) of an entity */
-    parentStage() {
-        if (this.isStage || this.isWorld) return this;
-        if (this.parent && this.parent.isEntity3D) return this.parent.parentStage();
-        return null;
-    }
-
-    /** Returns parent world of an entity */
-    parentWorld() {
-        if (this.isWorld) return this;
-        if (this.parent && this.parent.isEntity3D) return this.parent.parentWorld();
-        return null;
-    }
-
     /******************** CHILDREN */
 
     addEntity(entity, index = -1, maintainWorldTransform = false) {
@@ -429,6 +280,155 @@ class Entity3D extends THREE.Object3D {
         for (const child of this.getEntities()) {
             child.traverseEntities(callback, recursive);
         }
+    }
+
+    /******************** PARENT */
+
+    changeParent(newParent = undefined, newIndex = -1) {
+        if (!newParent) newParent = this.parent;
+        if (!newParent || !newParent.isObject3D) return;
+
+        // Check if we have a parent
+        const oldParent = this.parent;
+        if (newIndex === -1 && oldParent) newIndex = oldParent.children.indexOf(this);
+
+        // // MOVE
+        // newParent.add(this);
+        // // OR
+        // newParent.attach(this);
+        // // OR
+        newParent.safeAttach(this);
+
+        // If desired array index was supplied, move entity to that index
+        if (newIndex !== -1) {
+            newParent.children.splice(newIndex, 0, this);
+            newParent.children.pop();
+        }
+
+        return this;
+    }
+
+    /** Returns parent stage (fallback to world) of an entity */
+    parentStage() {
+        if (this.isStage || this.isWorld) return this;
+        if (this.parent && this.parent.isEntity3D) return this.parent.parentStage();
+        return null;
+    }
+
+    /** Returns parent world of an entity */
+    parentWorld() {
+        if (this.isWorld) return this;
+        if (this.parent && this.parent.isEntity3D) return this.parent.parentWorld();
+        return null;
+    }
+
+    /******************** UPDATE MATRIX */
+
+    updateMatrix() {
+        // Disable callbacks
+        const onRotationChange = this.rotation._onChangeCallback;
+        const onQuaternionChange = this.rotation._onChangeCallback;
+        this.rotation._onChange(() => {});
+        this.quaternion._onChange(() => {});
+
+        // Should look at camera?
+        const camera = window.activeCamera;
+        let lookAtCamera = Boolean(this.lookAtCamera && camera);
+        if (lookAtCamera && this.parent && this.parent.isObject3D) {
+            this.traverseAncestors((parent) => {
+                if (parent.lookAtCamera) lookAtCamera = false;
+            });
+        }
+
+        // Use 'rotation' Property
+        if (!lookAtCamera) {
+            this.quaternion.setFromEuler(this.rotation, false);
+
+        // Look at Camera
+        } else {
+
+            // Subtract parent rotation
+            if (this.parent && this.parent.isObject3D) {
+                this.parent.getWorldQuaternion(_parentQuaternion, false /* ignoreBillboard */);
+                _parentQuaternionInv.copy(_parentQuaternion).invert();
+                this.quaternion.copy(_parentQuaternionInv);
+            } else {
+                this.quaternion.identity();
+            }
+
+            // // Match Camera Plane
+            // if (camera.isOrthographicCamera) {
+
+                // Gather Transform Data
+                camera.matrixWorld.decompose(_camPosition, _camQuaternion, _camScale);
+                _rotationQuaternion.setFromEuler(this.rotation, false);
+
+                // Apply Rotations
+                this.quaternion.multiply(_camQuaternion);                       // Start with rotate to camera
+                this.quaternion.multiply(_rotationQuaternion);                  // Add in 'rotation' property
+
+            // // Look Directly at Camera
+            // } else if (camera.isPerspectiveCamera) {
+
+            //     // Gather Transform Data
+            //     camera.matrixWorld.decompose(_camPosition, _camQuaternion, _camScale);
+            //     this.matrixWorld.decompose(_worldPosition, _worldQuaternion, _worldScale);
+            //     _rotationQuaternion.setFromEuler(this.rotation, false);
+
+            //     // // OPTION 1: Look at Camera
+            //     _lookUpVector.copy(camera.up).applyQuaternion(_camQuaternion);  // Rotate up vector by cam rotation
+            //     _m1.lookAt(_camPosition, _worldPosition, _lookUpVector);        // Create look at matrix
+            //     _lookQuaternion.setFromRotationMatrix(_m1);
+
+            //     // // OPTION 2: Only 'Y' Axis
+            //     // _rotationDirection.set(0, 0, 0);
+            //     // _rotationDirection.y = Math.atan2((_camPosition.x - _worldPosition.x), (_camPosition.z - _worldPosition.z));
+            //     // _lookQuaternion.setFromEuler(_rotationDirection, false);
+
+            //     // Apply Rotations
+            //     this.quaternion.copy(_lookQuaternion);                          // Start with rotate to camera
+            //     this.quaternion.multiply(_rotationQuaternion);                  // Add in 'rotation' property
+
+            // }
+        }
+
+        ///// ORIGINAL (same as THREE.Object3D.updateMatrix())
+        this.matrix.compose(this.position, this.quaternion, this.scale);
+        this.matrixWorldNeedsUpdate = true;
+        /////
+
+        // Restore callbacks
+        this.rotation._onChange(onRotationChange);
+        this.quaternion._onChange(onQuaternionChange);
+    }
+
+    /** Extracts World Quaternion without rotating to camera, good for Viewport Transform Group! :) */
+    getWorldQuaternion(targetQuaternion, ignoreBillboard = true) {
+        let beforeBillboard = this.lookAtCamera;
+        if (ignoreBillboard && beforeBillboard) {
+            this.lookAtCamera = false;
+        }
+        this.updateWorldMatrix(true, false);
+        this.matrixWorld.decompose(_objPosition, targetQuaternion, _objScale);
+        if (ignoreBillboard && beforeBillboard) {
+            this.lookAtCamera = true;
+            this.updateWorldMatrix(true, false);
+        }
+        return targetQuaternion;
+    }
+
+    /** Custom replacement for THREE.Object3D.attach() that accounts for Entity3D.lookAtCamera */
+    safeAttach(object) {
+        if (!object || !object.isObject3D) return;
+        object.getWorldQuaternion(_worldQuaternion);
+        object.getWorldScale(_worldScale);
+        object.getWorldPosition(_worldPosition);
+        object.removeFromParent();
+        object.rotation.copy(_worldRotation.setFromQuaternion(_worldQuaternion, undefined, false));
+        object.scale.copy(_worldScale);
+        object.position.copy(_worldPosition);
+        this.attach(object);
+        return this;
     }
 
     /******************** COPY / CLONE */

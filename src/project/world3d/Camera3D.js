@@ -92,11 +92,14 @@ class Camera3D extends Entity3D {
     /******************** TYPE */
 
     changeType(type) {
-        if (type !== 'OrthographicCamera' && type !== 'PerspectiveCamera') return this;
-        this.type = type;
+        if (!type || typeof type !== 'string') return this;
+        type = type.toLowerCase().replace('camera', '');
+        if (type === 'orthographic') this.type = 'OrthographicCamera';
+        else if (type === 'perspective') this.type = 'PerspectiveCamera';
+        else return this;
 
-        this.isPerspectiveCamera = (type === 'PerspectiveCamera');
-        this.isOrthographicCamera = (type === 'OrthographicCamera');
+        this.isPerspectiveCamera = (this.type === 'PerspectiveCamera');
+        this.isOrthographicCamera = (this.type === 'OrthographicCamera');
 
         if (this.isPerspectiveCamera) this.near = (10 / this.far);
         if (this.isOrthographicCamera) this.near = (this.far * -1);

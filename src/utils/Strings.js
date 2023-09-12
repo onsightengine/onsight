@@ -16,7 +16,7 @@
 //  Amperstand  &       &amp;
 //  Big Dot     ●
 //  Degrees     °       &deg;
-//  Delta       Δ       &Delta;
+//  Delta       Δ       &delta;
 //  Dot         •       &sdot;
 //  Fuzzy       ~       &sim;
 //  Infinity    ∞       &infin;
@@ -26,6 +26,7 @@
 //  Not Equal   ≠       &ne;
 // SYMBOLS
 //  Apple       
+//  Check       ✓ ✔
 //  Copyright   ©       &copy;
 //  Double      "       &quot;
 //  Heart       ♥       &hearts;

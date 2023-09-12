@@ -256,7 +256,7 @@ class SceneManager {
             // Custom Passes
             const components = world.getComponentsWithProperties('type', 'post');
             for (const component of components) {
-                const pass = component.three();
+                const pass = component.backend;
                 if (pass) {
                     pass.scene = SceneManager.app.scene;
                     pass.camera = SceneManager.app.camera;
@@ -281,10 +281,12 @@ class SceneManager {
         SceneManager.app.camera = camera;
 
         const components = world.getComponentsWithProperties('type', 'post');
-        components.forEach((component) => {
-            const pass = component.three();
-            if (pass) pass.camera = camera;
-        });
+        for (const component of components) {
+            const pass = component.backend;
+            if (pass) {
+                pass.camera = camera;
+            }
+        }
     }
 
     static setSize(width, height) {

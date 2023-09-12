@@ -7,7 +7,7 @@ class Mesh {
     //          NEEDS WORK!!!!
     //
 
-    init(data) {
+    init(data = {}) {
         // Generate Backend
         const mesh = (data.isObject3D) ? data : new THREE.Object3D();
         mesh.traverse((child) => { child.castShadow = this.entity.castShadow; });
@@ -28,10 +28,6 @@ class Mesh {
 
     detach() {
         if (this.entity && this.backend) this.entity.remove(this.backend);
-    }
-
-    three() {
-        return this.backend;
     }
 
 }

@@ -9,7 +9,7 @@ const indexedTypes = [ undefined, 'dynamic', 'static', undefined, 'kinematic' ];
 
 class Rigidbody {
 
-    init(data) {
+    init(data = {}) {
 
     }
 

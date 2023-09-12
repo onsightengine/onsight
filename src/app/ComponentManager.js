@@ -171,17 +171,18 @@ class ComponentManager {
                 this.entity = null;
 
                 // Data
+                this.backend = undefined;
                 this.data = {};
             }
 
-            init(data) {
+            init(data = {}) {
                 this.dispose();
                 if (typeof super.init === 'function') super.init(data);
             }
 
             dispose() {
                 if (typeof super.dispose === 'function') super.dispose();
-                if (this.backend && typeof this.backend.dispose === 'function') this.backend.dispose();
+                if (typeof this.backend === 'object' && typeof this.backend.dispose === 'function') this.backend.dispose();
                 this.backend = undefined;
             }
 
@@ -202,11 +203,6 @@ class ComponentManager {
                 this.detach();
                 this.init(newData);
                 this.attach();
-            }
-
-            three() {
-                if (typeof super.three === 'function') return super.three();
-                return undefined;
             }
 
             // Returns stored default schema (saved when Component was registered). Pass in starting data by key, value pair

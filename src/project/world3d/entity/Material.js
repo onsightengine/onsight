@@ -24,7 +24,7 @@ const depthPacking = [ 'BasicDepthPacking', 'RGBADepthPacking' ];
 
 class Material {
 
-    init(data) {
+    init(data = {}) {
         // Params Object
         const parameters = {};
 
@@ -189,10 +189,6 @@ class Material {
 
         // NOTE: Adding mesh into Project as Object3D only (mesh will not be exported, shown in Outliner, etc.)
         if (this.entity && this.mesh) this.entity.add(this.mesh);
-    }
-
-    three() {
-        return this.backend;
     }
 
 }

@@ -20,7 +20,7 @@ import { Stage3D } from '../project/world3d/Stage3D.js';
 import { World3D } from '../project/world3d/World3D.js';
 
 // Game Loop
-let animationID = null;
+let _animationID = null;
 
 // Globals
 const _position = new THREE.Vector3();
@@ -191,7 +191,7 @@ class App {
         SceneManager.renderWorld(this.world);
 
         // New Frame
-        if (this.isPlaying) animationID = requestAnimationFrame(function() { this.animate(); }.bind(this));
+        if (this.isPlaying) _animationID = requestAnimationFrame(function() { this.animate(); }.bind(this));
     }
 
     /******************** GAME STATE */
@@ -273,8 +273,8 @@ class App {
         SceneManager.renderWorld(this.world);
 
         // Animate
-        cancelAnimationFrame(animationID);
-        animationID = requestAnimationFrame(function() { this.animate(); }.bind(this));
+        cancelAnimationFrame(_animationID);
+        _animationID = requestAnimationFrame(function() { this.animate(); }.bind(this));
     }
 
     pause() {
@@ -296,8 +296,8 @@ class App {
         document.removeEventListener('pointermove', this._onPointerMove);
 
         // Cancel Animate
-        cancelAnimationFrame(animationID);
-        animationID = null;
+        cancelAnimationFrame(_animationID);
+        _animationID = null;
         if (this.renderer) this.renderer.clear();
 
         // Clock

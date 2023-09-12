@@ -67,11 +67,11 @@ class EntityUtils {
             let hasGeometry = false;
             let hasMaterial = false;
             child.traverseComponents((component) => {
-                const backend = component.three();
-                if (backend) {
-                    hasGeometry = hasGeometry || (component.type === 'geometry' && backend.isBufferGeometry);
-                    hasMaterial = hasMaterial || (component.type === 'material' && backend.isMaterial);
-                    hasMesh = hasMesh || (component.type === 'mesh' && backend.isMesh);
+                const object = component.backend;
+                if (object) {
+                    hasGeometry = hasGeometry || (component.type === 'geometry' && object.isBufferGeometry);
+                    hasMaterial = hasMaterial || (component.type === 'material' && object.isMaterial);
+                    hasMesh = hasMesh || (component.type === 'mesh' && object.isMesh);
                     // hasMesh = hasMesh || (component.type === 'sprite');
                     // hasMesh = hasMesh || (component.mesh && component.mesh.isMesh);
                     // hasMesh = hasMesh || (component.mesh && component.mesh.isPoints);

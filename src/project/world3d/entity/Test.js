@@ -4,7 +4,7 @@ const exampleSelect = [ 'Apple', 'Banana', 'Cherry', 'Zebra', 'Red' ];
 
 class Test {
 
-    init(data) {
+    init(data = {}) {
         // Generate Backend
         let test = undefined;
         //
@@ -26,10 +26,6 @@ class Test {
 
     detach() {
         if (this.entity && this.backend) this.entity.remove(this.backend);
-    }
-
-    three() {
-        return this.backend;
     }
 
 }

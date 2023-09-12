@@ -6,12 +6,12 @@ class Sprite {
 
     #material = undefined;
 
-    init(data) {
+    init(data = {}) {
         // Make sure texture is in AssetManager
         let map = null, color = 0xffffff;
         if (data) {
-            color = data['color'];
-            map = data['map'];
+            if (color in data) color = data['color'];
+            if (map in data) map = data['map'];
             if (map && map.isTexture) {
                 AssetManager.addAsset(map);
             } else {
@@ -23,7 +23,7 @@ class Sprite {
         // Generate Backend
         const sprite = new THREE.Object3D();
         sprite.lookAtCamera = true;
-        this.#material = new THREE.SpriteMaterial({ map: map, color: color });
+        this.#material = new THREE.SpriteMaterial({ map, color });
         sprite.add(new THREE.Sprite(this.#material));
 
         // Save Backend / Data
@@ -42,10 +42,6 @@ class Sprite {
 
     detach() {
         if (this.entity && this.backend) this.entity.remove(this.backend);
-    }
-
-    three() {
-        return this.backend;
     }
 
 }

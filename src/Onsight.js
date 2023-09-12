@@ -111,6 +111,7 @@ import './project/world3d/entity/Test.js';
 // import './project/world3d/entity/Sprite.js';
 
 // World
+import './project/world3d/world/Physics.js';
 import './project/world3d/world/Post.js';
 
 /******************** ENSURE SINGLE IMPORT ********************/

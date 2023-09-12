@@ -23,7 +23,7 @@ const wedgeShape = new THREE.Shape([
 
 class Geometry {
 
-    init(data) {
+    init(data = {}) {
         // Passed in Geometry
         if (data.isBufferGeometry) {
             const assetUUID = data.uuid;
@@ -267,10 +267,6 @@ class Geometry {
             const materialComponent = this.entity.getComponent('material');
             if (materialComponent) materialComponent.refreshMesh();
         }
-    }
-
-    three() {
-        return this.backend;
     }
 
 }

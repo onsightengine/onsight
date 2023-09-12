@@ -15,7 +15,7 @@ import { SobelOperatorShader } from 'three/addons/shaders/SobelOperatorShader.js
 
 class Post {
 
-    init(data) {
+    init(data = {}) {
         // Generate Backend
         let pass = undefined;
 
@@ -119,10 +119,6 @@ class Post {
                 }
             }
         }
-    }
-
-    three() {
-        return this.backend;
     }
 
 }

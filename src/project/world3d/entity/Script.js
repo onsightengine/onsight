@@ -3,7 +3,7 @@ import { ComponentManager } from '../../../app/ComponentManager.js';
 
 class Script {
 
-    init(data) {
+    init(data = {}) {
         // Passed in Script
         if (data.isScript) {
             const assetUUID = data.uuid;

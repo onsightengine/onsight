@@ -1,3 +1,5 @@
+// https://github.com/mrdoob/three.js/blob/dev/examples/jsm/physics/RapierPhysics.js
+
 import * as THREE from 'three';
 import RAPIER from 'rapier';
 
@@ -25,9 +27,7 @@ function getCollider(geometry) {
     return null;
 }
 
-async function RapierPhysics(gravityX = 0, gravityY = -9.81, gravityZ = 0) {
-    await RAPIER.init(); /* Physics Engine, docs: https://rapier.rs/docs/api/javascript/JavaScript3D */
-
+function RapierPhysics(gravityX = 0, gravityY = -9.81, gravityZ = 0) {
     const gravity = new THREE.Vector3(gravityX, gravityY, gravityZ);
     const world = new RAPIER.World(gravity);
 

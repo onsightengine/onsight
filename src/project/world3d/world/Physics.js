@@ -1,5 +1,9 @@
+import RAPIER from 'rapier';
+
 import { AssetManager } from '../../../app/AssetManager.js';
 import { ComponentManager } from '../../../app/ComponentManager.js';
+
+await RAPIER.init(); /* init engine, docs: https://rapier.rs/docs/api/javascript/JavaScript3D */
 
 class Physics {
 

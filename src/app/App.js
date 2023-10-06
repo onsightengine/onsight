@@ -1,7 +1,5 @@
 // https://github.com/mrdoob/three.js/blob/dev/editor/js/libs/app.js
-// https://github.com/mrdoob/three.js/blob/dev/examples/jsm/physics/RapierPhysics.js
 // https://github.com/Cloud9c/taro/blob/main/src/core/App.js
-// https://github.com/Cloud9c/taro/blob/main/src/core/Physics.js
 
 import * as THREE from 'three';
 import { APP_EVENTS } from '../constants.js';
@@ -30,8 +28,7 @@ const _worldScale = new THREE.Vector3(1, 1, 1);
 const _worldQuaternion = new THREE.Quaternion();
 
 // TEMP
-let physics;
-let boxes, balls;
+let physics, boxes, balls;
 
 class App {
 
@@ -196,8 +193,8 @@ class App {
 
     /******************** GAME STATE */
 
-    async buildPhysics() {
-        physics = await RapierPhysics();
+    buildPhysics() {
+        physics = RapierPhysics();
 
         const material = new THREE.MeshLambertMaterial();
         const matrix = new THREE.Matrix4();
@@ -245,14 +242,14 @@ class App {
         physics.addMesh(balls, 1);
     }
 
-    async start() {
+    start() {
         if (this.isPlaying) return;
 
         // Flag
         this.isPlaying = true;
 
         // Physics
-        await this.buildPhysics();
+        this.buildPhysics();
 
         // Events
         this._onKeyDown = onKeyDown.bind(this);

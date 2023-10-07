@@ -2,8 +2,10 @@
 // https://github.com/Cloud9c/taro/blob/main/src/core/App.js
 
 import * as THREE from 'three';
+
 import { APP_EVENTS } from '../constants.js';
 import { APP_ORIENTATION } from '../constants.js';
+
 import { AssetManager } from './AssetManager.js';
 import { Camera3D } from '../project/world3d/Camera3D.js';
 import { CameraUtils } from '../utils/three/CameraUtils.js';
@@ -11,24 +13,15 @@ import { Clock } from '../utils/Clock.js';
 import { EntityUtils } from '../utils/three/EntityUtils.js';
 import { ObjectUtils } from '../utils/three/ObjectUtils.js';
 import { Project } from '../project/Project.js';
-import { RapierPhysics } from './RapierPhysics.js';
 import { Renderer3D } from './Renderer3D.js';
 import { SceneManager } from './SceneManager.js';
 import { Stage3D } from '../project/world3d/Stage3D.js';
 import { World3D } from '../project/world3d/World3D.js';
 
-// Game Loop
-let _animationID = null;
-
-// Globals
 const _position = new THREE.Vector3();
 const _raycaster = new THREE.Raycaster();
-const _worldPosition = new THREE.Vector3();
-const _worldScale = new THREE.Vector3(1, 1, 1);
-const _worldQuaternion = new THREE.Quaternion();
 
-// TEMP
-let physics, boxes, balls;
+let _animationID = null;
 
 class App {
 
@@ -151,14 +144,9 @@ class App {
             // Script 'update()' functions
             this.dispatch('update', { delta, total });
 
-            // Physics Update
-            const boxIndex = Math.floor(Math.random() * boxes.count);
-            const ballIndex = Math.floor(Math.random() * balls.count);
-            physics.setMeshPosition(boxes, _position.set(0, Math.random() + 1, 0), boxIndex);
-            physics.setMeshPosition(balls, _position.set(0, Math.random() + 1, 0), ballIndex);
-
-            // Step
-            if (delta > 0.01) physics.step(delta);
+            // Physics?
+            const physics = this.scene.getComponentByType('physics');
+            if (physics) physics.step(delta);
 
             // Add / Remove Entities
             if (this.camera && this.camera.target && this.camera.target.isVector3) {
@@ -193,63 +181,11 @@ class App {
 
     /******************** GAME STATE */
 
-    buildPhysics() {
-        physics = RapierPhysics();
-
-        const material = new THREE.MeshLambertMaterial();
-        const matrix = new THREE.Matrix4();
-        const color = new THREE.Color();
-
-        // FLOOR
-        const floor = new THREE.Mesh(
-            new THREE.BoxGeometry(10, 5, 10),
-            new THREE.ShadowMaterial({ color: 0, transparent: true, opacity: 0.2, depthWrite: false }),
-        );
-        floor.position.y = - 2.5;
-        floor.receiveShadow = true;
-        this.scene.add(floor);
-        physics.addMesh(floor);
-
-        // BOXES
-        const geometryBox = new THREE.BoxGeometry(0.075, 0.075, 0.075);
-        boxes = new THREE.InstancedMesh(geometryBox, material, 400);
-        boxes.instanceMatrix.setUsage(THREE.DynamicDrawUsage); // will be updated every frame
-        boxes.castShadow = true;
-        boxes.receiveShadow = true;
-        this.scene.add(boxes);
-
-        for (let i = 0; i < boxes.count; i++) {
-            matrix.setPosition(Math.random() - 0.5, Math.random() * 2, Math.random() - 0.5);
-            boxes.setMatrixAt(i, matrix );
-            boxes.setColorAt(i, color.setHex(0xffffff * Math.random()));
-        }
-        physics.addMesh(boxes, 1);
-
-        // SPHERES
-        const geometrySphere = new THREE.IcosahedronGeometry(0.05, 4);
-        balls = new THREE.InstancedMesh(geometrySphere, material, 400);
-        balls.instanceMatrix.setUsage(THREE.DynamicDrawUsage); // will be updated every frame
-        balls.castShadow = true;
-        balls.receiveShadow = true;
-        this.scene.add(balls);
-
-        for (let i = 0; i < balls.count; i++) {
-            matrix.setPosition(Math.random() - 0.5, Math.random() * 2, Math.random() - 0.5);
-            balls.setMatrixAt(i, matrix);
-            balls.setColorAt(i, color.setHex( 0xffffff * Math.random()));
-
-        }
-        physics.addMesh(balls, 1);
-    }
-
     start() {
         if (this.isPlaying) return;
 
         // Flag
         this.isPlaying = true;
-
-        // Physics
-        this.buildPhysics();
 
         // Events
         this._onKeyDown = onKeyDown.bind(this);
@@ -308,9 +244,6 @@ class App {
         ObjectUtils.clearObject(this.scene);
         this.project.clear();
         this.clearEvents();
-
-        // Clear Physics
-        if (physics) physics.world.free();
     }
 
     /******************** GAME HELPERS */

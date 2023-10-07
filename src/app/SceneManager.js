@@ -124,9 +124,9 @@ class SceneManager {
                         let json = JSON.stringify(value.value);
                         json = json.replace(/[.*+`'"?^${}()|[\]\\]/g, '\\$&'); /* fix special characters */
                         // console.log(json);
-                        body = body + `let ${variable} = JSON.parse('${json}');\n`
+                        body = body + `let ${variable} = JSON.parse('${json}');\n`;
                     } else {
-                        body = body + `let ${variable} = undefined;\n`
+                        body = body + `let ${variable} = undefined;\n`;
                     }
                 }
             }
@@ -134,12 +134,12 @@ class SceneManager {
 
             // Returns object holding script functions (with proper 'this' bound and access to globals / script variables)
             const returnFunctionObject = new Function(scriptParameters /* parameters */, body /* source */).bind(toEntity);
-            const functions = returnFunctionObject(SceneManager.app);
+            const functionObject = returnFunctionObject(SceneManager.app);
 
             // Add functions to Event Dispatcher
-            for (const name in functions) {
-                if (typeof functions[name] !== 'function') continue;
-                const callback = functions[name].bind(toEntity);
+            for (const name in functionObject) {
+                if (typeof functionObject[name] !== 'function') continue;
+                const callback = functionObject[name].bind(toEntity);
                 SceneManager.app.addEvent(name, toEntity, callback);
             }
         }
@@ -232,6 +232,14 @@ class SceneManager {
 		toScene.backgroundBlurriness = fromWorld.backgroundBlurriness;
 		toScene.backgroundIntensity = fromWorld.backgroundIntensity;
 		if (fromWorld.overrideMaterial != null) toScene.overrideMaterial = fromWorld.overrideMaterial.clone();
+
+        // Physics?
+        const physics = fromWorld.getComponentByType('physics');
+        if (physics) {
+            const data = physics.toJSON();
+            data.active = true;
+            toScene.addComponent(physics.type, data, false);
+        }
     }
 
     /********** RENDER */

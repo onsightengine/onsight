@@ -258,14 +258,14 @@ class Geometry {
     attach() {
         if (this.entity) {
             const materialComponent = this.entity.getComponent('material');
-            if (materialComponent) materialComponent.refreshMesh();
+            if (materialComponent) materialComponent.attach();
         }
     }
 
     detach() {
         if (this.entity) {
             const materialComponent = this.entity.getComponent('material');
-            if (materialComponent) materialComponent.refreshMesh();
+            if (materialComponent) materialComponent.detach();
         }
     }
 

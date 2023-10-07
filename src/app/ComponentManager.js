@@ -42,6 +42,7 @@ import { System } from '../utils/System.js';
 //
 //      -- FORMATTING --
 //  divider         Inserts horizontal rule         ---                 Used for formatting / layout only
+//  hidden          Any                             ---                 Not visible in Editor
 //
 
 /******************** OPTIONS ********************/

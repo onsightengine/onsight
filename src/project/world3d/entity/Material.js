@@ -10,10 +10,8 @@ import * as THREE from 'three';
 // import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { AssetManager } from '../../../app/AssetManager.js';
 import { ComponentManager } from '../../../app/ComponentManager.js';
-import { GeometryUtils } from '../../../utils/three/GeometryUtils.js';
 import { ObjectUtils } from '../../../utils/three/ObjectUtils.js';
 import { SceneManager } from '../../../app/SceneManager.js';
-import { System } from '../../../utils/System.js';
 
 const blendingModes = [ 'NoBlending', 'NormalBlending', 'AdditiveBlending', 'SubstractiveBlending', 'MultiplyBlending', 'CustomBlending' ];
 const sides = [ 'FrontSide', 'BackSide', 'DoubleSide' ];
@@ -132,113 +130,14 @@ class Material {
     }
 
     attach() {
-        this.refreshMesh();
+        refreshMesh(this);
     }
 
     detach() {
-        this.refreshMesh();
-    }
-
-    refreshMesh() {
-        // Remove current Mesh
-        if (this.entity && this.mesh) {
-            this.entity.remove(this.mesh);
-            ObjectUtils.clearObject(this.mesh);
-            this.mesh = undefined;
-        }
-        if (!this.attached) return;
-
-        // Get material and geometry (if present)
-        if (!this.backend || !this.backend.isMaterial) return;
-        const material = this.backend.clone();
-        extendMaterial(material, this.toJSON());
-
-        const geometryComponent = this.entity.getComponent('geometry');
-        if (!geometryComponent) return;
-        if (!geometryComponent.attached) return;
-        const geometry = geometryComponent.backend;
-        if (!geometry) return;
-
-        // Create mesh
-        if (this.data && this.data.style === 'points') {
-            const pointGeometry = geometry.clone();
-            if (!this.data.useUv) pointGeometry.deleteAttribute('uv');
-            this.mesh = new THREE.Points(pointGeometry, material);
-            pointGeometry.dispose();
-        } else {
-            // Create Mesh
-            this.mesh = new THREE.Mesh(geometry, material);
-            this.mesh.castShadow = this.entity.castShadow;
-            this.mesh.receiveShadow = this.entity.receiveShadow;
-        }
-        this.mesh.name = `Backend Object3D for ${this.entity.name}`;
-
-        // Glass
-        const isGlass = this.backend.isMeshPhysicalMaterial === true && this.backend.transmission > 0;
-        if (isGlass) this.backend.envMap = hdrEquirect;
-
-        // Show invisible objects as wireframe in editor
-        if (this.backend.opacity < 0.05) {
-            if (!SceneManager.app || !SceneManager.app.isPlaying) {
-                material.map = null;
-                material.opacity = 0.25;
-                material.wireframe = true;
-                this.mesh.castShadow = false;
-            }
-        }
-
-        // NOTE: Adding mesh into Project as Object3D only (mesh will not be exported, shown in Outliner, etc.)
-        if (this.entity && this.mesh) this.entity.add(this.mesh);
+        refreshMesh(this);
     }
 
 }
-
-/******************** EXTEND MATERIAL ********************/
-
-function extendMaterial(material, data = { style: 'basic', premultiplyAlpha: true }) {
-    if (!material || !material.isMaterial) return;
-
-    const wantsOpaque = (data && data.opacity === 1.0 && data.map === undefined);
-
-    // Standard Values
-    material.transparent = !wantsOpaque;                // Opaque? Auto adjust 'transparent' (speeds rendering)
-    material.alphaTest = 0.01;                          // Save time rendering transparent pixels
-    material.polygonOffset = true;                      // Helps Z-Fighting
-    material.polygonOffsetFactor = 1;                   // Positive value pushes polygon further away
-
-    // On Before Compile
-    material.onBeforeCompile = function(shader) {
-        // Premuliply / Premultiplied Alphas Shader Fix, replaces code from:
-        // https://github.com/mrdoob/three.js/blob/master/src/renderers/shaders/ShaderChunk/premultiplied_alpha_fragment.glsl.js
-        //
-        // Replaces     "gl_FragColor.rgb *= gl_FragColor.a;"
-        // With         "gl_FragColor.rgba *= gl_FragColor.a;"
-        //
-        if (data.premultiplyAlpha && shader.fragmentShader) {
-            shader.fragmentShader = shader.fragmentShader.replace(
-                '#include <premultiplied_alpha_fragment>',
-                'gl_FragColor.rgba *= gl_FragColor.a;'
-            );
-        }
-    };
-
-    // Premuliply / Premultiplied Alphas Blend Equations
-    if (data.premultiplyAlpha) {
-        material.blending = THREE.CustomBlending;
-        material.blendEquation = THREE.AddEquation;
-        material.blendSrc = THREE.OneFactor;
-        material.blendDst = THREE.OneMinusSrcAlphaFactor;
-        material.blendEquationAlpha = THREE.AddEquation;
-        material.blendSrcAlpha = THREE.OneFactor;
-        material.blendDstAlpha = THREE.OneMinusSrcAlphaFactor;
-    }
-
-    // Needs Update
-    material.needsUpdate = true;
-    return material;
-}
-
-/******************** SCHEMA ********************/
 
 Material.config = {
     schema: {
@@ -336,3 +235,100 @@ Material.config = {
 };
 
 ComponentManager.register('material', Material);
+
+/******************** INTERNAL ********************/
+
+function extendMaterial(material, data = { style: 'basic', premultiplyAlpha: true }) {
+    if (!material || !material.isMaterial) return;
+
+    const wantsOpaque = (data && data.opacity === 1.0 && data.map === undefined);
+
+    // Standard Values
+    material.transparent = !wantsOpaque;                // Opaque? Auto adjust 'transparent' (speeds rendering)
+    material.alphaTest = 0.01;                          // Save time rendering transparent pixels
+    material.polygonOffset = true;                      // Helps Z-Fighting
+    material.polygonOffsetFactor = 1;                   // Positive value pushes polygon further away
+
+    // On Before Compile
+    material.onBeforeCompile = function(shader) {
+        // Premuliply / Premultiplied Alphas Shader Fix, replaces code from:
+        // https://github.com/mrdoob/three.js/blob/master/src/renderers/shaders/ShaderChunk/premultiplied_alpha_fragment.glsl.js
+        //
+        // Replaces     "gl_FragColor.rgb *= gl_FragColor.a;"
+        // With         "gl_FragColor.rgba *= gl_FragColor.a;"
+        //
+        if (data.premultiplyAlpha && shader.fragmentShader) {
+            shader.fragmentShader = shader.fragmentShader.replace(
+                '#include <premultiplied_alpha_fragment>',
+                'gl_FragColor.rgba *= gl_FragColor.a;'
+            );
+        }
+    };
+
+    // Premuliply / Premultiplied Alphas Blend Equations
+    if (data.premultiplyAlpha) {
+        material.blending = THREE.CustomBlending;
+        material.blendEquation = THREE.AddEquation;
+        material.blendSrc = THREE.OneFactor;
+        material.blendDst = THREE.OneMinusSrcAlphaFactor;
+        material.blendEquationAlpha = THREE.AddEquation;
+        material.blendSrcAlpha = THREE.OneFactor;
+        material.blendDstAlpha = THREE.OneMinusSrcAlphaFactor;
+    }
+
+    // Needs Update
+    material.needsUpdate = true;
+    return material;
+}
+
+function refreshMesh(component) {
+    // Remove current Mesh
+    if (component.entity && component.mesh) {
+        component.entity.remove(component.mesh);
+        ObjectUtils.clearObject(component.mesh);
+        component.mesh = undefined;
+    }
+    if (!component.attached) return;
+
+    // Get material and geometry (if present)
+    if (!component.backend || !component.backend.isMaterial) return;
+    const material = component.backend.clone();
+    extendMaterial(material, component.toJSON());
+
+    const geometryComponent = component.entity.getComponent('geometry');
+    if (!geometryComponent) return;
+    if (!geometryComponent.attached) return;
+    const geometry = geometryComponent.backend;
+    if (!geometry) return;
+
+    // Create mesh
+    if (component.data && component.data.style === 'points') {
+        const pointGeometry = geometry.clone();
+        if (!component.data.useUv) pointGeometry.deleteAttribute('uv');
+        component.mesh = new THREE.Points(pointGeometry, material);
+        pointGeometry.dispose();
+    } else {
+        // Create Mesh
+        component.mesh = new THREE.Mesh(geometry, material);
+        component.mesh.castShadow = component.entity.castShadow;
+        component.mesh.receiveShadow = component.entity.receiveShadow;
+    }
+    component.mesh.name = `Backend Object3D for ${component.entity.name}`;
+
+    // Glass
+    const isGlass = component.backend.isMeshPhysicalMaterial === true && component.backend.transmission > 0;
+    if (isGlass) component.backend.envMap = hdrEquirect;
+
+    // Show invisible objects as wireframe in editor
+    if (component.backend.opacity < 0.05) {
+        if (!SceneManager.app || !SceneManager.app.isPlaying) {
+            material.map = null;
+            material.opacity = 0.25;
+            material.wireframe = true;
+            component.mesh.castShadow = false;
+        }
+    }
+
+    // NOTE: Adding mesh into Project as Object3D only (mesh will not be exported, shown in Outliner, etc.)
+    if (component.entity && component.mesh) component.entity.add(component.mesh);
+}

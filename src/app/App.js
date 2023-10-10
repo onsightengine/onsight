@@ -118,14 +118,13 @@ class App {
         const preload = this.project.setting('preload');
         this.scene = new World3D();
         SceneManager.loadWorld(this.scene, this.world);
-        SceneManager.loadStages(this.scene, this.world, preload);
 
         // Find Camera
         this.camera = SceneManager.findCamera(this.scene);
         this.camera.changeFit(this.project.setting('orientation'));
 
-        // Script 'init()' functions
-        this.dispatch('init');
+        // Preload Stages
+        SceneManager.loadStages(this.scene, this.world, preload);
     }
 
     /******************** ANIMATE (RENDER) */
@@ -146,7 +145,7 @@ class App {
 
             // Physics?
             const physics = this.scene.getComponentByType('physics');
-            if (physics) physics.step(delta);
+            if (physics) physics.update(delta);
 
             // Add / Remove Entities
             if (this.camera && this.camera.target && this.camera.target.isVector3) {

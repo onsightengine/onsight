@@ -100,6 +100,7 @@ class Entity3D extends THREE.Object3D {
         return component;
     }
 
+    /** Adds an existing component (WARNING: Does not check for 'multiple' flag) */
     attachComponent(component) {
         this.components.push(component);
         component.detach();
@@ -109,13 +110,20 @@ class Entity3D extends THREE.Object3D {
         return component;
     }
 
+    /** Updates component with entirely new data (keeping any existing data) */
     updateComponent(type, data = {}, index = 0) {
         const component = this.getComponentsWithProperties('type', type)[index];
         if (!component || !component.isComponent) return;
-        component.update(data);
+        const newData = component.data ?? {};
+        Object.assign(newData, data);
+        ComponentManager.sanitizeData(type, newData);
+        this.detach();
+        this.init(newData);
+        this.attach();
         return component;
     }
 
+    /** Updates component with entirely new data */
     replaceComponent(type, data = {}, index = 0) {
         const component = this.getComponentsWithProperties('type', type)[index];
         if (!component || !component.isComponent) return;

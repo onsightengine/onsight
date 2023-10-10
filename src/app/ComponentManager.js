@@ -197,15 +197,6 @@ class ComponentManager {
                 if (typeof super.detach === 'function') super.detach();
             }
 
-            update(data) {
-                const newData = this.data ?? {};
-                Object.assign(newData, data);
-                ComponentManager.sanitizeData(this.type, newData);
-                this.detach();
-                this.init(newData);
-                this.attach();
-            }
-
             // Returns stored default schema (saved when Component was registered). Pass in starting data by key, value pair
             defaultData(/* key, value, key, value, etc. */) {
                 const data = {};

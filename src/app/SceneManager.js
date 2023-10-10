@@ -209,6 +209,9 @@ class SceneManager {
             // Load Stage
             SceneManager.cloneStage(toScene, stages[Math.floor(Math.random() * stages.length)]);
         }
+
+        // Script 'init()' functions
+        SceneManager.app.dispatch('init');
     }
 
     static loadWorld(toScene, fromWorld) {

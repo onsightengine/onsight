@@ -2,7 +2,6 @@
 
 import * as THREE from 'three';
 import RAPIER from 'rapier';
-
 import { AssetManager } from '../../../app/AssetManager.js';
 import { ComponentManager } from '../../../app/ComponentManager.js';
 
@@ -33,6 +32,11 @@ class Physics {
         this.data = data;
     }
 
+    dispose() {
+        const physics = this.backend;
+        if (physics) physics.clear();
+    }
+
     attach() {
         if (this.data.active && !this.backend) this.backend = new RapierWorld();
         const physics = this.backend;
@@ -43,9 +47,7 @@ class Physics {
 
     detach() {
         const physics = this.backend;
-        if (physics) {
-            physics.clear();
-        }
+        if (physics) physics.clear();
     }
 
     step(delta = 0) {

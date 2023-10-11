@@ -127,7 +127,7 @@ class App {
         SceneManager.loadStages(this.scene, this.world, preload);
     }
 
-    /******************** ANIMATE (RENDER) */
+    /******************** FRAME */
 
     animate() {
         if (this.gameClock.isRunning()) {
@@ -144,8 +144,14 @@ class App {
             this.dispatch('update', { delta, total });
 
             // Physics?
-            const physics = this.scene.getComponentByType('physics');
-            if (physics) physics.update(delta);
+            if (this.scene.physics) {
+                this.scene.physics.onUpdate(delta);
+                for (const child of this.scene.getEntities()) {
+                    for (const component of child.components) {
+                        if (typeof component.onUpdate === 'function') component.onUpdate(delta);
+                    }
+                }
+            }
 
             // Add / Remove Entities
             if (this.camera && this.camera.target && this.camera.target.isVector3) {

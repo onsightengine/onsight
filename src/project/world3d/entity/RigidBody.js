@@ -1,12 +1,10 @@
 import * as THREE from 'three';
 import RAPIER from 'rapier';
 import { ComponentManager } from '../../../app/ComponentManager.js';
+import { SceneManager } from '../../../app/SceneManager.js';
 
-const styles = [ 'dynamic', 'static', 'kinematic' ];
+const styles = [ 'dynamic', 'fixed' ]; // 'static', 'kinematic'
 const shapes = [ 'ball', 'cuboid' ];
-
-const _position = new THREE.Vector3();
-const _quaternion = new THREE.Quaternion();
 
 class Rigidbody {
 
@@ -14,21 +12,14 @@ class Rigidbody {
         // Generate Backend
         let body = undefined;
 
-
         // Save Backend / Data
         this.backend = body;
         this.data = data;
     }
 
-    dispose() {
+    /********** APP EVENTS */
 
-    }
-
-    attach() {
-
-        let mass = 1; // 0 == infinite, i.e. stationary?
-        let restitution = 0;
-
+    onLoad() {
         // if (mesh.geometry.type === 'BoxGeometry') {
         //     const sx = parameters.width !== undefined ? parameters.width / 2 : 0.5;
         //     const sy = parameters.height !== undefined ? parameters.height / 2 : 0.5;
@@ -39,42 +30,57 @@ class Rigidbody {
         //     shape = RAPIER.ColliderDesc.ball(radius);
         // }
 
-        const shape = RAPIER.ColliderDesc.cuboid(0.1, 0.1, 0.1);
+        const mass = 1; // 0 == fixed
+        const restitution = 0;
+        const shape = RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5);
         shape.setMass(mass);
         shape.setRestitution(restitution);
 
-        function createBody(position, quaternion, mass, shape) {
-            const desc = (mass > 0) ? RAPIER.RigidBodyDesc.dynamic() : RAPIER.RigidBodyDesc.fixed();
-            desc.setTranslation(...position);
-            if (quaternion) desc.setRotation(quaternion);
-            let world = {};
-            const body = world.createRigidBody(desc);
+        const world = SceneManager.app?.scene?.physics?.backend;
+        const entity = this.entity;
+        if (world && entity) {
+            // Body
+            let description;
+            if (this.data.style === 'fixed' /* || this.data.mass <= 0 */) {
+                description = RAPIER.RigidBodyDesc.fixed();
+            } else /* if this.data.style === 'dynamic') */ {
+                description = RAPIER.RigidBodyDesc.dynamic();
+            }
+            description.setTranslation(...entity.position);
+            description.setRotation(entity.quaternion);
+            const body = world.createRigidBody(description);
+            this.backend = body;
+
+            // Collider
             world.createCollider(shape, body);
-            return body;
         }
 
-        const body = createBody(_position, _quaternion, mass, shape);
-
     }
 
-    detach() {
+    onUpdate(delta = 0) {
+        const body = this.backend;
+        const entity = this.entity;
+        if (!body || !entity) return;
 
+        body.translation();
+
+        entity.position.copy(body.translation());
+        entity.quaternion.copy(body.rotation());
     }
 
-    update(delta = 0) {
-        // mesh.position.copy(body.translation());
-        // mesh.quaternion.copy(body.rotation());
-    }
+    // setPosition(position /* Vector3 */) {
+    //     const body = this.backend;
+    //     if (!body) return;
+    //     body.setAngvel(_zero);
+    //     body.setLinvel(_zero);
+    //     body.setTranslation(position);
+    // }
 
-    setPosition(position /* Vector3 */) {
-        body.setAngvel(_zero);
-        body.setLinvel(_zero);
-        body.setTranslation(position);
-    }
-
-    setVelocity(velocity) {
-        body.setLinvel(velocity);
-    }
+    // setVelocity(velocity) {
+    //     const body = this.backend;
+    //     if (!body) return;
+    //     body.setLinvel(velocity);
+    // }
 
 }
 
@@ -88,7 +94,11 @@ Rigidbody.config = {
         // Shape
         shape: { type: 'select', default: 'cuboid', select: shapes },
 
-        // mass: { type: 'number', default: 1, if: { style: [ 'dynamic' ] } },
+        // DIVIDER
+        shapeDivider: { type: 'divider' },
+
+        // Mass / Velocity
+        mass: { type: 'number', default: 1 },
         // velocity: { type: 'vector3', if: { style: [ 'dynamic', 'kinematic' ] } },
         // angularVelocity: { type: 'vector3', if: { style: [ 'dynamic', 'kinematic' ] } },
 
@@ -109,6 +119,7 @@ Rigidbody.config = {
     },
     icon: ``,
     color: '#1365C2',
+    multiple: false,
     group: [ 'Entity3D' ],
 };
 

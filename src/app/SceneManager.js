@@ -97,6 +97,11 @@ class SceneManager {
 
             // Add clone
             toEntity.add(clone);
+
+            // Component 'onLoad'
+            for (const component of clone.components) {
+                if (typeof component.onLoad === 'function') component.onLoad();
+            }
         }
     }
 
@@ -218,9 +223,6 @@ class SceneManager {
         if (!toScene || !toScene.isWorld3D) return;
         if (!fromWorld || !fromWorld.isWorld3D) return;
 
-        // Children
-        SceneManager.cloneChildren(toScene, fromWorld);
-
         // Background
         if (fromWorld.background != null) {
             if (fromWorld.background.isColor) {
@@ -237,12 +239,15 @@ class SceneManager {
 		if (fromWorld.overrideMaterial != null) toScene.overrideMaterial = fromWorld.overrideMaterial.clone();
 
         // Physics?
-        const physics = fromWorld.getComponentByType('physics');
-        if (physics) {
-            const data = physics.toJSON();
-            data.active = true;
-            toScene.addComponent(physics.type, data, false);
+        const worldPhysics = fromWorld.getComponentByType('physics');
+        if (worldPhysics) {
+            const scenePhysics = toScene.addComponent(worldPhysics.type, worldPhysics.toJSON(), false);
+            scenePhysics.onLoad();
+            toScene.physics = scenePhysics;
         }
+
+        // Children
+        SceneManager.cloneChildren(toScene, fromWorld);
     }
 
     /********** RENDER */

@@ -20,31 +20,30 @@ class Physics {
     }
 
     dispose() {
-
-    }
-
-    attach() {
-        let world = this.backend;
-        const data = this.data;
-        if (data.active && !world) {
-            if (data.gravity) _gravity.fromArray(data.gravity); else _gravity.set(0, 0, 0);
-            world = new RAPIER.World(_gravity);
-            this.backend = world;
-        }
-    }
-
-    detach() {
         const world = this.backend;
         if (world) world.free();
     }
 
-    /********** CUSTOM */
+    attach() {
 
-    update(delta = 0) {
+    }
+
+    detach() {
+
+    }
+
+    /********** APP EVENTS */
+
+    onLoad() {
+        _gravity.set(0, 0, 0);
+        if (this.data.gravity) _gravity.fromArray(this.data.gravity);
+        const world = new RAPIER.World(_gravity);
+        this.backend = world;
+    }
+
+    onUpdate(delta = 0) {
         const world = this.backend;
         if (!world) return;
-
-        // Step
         if (delta > 0.01) {
             world.timestep = delta;
             world.step();
@@ -56,9 +55,7 @@ class Physics {
 Physics.config = {
     schema: {
 
-        active: { type: 'hidden', default: false },
-
-        gravity: { type: 'vector', size: 3, tint: true, step: 0.1, precision: 2 },
+        gravity: { type: 'vector', default: [ 0, - 9.807, 0 ], size: 3, tint: true, step: 0.1, precision: 2 },
 
     },
     icon: ``,

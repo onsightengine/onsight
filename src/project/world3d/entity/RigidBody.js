@@ -6,14 +6,17 @@ import { SceneManager } from '../../../app/SceneManager.js';
 const styles = [ 'dynamic', 'fixed' ]; // 'static', 'kinematic'
 const shapes = [ 'ball', 'cuboid' ];
 
+const _quaternion = new THREE.Quaternion();
+const _zero = new THREE.Vector3();
+
 class Rigidbody {
 
     init(data = {}) {
         // Generate Backend
-        let body = undefined;
+        let rigidbody = undefined;
 
         // Save Backend / Data
-        this.backend = body;
+        this.backend = rigidbody;
         this.data = data;
     }
 
@@ -48,39 +51,31 @@ class Rigidbody {
             }
             description.setTranslation(...entity.position);
             description.setRotation(entity.quaternion);
-            const body = world.createRigidBody(description);
-            this.backend = body;
+            const rigidbody = world.createRigidBody(description);
+            this.backend = rigidbody;
 
             // Collider
-            world.createCollider(shape, body);
+            world.createCollider(shape, rigidbody);
         }
 
     }
 
     onUpdate(delta = 0) {
-        const body = this.backend;
+        const rigidbody = this.backend;
         const entity = this.entity;
-        if (!body || !entity) return;
+        if (!rigidbody || !entity) return;
 
-        body.translation();
-
-        entity.position.copy(body.translation());
-        entity.quaternion.copy(body.rotation());
+        if (this.data.style === 'fixed') {
+            rigidbody.setTranslation(entity.position);
+            // rigidbody.setAngvel(_zero);
+            // rigidbody.setLinvel(_zero);
+            // rigidbody.setTranslation(position);
+        } else {
+            entity.position.copy(rigidbody.translation());
+            _quaternion.copy(rigidbody.rotation());
+            entity.rotation.setFromQuaternion(_quaternion, undefined, false);
+        }
     }
-
-    // setPosition(position /* Vector3 */) {
-    //     const body = this.backend;
-    //     if (!body) return;
-    //     body.setAngvel(_zero);
-    //     body.setLinvel(_zero);
-    //     body.setTranslation(position);
-    // }
-
-    // setVelocity(velocity) {
-    //     const body = this.backend;
-    //     if (!body) return;
-    //     body.setLinvel(velocity);
-    // }
 
 }
 

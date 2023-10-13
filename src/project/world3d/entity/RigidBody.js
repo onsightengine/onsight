@@ -4,7 +4,8 @@ import { ComponentManager } from '../../../app/ComponentManager.js';
 import { SceneManager } from '../../../app/SceneManager.js';
 
 const styles = [ 'dynamic', 'fixed' ]; // 'static', 'kinematic'
-const shapes = [ 'geometry', 'ball', 'cuboid' ];
+const colliders = [ 'geometry', 'shape' ];
+const shapes = [ 'ball', 'cuboid' ];
 
 const _quaternion = new THREE.Quaternion();
 const _zero = new THREE.Vector3();
@@ -26,35 +27,30 @@ class Rigidbody {
         const world = SceneManager.app?.scene?.physics?.backend;
         const entity = this.entity;
         if (!world || !entity) return;
-        const geometryComponent = entity.getComponent('geometry');
-
-        // if (mesh.geometry.type === 'BoxGeometry') {
-        //     const sx = parameters.width !== undefined ? parameters.width / 2 : 0.5;
-        //     const sy = parameters.height !== undefined ? parameters.height / 2 : 0.5;
-        //     const sz = parameters.depth !== undefined ? parameters.depth / 2 : 0.5;
-        //     shape = RAPIER.ColliderDesc.cuboid(sx, sy, sz);
-        // } else if (mesh.geometry.type === 'SphereGeometry' || mesh.geometry.type === 'IcosahedronGeometry') {
-        //     const radius = parameters.radius !== undefined ? parameters.radius : 1;
-        //     shape = RAPIER.ColliderDesc.ball(radius);
-        // }
 
         // Shape
         let shape = undefined;
-        if (this.data.shape === 'geometry' && geometryComponent && geometryComponent.backend) {
-            const geometry = geometryComponent.backend;
+        if (this.data.collider === 'geometry') {
+            const geometryComponent = entity.getComponent('geometry');
+            const geometry = geometryComponent ? geometryComponent.backend : undefined;
             const parameters = geometry ? geometry.parameters : undefined;
             if (geometry && parameters) {
                 if (geometry.type === 'BoxGeometry') {
-                    const sx = parameters.width / 2;
-                    const sy = parameters.height / 2;
-                    const sz = parameters.depth / 2;
+                    const sx = (parameters.width != undefined) ? parameters.width / 2 : 0.5;
+                    const sy = (parameters.height != undefined) ? parameters.height / 2 : 0.5;
+                    const sz = (parameters.depth != undefined) ? parameters.depth / 2 : 0.5;
                     shape = RAPIER.ColliderDesc.cuboid(sx, sy, sz);
+                } else if (geometry.type === 'SphereGeometry') {
+                    const radius = (parameters.radius != undefined) ? parameters.radius : 1;
+                    shape = RAPIER.ColliderDesc.ball(radius);
                 }
             }
-        } else if (this.data.shape === 'ball') {
-            shape = RAPIER.ColliderDesc.ball(0.5);
-        } else if (this.data.shape === 'cuboid') {
-            shape = RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5); /* radius, i.e. "width / 2" */
+        } else if (this.data.collider === 'shape') {
+            if (this.data.shape === 'ball') {
+                shape = RAPIER.ColliderDesc.ball(0.5);
+            } else if (this.data.shape === 'cuboid') {
+                shape = RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5); /* radius, i.e. "width / 2" */
+            }
         }
         if (!shape) return;
 
@@ -107,7 +103,8 @@ Rigidbody.config = {
         styleDivider: { type: 'divider' },
 
         // Shape
-        shape: { type: 'select', default: 'cuboid', select: shapes },
+        collider: { type: 'select', default: 'shape', select: colliders, rebuild: true },
+        shape: { type: 'select', default: 'cuboid', select: shapes, if: { collider: [ 'shape' ] } },
 
         // DIVIDER
         shapeDivider: { type: 'divider' },

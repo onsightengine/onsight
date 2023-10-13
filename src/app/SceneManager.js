@@ -81,6 +81,9 @@ class SceneManager {
                 clone.position.sub(_beginPosition);
                 clone.position.applyQuaternion(_invQuaternion.copy(_beginQuaternion).invert());
                 clone.position.multiply(_beginScale);
+
+                clone.position.multiply(_worldScale);
+
                 clone.rotation.setFromQuaternion(_tempRotation.setFromEuler(clone.rotation).premultiply(_beginQuaternion));
                 clone.scale.multiply(_beginScale);
                 // Flag for Unloading
@@ -176,6 +179,7 @@ class SceneManager {
             _endPosition.sub(_beginPosition);
             _endPosition.applyQuaternion(_invQuaternion.copy(_beginQuaternion).invert());
             _endPosition.multiply(_beginScale); /* scale position */
+            _endPosition.multiply(_worldScale);
             _endPosition.applyQuaternion(_worldQuaternion);
             _endQuaternion.premultiply(_beginQuaternion);
             _endScale.multiply(_beginScale);

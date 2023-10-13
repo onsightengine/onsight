@@ -36,12 +36,12 @@ class Rigidbody {
             const parameters = geometry ? geometry.parameters : undefined;
             if (geometry && parameters) {
                 if (geometry.type === 'BoxGeometry') {
-                    const sx = (parameters.width != undefined) ? parameters.width / 2 : 0.5;
-                    const sy = (parameters.height != undefined) ? parameters.height / 2 : 0.5;
-                    const sz = (parameters.depth != undefined) ? parameters.depth / 2 : 0.5;
+                    const sx = (parameters.width / 2) * entity.scale.x;
+                    const sy = (parameters.height / 2) * entity.scale.y;
+                    const sz = (parameters.depth / 2) * entity.scale.z;
                     shape = RAPIER.ColliderDesc.cuboid(sx, sy, sz);
                 } else if (geometry.type === 'SphereGeometry') {
-                    const radius = (parameters.radius != undefined) ? parameters.radius : 1;
+                    const radius = parameters.radius;
                     shape = RAPIER.ColliderDesc.ball(radius);
                 }
             }
@@ -54,17 +54,15 @@ class Rigidbody {
         }
         if (!shape) return;
 
-        // Mass & Restitution
-        const mass = (this.data.mass != undefined) ? this.data.mass : 1;
-        const restitution = 0;
-        shape.setMass(mass);
-        shape.setRestitution(restitution);
+        // Mass & Restitution (Bounce)
+        // AUTO ... OR ... shape.setMass(this.data.mass);
+        shape.setRestitution(this.data.bounce ?? 0);
 
         // Body
         let description;
-        if (this.data.style === 'fixed' /* || this.data.mass <= 0 */) {
+        if (this.data.style === 'fixed') {
             description = RAPIER.RigidBodyDesc.fixed();
-        } else /* if this.data.style === 'dynamic') */ {
+        } else /* 'dynamic' */ {
             description = RAPIER.RigidBodyDesc.dynamic();
         }
         description.setTranslation(...entity.position);
@@ -93,6 +91,12 @@ class Rigidbody {
         }
     }
 
+    onRemove() {
+        //
+        // TODO: Removed from Scene
+        //
+    }
+
 }
 
 Rigidbody.config = {
@@ -109,8 +113,9 @@ Rigidbody.config = {
         // DIVIDER
         shapeDivider: { type: 'divider' },
 
-        // Mass / Velocity
-        mass: { type: 'number', default: 1 },
+        // Mass / Restitution (Bounciness) / Velocity
+        // mass: { type: 'number', default: 1 },
+        bounce: { type: 'slider', default: 0.5, min: 0, max: 1, precision: 2 },
         // velocity: { type: 'vector3', if: { style: [ 'dynamic', 'kinematic' ] } },
         // angularVelocity: { type: 'vector3', if: { style: [ 'dynamic', 'kinematic' ] } },
 
@@ -129,7 +134,7 @@ Rigidbody.config = {
         // collisionFilterMask: { type: 'int', default: - 1 },
     },
     icon: ``,
-    color: '#1365C2',
+    color: '#0F4F94',
     multiple: false,
     group: [ 'Entity3D' ],
 };

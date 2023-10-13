@@ -59,7 +59,7 @@ Physics.config = {
 
     },
     icon: ``,
-    color: '#202020',
+    color: '#0F4F94',
     multiple: false,
     dependencies: [],
     group: [ 'World3D' ],

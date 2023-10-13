@@ -239,11 +239,11 @@ class SceneManager {
 		if (fromWorld.overrideMaterial != null) toScene.overrideMaterial = fromWorld.overrideMaterial.clone();
 
         // Physics?
-        const worldPhysics = fromWorld.getComponentByType('physics');
-        if (worldPhysics) {
-            const scenePhysics = toScene.addComponent(worldPhysics.type, worldPhysics.toJSON(), false);
-            scenePhysics.onLoad();
-            toScene.physics = scenePhysics;
+        const worldPhysicsComponent = fromWorld.getComponentByType('physics');
+        if (worldPhysicsComponent) {
+            const scenePhysicsComponent = toScene.addComponent(worldPhysicsComponent.type, worldPhysicsComponent.toJSON(), false);
+            scenePhysicsComponent.onLoad();
+            toScene.physics = scenePhysicsComponent;
         }
 
         // Children

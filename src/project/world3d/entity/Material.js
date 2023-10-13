@@ -230,6 +230,7 @@ Material.config = {
     },
     icon: ``,
     color: 'rgb(165, 243, 0)',
+    multiple: false,
     dependencies: [ 'geometry' ],
     group: [ 'Entity3D' ],
 };

@@ -4,7 +4,7 @@ import { ComponentManager } from '../../../app/ComponentManager.js';
 import { SceneManager } from '../../../app/SceneManager.js';
 
 const styles = [ 'dynamic', 'fixed' ]; // 'static', 'kinematic'
-const shapes = [ 'ball', 'cuboid' ];
+const shapes = [ 'geometry', 'ball', 'cuboid' ];
 
 const _quaternion = new THREE.Quaternion();
 const _zero = new THREE.Vector3();
@@ -23,6 +23,11 @@ class Rigidbody {
     /********** APP EVENTS */
 
     onLoad() {
+        const world = SceneManager.app?.scene?.physics?.backend;
+        const entity = this.entity;
+        if (!world || !entity) return;
+        const geometryComponent = entity.getComponent('geometry');
+
         // if (mesh.geometry.type === 'BoxGeometry') {
         //     const sx = parameters.width !== undefined ? parameters.width / 2 : 0.5;
         //     const sy = parameters.height !== undefined ? parameters.height / 2 : 0.5;
@@ -33,31 +38,46 @@ class Rigidbody {
         //     shape = RAPIER.ColliderDesc.ball(radius);
         // }
 
-        const mass = 1; // 0 == fixed
+        // Shape
+        let shape = undefined;
+        if (this.data.shape === 'geometry' && geometryComponent && geometryComponent.backend) {
+            const geometry = geometryComponent.backend;
+            const parameters = geometry ? geometry.parameters : undefined;
+            if (geometry && parameters) {
+                if (geometry.type === 'BoxGeometry') {
+                    const sx = parameters.width / 2;
+                    const sy = parameters.height / 2;
+                    const sz = parameters.depth / 2;
+                    shape = RAPIER.ColliderDesc.cuboid(sx, sy, sz);
+                }
+            }
+        } else if (this.data.shape === 'ball') {
+            shape = RAPIER.ColliderDesc.ball(0.5);
+        } else if (this.data.shape === 'cuboid') {
+            shape = RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5); /* radius, i.e. "width / 2" */
+        }
+        if (!shape) return;
+
+        // Mass & Restitution
+        const mass = (this.data.mass != undefined) ? this.data.mass : 1;
         const restitution = 0;
-        const shape = RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5);
         shape.setMass(mass);
         shape.setRestitution(restitution);
 
-        const world = SceneManager.app?.scene?.physics?.backend;
-        const entity = this.entity;
-        if (world && entity) {
-            // Body
-            let description;
-            if (this.data.style === 'fixed' /* || this.data.mass <= 0 */) {
-                description = RAPIER.RigidBodyDesc.fixed();
-            } else /* if this.data.style === 'dynamic') */ {
-                description = RAPIER.RigidBodyDesc.dynamic();
-            }
-            description.setTranslation(...entity.position);
-            description.setRotation(entity.quaternion);
-            const rigidbody = world.createRigidBody(description);
-            this.backend = rigidbody;
-
-            // Collider
-            world.createCollider(shape, rigidbody);
+        // Body
+        let description;
+        if (this.data.style === 'fixed' /* || this.data.mass <= 0 */) {
+            description = RAPIER.RigidBodyDesc.fixed();
+        } else /* if this.data.style === 'dynamic') */ {
+            description = RAPIER.RigidBodyDesc.dynamic();
         }
+        description.setTranslation(...entity.position);
+        description.setRotation(entity.quaternion);
+        const rigidbody = world.createRigidBody(description);
+        this.backend = rigidbody;
 
+        // Collider
+        world.createCollider(shape, rigidbody);
     }
 
     onUpdate(delta = 0) {
@@ -107,7 +127,6 @@ Rigidbody.config = {
         // sleepSpeedLimit: { type: 'number', default: 0.1, min: 0, if: { style: [ 'dynamic', 'kinematic' ] } },
         // sleepTimeLimit: { type: 'number', default: 1, min: 0, if: { style: [ 'dynamic', 'kinematic' ] } },
 
-        // material: { type: 'asset' },
         // collisionResponse: { type: 'boolean', default: true },
         // collisionFilterGroup: { type: 'int', default: 1 },
         // collisionFilterMask: { type: 'int', default: - 1 },

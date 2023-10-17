@@ -89,7 +89,7 @@ class FatWireBox extends Line2 {
             const clone = new this.constructor(object, linewidth, color, opacity);
             ObjectUtils.copyTransform(this, clone);
             return clone;
-        }
+        };
     }
 
     getLocalPoints() {

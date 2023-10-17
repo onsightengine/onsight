@@ -43,7 +43,7 @@ class BasicWireframe extends THREE.LineSegments {
         // Clone function
         this.clone = function() {
             return new this.constructor(object, wireframeColor, opacity, copyObjectTransform).copy(this, true);
-        }
+        };
     }
 }
 
@@ -73,7 +73,7 @@ class FatWireframe extends Wireframe {
         // Clone function
         this.clone = function() {
             return new this.constructor(object, lineWidth, wireframeColor, opacity, copyObjectTransform).copy(this, true);
-        }
+        };
     }
 }
 

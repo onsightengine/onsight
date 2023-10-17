@@ -13,7 +13,7 @@ class Renderer3D extends THREE.WebGLRenderer {
 
             // THREE.WebGLRenderer.render()
             threeRender(scene, camera);
-        }
+        };
 
     } // end ctor
 

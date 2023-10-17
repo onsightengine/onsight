@@ -221,7 +221,7 @@ class OrbitControls extends THREE.EventDispatcher {
 
             // Set new camera
             self.camera = newCamera;
-        }
+        };
 
         /** Recenter the camera to orbit target, maintains current zoom and rotation */
         this.centerOnTarget = function(target) {
@@ -300,16 +300,16 @@ class OrbitControls extends THREE.EventDispatcher {
             const originalDistance = this.position0.distanceTo(this.target0);
             const newDistance = this.distanceToTarget(optionalTarget);
             return (originalDistance / newDistance);
-        }
+        };
 
         this.distanceToTarget = function(optionalTarget = undefined) {
             if (optionalTarget && optionalTarget.isObject3D) optionalTarget = optionalTarget.position;
             return this.camera.position.distanceTo(optionalTarget ?? this.target);
-        }
+        };
 
         this.applyRotation = function(angle) {
             rotateLeft(angle);
-        }
+        };
 
         /***** UPDATE *****/
 
@@ -535,7 +535,6 @@ class OrbitControls extends THREE.EventDispatcher {
                 // Did not perform significant update
                 return false;
             };
-
         }();
 
         /***** DISPOSE *****/

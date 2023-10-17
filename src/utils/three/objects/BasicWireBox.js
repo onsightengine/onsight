@@ -85,7 +85,7 @@ class BasicWireBox extends THREE.LineSegments {
             const clone = new this.constructor(object, color, opacity);
             ObjectUtils.copyTransform(this, clone);
             return clone;
-        }
+        };
     }
 
     getLocalPoints() {

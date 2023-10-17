@@ -43,13 +43,20 @@ class Rigidbody {
                 } else if (geometry.type === 'SphereGeometry') {
                     const radius = parameters.radius;
                     shape = RAPIER.ColliderDesc.ball(radius);
+                } else {
+
+                    // MESH COLLIDER
+
                 }
             }
+
         } else if (this.data.collider === 'shape') {
             if (this.data.shape === 'ball') {
                 shape = RAPIER.ColliderDesc.ball(0.5);
+
             } else if (this.data.shape === 'cuboid') {
                 shape = RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5); /* radius, i.e. "width / 2" */
+
             }
         }
         if (!shape) return;
@@ -95,6 +102,27 @@ class Rigidbody {
         //
         // TODO: Removed from Scene
         //
+    }
+
+    onHelper() {
+        const data = this.data;
+        if (this.data.collider === 'geometry') {
+            const entity = this.entity;
+            if (entity) {
+                const geometryComponent = entity.getComponent('geometry');
+                const geometry = geometryComponent ? geometryComponent.backend : undefined;
+                return (geometry && typeof geometry.clone === 'function') ? geometry.clone() : undefined;
+            }
+        } else if (data.collider === 'shape') {
+            if (data.shape === 'ball') {
+                // shape = RAPIER.ColliderDesc.ball(0.5);
+                return new THREE.SphereGeometry(1, 32);
+            } else if (data.shape === 'cuboid') {
+                // shape = RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5); /* radius, i.e. "width / 2" */
+                return new THREE.BoxGeometry(1, 1, 1);
+            }
+        }
+        return undefined;
     }
 
 }

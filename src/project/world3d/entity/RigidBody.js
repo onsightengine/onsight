@@ -40,9 +40,11 @@ class Rigidbody {
                     const sy = (parameters.height / 2) * entity.scale.y;
                     const sz = (parameters.depth / 2) * entity.scale.z;
                     shape = RAPIER.ColliderDesc.cuboid(sx, sy, sz);
+
                 } else if (geometry.type === 'SphereGeometry') {
-                    const radius = parameters.radius;
+                    const radius = (parameters.radius) * Math.max(entity.scale.x, Math.max(entity.scale.y, entity.scale.z));
                     shape = RAPIER.ColliderDesc.ball(radius);
+
                 } else {
 
                     // MESH COLLIDER
@@ -52,10 +54,14 @@ class Rigidbody {
 
         } else if (this.data.collider === 'shape') {
             if (this.data.shape === 'ball') {
-                shape = RAPIER.ColliderDesc.ball(0.5);
+                const radius = (0.5) * Math.max(entity.scale.x, Math.max(entity.scale.y, entity.scale.z));
+                shape = RAPIER.ColliderDesc.ball(radius);
 
             } else if (this.data.shape === 'cuboid') {
-                shape = RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5); /* radius, i.e. "width / 2" */
+                const sx = (0.5) * entity.scale.x; /* radius, i.e. "width / 2" */
+                const sy = (0.5) * entity.scale.y;
+                const sz = (0.5) * entity.scale.z;
+                shape = RAPIER.ColliderDesc.cuboid(sx, sy, sz);
 
             }
         }
@@ -66,12 +72,9 @@ class Rigidbody {
         shape.setRestitution(this.data.bounce ?? 0);
 
         // Body
-        let description;
-        if (this.data.style === 'fixed') {
-            description = RAPIER.RigidBodyDesc.fixed();
-        } else /* 'dynamic' */ {
-            description = RAPIER.RigidBodyDesc.dynamic();
-        }
+        let description = undefined;
+        if (this.data.style === 'fixed') { description = RAPIER.RigidBodyDesc.fixed(); }
+        else /* 'dynamic' */ { description = RAPIER.RigidBodyDesc.dynamic(); }
         description.setTranslation(...entity.position);
         description.setRotation(entity.quaternion);
         const rigidbody = world.createRigidBody(description);
@@ -88,9 +91,10 @@ class Rigidbody {
 
         if (this.data.style === 'fixed') {
             rigidbody.setTranslation(entity.position);
+            rigidbody.setRotation(entity.quaternion);
             // rigidbody.setAngvel(_zero);
             // rigidbody.setLinvel(_zero);
-            // rigidbody.setTranslation(position);
+
         } else {
             entity.position.copy(rigidbody.translation());
             _quaternion.copy(rigidbody.rotation());
@@ -104,7 +108,9 @@ class Rigidbody {
         //
     }
 
-    onHelper() {
+    /********** CUSTOM */
+
+    colliderGeometry() {
         const data = this.data;
         if (this.data.collider === 'geometry') {
             const entity = this.entity;
@@ -116,13 +122,17 @@ class Rigidbody {
         } else if (data.collider === 'shape') {
             if (data.shape === 'ball') {
                 // shape = RAPIER.ColliderDesc.ball(0.5);
-                return new THREE.SphereGeometry(1, 32);
+                return new THREE.SphereGeometry(0.5, 32);
             } else if (data.shape === 'cuboid') {
                 // shape = RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5); /* radius, i.e. "width / 2" */
                 return new THREE.BoxGeometry(1, 1, 1);
             }
         }
         return undefined;
+    }
+
+    colliderStyle() {
+        return this.data.style ?? 'fixed';
     }
 
 }

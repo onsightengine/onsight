@@ -5,7 +5,7 @@ import { SceneManager } from '../../../app/SceneManager.js';
 
 const styles = [ 'dynamic', 'fixed' ]; // 'static', 'kinematic'
 const colliders = [ 'geometry', 'shape' ];
-const shapes = [ 'ball', 'cuboid' ];
+const shapes = [ 'ball', 'cuboid', 'cylinder' ];
 
 const _quaternion = new THREE.Quaternion();
 const _zero = new THREE.Vector3();
@@ -53,6 +53,8 @@ class Rigidbody {
             }
 
         } else if (this.data.collider === 'shape') {
+
+
             if (this.data.shape === 'ball') {
                 const radius = (0.5) * Math.max(entity.scale.x, Math.max(entity.scale.y, entity.scale.z));
                 shape = RAPIER.ColliderDesc.ball(radius);
@@ -62,6 +64,11 @@ class Rigidbody {
                 const sy = (0.5) * entity.scale.y;
                 const sz = (0.5) * entity.scale.z;
                 shape = RAPIER.ColliderDesc.cuboid(sx, sy, sz);
+
+            } else if (this.data.shape === 'cylinder') {
+                const sy = (0.5) * entity.scale.y;
+                const radius = (0.5) * Math.max(entity.scale.x, entity.scale.z);
+                shape = RAPIER.ColliderDesc.cylinder(sy, radius);
 
             }
         }
@@ -120,15 +127,15 @@ class Rigidbody {
                 return (geometry && typeof geometry.clone === 'function') ? geometry.clone() : undefined;
             }
         } else if (data.collider === 'shape') {
-            if (data.shape === 'ball') {
-                // shape = RAPIER.ColliderDesc.ball(0.5);
-                return new THREE.SphereGeometry(0.5, 32);
-            } else if (data.shape === 'cuboid') {
-                // shape = RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5); /* radius, i.e. "width / 2" */
-                return new THREE.BoxGeometry(1, 1, 1);
-            }
+            if (data.shape === 'ball') { return new THREE.SphereGeometry(0.5, 32); }
+            else if (data.shape === 'cuboid') { return new THREE.BoxGeometry(1, 1, 1); }
+            else if (data.shape === 'cylinder') { return new THREE.CylinderGeometry(0.5, 0.5, 1); }
         }
         return undefined;
+    }
+
+    colliderShape() {
+        return this.data.shape ?? 'geometry';
     }
 
     colliderStyle() {

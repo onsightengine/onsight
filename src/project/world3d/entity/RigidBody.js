@@ -1,10 +1,14 @@
+// https://github.com/mrdoob/three.js/blob/dev/examples/jsm/physics/RapierPhysics.js
+// https://github.com/pmndrs/react-three-rapier
+
 import * as THREE from 'three';
 import RAPIER from 'rapier';
 import { ComponentManager } from '../../../app/ComponentManager.js';
 import { SceneManager } from '../../../app/SceneManager.js';
 
 const styles = [ 'dynamic', 'fixed' ]; // 'static', 'kinematic'
-const colliders = [ 'geometry', 'shape' ];
+const colliders = [ 'auto', 'shape' ];
+const auto = [ 'ball', 'cuboid', 'trimesh', 'hull' ];
 const shapes = [ 'ball', 'cuboid', 'cylinder' ];
 
 const _quaternion = new THREE.Quaternion();
@@ -30,7 +34,7 @@ class Rigidbody {
 
         // Shape
         let shape = undefined;
-        if (this.data.collider === 'geometry') {
+        if (this.data.collider === 'auto') {
             const geometryComponent = entity.getComponent('geometry');
             const geometry = geometryComponent ? geometryComponent.backend : undefined;
             const parameters = geometry ? geometry.parameters : undefined;
@@ -54,7 +58,6 @@ class Rigidbody {
 
         } else if (this.data.collider === 'shape') {
 
-
             if (this.data.shape === 'ball') {
                 const radius = (0.5) * Math.max(entity.scale.x, Math.max(entity.scale.y, entity.scale.z));
                 shape = RAPIER.ColliderDesc.ball(radius);
@@ -71,6 +74,15 @@ class Rigidbody {
                 shape = RAPIER.ColliderDesc.cylinder(sy, radius);
 
             }
+
+            // capsule
+            // cone
+            // heightField (plane)
+
+            // convexHull
+            // convexMesh
+            // polyline
+            // trimesh
         }
         if (!shape) return;
 
@@ -119,7 +131,7 @@ class Rigidbody {
 
     colliderGeometry() {
         const data = this.data;
-        if (this.data.collider === 'geometry') {
+        if (this.data.collider === 'auto') {
             const entity = this.entity;
             if (entity) {
                 const geometryComponent = entity.getComponent('geometry');
@@ -135,7 +147,7 @@ class Rigidbody {
     }
 
     colliderShape() {
-        return this.data.shape ?? 'geometry';
+        return this.data.shape ?? 'auto';
     }
 
     colliderStyle() {
@@ -158,11 +170,18 @@ Rigidbody.config = {
         // DIVIDER
         shapeDivider: { type: 'divider' },
 
-        // Mass / Restitution (Bounciness) / Velocity
+        // Mass / Restitution (Bounciness)
         // mass: { type: 'number', default: 1 },
         bounce: { type: 'slider', default: 0.5, min: 0, max: 1, precision: 2 },
+
+        // Friction
+        // friction: { type: 'slider', default: 0.5 },
+
+        // Velocity
         // velocity: { type: 'vector3', if: { style: [ 'dynamic', 'kinematic' ] } },
         // angularVelocity: { type: 'vector3', if: { style: [ 'dynamic', 'kinematic' ] } },
+
+        // MORE //
 
         // linearDamping: { type: 'number', default: 0.01, min: 0, max: 1, if: { style: [ 'dynamic', 'kinematic' ] } },
         // angularDamping: { type: 'number', default: 0.01, min: 0, max: 1, if: { style: [ 'dynamic', 'kinematic' ] } },

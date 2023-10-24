@@ -12,6 +12,7 @@ import { ObjectUtils } from '../../utils/three/ObjectUtils.js';
 const _m1 = new THREE.Matrix4();
 const _camPosition = new THREE.Vector3();
 const _camQuaternion = new THREE.Quaternion();
+const _camRotation = new THREE.Euler();
 const _camScale = new THREE.Vector3();
 const _lookQuaternion = new THREE.Quaternion();
 const _lookUpVector = new THREE.Vector3();
@@ -20,7 +21,6 @@ const _objScale = new THREE.Vector3();
 const _objQuaternion = new THREE.Quaternion();
 const _parentQuaternion = new THREE.Quaternion();
 const _parentQuaternionInv = new THREE.Quaternion();
-const _rotationDirection = new THREE.Euler();
 const _rotationQuaternion = new THREE.Quaternion();
 const _rotationQuaternionInv = new THREE.Quaternion();
 const _worldPosition = new THREE.Vector3();
@@ -45,6 +45,7 @@ class Entity3D extends THREE.Object3D {
         // Properties, Basic
         this.locked = false;                    // locked in Editor (do not allow selection, deletion, duplication, etc.)
         this.lookAtCamera = false;              // implemented in Entity3D.updateMatrix() overload
+        this.lookAtYOnly = false;               // implemented in Entity3D.updateMatrix() overload
 
         // Properties, Lighting
         this.bloom = false;
@@ -364,40 +365,31 @@ class Entity3D extends THREE.Object3D {
                 this.quaternion.identity();
             }
 
-            // // Match Camera Plane
-            // if (camera.isOrthographicCamera) {
+            // Gather Transform Data
+            _rotationQuaternion.setFromEuler(this.rotation, false);
+            this.matrixWorld.decompose(_worldPosition, _worldQuaternion, _worldScale);
+            camera.matrixWorld.decompose(_camPosition, _camQuaternion, _camScale);
 
-                // Gather Transform Data
-                camera.matrixWorld.decompose(_camPosition, _camQuaternion, _camScale);
-                _rotationQuaternion.setFromEuler(this.rotation, false);
+            // All Axis
+            if (!this.lookAtYOnly) {
+                // // Look at Camera Plane (i.e., Match Camera Plane)
+                // if (camera.isOrthographicCamera) {
+                    _lookQuaternion.copy(_camQuaternion);
+                // // Look Directly at Camera
+                // } else if (camera.isPerspectiveCamera) {
+                //     _lookUpVector.copy(camera.up).applyQuaternion(_camQuaternion);  // Rotate up vector by cam rotation
+                //     _m1.lookAt(_camPosition, _worldPosition, _lookUpVector);        // Create look at matrix
+                //     _lookQuaternion.setFromRotationMatrix(_m1);
+                // }
+            // Y Only
+            } else {
+                _camRotation.set(0, Math.atan2((_camPosition.x - _worldPosition.x), (_camPosition.z - _worldPosition.z)), 0);
+                _lookQuaternion.setFromEuler(_camRotation, false);
+            }
 
-                // Apply Rotations
-                this.quaternion.multiply(_camQuaternion);                       // Start with rotate to camera
-                this.quaternion.multiply(_rotationQuaternion);                  // Add in 'rotation' property
-
-            // // Look Directly at Camera
-            // } else if (camera.isPerspectiveCamera) {
-
-            //     // Gather Transform Data
-            //     camera.matrixWorld.decompose(_camPosition, _camQuaternion, _camScale);
-            //     this.matrixWorld.decompose(_worldPosition, _worldQuaternion, _worldScale);
-            //     _rotationQuaternion.setFromEuler(this.rotation, false);
-
-            //     // // OPTION 1: Look at Camera
-            //     _lookUpVector.copy(camera.up).applyQuaternion(_camQuaternion);  // Rotate up vector by cam rotation
-            //     _m1.lookAt(_camPosition, _worldPosition, _lookUpVector);        // Create look at matrix
-            //     _lookQuaternion.setFromRotationMatrix(_m1);
-
-            //     // // OPTION 2: Only 'Y' Axis
-            //     // _rotationDirection.set(0, 0, 0);
-            //     // _rotationDirection.y = Math.atan2((_camPosition.x - _worldPosition.x), (_camPosition.z - _worldPosition.z));
-            //     // _lookQuaternion.setFromEuler(_rotationDirection, false);
-
-            //     // Apply Rotations
-            //     this.quaternion.copy(_lookQuaternion);                          // Start with rotate to camera
-            //     this.quaternion.multiply(_rotationQuaternion);                  // Add in 'rotation' property
-
-            // }
+            // Apply Rotations
+            this.quaternion.copy(_lookQuaternion);                          // Start with rotate to camera
+            this.quaternion.multiply(_rotationQuaternion);                  // Add in 'rotation' property
         }
 
         ///// ORIGINAL (same as THREE.Object3D.updateMatrix())
@@ -455,6 +447,7 @@ class Entity3D extends THREE.Object3D {
         this.scale.copy(source.scale);
         if (source.locked) this.locked = true;                  // Entity3D property (attempt to copy)
         if (source.lookAtCamera) this.lookAtCamera = true;      // Entity3D property (attempt to copy)
+        if (source.lookAtYOnly) this.lookAtYOnly = true;        // Entity3D property (attempt to copy)
         this.updateMatrix();
 
         // Copy Children
@@ -483,6 +476,7 @@ class Entity3D extends THREE.Object3D {
         // Entity3D Basic Properties
         this.locked = source.locked;
         this.lookAtCamera = source.lookAtCamera;
+        this.lookAtYOnly = source.lookAtYOnly;
         this.bloom = source.bloom;
 
         // Prefab Properties
@@ -550,6 +544,7 @@ class Entity3D extends THREE.Object3D {
         // Entity3D Properties
         if (data.locked !== undefined) this.locked = data.locked;
         if (data.lookAtCamera !== undefined) this.lookAtCamera = data.lookAtCamera;
+        if (data.lookAtYOnly !== undefined) this.lookAtYOnly = data.lookAtYOnly;
         if (data.bloom !== undefined) this.bloom = data.bloom;
 
         // Prefab Properties
@@ -616,6 +611,7 @@ class Entity3D extends THREE.Object3D {
         // Entity3D Basic Properties
         json.object.locked = this.locked;
         json.object.lookAtCamera = this.lookAtCamera;
+        json.object.lookAtYOnly = this.lookAtYOnly;
 
         // Entity3D Lighting Properties
         json.object.bloom = this.bloom;

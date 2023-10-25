@@ -36,58 +36,57 @@ class Rigidbody {
         let shape = undefined;
         if (this.data.collider === 'auto') {
             const geometryComponent = entity.getComponent('geometry');
-            const geometry = geometryComponent ? geometryComponent.backend : undefined;
-            const parameters = geometry ? geometry.parameters : undefined;
-            if (geometry && parameters) {
+            const geometry = geometryComponent.backend;
+            if (geometry && geometry.isBufferGeometry) {
+                switch (this.data.generate) {
+                    case 'box':
+                        // const sx = (parameters.width / 2) * entity.scale.x;
+                        // const sy = (parameters.height / 2) * entity.scale.y;
+                        // const sz = (parameters.depth / 2) * entity.scale.z;
+                        // shape = RAPIER.ColliderDesc.cuboid(sx, sy, sz);
+                        break;
+                    case 'sphere':
+                        geometry.computeBoundingSphere();
+                        const radius = isNaN(geometry.boundingSphere.radius) ? 0.5 : geometry.boundingSphere.radius;
+                        shape = RAPIER.ColliderDesc.ball(radius);
+                        break;
+                    case 'hull':
 
-                if (geometry.type === 'BoxGeometry') {
-                    const sx = (parameters.width / 2) * entity.scale.x;
-                    const sy = (parameters.height / 2) * entity.scale.y;
-                    const sz = (parameters.depth / 2) * entity.scale.z;
-                    shape = RAPIER.ColliderDesc.cuboid(sx, sy, sz);
+                        break;
+                    case 'mesh':
 
-                } else if (geometry.type === 'SphereGeometry') {
-                    const radius = (parameters.radius) * Math.max(entity.scale.x, Math.max(entity.scale.y, entity.scale.z));
-                    shape = RAPIER.ColliderDesc.ball(radius);
-
-                } else {
-
-                    // MESH COLLIDER
-
+                        break;
                 }
             }
 
-        } else if (this.data.collider === 'shape') {
+        } else if (this.data.collider === 'ball') {
+            const radius = (0.5) * Math.max(entity.scale.x, Math.max(entity.scale.y, entity.scale.z));
+            shape = RAPIER.ColliderDesc.ball(radius);
 
-            if (this.data.shape === 'ball') {
-                const radius = (0.5) * Math.max(entity.scale.x, Math.max(entity.scale.y, entity.scale.z));
-                shape = RAPIER.ColliderDesc.ball(radius);
+        } else if (this.data.collider === 'cuboid') {
+            const sx = (0.5) * entity.scale.x; /* radius, i.e. "width / 2" */
+            const sy = (0.5) * entity.scale.y;
+            const sz = (0.5) * entity.scale.z;
+            shape = RAPIER.ColliderDesc.cuboid(sx, sy, sz);
 
-            } else if (this.data.shape === 'cuboid') {
-                const sx = (0.5) * entity.scale.x; /* radius, i.e. "width / 2" */
-                const sy = (0.5) * entity.scale.y;
-                const sz = (0.5) * entity.scale.z;
-                shape = RAPIER.ColliderDesc.cuboid(sx, sy, sz);
+        } else if (this.data.collider === 'cylinder') {
+            const sy = (0.5) * entity.scale.y;
+            const radius = (0.5) * Math.max(entity.scale.x, entity.scale.z);
+            shape = RAPIER.ColliderDesc.cylinder(sy, radius);
 
-            } else if (this.data.shape === 'cylinder') {
-                const sy = (0.5) * entity.scale.y;
-                const radius = (0.5) * Math.max(entity.scale.x, entity.scale.z);
-                shape = RAPIER.ColliderDesc.cylinder(sy, radius);
-
-            }
-
-            // capsule
-            // cone
-
-            // auto:
-            // - bounding cube
-            // - bounding sphere
-            // - convexHull
-            // - trimesh
-
-            // heightField (plane)
-            // polyline
         }
+
+        // capsule
+        // cone
+
+        // auto:
+        // - bounding cube
+        // - bounding sphere
+        // - convexHull
+        // - trimesh
+
+        // heightField (plane)
+        // polyline
         if (!shape) return;
 
         // Mass & Restitution (Bounce)
@@ -181,7 +180,7 @@ class Rigidbody {
     }
 
     colliderShape() {
-        return this.data.shape ?? 'auto';
+        return this.data.collider ?? 'auto';
     }
 
     colliderStyle() {

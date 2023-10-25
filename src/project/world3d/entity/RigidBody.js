@@ -7,10 +7,10 @@ import { ComponentManager } from '../../../app/ComponentManager.js';
 import { SceneManager } from '../../../app/SceneManager.js';
 
 const styles = [ 'dynamic', 'fixed' ]; // 'static', 'kinematic'
-const colliders = [ 'auto', 'shape' ];
-const auto = [ 'ball', 'cuboid', 'trimesh', 'hull' ];
-const shapes = [ 'ball', 'cuboid', 'cylinder' ];
+const colliders = [ 'auto', 'ball', 'cuboid', 'cylinder' ];
+const automatic = [ 'box', 'sphere', 'hull', 'mesh' ];
 
+const _center = new THREE.Vector3();
 const _quaternion = new THREE.Quaternion();
 const _zero = new THREE.Vector3();
 
@@ -39,6 +39,7 @@ class Rigidbody {
             const geometry = geometryComponent ? geometryComponent.backend : undefined;
             const parameters = geometry ? geometry.parameters : undefined;
             if (geometry && parameters) {
+
                 if (geometry.type === 'BoxGeometry') {
                     const sx = (parameters.width / 2) * entity.scale.x;
                     const sy = (parameters.height / 2) * entity.scale.y;
@@ -77,12 +78,15 @@ class Rigidbody {
 
             // capsule
             // cone
-            // heightField (plane)
 
-            // convexHull
-            // convexMesh
+            // auto:
+            // - bounding cube
+            // - bounding sphere
+            // - convexHull
+            // - trimesh
+
+            // heightField (plane)
             // polyline
-            // trimesh
         }
         if (!shape) return;
 
@@ -130,20 +134,50 @@ class Rigidbody {
     /********** CUSTOM */
 
     colliderGeometry() {
-        const data = this.data;
-        if (this.data.collider === 'auto') {
-            const entity = this.entity;
-            if (entity) {
-                const geometryComponent = entity.getComponent('geometry');
-                const geometry = geometryComponent ? geometryComponent.backend : undefined;
-                return (geometry && typeof geometry.clone === 'function') ? geometry.clone() : undefined;
+        let collider = undefined;
+
+        if (this.data.collider && this.data.collider === 'auto' && this.entity && this.entity.isEntity) {
+            const geometryComponent = this.entity.getComponent('geometry');
+            const geometry = geometryComponent ? geometryComponent.backend : undefined;
+            if (geometry && geometry.isBufferGeometry) {
+                geometry.computeBoundingBox();
+                switch (this.data.generate) {
+                    case 'box':
+
+                        break;
+                    case 'sphere':
+                        geometry.computeBoundingSphere();
+                        const radius = isNaN(geometry.boundingSphere.radius) ? 0.5 : geometry.boundingSphere.radius;
+                        console.log(`Auto Radius: ${radius}`);
+                        collider = new THREE.SphereGeometry(radius, 32);
+                        break;
+                    case 'hull':
+
+                        break;
+                    case 'mesh':
+                        collider = geometry.clone();
+                        break;
+                }
+                if (collider) {
+                    geometry.boundingBox.getCenter(_center);
+                    collider.translate(_center.x, _center.y, _center.z);
+                }
             }
-        } else if (data.collider === 'shape') {
-            if (data.shape === 'ball') { return new THREE.SphereGeometry(0.5, 32); }
-            else if (data.shape === 'cuboid') { return new THREE.BoxGeometry(1, 1, 1); }
-            else if (data.shape === 'cylinder') { return new THREE.CylinderGeometry(0.5, 0.5, 1); }
         }
-        return undefined;
+
+        switch (this.data.collider) {
+            case 'ball':
+                collider = new THREE.SphereGeometry(0.5, 32);
+                break;
+            case 'cuboid':
+                collider = new THREE.BoxGeometry(1, 1, 1);
+                break;
+            case 'cylinder':
+                collider = new THREE.CylinderGeometry(0.5, 0.5, 1);
+                break;
+        }
+
+        return collider;
     }
 
     colliderShape() {
@@ -164,8 +198,8 @@ Rigidbody.config = {
         styleDivider: { type: 'divider' },
 
         // Shape
-        collider: { type: 'select', default: 'shape', select: colliders, rebuild: true },
-        shape: { type: 'select', default: 'cuboid', select: shapes, if: { collider: [ 'shape' ] } },
+        collider: { type: 'select', default: 'auto', select: colliders, rebuild: true },
+        generate: { type: 'select', default: 'box', select: automatic, if: { collider: [ 'auto' ] } },
 
         // DIVIDER
         shapeDivider: { type: 'divider' },

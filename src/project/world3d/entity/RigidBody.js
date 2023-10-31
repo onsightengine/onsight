@@ -12,6 +12,7 @@ const automatic = [ 'box', 'sphere', 'hull', 'mesh' ];
 
 const _center = new THREE.Vector3();
 const _quaternion = new THREE.Quaternion();
+const _size = new THREE.Vector3();
 const _zero = new THREE.Vector3();
 
 class Rigidbody {
@@ -40,10 +41,12 @@ class Rigidbody {
             if (geometry && geometry.isBufferGeometry) {
                 switch (this.data.generate) {
                     case 'box':
-                        // const sx = (parameters.width / 2) * entity.scale.x;
-                        // const sy = (parameters.height / 2) * entity.scale.y;
-                        // const sz = (parameters.depth / 2) * entity.scale.z;
-                        // shape = RAPIER.ColliderDesc.cuboid(sx, sy, sz);
+                        geometry.computeBoundingBox();
+                        geometry.boundingBox.getSize(_size);
+                        const sx = Math.abs(_size.x / 2);
+                        const sy = Math.abs(_size.y / 2);
+                        const sz = Math.abs(_size.z / 2);
+                        shape = RAPIER.ColliderDesc.cuboid(sx, sy, sz);
                         break;
                     case 'sphere':
                         geometry.computeBoundingSphere();
@@ -51,6 +54,9 @@ class Rigidbody {
                         shape = RAPIER.ColliderDesc.ball(radius);
                         break;
                     case 'hull':
+
+                        // clonedGeometry.attributes.position.array as Float32Array,
+                        // clonedGeometry.index?.array as Uint32Array
 
                         break;
                     case 'mesh':
@@ -140,14 +146,20 @@ class Rigidbody {
             const geometry = geometryComponent ? geometryComponent.backend : undefined;
             if (geometry && geometry.isBufferGeometry) {
                 geometry.computeBoundingBox();
+                //
+                // TODO: Compute bounding box / bounding sphere of Entity + all children (
+                //       (not just single geometry component)
                 switch (this.data.generate) {
                     case 'box':
-
+                        geometry.boundingBox.getSize(_size);
+                        const sx = Math.abs(_size.x);
+                        const sy = Math.abs(_size.y);
+                        const sz = Math.abs(_size.z);
+                        collider = new THREE.BoxGeometry(sx, sy, sz);
                         break;
                     case 'sphere':
                         geometry.computeBoundingSphere();
                         const radius = isNaN(geometry.boundingSphere.radius) ? 0.5 : geometry.boundingSphere.radius;
-                        console.log(`Auto Radius: ${radius}`);
                         collider = new THREE.SphereGeometry(radius, 32);
                         break;
                     case 'hull':

@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { LoopSubdivision } from 'three-subdivide';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
-// import { SimplifyModifier } from 'three/addons/modifiers/SimplifyModifier.js';
+import { SimplifyModifier } from 'three/addons/modifiers/SimplifyModifier.js';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 
 import { AssetManager } from '../../../app/AssetManager.js';
@@ -195,16 +195,16 @@ class Geometry {
             // Saved geometry type as Name
             const geometryName = geometry.constructor.name;
 
-            // // Simplify, TODO: Three.js/Addon is Buggy
-            // if (data.simplify < 1) {
-            //     const simplifyModifier = new SimplifyModifier()
-            //     const count = Math.max(3.0, Math.floor(geometry.attributes.position.count * data.simplify));
-            //     let simplifiedGeometry = simplifyModifier.modify(geometry, count);
-            //     if (simplifiedGeometry) {
-            //         geometry.dispose();
-            //         geometry = simplifiedGeometry;
-            //     }
-            // }
+            // Simplify
+            if (data.simplify < 1) {
+                const simplifyModifier = new SimplifyModifier()
+                const count = Math.max(3.0, Math.floor(geometry.attributes.position.count * (1.0 - data.simplify)));
+                let simplifiedGeometry = simplifyModifier.modify(geometry, count);
+                if (simplifiedGeometry) {
+                    geometry.dispose();
+                    geometry = simplifiedGeometry;
+                }
+            }
 
             // Subdivision
             const subdivideParams = {
@@ -396,8 +396,8 @@ Geometry.config = {
         // DIVIDER
         modifierDivider: { type: 'divider' },
 
-        // // Simplify
-        // simplify: { type: 'slider', default: 1, min: 0, max: 1 },
+        // Simplify
+        simplify: { type: 'slider', default: 1, min: 0, max: 1 },
 
         // Subdivision
         subdivide: { type: 'slider', default: 0, min: 0, max: 3, step: 1, precision: 0, rebuild: true },

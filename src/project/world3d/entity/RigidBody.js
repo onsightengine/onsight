@@ -62,20 +62,16 @@ class Rigidbody {
                         shape = RAPIER.ColliderDesc.ball(radius);
                         break;
                     case 'hull':
-                        //
-                        // TODO
-                        //
-
-                        // clonedGeometry.attributes.position.array as Float32Array,
-                        // clonedGeometry.index?.array as Uint32Array
-
-                        shape = RAPIER.ColliderDesc.convexHull(geometry.attributes.position.array);
-
+                        const points = new Float32Array(geometry.attributes.position.array);
+                        shape = RAPIER.ColliderDesc.convexHull(points);
                         break;
                     case 'mesh':
-                        //
-                        // TODO
-                        //
+                        const simplified = geometry.clone();
+                        const vertices = new Float32Array(simplified.attributes.position.array);
+                        const indices = (simplified.index)
+                            ? new Uint32Array(simplified.index.array)
+                            : new Uint32Array([...Array(vertices.length / 3).keys()]);
+                        shape = RAPIER.ColliderDesc.trimesh(vertices, indices);
                         break;
                 }
             }
@@ -191,7 +187,6 @@ class Rigidbody {
                         needsCenter = true;
                         break;
                     case 'hull':
-
                         const vertices = [];
 				        const positionAttribute = geometry.getAttribute('position');
                         for (let i = 0; i < positionAttribute.count; i++) {
@@ -200,12 +195,8 @@ class Rigidbody {
 					        vertices.push(vertex);
 				        }
                         visualGeometry = new ConvexGeometry(vertices);
-
                         break;
                     case 'mesh':
-                        //
-                        // TODO
-                        //
                         visualGeometry = geometry.clone();
                         break;
                 }

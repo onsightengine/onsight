@@ -84,9 +84,9 @@ class ObjectUtils {
 
     /** Finds bounding box of an object or array of objects (recursively adding children meshes) */
     static computeBounds(objects, targetBox, checkIfSingleGeometry = false) {
-        if (targetBox === undefined || targetBox.isBox3 !== true) targetBox = new THREE.Box3();
-        objects = Array.isArray(objects) ? objects : [ objects ];
+        if (!targetBox || targetBox.isBox3 !== true) targetBox = new THREE.Box3();
         targetBox.makeEmpty();
+        objects = Array.isArray(objects) ? objects : [ objects ];
 
         // If object contains single geometry, we might want un-rotated box
         if (checkIfSingleGeometry && ObjectUtils.countGeometry(objects) === 1) {
@@ -110,7 +110,9 @@ class ObjectUtils {
         }
 
         // Expand from geometries
-        objects.forEach(object => targetBox.expandByObject(object));
+        for (const object of objects) {
+            targetBox.expandByObject(object);
+        }
         return targetBox;
     }
 

@@ -62,56 +62,40 @@ class Rigidbody {
 
         // Collider Description
         if (data.collider === 'auto') {
-            entity.traverseEntities((child) => {
-                const geometryComponent = child.getComponent('geometry');
-                const geometry = geometryComponent.backend;
-                if (geometry && geometry.isBufferGeometry) {
-                    let colliderDescription = undefined;
-                    switch (data.generate) {
-                        case 'box':
-                            geometry.computeBoundingBox();
-                            geometry.boundingBox.getSize(_size);
-                            const sx = Math.abs(_size.x / 2);
-                            const sy = Math.abs(_size.y / 2);
-                            const sz = Math.abs(_size.z / 2);
-                            colliderDescription = RAPIER.ColliderDesc.cuboid(sx, sy, sz);
-                            break;
+            const geometryComponent = entity.getComponent('geometry');
+            const geometry = geometryComponent.backend;
+            if (geometry && geometry.isBufferGeometry) {
+                switch (data.generate) {
+                    case 'box':
+                        geometry.computeBoundingBox();
+                        geometry.boundingBox.getSize(_size);
+                        const sx = Math.abs((_size.x * entity.scale.x) / 2);
+                        const sy = Math.abs((_size.y * entity.scale.y) / 2);
+                        const sz = Math.abs((_size.z * entity.scale.z) / 2);
+                        addColliderToRigidBody(RAPIER.ColliderDesc.cuboid(sx, sy, sz));
+                        break;
 
-                        case 'sphere':
-                            geometry.computeBoundingSphere();
-                            const radius = isNaN(geometry.boundingSphere.radius) ? 0.5 : geometry.boundingSphere.radius;
-                            colliderDescription = RAPIER.ColliderDesc.ball(radius);
-                            break;
+                    case 'sphere':
+                        geometry.computeBoundingSphere();
+                        const radius = isNaN(geometry.boundingSphere.radius) ? 0.5 : geometry.boundingSphere.radius;
+                        const maxSize = Math.max(entity.scale.x, Math.max(entity.scale.y, entity.scale.z));
+                        addColliderToRigidBody(RAPIER.ColliderDesc.ball(radius * maxSize));
+                        break;
 
-                        case 'hull':
-                            const points = new Float32Array(geometry.attributes.position.array);
-                            colliderDescription = RAPIER.ColliderDesc.convexHull(points);
-                            break;
+                    case 'hull':
+                        const points = new Float32Array(geometry.attributes.position.array);
+                        addColliderToRigidBody(RAPIER.ColliderDesc.convexHull(points));
+                        break;
 
-                        case 'mesh':
-                            const vertices = new Float32Array(geometry.attributes.position.array);
-                            const indices = (geometry.index)
-                                ? new Uint32Array(geometry.index.array)
-                                : new Uint32Array([...Array(vertices.length / 3).keys()]);
-                            colliderDescription = RAPIER.ColliderDesc.trimesh(vertices, indices);
-                            break;
-                    }
-                    if (colliderDescription) {
-                        if (child !== entity) {
-                            _matrix.copy(child.matrix);
-                            let parent = child.parent;
-                            while (parent !== entity) {
-                                _matrix.multiply(parent.matrix);
-                                parent = parent.parent;
-                            }
-                            _matrix.decompose(_position, _quaternion, _scale);
-                            colliderDescription.setRotation(_quaternion);
-                            colliderDescription.setTranslation(..._position);
-                        }
-                        addColliderToRigidBody(colliderDescription);
-                    }
+                    case 'mesh':
+                        const vertices = new Float32Array(geometry.attributes.position.array);
+                        const indices = (geometry.index)
+                            ? new Uint32Array(geometry.index.array)
+                            : new Uint32Array([...Array(vertices.length / 3).keys()]);
+                        addColliderToRigidBody(RAPIER.ColliderDesc.trimesh(vertices, indices));
+                        break;
                 }
-            });
+            }
 
         } else if (data.collider === 'ball') {
             const radius = (0.5) * Math.max(entity.scale.x, Math.max(entity.scale.y, entity.scale.z));
@@ -157,8 +141,7 @@ class Rigidbody {
             // rigidbody.setLinvel(_zero);
         } else {
             entity.position.copy(rigidbody.translation());
-            _quaternion.copy(rigidbody.rotation());
-            entity.rotation.setFromQuaternion(_quaternion, undefined, false);
+            entity.rotation.setFromQuaternion(_quaternion.copy(rigidbody.rotation()), undefined, false);
         }
     }
 
@@ -176,65 +159,39 @@ class Rigidbody {
         if (!data || !entity) return undefined;
 
         if (data.collider && data.collider === 'auto' && entity.isEntity) {
-            const geometries = [];
-            entity.traverseEntities((child) => {
-                let childGeometry = undefined;
-                const geometryComponent = child.getComponent('geometry');
-                const geometry = geometryComponent ? geometryComponent.backend : undefined;
-                if (geometry && geometry.isBufferGeometry) {
-                    switch (data.generate) {
-                        case 'box':
-                            geometry.computeBoundingBox();
-                            geometry.boundingBox.getSize(_size);
-                            const sx = Math.abs(_size.x);
-                            const sy = Math.abs(_size.y);
-                            const sz = Math.abs(_size.z);
-                            childGeometry = new THREE.BoxGeometry(sx, sy, sz);
-                            geometry.boundingBox.getCenter(_center);
-                            childGeometry.translate(_center.x, _center.y, _center.z);
-                            break;
-                        case 'sphere':
-                            geometry.computeBoundingSphere();
-                            const radius = isNaN(geometry.boundingSphere.radius) ? 0.5 : geometry.boundingSphere.radius;
-                            childGeometry = new THREE.SphereGeometry(radius, 32);
-                            _center.copy(geometry.boundingSphere.center);
-                            childGeometry.translate(_center.x, _center.y, _center.z);
-                            break;
-                        case 'hull':
-                            const vertices = [];
-                            const positionAttribute = geometry.getAttribute('position');
-                            for (let i = 0; i < positionAttribute.count; i++) {
-                                const vertex = new THREE.Vector3();
-                                vertex.fromBufferAttribute(positionAttribute, i);
-                                vertices.push(vertex);
-                            }
-                            childGeometry = new ConvexGeometry(vertices);
-                            break;
-                        case 'mesh':
-                            childGeometry = geometry.clone();
-                            break;
-                    }
-                }
-                if (childGeometry) {
-                    if (child !== entity) {
-                        _matrix.copy(child.matrix);
-                        let parent = child.parent;
-                        while (parent !== entity) {
-                            _matrix.multiply(parent.matrix);
-                            parent = parent.parent;
+            const geometryComponent = entity.getComponent('geometry');
+            const geometry = geometryComponent ? geometryComponent.backend : undefined;
+            if (geometry && geometry.isBufferGeometry) {
+                switch (data.generate) {
+                    case 'box':
+                        geometry.computeBoundingBox();
+                        geometry.boundingBox.getCenter(_center);
+                        geometry.boundingBox.getSize(_size);
+                        const sx = Math.abs(_size.x);
+                        const sy = Math.abs(_size.y);
+                        const sz = Math.abs(_size.z);
+                        const boxGeometry = new THREE.BoxGeometry(sx, sy, sz);
+                        boxGeometry.translate(_center.x, _center.y, _center.z);
+                        return boxGeometry;
+                    case 'sphere':
+                        geometry.computeBoundingSphere();
+                        _center.copy(geometry.boundingSphere.center);
+                        const radius = isNaN(geometry.boundingSphere.radius) ? 0.5 : geometry.boundingSphere.radius;
+                        const sphereGeometry = new THREE.SphereGeometry(radius, 32);
+                        sphereGeometry.translate(_center.x, _center.y, _center.z);
+                        return sphereGeometry;
+                    case 'hull':
+                        const vertices = [];
+                        const positionAttribute = geometry.getAttribute('position');
+                        for (let i = 0; i < positionAttribute.count; i++) {
+                            const vertex = new THREE.Vector3();
+                            vertex.fromBufferAttribute(positionAttribute, i);
+                            vertices.push(vertex);
                         }
-                        _matrix.decompose(_position, _quaternion, _scale);
-                        childGeometry.scale(_scale.x, _scale.y, _scale.z);
-                        childGeometry.applyQuaternion(_quaternion);
-                        childGeometry.translate(_position.x, _position.y, _position.z);
-                    }
-                    geometries.push(childGeometry);
+                        return new ConvexGeometry(vertices);
+                    case 'mesh':
+                        return geometry.clone();
                 }
-            });
-            if (geometries.length > 0) {
-                const visualGeometry = mergeGeometries(geometries);
-                for (const geometry of geometries) geometry.dispose();
-                return visualGeometry;
             }
         }
 
@@ -261,7 +218,7 @@ class Rigidbody {
     }
 
     colliderShape() {
-        return this.data.collider ?? 'auto';
+        return (this.data.collider === 'auto') ? this.data.generate : this.data.collider;
     }
 
     colliderStyle() {

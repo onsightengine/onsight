@@ -9,7 +9,7 @@ import { SceneManager } from '../../../app/SceneManager.js';
 import { ConvexGeometry } from 'three/addons/geometries/ConvexGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
-const styles = [ 'dynamic', 'fixed' ]; // 'static', 'kinematic'
+const styles = [ 'fixed', 'dynamic', 'kinematic' ];
 const colliders = [ 'auto', 'ball', 'capsule', 'cone', 'cuboid', 'cylinder' ];
 const automatic = [ 'box', 'sphere', 'hull', 'mesh' ];
 
@@ -38,15 +38,45 @@ class Rigidbody {
     onLoad() {
         const world = SceneManager.app?.scene?.physics?.backend;
         const entity = this.entity;
-        const data = this.data;
+        const data = this.data ?? {};
         if (!world || !entity) return;
 
-        // Rigidbody
-        const description = (data.style === 'fixed')
-            ? RAPIER.RigidBodyDesc.fixed()
-            : RAPIER.RigidBodyDesc.dynamic();
+        // Rigidbody Description
+        let description = undefined;
+        switch (data.style) {
+            case 'dynamic':
+                description = RAPIER.RigidBodyDesc.dynamic();
+                break;
+            case 'kinematic':
+                // description = RAPIER.RigidBodyDesc.kinematicPositionBased();
+                description = RAPIER.RigidBodyDesc.kinematicVelocityBased();
+                break;
+            case 'fixed':
+            default:
+                description = RAPIER.RigidBodyDesc.fixed();
+        }
+
+        // Position
         description.setTranslation(...entity.position);
         description.setRotation(entity.quaternion);
+
+        // Velocity
+        if (data.style === 'dynamic' || data.style === 'kinematic') {
+            if (Array.isArray(data.velocity) && data.velocity.length > 2) {
+                const vx = data.velocity[0];
+                const vy = data.velocity[1];
+                const vz = data.velocity[2];
+                description.setLinvel(vx, vy, vz);
+            }
+            if (Array.isArray(data.angular) && data.angular.length > 2) {
+                const ax = data.angular[0];
+                const ay = data.angular[1];
+                const az = data.angular[2];
+                description.setAngvel({ x: ax, y: ay, z: az });
+            }
+        }
+
+        // Rigidbody
         const rigidbody = world.createRigidBody(description);
         this.backend = rigidbody; /* save to backend */
 
@@ -125,20 +155,17 @@ class Rigidbody {
         // MORE COLLIDER TYPES:
         // - 'heightField'
         // - 'polyline'
-        //
     }
 
     onUpdate(delta = 0) {
         const rigidbody = this.backend;
         const entity = this.entity;
-        const data = this.data;
+        const data = this.data ?? {};
         if (!rigidbody || !entity) return;
 
         if (data.style === 'fixed') {
             rigidbody.setTranslation(entity.position);
             rigidbody.setRotation(entity.quaternion);
-            // rigidbody.setAngvel(_zero);
-            // rigidbody.setLinvel(_zero);
         } else {
             entity.position.copy(rigidbody.translation());
             entity.rotation.setFromQuaternion(_quaternion.copy(rigidbody.rotation()), undefined, false);
@@ -153,9 +180,23 @@ class Rigidbody {
 
     /********** CUSTOM */
 
+    setLinvel(x = 0, y = 0, z = 0) {
+        const rigidbody = this.backend;
+        const entity = this.entity;
+        if (!rigidbody || !entity) return;
+        rigidbody.setLinvel({ x, y, z }, true /* awake */);
+    }
+
+    setAngvel(x = 0, y = 0, z = 0) {
+        const rigidbody = this.backend;
+        const entity = this.entity;
+        if (!rigidbody || !entity) return;
+        rigidbody.setAngvel({ x, y, z }, true /* awake */);
+    }
+
     colliderGeometry() {
         const entity = this.entity;
-        const data = this.data;
+        const data = this.data ?? {};
         if (!data || !entity) return undefined;
 
         if (data.collider && data.collider === 'auto' && entity.isEntity) {
@@ -243,26 +284,25 @@ Rigidbody.config = {
 
         // Mass / Restitution (Bounciness)
         // mass: { type: 'number', default: 1 },
-        bounce: { type: 'slider', default: 0.5, min: 0, max: 1, precision: 2 },
-
-        // Friction
-        // friction: { type: 'slider', default: 0.5 },
+        bounce: { type: 'slider', default: 0, min: 0, max: 1, precision: 2 },
 
         // Velocity
-        // velocity: { type: 'vector3', if: { style: [ 'dynamic', 'kinematic' ] } },
-        // angularVelocity: { type: 'vector3', if: { style: [ 'dynamic', 'kinematic' ] } },
+        velocity: { type: 'vector', size: 3, tint: true, step: 1.0, precision: 2, if: { style: [ 'dynamic', 'kinematic' ] } },
+        angular: { type: 'vector', size: 3, tint: true, step: 1.0, precision: 2, if: { style: [ 'dynamic', 'kinematic' ] } },
 
-        // MORE //
+        // Options
+        // canSleep: { type: 'boolean', default: true, },
+        // ccdEnabled: { type: 'boolean', default: false, },
+        // gravityScale: { type: 'number', default: 1.0, if: { style: [ 'dynamic' ] }, },
+
+        ///// Possible??
+
+        // friction: { type: 'slider', default: 0.5 },
 
         // linearDamping: { type: 'number', default: 0.01, min: 0, max: 1, if: { style: [ 'dynamic', 'kinematic' ] } },
         // angularDamping: { type: 'number', default: 0.01, min: 0, max: 1, if: { style: [ 'dynamic', 'kinematic' ] } },
 
         // fixedRotation: { type: 'boolean', default: false, if: { style: [ 'dynamic', 'kinematic' ] } },
-        // linearFactor: { type: 'vector3', default: [ 1, 1, 1 ], min: 0, max: 1, if: { style: [ 'dynamic', 'kinematic' ] } },
-        // angularFactor: { type: 'vector3', default: [ 1, 1, 1 ], min: 0, max: 1, if: { style: [ 'dynamic', 'kinematic' ] } },
-
-        // sleepSpeedLimit: { type: 'number', default: 0.1, min: 0, if: { style: [ 'dynamic', 'kinematic' ] } },
-        // sleepTimeLimit: { type: 'number', default: 1, min: 0, if: { style: [ 'dynamic', 'kinematic' ] } },
 
         // collisionResponse: { type: 'boolean', default: true },
         // collisionFilterGroup: { type: 'int', default: 1 },

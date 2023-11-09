@@ -163,7 +163,7 @@ class App {
                     const playerDistance = this.scene.loadDistance - distanceFromEnd;
                     // Load Stage(s)?
                     if (preload >= 0 && distanceFromEnd < preload) {
-                        SceneManager.loadStages(this.scene, this.world, preload - distanceFromEnd);
+                        SceneManager.loadStages(this.scene, this.world, Math.max(preload - distanceFromEnd, 0.01));
                     // Check for Removal
                     } else if (unload >= 0) {
                         for (const child of this.scene.children) {

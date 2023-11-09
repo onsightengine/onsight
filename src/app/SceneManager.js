@@ -81,9 +81,7 @@ class SceneManager {
                 clone.position.sub(_beginPosition);
                 clone.position.applyQuaternion(_invQuaternion.copy(_beginQuaternion).invert());
                 clone.position.multiply(_beginScale);
-
                 clone.position.multiply(_worldScale);
-
                 clone.rotation.setFromQuaternion(_tempRotation.setFromEuler(clone.rotation).premultiply(_beginQuaternion));
                 clone.scale.multiply(_beginScale);
                 // Flag for Unloading
@@ -199,6 +197,7 @@ class SceneManager {
         if (preload < 0) return;
 
         const startDistance = toScene.loadDistance;
+        let addedStageCount = 0;
         while (toScene.loadDistance - startDistance < preload) {
             // Possible Stages
             const stages = [];
@@ -209,18 +208,21 @@ class SceneManager {
                 stages.push(stage);
             }
 
-            // No Stages Available
-            if (stages.length === 0) {
-                toScene.loadDistance += preload;
-                return;
-            }
-
             // Load Stage
-            SceneManager.cloneStage(toScene, stages[Math.floor(Math.random() * stages.length)]);
+            if (stages.length > 0) {
+                SceneManager.cloneStage(toScene, stages[Math.floor(Math.random() * stages.length)]);
+                addedStageCount++;
+            // No Stages Available
+            } else {
+                toScene.loadDistance += preload;
+                break;
+            }
         }
 
         // Script 'init()' functions
-        SceneManager.app.dispatch('init');
+        if (addedStageCount > 0) {
+            SceneManager.app.dispatch('init');
+        }
     }
 
     static loadWorld(toScene, fromWorld) {

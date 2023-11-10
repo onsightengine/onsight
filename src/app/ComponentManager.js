@@ -27,8 +27,9 @@ import { System } from '../utils/System.js';
 //  slider          Number Slider                   0                   min (-inf), max (inf), step ('any'), precision (2)
 //
 //  variable        Number with +/- Number          [ 0, 0 ]            min[], max[], step[], unit[], precision[]
-//  vector          Number Array                    [ 0 ]               size: array length (1), tint (false), aspect(false) - also min[], max[], step[], unit[], precision[], label[]
-
+//  vector          Number Array                    [ 0 ]               size: array length (1), tint (false), aspect (false) - also min[], max[], step[], unit[], precision[], label[]
+//  option          Bool Array                      [ false ]           size: array length (1), tint (false)
+//
 //  boolean         Option / Checkbox               false
 //  color           Color Selector                  0xffffff
 //  string          String / Multiline?             ''                  rows (1)
@@ -100,6 +101,7 @@ class ComponentManager {
             case 'slider':      return 0;
             case 'variable':    return [ 0, 0 ];
             case 'vector':      return [ 0 ];
+            case 'option':      return [ false ];
             case 'boolean':     return false;
             case 'color':       return 0xffffff;
             case 'string':      return '';
@@ -107,8 +109,7 @@ class ComponentManager {
             case 'asset':       return null;
             case 'object':      return {};
             case 'divider':     return null;
-            default:
-                console.warn(`ComponentManager.defaultValue(): Unknown property type: '${type}'`);
+            default:            console.warn(`ComponentManager.defaultValue(): Unknown property type: '${type}'`);
         }
         return null;
     }
@@ -197,7 +198,7 @@ class ComponentManager {
                 if (typeof super.detach === 'function') super.detach();
             }
 
-            // Returns stored default schema (saved when Component was registered). Pass in starting data by key, value pair
+            // Returns stored default schema (saved when Component was registered). Pass in starting data by 'key, value' pairs
             defaultData(/* key, value, key, value, etc. */) {
                 const data = {};
 
@@ -313,7 +314,13 @@ class ComponentManager {
             // Make sure we have the property
             if (itemToInclude !== undefined) {
                 if (data[schemaKey] === undefined) {
-                    data[schemaKey] = itemToInclude.default;
+                    if (Array.isArray(itemToInclude.default)) {
+                        data[schemaKey] = [...itemToInclude.default];
+                    } else if (typeof itemToInclude.default === 'object') {
+                        data[schemaKey] = structuredClone(itemToInclude.default);
+                    } else {
+                        data[schemaKey] = itemToInclude.default;
+                    }
                 }
 
                 if (Maths.isNumber(data[schemaKey])) {

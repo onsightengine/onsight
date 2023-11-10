@@ -1,24 +1,55 @@
 // https://github.com/mrdoob/three.js/blob/dev/examples/jsm/physics/RapierPhysics.js
 // https://github.com/pmndrs/react-three-rapier
 
+// COLLIDER
+// description = RAPIER.RigidBodyDesc.fixed();
+// description = RAPIER.RigidBodyDesc.dynamic();
+// description = RAPIER.RigidBodyDesc.kinematicVelocityBased();
+// description = RAPIER.RigidBodyDesc.kinematicPositionBased();
+// description.setTranslation(x, y, z);
+// description.setRotation({ w: 1.0, x: 0.0, y: 0.0, z: 0.0});
+// description.setLinvel(x, y, z);
+// description.setAngvel({ x, y, z });
+// description.setGravityScale(1.0);
+// description.setCanSleep(true);
+// description.setCcdEnabled(false);
+// description.setDensity(1.0);
+// description.setAdditionalMass(0.0);
+// description.enabledTranslations(x, y, z);
+// description.enabledRotations(x, y, z);
+// description.setLinearDamping(0.0)
+// description.setAngularDamping(0.0);
+
+// RIGIDBODY
+// rigidBody = world.createRigidBody(rigidBodyDesc);
+// rigidbody.setTranslation({ x: 0.0, y: 0.0, z: 0.0 }, wakeUp);
+// rigidbody.setRotation({ w: 1.0, x: 0.0, y: 0.0, z: 0.0 }, wakeUp);
+// rigidbody.setLinvel({ x, y, z }, wakeUp);
+// rigidbody.setAngvel({ x, y, z }, wakeUp);
+// rigidbody.setGravityScale(1.0, wakeUp);
+
 // FORCES
-// rigidbody.setLinvel({ x, y, z }, true /* wakeUp */);
-// rigidbody.setAngvel({ x, y, z }, true /* wakeUp */);
-// rigidBody.setGravityScale(2.0, true /* wakeUp */);
-// rigidBody.resetForces(true);
-// rigidBody.resetTorques(true);
-// rigidBody.addForce({ x: 0.0, y: 1000.0, z: 0.0 }, true /* wakeUp */);
-// rigidBody.addTorque({ x: 100.0, y: 0.0, z: 0.0 }, true /* wakeUp */);
-// rigidBody.addForceAtPoint({ x: 0.0, y: 1000.0, z: 0.0 }, { x: 1.0, y: 2.0, z: 3.0 }, true /* wakeUp */);
-// rigidBody.applyImpulse({ x: 0.0, y: 1000.0, z: 0.0 }, true /* wakeUp */);
-// rigidBody.applyTorqueImpulse({ x: 100.0, y: 0.0, z: 0.0 }, true /* wakeUp */);
-// rigidBody.applyImpulseAtPoint({ x: 0.0, y: 1000.0, z: 0.0 }, { x: 1.0, y: 2.0, z: 3.0 }, true /* wakeUp */);
+// rigidbody.resetForces(true);
+// rigidbody.resetTorques(true);
+// rigidbody.addForce({ x: 0.0, y: 0.0, z: 0.0 }, wakeUp);
+// rigidbody.addTorque({ x: 0.0, y: 0.0, z: 0.0 }, wakeUp);
+// rigidbody.addForceAtPoint({ x: 0.0, y: 0.0, z: 0.0 }, { x: 0.0, y: 0.0, z: 0.0 }, wakeUp);
+// rigidbody.applyImpulse({ x: 0.0, y: 0.0, z: 0.0 }, wakeUp);
+// rigidbody.applyTorqueImpulse({ x: 0.0, y: 0.0, z: 0.0 }, wakeUp);
+// rigidbody.applyImpulseAtPoint({ x: 0.0, y: 0.0, z: 0.0 }, { x: 0.0, y: 0.0, z: 0.0 }, wakeUp);
 
 // LOCKING
-// rigidBody.lockTranslations(true, true /* wakeUp */);
-// rigidBody.lockRotations(true, true /* wakeUp */);
-// rigidBody.setEnabledRotations(true, false, false, true /* x, y, z, wakeUp */);
-// rigidBody.setEnabledTranslations(true, false, false, true /* x, y, z, wakeUp */);
+// rigidbody.lockTranslations(true, wakeUp);
+// rigidbody.lockRotations(true, wakeUp);
+// rigidbody.setEnabledRotations(true, false, false, true /* x, y, z, wakeUp */);
+// rigidbody.setEnabledTranslations(true, false, false, true /* x, y, z, wakeUp */);
+
+// DAMPING
+// rigidbody.setLinearDamping(0.0);
+// rigidbody.setAngularDamping(0.0);
+
+// DOMINANCE
+// rigidbody.setDominanceGroup(0); /* higher group number ignores mass of lower number, range: -127 to 127 */
 
 import * as THREE from 'three';
 import RAPIER from 'rapier';
@@ -82,12 +113,17 @@ class Rigidbody {
         if (data.style === 'dynamic' || data.style === 'kinematic') {
             const velocity = data.linearVelocity;
             const angular = data.angularVelocity;
-            const linear = data.linearEnabled;
-            const rotate = data.rotateEnabled;
             if (Array.isArray(velocity) && velocity.length > 2) description.setLinvel(velocity[0], velocity[1], velocity[2]);
             if (Array.isArray(angular) && angular.length > 2) description.setAngvel({ x: angular[0], y: angular[1], z: angular[2] });
+        }
+        if (data.style === 'dynamic') {
+            if (data.gravityScale != undefined) description.setGravityScale(parseFloat(data.gravityScale));
+            const linear = data.linearEnabled;
+            const rotate = data.rotateEnabled;
             if (Array.isArray(linear) && linear.length > 2) description.enabledTranslations(linear[0], linear[1], linear[2]);
             if (Array.isArray(rotate) && rotate.length > 2) description.enabledRotations(rotate[0], rotate[1], rotate[2]);
+            if (data.linearDamping != undefined) description.setLinearDamping(parseFloat(data.linearDamping));
+            if (data.angularDamping != undefined) description.setAngularDamping(parseFloat(data.angularDamping));
         }
 
         // Rigidbody
@@ -303,23 +339,25 @@ Rigidbody.config = {
         // mass: { type: 'number', default: 1 },
         bounce: { type: 'slider', default: 0, min: 0, max: 1, precision: 2 },
 
+        // Options
+        // ccdEnabled: { type: 'boolean', default: false, },
+        // canSleep: { type: 'boolean', default: true, },
+        gravityScale: { type: 'number', default: 1.0, if: { style: [ 'dynamic' ] }, },
+
+        // DIVIDER
+        moveDivider: { type: 'divider', if: { style: [ 'dynamic', 'kinematic' ] }, },
+
         // Movement
         linearVelocity: { type: 'vector', size: 3, tint: true, default: [ 0, 0, 0 ], step: 1.0, precision: 2, if: { style: [ 'dynamic', 'kinematic' ] } },
         angularVelocity: { type: 'vector', size: 3, tint: true, default: [ 0, 0, 0 ], step: 1.0, precision: 2, if: { style: [ 'dynamic', 'kinematic' ] } },
-        linearEnabled: { type: 'option', size: 3, tint: true, default: [ true, true, true ], if: { style: [ 'dynamic', 'kinematic' ] } },
-        rotateEnabled: { type: 'option', size: 3, tint: true, default: [ true, true, true ], if: { style: [ 'dynamic', 'kinematic' ] } },
-
-        // Options
-        // canSleep: { type: 'boolean', default: true, },
-        // ccdEnabled: { type: 'boolean', default: false, },
-        // gravityScale: { type: 'number', default: 1.0, if: { style: [ 'dynamic' ] }, },
+        linearEnabled: { type: 'option', size: 3, tint: true, default: [ true, true, true ], if: { style: [ 'dynamic' ] } },
+        rotateEnabled: { type: 'option', size: 3, tint: true, default: [ true, true, true ], if: { style: [ 'dynamic' ] } },
+        linearDamping: { type: 'number', default: 0.0, min: 0, step: 1.0, precision: 2, if: { style: [ 'dynamic' ] } },
+        angularDamping: { type: 'number', default: 0.0, min: 0, step: 1.0, precision: 2, if: { style: [ 'dynamic' ] } },
 
         ///// POSSIBLE?? /////
 
         // friction: { type: 'slider', default: 0.5 },
-
-        // linearDamping: { type: 'number', default: 0.01, min: 0, max: 1, if: { style: [ 'dynamic', 'kinematic' ] } },
-        // angularDamping: { type: 'number', default: 0.01, min: 0, max: 1, if: { style: [ 'dynamic', 'kinematic' ] } },
 
         // collisionResponse: { type: 'boolean', default: true },
         // collisionFilterGroup: { type: 'int', default: 1 },

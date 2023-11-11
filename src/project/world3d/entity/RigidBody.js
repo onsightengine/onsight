@@ -1,7 +1,7 @@
 // https://github.com/mrdoob/three.js/blob/dev/examples/jsm/physics/RapierPhysics.js
 // https://github.com/pmndrs/react-three-rapier
 
-// COLLIDER
+// RIGIDBODY DESCRIPTION
 // description = RAPIER.RigidBodyDesc.fixed();
 // description = RAPIER.RigidBodyDesc.dynamic();
 // description = RAPIER.RigidBodyDesc.kinematicVelocityBased();
@@ -13,7 +13,6 @@
 // description.setGravityScale(1.0);
 // description.setCanSleep(true);
 // description.setCcdEnabled(false);
-// description.setDensity(1.0);
 // description.setAdditionalMass(0.0);
 // description.enabledTranslations(x, y, z);
 // description.enabledRotations(x, y, z);
@@ -50,6 +49,11 @@
 
 // DOMINANCE
 // rigidbody.setDominanceGroup(0); /* higher group number ignores mass of lower number, range: -127 to 127 */
+
+// COLLIDER DESCRIPTION
+// colliderDescription.setDensity(1.0);
+// colliderDescription.setMass(data.mass);                  /* default: auto based on collider shape */
+// colliderDescription.setRestitution(data.bounce ?? 0);
 
 import * as THREE from 'three';
 import RAPIER from 'rapier';
@@ -111,12 +115,15 @@ class Rigidbody {
 
         // Movement
         if (data.style === 'dynamic' || data.style === 'kinematic') {
+            if (data.ccdEnabled != undefined) description.setCcdEnabled(Boolean(data.ccdEnabled));
             const velocity = data.linearVelocity;
             const angular = data.angularVelocity;
             if (Array.isArray(velocity) && velocity.length > 2) description.setLinvel(velocity[0], velocity[1], velocity[2]);
             if (Array.isArray(angular) && angular.length > 2) description.setAngvel({ x: angular[0], y: angular[1], z: angular[2] });
         }
         if (data.style === 'dynamic') {
+            if (data.canSleep != undefined) description.setCanSleep(Boolean(data.canSleep));
+            if (data.addMass != undefined) description.setAdditionalMass(parseFloat(data.addMass));
             if (data.gravityScale != undefined) description.setGravityScale(parseFloat(data.gravityScale));
             const linear = data.linearEnabled;
             const rotate = data.rotateEnabled;
@@ -134,7 +141,6 @@ class Rigidbody {
         function addColliderToRigidBody(colliderDescription) {
             // Mass (Auto)
             // colliderDescription.setMass(data.mass);                  /* default: auto based on collider shape */
-            // colliderDescription.setAdditionalMass(data.addedMass);   /* default: 0.0 */
             // Density
             // colliderDescription.setDensity(data.density);            /* default: 1.0 */
             // Restitution (Bounce)
@@ -335,14 +341,14 @@ Rigidbody.config = {
         // DIVIDER
         shapeDivider: { type: 'divider' },
 
-        // Mass / Restitution (Bounciness)
-        // mass: { type: 'number', default: 1 },
-        bounce: { type: 'slider', default: 0, min: 0, max: 1, precision: 2 },
-
         // Options
-        // ccdEnabled: { type: 'boolean', default: false, },
-        // canSleep: { type: 'boolean', default: true, },
+        ccdEnabled: { type: 'boolean', default: false, if: { style: [ 'dynamic', 'kinematic' ] } },
+        canSleep: { type: 'boolean', default: true, if: { style: [ 'dynamic' ] }, },
         gravityScale: { type: 'number', default: 1.0, if: { style: [ 'dynamic' ] }, },
+
+        // Mass / Restitution (Bounciness)
+        addMass: { type: 'number', default: 0, min: 0, if: { style: [ 'dynamic' ] }, },
+        bounce: { type: 'slider', default: 0, min: 0, max: 1, precision: 2 },
 
         // DIVIDER
         moveDivider: { type: 'divider', if: { style: [ 'dynamic', 'kinematic' ] }, },
@@ -362,6 +368,8 @@ Rigidbody.config = {
         // collisionResponse: { type: 'boolean', default: true },
         // collisionFilterGroup: { type: 'int', default: 1 },
         // collisionFilterMask: { type: 'int', default: - 1 },
+
+        /////
     },
     icon: ``,
     color: '#0F4F94',

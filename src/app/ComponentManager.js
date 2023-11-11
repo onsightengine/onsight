@@ -236,7 +236,7 @@ class ComponentManager {
                             data[key] = this.data[key].uuid;
                         // All other data
                         } else {
-                            data[key] = this.data[key];
+                            data[key] = structuredClone(this.data[key]);
                         }
                     }
                 }

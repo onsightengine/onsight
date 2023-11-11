@@ -203,8 +203,8 @@ class SceneManager {
             const stages = [];
             for (const stage of fromWorld.getStages()) {
                 if (!stage.enabled) continue;
-                if (stage.start > 0 && stage.start > toScene.loadDistance) continue;
-                if (stage.finish > 0 && stage.finish < toScene.loadDistance) continue;
+                if (stage.start >= 0 && stage.start > toScene.loadDistance) continue;
+                if (stage.finish >= 0 && stage.finish < toScene.loadDistance) continue;
                 stages.push(stage);
             }
 

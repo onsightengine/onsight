@@ -2,22 +2,22 @@
 // https://github.com/pmndrs/react-three-rapier
 
 // RIGIDBODY DESCRIPTION
-// description = RAPIER.RigidBodyDesc.fixed();
-// description = RAPIER.RigidBodyDesc.dynamic();
-// description = RAPIER.RigidBodyDesc.kinematicVelocityBased();
-// description = RAPIER.RigidBodyDesc.kinematicPositionBased();
-// description.setTranslation(x, y, z);
-// description.setRotation({ w: 1.0, x: 0.0, y: 0.0, z: 0.0});
-// description.setLinvel(x, y, z);
-// description.setAngvel({ x, y, z });
-// description.setGravityScale(1.0);
-// description.setCanSleep(true);
-// description.setCcdEnabled(false);
-// description.setAdditionalMass(0.0);
-// description.enabledTranslations(x, y, z);
-// description.enabledRotations(x, y, z);
-// description.setLinearDamping(0.0)
-// description.setAngularDamping(0.0);
+// rigidbodyDesc = RAPIER.RigidBodyDesc.fixed();
+// rigidbodyDesc = RAPIER.RigidBodyDesc.dynamic();
+// rigidbodyDesc = RAPIER.RigidBodyDesc.kinematicVelocityBased();
+// rigidbodyDesc = RAPIER.RigidBodyDesc.kinematicPositionBased();
+// rigidbodyDesc.setTranslation(x, y, z);
+// rigidbodyDesc.setRotation({ w: 1.0, x: 0.0, y: 0.0, z: 0.0});
+// rigidbodyDesc.setLinvel(x, y, z);
+// rigidbodyDesc.setAngvel({ x, y, z });
+// rigidbodyDesc.setGravityScale(1.0);
+// rigidbodyDesc.setCanSleep(true);
+// rigidbodyDesc.setCcdEnabled(false);
+// rigidbodyDesc.setAdditionalMass(0.0);
+// rigidbodyDesc.enabledTranslations(x, y, z);
+// rigidbodyDesc.enabledRotations(x, y, z);
+// rigidbodyDesc.setLinearDamping(0.0)
+// rigidbodyDesc.setAngularDamping(0.0);
 
 // RIGIDBODY
 // rigidBody = world.createRigidBody(rigidBodyDesc);
@@ -51,9 +51,10 @@
 // rigidbody.setDominanceGroup(0); /* higher group number ignores mass of lower number, range: -127 to 127 */
 
 // COLLIDER DESCRIPTION
-// colliderDescription.setDensity(1.0);
-// colliderDescription.setMass(data.mass);                  /* default: auto based on collider shape */
-// colliderDescription.setRestitution(data.bounce ?? 0);
+// colliderDesc.setDensity(data.density ?? 1.0);
+// colliderDesc.setMass(data.mass); /* default: auto based on collider shape */
+// colliderDesc.setFriction(data.friction ?? 0.5);
+// colliderDesc.setRestitution(data.bounce ?? 0);
 
 import * as THREE from 'three';
 import RAPIER from 'rapier';
@@ -95,58 +96,60 @@ class Rigidbody {
         if (!world || !entity) return;
 
         // Rigidbody Description
-        let description = undefined;
+        let rigidbodyDesc = undefined;
         switch (data.style) {
             case 'dynamic':
-                description = RAPIER.RigidBodyDesc.dynamic();
+                rigidbodyDesc = RAPIER.RigidBodyDesc.dynamic();
                 break;
             case 'kinematic':
-                // description = RAPIER.RigidBodyDesc.kinematicPositionBased();
-                description = RAPIER.RigidBodyDesc.kinematicVelocityBased();
+                // rigidbodyDesc = RAPIER.RigidBodyDesc.kinematicPositionBased();
+                rigidbodyDesc = RAPIER.RigidBodyDesc.kinematicVelocityBased();
                 break;
             case 'fixed':
             default:
-                description = RAPIER.RigidBodyDesc.fixed();
+                rigidbodyDesc = RAPIER.RigidBodyDesc.fixed();
         }
 
         // Position
-        description.setTranslation(...entity.position);
-        description.setRotation(entity.quaternion);
+        rigidbodyDesc.setTranslation(...entity.position);
+        rigidbodyDesc.setRotation(entity.quaternion);
 
         // Movement
         if (data.style === 'dynamic' || data.style === 'kinematic') {
-            if (data.ccdEnabled != undefined) description.setCcdEnabled(Boolean(data.ccdEnabled));
+            if (data.ccdEnabled != undefined) rigidbodyDesc.setCcdEnabled(Boolean(data.ccdEnabled));
             const velocity = data.linearVelocity;
             const angular = data.angularVelocity;
-            if (Array.isArray(velocity) && velocity.length > 2) description.setLinvel(velocity[0], velocity[1], velocity[2]);
-            if (Array.isArray(angular) && angular.length > 2) description.setAngvel({ x: angular[0], y: angular[1], z: angular[2] });
+            if (Array.isArray(velocity) && velocity.length > 2) rigidbodyDesc.setLinvel(velocity[0], velocity[1], velocity[2]);
+            if (Array.isArray(angular) && angular.length > 2) rigidbodyDesc.setAngvel({ x: angular[0], y: angular[1], z: angular[2] });
         }
         if (data.style === 'dynamic') {
-            if (data.canSleep != undefined) description.setCanSleep(Boolean(data.canSleep));
-            if (data.addMass != undefined) description.setAdditionalMass(parseFloat(data.addMass));
-            if (data.gravityScale != undefined) description.setGravityScale(parseFloat(data.gravityScale));
+            if (data.canSleep != undefined) rigidbodyDesc.setCanSleep(Boolean(data.canSleep));
+            if (data.addMass != undefined) rigidbodyDesc.setAdditionalMass(parseFloat(data.addMass));
+            if (data.gravityScale != undefined) rigidbodyDesc.setGravityScale(parseFloat(data.gravityScale));
             const linear = data.linearEnabled;
             const rotate = data.rotateEnabled;
-            if (Array.isArray(linear) && linear.length > 2) description.enabledTranslations(linear[0], linear[1], linear[2]);
-            if (Array.isArray(rotate) && rotate.length > 2) description.enabledRotations(rotate[0], rotate[1], rotate[2]);
-            if (data.linearDamping != undefined) description.setLinearDamping(parseFloat(data.linearDamping));
-            if (data.angularDamping != undefined) description.setAngularDamping(parseFloat(data.angularDamping));
+            if (Array.isArray(linear) && linear.length > 2) rigidbodyDesc.enabledTranslations(linear[0], linear[1], linear[2]);
+            if (Array.isArray(rotate) && rotate.length > 2) rigidbodyDesc.enabledRotations(rotate[0], rotate[1], rotate[2]);
+            if (data.linearDamping != undefined) rigidbodyDesc.setLinearDamping(parseFloat(data.linearDamping));
+            if (data.angularDamping != undefined) rigidbodyDesc.setAngularDamping(parseFloat(data.angularDamping));
         }
 
         // Rigidbody
-        const rigidbody = world.createRigidBody(description);
+        const rigidbody = world.createRigidBody(rigidbodyDesc);
         this.backend = rigidbody; /* save to backend */
 
         // Shape Properties
-        function addColliderToRigidBody(colliderDescription) {
-            // Mass (Auto)
-            // colliderDescription.setMass(data.mass);                  /* default: auto based on collider shape */
-            // Density
-            // colliderDescription.setDensity(data.density);            /* default: 1.0 */
-            // Restitution (Bounce)
-            colliderDescription.setRestitution(data.bounce ?? 0);       /* default: 0.0 */
-            // Add to Collider to Rigidbody
-            world.createCollider(colliderDescription, rigidbody);
+        function addColliderToRigidBody(colliderDesc) {
+            ///// Mass (Auto)
+            // colliderDesc.setMass(data.mass);                 /* default: auto based on collider shape */
+            ///// Density
+            colliderDesc.setDensity((data.density != undefined) ? data.density : 1.0);  /* default: 1.0 */
+            ///// Friction
+            colliderDesc.setFriction(data.friction);                                    /* default: 0.5 */
+            ///// Restitution / Bounce
+            colliderDesc.setRestitution(data.bounce ?? 0);                              /* default: 0.0 */
+            ///// Add Collider to Rigidbody
+            world.createCollider(colliderDesc, rigidbody);
         }
 
         // Collider Description
@@ -157,25 +160,28 @@ class Rigidbody {
                 switch (data.generate) {
                     case 'box':
                         geometry.computeBoundingBox();
+                        geometry.boundingBox.getCenter(_center);
                         geometry.boundingBox.getSize(_size);
                         const sx = Math.abs((_size.x * entity.scale.x) / 2);
                         const sy = Math.abs((_size.y * entity.scale.y) / 2);
                         const sz = Math.abs((_size.z * entity.scale.z) / 2);
-                        addColliderToRigidBody(RAPIER.ColliderDesc.cuboid(sx, sy, sz));
+                        const cuboid = RAPIER.ColliderDesc.cuboid(sx, sy, sz);
+                        cuboid.setTranslation(_center.x * entity.scale.x, _center.y * entity.scale.y, _center.z * entity.scale.z);
+                        addColliderToRigidBody(cuboid);
                         break;
-
                     case 'sphere':
                         geometry.computeBoundingSphere();
+                        _center.copy(geometry.boundingSphere.center);
                         const radius = isNaN(geometry.boundingSphere.radius) ? 0.5 : geometry.boundingSphere.radius;
                         const maxSize = Math.max(entity.scale.x, Math.max(entity.scale.y, entity.scale.z));
-                        addColliderToRigidBody(RAPIER.ColliderDesc.ball(radius * maxSize));
+                        const ball = RAPIER.ColliderDesc.ball(radius * maxSize);
+                        ball.setTranslation(_center.x * entity.scale.x, _center.y * entity.scale.y, _center.z * entity.scale.z);
+                        addColliderToRigidBody(ball);
                         break;
-
                     case 'hull':
                         const points = new Float32Array(geometry.attributes.position.array);
                         addColliderToRigidBody(RAPIER.ColliderDesc.convexHull(points));
                         break;
-
                     case 'mesh':
                         const vertices = new Float32Array(geometry.attributes.position.array);
                         const indices = (geometry.index)
@@ -189,7 +195,6 @@ class Rigidbody {
         } else if (data.collider === 'ball') {
             const radius = (0.5) * Math.max(entity.scale.x, Math.max(entity.scale.y, entity.scale.z));
             addColliderToRigidBody(RAPIER.ColliderDesc.ball(radius));
-
         } else if (data.collider === 'capsule') {
 
             // TODO
@@ -203,12 +208,10 @@ class Rigidbody {
             const sy = (0.5) * entity.scale.y;
             const sz = (0.5) * entity.scale.z;
             addColliderToRigidBody(RAPIER.ColliderDesc.cuboid(sx, sy, sz));
-
         } else if (data.collider === 'cylinder') {
             const sy = (0.5) * entity.scale.y;
             const radius = (0.5) * Math.max(entity.scale.x, entity.scale.z);
             addColliderToRigidBody(RAPIER.ColliderDesc.cylinder(sy, radius));
-
         }
 
         // MORE COLLIDER TYPES:
@@ -346,9 +349,11 @@ Rigidbody.config = {
         canSleep: { type: 'boolean', default: true, if: { style: [ 'dynamic' ] }, },
         gravityScale: { type: 'number', default: 1.0, if: { style: [ 'dynamic' ] }, },
 
-        // Mass / Restitution (Bounciness)
+        // Collider Properties (Mass, Restitution / Bounce, Friction)
         addMass: { type: 'number', default: 0, min: 0, if: { style: [ 'dynamic' ] }, },
+        density: { type: 'number', default: 1.0, min: 0, step: 0.1, precision: 2, promode: true },
         bounce: { type: 'slider', default: 0, min: 0, max: 1, precision: 2 },
+        friction: { type: 'slider', default: 0.5, min: 0, max: 1, precision: 2 },
 
         // DIVIDER
         moveDivider: { type: 'divider', if: { style: [ 'dynamic', 'kinematic' ] }, },
@@ -362,8 +367,6 @@ Rigidbody.config = {
         angularDamping: { type: 'number', default: 0.0, min: 0, step: 1.0, precision: 2, if: { style: [ 'dynamic' ] } },
 
         ///// POSSIBLE?? /////
-
-        // friction: { type: 'slider', default: 0.5 },
 
         // collisionResponse: { type: 'boolean', default: true },
         // collisionFilterGroup: { type: 'int', default: 1 },

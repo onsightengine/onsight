@@ -149,7 +149,11 @@ class Rigidbody {
             ///// Restitution / Bounce
             colliderDesc.setRestitution(data.bounce ?? 0);                              /* default: 0.0 */
             ///// Add Collider to Rigidbody
-            world.createCollider(colliderDesc, rigidbody);
+            const collider = world.createCollider(colliderDesc, rigidbody);
+            if (data.style === 'dynamic' || data.style === 'kinematic') {
+                collider.setActiveCollisionTypes(RAPIER.ActiveCollisionTypes.DEFAULT | RAPIER.ActiveCollisionTypes.KINEMATIC_FIXED);
+                collider.setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS);
+            }
         }
 
         // Collider Description
@@ -353,7 +357,7 @@ Rigidbody.config = {
         addMass: { type: 'number', default: 0, min: 0, if: { style: [ 'dynamic' ] }, },
         density: { type: 'number', default: 1.0, min: 0, step: 0.1, precision: 2, promode: true },
         bounce: { type: 'slider', default: 0, min: 0, max: 1, precision: 2 },
-        friction: { type: 'slider', default: 0.5, min: 0, max: 1, precision: 2 },
+        friction: { type: 'slider', default: 0.5, min: 0, max: 10, precision: 2 },
 
         // DIVIDER
         moveDivider: { type: 'divider', if: { style: [ 'dynamic', 'kinematic' ] }, },

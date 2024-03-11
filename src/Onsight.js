@@ -2,8 +2,8 @@
  * @description Onsight Engine
  * @about       Easy to use 2D / 3D JavaScript game engine.
  * @author      Stephens Nunnally <@stevinz>
- * @license     MIT - Copyright (c) 2021-2023 Stephens Nunnally and Scidian Studios
- * @source      https://github.com/onsightengine
+ * @license     MIT - Copyright (c) 2021 Stephens Nunnally and Scidian Studios
+ * @source      https://github.com/scidian/onsight
  */
 
 /******************** CONSTANTS ********************/

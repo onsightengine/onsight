@@ -2849,7 +2849,7 @@ class Stage2D extends Entity2D {
 const _types = {
     'Camera2D': Camera2D,
     'Entity2D': Entity2D,
-    'Scene2D': Scene2D,
+    'Stage2D': Stage2D,
 };
 class World2D extends Entity2D {
     constructor(name = 'World 1') {

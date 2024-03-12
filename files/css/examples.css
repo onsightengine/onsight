@@ -50,12 +50,12 @@ a {
 
 @font-face {
     font-family: 'Aileron';
-    src: url('../files/fonts/Aileron-Regular.ttf');
+    src: url('../fonts/Aileron-Regular.ttf');
 }
 
 @font-face {
     font-family: 'Roboto';
-    src: url('../files/fonts/Roboto-Regular.ttf');
+    src: url('../fonts/Roboto-Regular.ttf');
 }
 
 body {
@@ -239,7 +239,7 @@ canvas:not(.Texture) {
 
 details {
     font-size: 12px;
-    color: #009b96;
+    color: #00c7e6;
     margin-left: 3.5em;
 }
 

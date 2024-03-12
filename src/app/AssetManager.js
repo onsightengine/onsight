@@ -7,25 +7,42 @@ const _types = {
 
 class AssetManager {
 
-    /******************** MANAGER */
+    /******************** CLEAR */
 
     static clear() {
         for (const uuid in _assets) {
             const asset = _assets[uuid];
             if (asset.isBuiltIn) continue; /* keep built-in assets */
-            AssetManager.removeAsset(_assets[uuid], true);
+            AssetManager.remove(_assets[uuid], true);
         }
     }
 
-    /******************** ASSETS */
+    /******************** ACCESS */
 
-    static addAsset(asset) {
+    static get(uuid) {
+        if (uuid && uuid.uuid) uuid = uuid.uuid;
+        return _assets[uuid];
+    }
+
+    /** Retrieve a collection of Asset sub types by Category */
+    static library(type, category) {
+        const library = [];
+        for (const [uuid, asset] of Object.entries(_assets)) {
+            if (type && asset.type !== type) continue;
+            if (category == undefined || (asset.category && asset.category === category)) {
+                library.push(asset);
+            }
+        }
+        return library;
+    }
+
+    /******************** ADD / REMOVE */
+
+    static add(asset /* additional assets separated by commas */) {
         const assets = Array.isArray(asset) ? asset : [...arguments];
         let returnAsset = undefined;
         for (let i = 0; i < assets.length; i++) {
             let asset = assets[i];
-
-            // Checks
             if (!asset || !asset.uuid) continue;
 
             // Ensure asset has a Name
@@ -38,24 +55,7 @@ class AssetManager {
         return returnAsset;
     }
 
-    static getAsset(uuid) {
-        if (uuid && uuid.uuid) uuid = uuid.uuid;
-        return _assets[uuid];
-    }
-
-    /** Retrieve a collection of Asset sub types by Category */
-    static getLibrary(type, category) {
-        const library = [];
-        for (const [uuid, asset] of Object.entries(_assets)) {
-            if (type && asset.type !== type) continue;
-            if (category == undefined || (asset.category && asset.category === category)) {
-                library.push(asset);
-            }
-        }
-        return library;
-    }
-
-    static removeAsset(asset, dispose = true) {
+    static remove(asset, dispose = true) {
         const assets = Array.isArray(asset) ? asset : [ asset ];
         for (const asset of assets) {
             if (!asset || !asset.uuid) continue;
@@ -69,7 +69,7 @@ class AssetManager {
         }
     }
 
-    /******************** JSON */
+    /******************** SERIALIZE */
 
     static fromJSON(json, onLoad = () => {}) {
         // Clear Assets
@@ -82,7 +82,7 @@ class AssetManager {
                 const Constructor = _types[type];
                 const asset = new Constructor();
                 asset.fromJSON(assetData);
-                AssetManager.addAsset(asset);
+                AssetManager.add(asset);
             }
         }
 
@@ -99,7 +99,7 @@ class AssetManager {
 
         // Save Assets
         for (const type of Object.keys(_types)) {
-            const assets = AssetManager.getLibrary(type);
+            const assets = AssetManager.library(type);
             if (assets.length === 0) continue;
             meta[type] = {};
             for (const asset of assets) {

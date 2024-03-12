@@ -1,4 +1,4 @@
-import { Palette } from '../project/assets/Palette.js';
+import { Palette } from '../assets/Palette.js';
 
 const _assets = {};
 const _types = {

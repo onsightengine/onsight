@@ -37,19 +37,6 @@ class World2D extends Entity2D {
         // // Properties, Gameplay
         // this.loadPosition = new THREE.Matrix4();
         // this.loadDistance = 0;
-
-        // // Shadow Plane (added as Object3D, NOT saved to JSON)
-        // this.shadowPlane = new THREE.Mesh(
-        //     new THREE.PlaneGeometry(100000, 100000),
-        //     new THREE.ShadowMaterial({ color: 0, transparent: true, opacity: 0.2, depthWrite: false })
-        // );
-        // this.shadowPlane.name = 'Shadow Plane';
-        // this.shadowPlane.userData.flagIgnore = true;
-        // this.shadowPlane.rotation.x = - Math.PI / 2;
-        // this.shadowPlane.castShadow = false;
-        // this.shadowPlane.receiveShadow = true;
-        // this.shadowPlane.visible = false;
-        // this.add(this.shadowPlane);
     }
 
     /******************** CHILDREN */

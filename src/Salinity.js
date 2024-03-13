@@ -20,7 +20,6 @@ export { AssetManager } from './app/AssetManager.js';
 
 export { Palette } from './assets/Palette.js';
 
-
 /******************** MATH *****/
 
 export { Color } from './math/Color.js';
@@ -44,7 +43,6 @@ export * as Vec4Func from './math/functions/Vec4Func.js';
 
 // Core
 export { Entity } from './project/Entity.js';
-export { EntityUtils } from './project/EntityUtils.js';
 export { Project } from './project/Project.js';
 
 // World
@@ -58,6 +56,7 @@ export { Renderer } from './render/Renderer.js';
 
 /******************** UTILS */
 
+export { EntityUtils } from './utils/EntityUtils.js';
 export { Maths } from './utils/Maths.js';
 export { Strings } from './utils/Strings.js';
 export { System } from './utils/System.js';

@@ -18,8 +18,6 @@ let _idGenerator = 1;
 
 class Renderer {
 
-    static #idGenerator = 1;
-
     #contextLost = false;
 
     constructor({
@@ -99,6 +97,7 @@ class Renderer {
 
         // Programs
         this.programs = {};
+        this.extensions = {};
 
         // Context
         function initContext(self) {
@@ -331,7 +330,7 @@ class Renderer {
             transparent.sort(this.sortTransparent);
             ui.sort(this.sortUI);
 
-            renderList = opaque.concat(transparent, ui);
+            renderList = [...opaque, ...transparent, ...ui];
         }
 
         return renderList;

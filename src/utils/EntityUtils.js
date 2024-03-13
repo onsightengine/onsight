@@ -2,7 +2,6 @@
 // commonEntity()               Checks two arrays to see if they have any common entites
 // compareArrayOfEntities()     Checks if two entity arrays hold the same entities (i.e. are the same collections)
 // containsEntity()             Checks array to see if it has an entity (by entity.uuid)
-// parentEntity()               Returns top level entity that is not a world or stage
 // removeEntityFromArray()      Removes all instances of an entity (by uuid) from an array of entities
 
 class EntityUtils {
@@ -50,22 +49,6 @@ class EntityUtils {
             if (checkEntity.isEntity && checkEntity.uuid === entity.uuid) return true;
         }
         return false;
-    }
-
-    /** Returns top level entity that is not a world or stage */
-    static parentEntity(entity, immediateOnly = false) {
-        while (entity && entity.parent) {
-            if (entity.parent.isStage) return entity;
-            if (entity.parent.isWorld) return entity;
-            entity = entity.parent;
-            if (immediateOnly) {
-                let validEntity = entity.isEntity;
-                validEntity = validEntity || entity.userData.flagIgnore;
-                validEntity = validEntity || entity.userData.flagHelper;
-                if (validEntity) return entity;
-            }
-        }
-        return entity;
     }
 
     /** Removes all instances of an entity (by uuid) from an array of entities */

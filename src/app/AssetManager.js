@@ -38,7 +38,7 @@ class AssetManager {
 
     /******************** ADD / REMOVE */
 
-    static add(asset /* additional assets separated by commas */) {
+    static add(asset /* asset, asset, ... */) {
         const assets = Array.isArray(asset) ? asset : [...arguments];
         let returnAsset = undefined;
         for (let i = 0; i < assets.length; i++) {

@@ -48,7 +48,6 @@ export { World3D } from './project/world3d/World3D.js';
 
 // Object
 export { EntityUtils } from './utils/EntityUtils.js';
-export { ObjectUtils } from './utils/ObjectUtils.js';
 
 // Utils
 export { Clock } from './utils/Clock.js';

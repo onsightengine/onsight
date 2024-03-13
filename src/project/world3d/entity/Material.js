@@ -1,6 +1,5 @@
 import { AssetManager } from '../../../app/AssetManager.js';
 import { ComponentManager } from '../../../app/ComponentManager.js';
-import { ObjectUtils } from '../../../utils/ObjectUtils.js';
 import { SceneManager } from '../../../app/SceneManager.js';
 
 const blendingModes = [ 'NoBlending', 'NormalBlending', 'AdditiveBlending', 'SubstractiveBlending', 'MultiplyBlending', 'CustomBlending' ];

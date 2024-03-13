@@ -1,11 +1,31 @@
+// clearObject()                Completely deletes object (including geomtries/materials), and all of it's children
 // combineEntityArrays()        Adds entities from 'entityArrayToAdd' into 'intoEntityArray'
 // commonEntity()               Checks two arrays to see if they have any common entites
 // compareArrayOfEntities()     Checks if two entity arrays hold the same entities (i.e. are the same collections)
 // containsEntity()             Checks array to see if it has an entity (by entity.uuid)
+// copyTransform()              Copies transform from one object to another
 // parentEntity()               Returns top level entity that is not a world or stage
 // removeEntityFromArray()      Removes all instances of an entity (by uuid) from an array of entities
+// uuidArray()                  Converts object array to UUID array
 
 class EntityUtils {
+
+    /** Completely deletes 'object' (including geomtries and materials), and all of it's children */
+    static clearObject(object, removeFromParent = true) {
+        // if (!object || !object.isObject3D) return;
+
+        // if (object.geometry && typeof object.geometry.dispose === 'function') object.geometry.dispose();
+        // if (object.material) ObjectUtils.clearMaterial(object.material);
+        // if (object.dispose && typeof object.dispose === 'function') object.dispose();
+
+        // while (object.children.length > 0) {
+        //     ObjectUtils.clearObject(object.children[0], true /* removeFromParent */);
+        // }
+
+        // ObjectUtils.resetTransform(object);
+        // if (removeFromParent) object.removeFromParent();
+        // object = null;
+    }
 
     /** Adds entities from 'entityArrayToAdd' into 'intoEntityArray' */
     static combineEntityArrays(intoEntityArray, entityArrayToAdd) {
@@ -52,6 +72,16 @@ class EntityUtils {
         return false;
     }
 
+    /** Copies transform from one object to another */
+    static copyTransform(source, target) {
+        target.position.copy(source.position);
+        target.rotation.order = source.rotation.order;
+        target.quaternion.copy(source.quaternion);
+        target.scale.copy(source.scale);
+        target.matrix.copy(source.matrix);
+        target.matrixWorld.copy(source.matrixWorld);
+    }
+
     /** Returns top level entity that is not a world or stage */
     static parentEntity(entity, immediateOnly = false) {
         while (entity && entity.parent) {
@@ -75,6 +105,16 @@ class EntityUtils {
             if (entityArray[i].uuid === entity.uuid) entityArray.splice(i, 1);
         }
         return entityArray;
+    }
+
+    /** Converts object array to UUID array */
+    static uuidArray(objects) {
+        objects = Array.isArray(objects) ? objects : [...arguments];
+        const uuids = [];
+        for (const object of objects) {
+            if (typeof object === 'object' && object.uuid) uuids.push(object.uuid);
+        }
+        return uuids;
     }
 
 }

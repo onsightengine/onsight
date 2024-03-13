@@ -4,7 +4,6 @@ import { APP_ORIENTATION } from '../constants.js';
 import { AssetManager } from './AssetManager.js';
 import { Clock } from '../utils/Clock.js';
 import { EntityUtils } from '../utils/EntityUtils.js';
-import { ObjectUtils } from '../utils/ObjectUtils.js';
 import { Project } from '../project/Project.js';
 import { SceneManager } from './SceneManager.js';
 import { Stage3D } from '../project/world3d/Stage3D.js';
@@ -233,8 +232,8 @@ class App {
         SceneManager.dispose();
 
         // Clear Objects
-        ObjectUtils.clearObject(this.camera);
-        ObjectUtils.clearObject(this.scene);
+        EntityUtils.clearObject(this.camera);
+        EntityUtils.clearObject(this.scene);
         this.project.clear();
         this.clearEvents();
     }

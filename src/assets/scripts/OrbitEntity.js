@@ -30,7 +30,7 @@ function init() {
     app.camera.position.x = this.position.x;
     app.camera.position.y = this.position.y;
     app.camera.position.z = this.position.z + distance;
-    controls = new ONE.OrbitControls(app.camera, app.renderer.domElement, this);
+    controls = new SALT.OrbitControls(app.camera, app.renderer.domElement, this);
     controls.enablePan = pan;
     controls.enableRotate = rotate;
     controls.smoothAnimate = smooth;

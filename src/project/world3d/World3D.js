@@ -1,7 +1,6 @@
 import { Camera3D } from './Camera3D.js';
 import { Entity3D } from './Entity3D.js';
 import { Stage3D } from './Stage3D.js';
-import { ObjectUtils } from '../../utils/ObjectUtils.js';
 
 class World3D extends Entity3D {
 
@@ -160,8 +159,6 @@ class World3D extends Entity3D {
         if (this.environment && typeof this.environment.dispose === 'function') this.environment.dispose();
         if (this.fog && typeof this.fog.dispose === 'function') this.fog.dispose();
         if (this.overrideMaterial && typeof this.overrideMaterial.dispose === 'function') this.overrideMaterial.dispose();
-
-        if (this.shadowPlane) ObjectUtils.clearObject(this.shadowPlane);
     }
 
     /******************** JSON */

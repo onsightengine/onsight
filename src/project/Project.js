@@ -1,25 +1,24 @@
-import {
-    APP_ORIENTATION,
-    VERSION,
-    WORLD_TYPES,
-} from '../constants.js';
+import { APP_ORIENTATION } from '../constants.js';
+import { WORLD_TYPES } from '../constants.js';
+import { VERSION } from '../constants.js';
 
 import { AssetManager } from '../app/AssetManager.js';
 import { Maths } from '../utils/Maths.js';
-import { World2D } from './world2d/World2D.js';
+import { World3D } from './world3d/World3D.js';
 
 class Project {
 
     constructor(name = 'My Project') {
+
         // Prototype
         this.isProject = true;
         this.type = 'Project';
 
-        // Basic
+        // Properties
         this.name = name;
         this.uuid = Maths.uuid();
 
-        // World
+        // Properties, World
         this.activeWorldUUID = null;
 
         // Settings
@@ -67,7 +66,7 @@ class Project {
 
     addWorld(world) {
         if (!world || !world.isWorld) return this;
-        if (WORLD_TYPES.includes(world.type)) {
+        if (WORLD_TYPES[world.type]) {
             this.worlds[world.uuid] = world;
             if (this.activeWorldUUID == null) this.activeWorldUUID = world.uuid;
         } else {
@@ -112,8 +111,12 @@ class Project {
 
     /******************** ENTITY */
 
-    findEntityByUUID(uuid, searchWorld = null) {
-        const worldList = (searchWorld && searchWorld.isWorld) ? [ searchWorld ] : [...this.worlds];
+    findEntityByUUID(uuid, searchAllWorlds = false) {
+        const activeWorld = editor.viewport.world;
+
+        let worldList = [];
+        if (searchAllWorlds) worldList = [...this.worlds];
+        else if (activeWorld) worldList = [ activeWorld ];
 
         for (const world of worldList) {
             if (uuid && world.uuid && uuid === world.uuid) return world;
@@ -147,6 +150,7 @@ class Project {
         const metaType = (json.metadata) ? json.metadata.type : 'Undefined';
         if (metaType !== 'Salinity') {
             console.error(`Project.fromJSON: Unknown project type ('${metaType}'), expected 'Salinity'`);
+
             return;
         }
 
@@ -182,7 +186,8 @@ class Project {
         for (const worldData of json.worlds) {
             let world = undefined;
             switch (worldData.object.type) {
-                case 'World2D': world = new World2D().fromJSON(worldData); break;
+                // case 'World2D': world = new World2D().fromJSON(worldData); break;
+                case 'World3D': world = new World3D().fromJSON(worldData); break;
             }
             if (world && world.isWorld) this.addWorld(world);
         }
@@ -197,7 +202,7 @@ class Project {
 
         // Meta Data
         json.metadata = {
-            type: 'Salt',
+            type: 'Salinity',
             version: VERSION,
             generator: 'Salinity.Project.toJSON',
         };

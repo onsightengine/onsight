@@ -1,6 +1,7 @@
 // ARRAYS
 //  isIterable()            Checks if a javascript object is iterable
 //  isObject()              Checks if a variable is an object (and not null / array / function)
+//  swapArrayItems()        Swaps two items in an array
 // FILE SYSTEM
 //  save()                  Saves an URL object to the host system
 // PLATFORM
@@ -25,12 +26,17 @@ class System {
         return (variable && typeof variable === 'object' && !Array.isArray(variable));
     }
 
+    /** Swaps two items in an array */
+    static swapArrayItems(array, a, b) {
+        array[a] = array.splice(b, 1, array[a])[0];
+        return array;
+    }
+
     /******************** FILE SYSTEM ********************/
 
     static save(url, filename) {
         try {
             const link = document.createElement('a');
-            document.body.appendChild(link);
             link.href = url;
             link.download = filename || 'data.json';
             link.click(); // link.dispatchEvent(new MouseEvent('click'));

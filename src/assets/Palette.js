@@ -1,3 +1,6 @@
+import { Iris } from '../utils/Iris.js';
+import { Maths } from '../utils/Maths.js';
+
 class Palette {
 
     constructor() {
@@ -8,13 +11,10 @@ class Palette {
         // Properties, Asset
         this.name = 'New Palette';
         this.uuid = Maths.uuid();
-
-        // Properties, Palette
         this.colors = [];
     }
 
     default16() {
-        this.name = 'Default';
         this.colors = [
             0x000000,   // black
             0x808080,   // gray
@@ -37,7 +37,6 @@ class Palette {
     }
 
     purpleGold() {
-        this.name = 'Purple Gold';
         this.colors = [
             0x000000,   // black
             0xffffff,   // white

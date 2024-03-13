@@ -6,64 +6,70 @@
  * @source      https://github.com/stevinz/salinity
  */
 
-/******************** CONSTANTS */
-
-import { VERSION } from './constants.js';
-export * from './constants.js';
-
-/******************** APPLICATION */
-
-export { Application } from './app/Application.js';
+// App
+export { App } from './app/App.js';
 export { AssetManager } from './app/AssetManager.js';
+export { ComponentManager } from './app/ComponentManager.js';
+export { SceneManager } from './app/SceneManager.js'
 
-/******************** ASSETS */
+/******************** CLASSES - Assets  ********************/
 
+// Assets
 export { Palette } from './assets/Palette.js';
+export { Script } from './assets/Script.js';
 
-/******************** MATH *****/
+// Assets, Scripts, Camera
+export { MoveCamera } from './assets/scripts/MoveCamera.js';
+export { OrbitEntity } from './assets/scripts/OrbitEntity.js';
 
-export { Color } from './math/Color.js';
-export { Euler } from './math/Euler.js';
-export { Mat3 } from './math/Mat3.js';
-export { Mat4 } from './math/Mat4.js';
-export { Quat } from './math/Quat.js';
-export { Vec2 } from './math/Vec2.js';
-export { Vec3 } from './math/Vec3.js';
-export { Vec4 } from './math/Vec4.js';
-export * as ColorFunc from './math/functions/ColorFunc.js';
-export * as EulerFunc from './math/functions/EulerFunc.js';
-export * as Mat3Func from './math/functions/Mat3Func.js';
-export * as Mat4Func from './math/functions/Mat4Func.js';
-export * as QuatFunc from './math/functions/QuatFunc.js';
-export * as Vec2Func from './math/functions/Vec2Func.js';
-export * as Vec3Func from './math/functions/Vec3Func.js';
-export * as Vec4Func from './math/functions/Vec4Func.js';
+// Assets, Scripts, Controls
+export { DragControls } from './assets/scripts/DragControls.js';
+export { DrivingControls } from './assets/scripts/DrivingControls.js';
+export { KeyControls } from './assets/scripts/KeyControls.js';
+export { ZigZagControls } from './assets/scripts/ZigZagControls.js';
 
-/******************** PROJECT */
+// Assets, Scripts, Entity
+export { ColorChange } from './assets/scripts/ColorChange.js';
+export { FollowCamera } from './assets/scripts/FollowCamera.js';
+export { RotateEntity } from './assets/scripts/RotateEntity.js';
+
+/******************** CLASSES - Project  ********************/
 
 // Core
-export { Entity } from './project/Entity.js';
 export { Project } from './project/Project.js';
 
-// World
-export { Stage2D } from './project/world2d/Stage2D.js';
-export { World2D } from './project/world2d/World2D.js';
+// Core, Scene3D
+export { Camera3D } from './project/world3d/Camera3D.js';
+export { Entity3D } from './project/world3d/Entity3D.js';
+export { Stage3D } from './project/world3d/Stage3D.js';
+export { World3D } from './project/world3d/World3D.js';
 
-/******************** RENDER */
+/******************** CLASSES - Utils  ********************/
 
-export { Capabilities } from './render/Capabilities.js';
-export { Renderer } from './render/Renderer.js';
-
-/******************** UTILS */
-
+// Object
 export { EntityUtils } from './utils/EntityUtils.js';
+export { ObjectUtils } from './utils/ObjectUtils.js';
+
+// Utils
+export { Clock } from './utils/Clock.js';
+export { Iris } from './utils/Iris.js';
 export { Maths } from './utils/Maths.js';
 export { Strings } from './utils/Strings.js';
 export { System } from './utils/System.js';
+export { Vectors } from './utils/Vectors.js';
 
-/******************** SINGLETON */
+/******************** REGISTER COMPONENTS ********************/
 
-if (typeof window !== 'undefined') {
-    if (window.__SALINITY__) console.warn(`Salinity v${window.__SALINITY__} already imported, now importing v${VERSION}!`);
-    else window.__SALINITY__ = VERSION;
-}
+// Entity
+import './project/world3d/entity/Geometry.js';
+import './project/world3d/entity/Material.js';
+import './project/world3d/entity/Mesh.js';
+import './project/world3d/entity/Script.js';
+import './project/world3d/entity/Test.js';
+// import './project/world3d/entity/Sprite.js';
+
+// World
+import './project/world3d/world/Physics.js';
+import './project/world3d/world/Post.js';
+
+/******************** ENSURE SINGLE IMPORT ********************/

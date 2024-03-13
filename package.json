@@ -1,7 +1,7 @@
 {
   "name": "@scidian/salinity",
-  "version": "0.0.1",
-  "description": "Easy to use JavaScript game engine.",
+  "version": "0.0.2",
+  "description": "Easy to use 2D / 3D JavaScript game engine.",
   "module": "src/Salinity.js",
   "main": "build/salinity.module.js",
   "type": "module",
@@ -32,10 +32,12 @@
   },
   "homepage": "https://github.com/salinityengine",
   "devDependencies": {
+    "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-terser": "^0.4.4",
     "jsdoc": "~4.0.0",
     "rollup": "^2.58.0",
-    "rollup-plugin-cleanup": "^3.2.1"
+    "rollup-plugin-cleanup": "^3.2.1",
+    "rollup-plugin-visualizer": "^5.8.3"
   },
   "private": false
 }

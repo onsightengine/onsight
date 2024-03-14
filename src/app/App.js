@@ -21,9 +21,9 @@ class App {
         // this.renderer = new Renderer3D({ antialias: true });
         // this.renderer.setPixelRatio(window.devicePixelRatio);
 
-        // DOM
+        // // DOM
         this.dom = document.createElement('div');
-        this.dom.appendChild(this.renderer.domElement);
+        // this.dom.appendChild(this.renderer.domElement);
 
         // Scripts
         this.events = {};
@@ -106,9 +106,9 @@ class App {
         this.scene = new World3D();
         SceneManager.loadWorld(this.scene, this.world);
 
-        // Find Camera
-        this.camera = SceneManager.findCamera(this.scene);
-        this.camera.changeFit(this.project.setting('orientation'));
+        // // Find Camera
+        // this.camera = SceneManager.findCamera(this.scene);
+        // this.camera.changeFit(this.project.setting('orientation'));
 
         // Preload Stages
         SceneManager.loadStages(this.scene, this.world, preload);
@@ -287,15 +287,15 @@ function onKeyUp(event) {
 
 function onPointerDown(event) {
     if (this.isPlaying) {
-        // Down on Entity?
-        this.updatePointer(event);
-        _raycaster.setFromCamera(this.pointer, this.camera);
-        const intersects = _raycaster.intersectObjects(this.scene.children, true);
-        event.entity = undefined;
-        for (let i = 0; i < intersects.length; i++) {
-            event.entity = EntityUtils.parentEntity(intersects[i].object);
-            if (event.entity && event.entity.isEntity) break;
-        }
+        // // Down on Entity?
+        // this.updatePointer(event);
+        // _raycaster.setFromCamera(this.pointer, this.camera);
+        // const intersects = _raycaster.intersectObjects(this.scene.children, true);
+        // event.entity = undefined;
+        // for (let i = 0; i < intersects.length; i++) {
+        //     event.entity = EntityUtils.parentEntity(intersects[i].object);
+        //     if (event.entity && event.entity.isEntity) break;
+        // }
 
         // // DEBUG: Mouse position in game coordinates
         // const coords = this.gameCoordinates(event);

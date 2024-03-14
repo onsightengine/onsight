@@ -1,9 +1,9 @@
-import cleanup from 'rollup-plugin-cleanup';                // Remove comments, supports sourcemap
-import json from '@rollup/plugin-json';                     // Import JSON
-import terser from '@rollup/plugin-terser';                 // Remove comments, minify
-import visualizer from 'rollup-plugin-visualizer';          // Visualize
+import cleanup from 'rollup-plugin-cleanup';                    // Remove comments, supports sourcemap
+import json from '@rollup/plugin-json';                         // Import JSON
+import terser from '@rollup/plugin-terser';                     // Remove comments, minify
+import { visualizer } from 'rollup-plugin-visualizer';          // Visualize
 
-import pkg from './package.json';
+import pkg from './package.json' with { type: "json" };
 
 function header() {
     return {
@@ -28,19 +28,21 @@ const builds = [
         treeshake: false,
 
         plugins: [
+            json(),
             cleanup({
                 comments: "none",
                 extensions: [ "js", "ts" ],
                 sourcemap: false,
             }),
-            header(),
-            json(),
         ],
 
         output: [{
             format: 'esm',
             file: './build/salinity.module.js',
             sourcemap: false,
+            plugins: [
+                header(),
+            ],
         }],
     },
 
@@ -49,7 +51,6 @@ const builds = [
         treeshake: false,
 
         plugins: [
-            header(),
             json(),
             visualizer(),
         ],
@@ -60,6 +61,7 @@ const builds = [
             sourcemap: false,
             plugins: [
                 terser({ format: { comments: false } }),
+                header(),
             ],
         }],
     },

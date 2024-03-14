@@ -6,13 +6,20 @@
  * @source      https://github.com/stevinz/salinity
  */
 
+/******************** CONSTANTS ********************/
+
+import { VERSION } from './constants.js';
+export * from './constants.js';
+
+/******************** APPLICATION ********************/
+
 // App
 export { App } from './app/App.js';
 export { AssetManager } from './app/AssetManager.js';
 export { ComponentManager } from './app/ComponentManager.js';
 export { SceneManager } from './app/SceneManager.js'
 
-/******************** CLASSES - Assets  ********************/
+/******************** ASSETS  ********************/
 
 // Assets
 export { Palette } from './assets/Palette.js';
@@ -33,7 +40,7 @@ export { ColorChange } from './assets/scripts/ColorChange.js';
 export { FollowCamera } from './assets/scripts/FollowCamera.js';
 export { RotateEntity } from './assets/scripts/RotateEntity.js';
 
-/******************** CLASSES - Project  ********************/
+/******************** PROJECT  ********************/
 
 // Core
 export { Project } from './project/Project.js';
@@ -44,7 +51,7 @@ export { Entity3D } from './project/world3d/Entity3D.js';
 export { Stage3D } from './project/world3d/Stage3D.js';
 export { World3D } from './project/world3d/World3D.js';
 
-/******************** CLASSES - Utils  ********************/
+/******************** UTILS  ********************/
 
 // Object
 export { EntityUtils } from './utils/EntityUtils.js';
@@ -72,3 +79,8 @@ import './project/world3d/world/Physics.js';
 import './project/world3d/world/Post.js';
 
 /******************** ENSURE SINGLE IMPORT ********************/
+
+if (typeof window !== 'undefined') {
+    if (window.__SALINITY__) console.warn(`Salinity v${window.__SALINITY__} already imported, now importing v${VERSION}!`);
+    else window.__SALINITY__ = VERSION;
+}

@@ -255,7 +255,7 @@ Geometry.config = {
     color: 'rgb(255, 113, 0)',
     multiple: false,
     dependencies: [ 'material' ],
-    group: [ 'Entity3D' ],
+    family: [ 'Entity3D' ],
 };
 
 ComponentManager.register('geometry', Geometry);

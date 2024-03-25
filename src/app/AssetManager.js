@@ -24,7 +24,7 @@ class AssetManager {
         return _assets[uuid];
     }
 
-    /** Retrieve a collection of Asset sub types by Category */
+    /** Retrieve an array of Assets by collected by 'type' and 'category'  */
     static library(type, category) {
         const library = [];
         for (const [uuid, asset] of Object.entries(_assets)) {

@@ -53,7 +53,7 @@ Sprite.config = {
     icon: ``,
     color: '#222222',
     multiple: true,
-    group: [ 'Entity3D' ],
+    family: [ 'Entity3D' ],
 };
 
 ComponentManager.register('sprite', Sprite);

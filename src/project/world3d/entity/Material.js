@@ -218,7 +218,7 @@ Material.config = {
     color: 'rgb(165, 243, 0)',
     multiple: false,
     dependencies: [ 'geometry' ],
-    group: [ 'Entity3D' ],
+    family: [ 'Entity3D' ],
 };
 
 ComponentManager.register('material', Material);

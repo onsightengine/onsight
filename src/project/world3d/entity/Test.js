@@ -70,7 +70,7 @@ Test.config = {
     color: 'rgb(128, 128, 128)',
     multiple: false,
     dependencies: [],
-    group: [ 'Entity3D' ],
+    family: [ 'Entity3D' ],
 };
 
 ComponentManager.register('test', Test);

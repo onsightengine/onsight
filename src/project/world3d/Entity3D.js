@@ -37,8 +37,8 @@ class Entity3D {//extends THREE.Object3D {
         this.components = [];                   // geometry, material, audio, light, etc.
     }
 
-    /** Override to set component.group */
-    componentGroup() {
+    /** Override to set component.family */
+    componentFamily() {
         return 'Entity3D';
     }
 

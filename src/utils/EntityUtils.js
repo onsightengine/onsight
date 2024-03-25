@@ -1,7 +1,7 @@
 // clearObject()                Completely deletes object (including geomtries/materials), and all of it's children
 // combineEntityArrays()        Adds entities from 'entityArrayToAdd' into 'intoEntityArray'
 // commonEntity()               Checks two arrays to see if they have any common entites
-// compareArrayOfEntities()     Checks if two entity arrays hold the same entities (i.e. are the same collections)
+// compareArrayOfEntities()     Checks if two entity arrays hold the same entities (by UUID)
 // containsEntity()             Checks array to see if it has an entity (by entity.uuid)
 // copyTransform()              Copies transform from one object to another
 // parentEntity()               Returns top level entity that is not a world or stage
@@ -49,7 +49,7 @@ class EntityUtils {
         return false;
     }
 
-    /** Checks if two entity arrays hold the same entities (i.e. are the same collections) */
+    /** Checks if two entity arrays hold the same entities (by UUID) */
     static compareArrayOfEntities(entityArrayOne, entityArrayTwo) {
         entityArrayOne = Array.isArray(entityArrayOne) ? entityArrayOne : [ entityArrayOne ];
         entityArrayTwo = Array.isArray(entityArrayTwo) ? entityArrayTwo : [ entityArrayTwo ];

@@ -60,7 +60,7 @@ Physics.config = {
     color: '#0F4F94',
     multiple: false,
     dependencies: [],
-    group: [ 'World3D' ],
+    family: [ 'World3D' ],
 };
 
 ComponentManager.register('physics', Physics);

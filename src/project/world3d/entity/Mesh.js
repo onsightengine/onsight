@@ -34,7 +34,7 @@ Mesh.config = {
     icon: ``,
     color: '#F7DB63',
     multiple: true,
-    group: [ 'Entity3D' ],
+    family: [ 'Entity3D' ],
 };
 
 ComponentManager.register('mesh', Mesh);

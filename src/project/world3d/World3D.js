@@ -33,7 +33,7 @@ class World3D extends Entity3D {
         this.loadDistance = 0;
     }
 
-    componentGroup() {
+    componentFamily() {
         return 'World3D';
     }
 

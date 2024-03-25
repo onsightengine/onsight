@@ -127,7 +127,7 @@ Post.config = {
     color: 'rgb(64, 64, 64)',
     multiple: true,
     dependencies: [],
-    group: [ 'World3D' ],
+    family: [ 'World3D' ],
 };
 
 ComponentManager.register('post', Post);

@@ -180,16 +180,16 @@ class App {
         this.isPlaying = true;
 
         // Events
-        this._onKeyDown = onKeyDown.bind(this);
-        this._onKeyUp = onKeyUp.bind(this);
-        this._onPointerDown = onPointerDown.bind(this);
-        this._onPointerUp = onPointerUp.bind(this);
-        this._onPointerMove = onPointerMove.bind(this);
-        document.addEventListener('keydown', this._onKeyDown);
-        document.addEventListener('keyup', this._onKeyUp);
-        document.addEventListener('pointerdown', this._onPointerDown);
-        document.addEventListener('pointerup', this._onPointerUp);
-        document.addEventListener('pointermove', this._onPointerMove);
+        this._appKeyDown = appKeyDown.bind(this);
+        this._appKeyUp = appKeyUp.bind(this);
+        this._appPointerDown = appPointerDown.bind(this);
+        this._appPointerUp = appPointerUp.bind(this);
+        this._appPointerMove = appPointerMove.bind(this);
+        document.addEventListener('keydown', this._appKeyDown);
+        document.addEventListener('keyup', this._appKeyUp);
+        document.addEventListener('pointerdown', this._appPointerDown);
+        document.addEventListener('pointerup', this._appPointerUp);
+        document.addEventListener('pointermove', this._appPointerMove);
 
         // Clock
         this.gameClock.start(true /* reset */);
@@ -214,11 +214,11 @@ class App {
         this.isPlaying = false;
 
         // Events
-        document.removeEventListener('keydown', this._onKeyDown);
-        document.removeEventListener('keyup', this._onKeyUp);
-        document.removeEventListener('pointerdown', this._onPointerDown);
-        document.removeEventListener('pointerup', this._onPointerUp);
-        document.removeEventListener('pointermove', this._onPointerMove);
+        document.removeEventListener('keydown', this._appKeyDown);
+        document.removeEventListener('keyup', this._appKeyUp);
+        document.removeEventListener('pointerdown', this._appPointerDown);
+        document.removeEventListener('pointerup', this._appPointerUp);
+        document.removeEventListener('pointermove', this._appPointerMove);
 
         // Cancel Animate
         cancelAnimationFrame(_animationID);
@@ -271,21 +271,21 @@ export { App };
 
 /******************** INTERNAL ********************/
 
-function onKeyDown(event) {
+function appKeyDown(event) {
     if (this.isPlaying) {
         this.keys[event.key] = true;
         this.dispatch('keydown', event);
     }
 }
 
-function onKeyUp(event) {
+function appKeyUp(event) {
     if (this.isPlaying) {
         this.keys[event.key] = false;
         this.dispatch('keyup', event);
     }
 }
 
-function onPointerDown(event) {
+function appPointerDown(event) {
     if (this.isPlaying) {
         // // Down on Entity?
         // this.updatePointer(event);
@@ -306,13 +306,13 @@ function onPointerDown(event) {
     }
 }
 
-function onPointerUp(event) {
+function appPointerUp(event) {
     if (this.isPlaying) {
         this.dispatch('pointerup', event);
     }
 }
 
-function onPointerMove(event) {
+function appPointerMove(event) {
     if (this.isPlaying) {
         this.dispatch('pointermove', event);
     }

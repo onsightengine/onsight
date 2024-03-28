@@ -82,7 +82,6 @@
 //
 
 import { Maths } from '../utils/Maths.js';
-import { Strings } from '../utils/Strings.js';
 import { System } from '../utils/System.js';
 
 const _registered = {};

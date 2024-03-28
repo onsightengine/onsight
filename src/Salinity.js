@@ -60,7 +60,6 @@ export { EntityUtils } from './utils/EntityUtils.js';
 export { Clock } from './utils/Clock.js';
 export { Iris } from './utils/Iris.js';
 export { Maths } from './utils/Maths.js';
-export { Strings } from './utils/Strings.js';
 export { System } from './utils/System.js';
 export { Vectors } from './utils/Vectors.js';
 

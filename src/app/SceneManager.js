@@ -66,7 +66,7 @@ class SceneManager {
 
             // Find Script
             const scriptUUID = component.data.script;
-            const script = AssetManager.getAsset(scriptUUID);
+            const script = AssetManager.get(scriptUUID);
             if (!script || !script.isScript) continue;
             if (script.errors) { console.warn(`Entity '${fromEntity.name}' has errors in script '${script.name}'. Script will not be loaded!`); continue; }
 
@@ -184,7 +184,7 @@ class SceneManager {
             if (fromWorld.background.isColor) {
                 toScene.background = fromWorld.background.clone();
             } else {
-                const texture = AssetManager.getAsset(fromWorld.background);
+                const texture = AssetManager.get(fromWorld.background);
                 if (texture && texture.isTexture) toScene.background = texture.clone();
             }
         }

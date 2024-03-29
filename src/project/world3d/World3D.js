@@ -178,7 +178,7 @@ class World3D extends Entity3D {
             }
         }
         if (data.environment !== undefined) {
-            const environmentTexture = AssetManager.getAsset(data.background);
+            const environmentTexture = AssetManager.get(data.background);
             if (environmentTexture && environmentTexture.isTexture) this.environment = environmentTexture;
         }
         if (data.fog !== undefined) {

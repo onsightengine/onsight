@@ -12,9 +12,9 @@ class Sprite {
             if (color in data) color = data['color'];
             if (map in data) map = data['map'];
             if (map && map.isTexture) {
-                AssetManager.addAsset(map);
+                AssetManager.add(map);
             } else {
-                const textureCheck = AssetManager.getAsset(map);
+                const textureCheck = AssetManager.get(map);
                 map = (textureCheck && textureCheck.isTexture) ? textureCheck : null;
             }
         }

@@ -15,7 +15,7 @@ class Material {
         // Passed in Material
         if (data.isMaterial) {
             const assetUUID = data.uuid;
-            AssetManager.addAsset(data);
+            AssetManager.add(data);
 
             // Build 'data'
             data = this.defaultData('style', 'asset');
@@ -36,13 +36,13 @@ class Material {
 
                     // Make sure texture is in AssetManager
                     if (value.isTexture) {
-                        AssetManager.addAsset(value);
+                        AssetManager.add(value);
 
                     // If no texture was provided, could be UUID
                     } else {
 
                         // Check AssetManager for Texture
-                        const textureCheck = AssetManager.getAsset(value);
+                        const textureCheck = AssetManager.get(value);
                         if (textureCheck && textureCheck.isTexture) {
                             parameters[key] = textureCheck;
 
@@ -76,7 +76,7 @@ class Material {
         switch (data.style) {
 
             case 'asset':
-                const assetMaterial = AssetManager.getAsset(data.asset);
+                const assetMaterial = AssetManager.get(data.asset);
                 if (assetMaterial && assetMaterial.isMaterial) {
                     material = assetMaterial.clone();
                 }

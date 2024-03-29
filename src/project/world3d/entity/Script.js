@@ -7,7 +7,7 @@ class Script {
         // Passed in Script
         if (data.isScript) {
             const assetUUID = data.uuid;
-            AssetManager.addAsset(data);
+            AssetManager.add(data);
 
             // Build 'data'
             data = this.defaultData();
@@ -15,7 +15,7 @@ class Script {
         }
 
         // Generate Backend
-        const script = AssetManager.getAsset(data.script);
+        const script = AssetManager.get(data.script);
 
         // Add Variables
         if (script && script.isScript) {

@@ -7,17 +7,19 @@ const _types = {
 
 class AssetManager {
 
-    /******************** CLEAR */
-
-    static clear() {
-        for (const uuid in _assets) {
-            const asset = _assets[uuid];
-            if (asset.isBuiltIn) continue; /* keep built-in assets */
-            AssetManager.remove(_assets[uuid], true);
-        }
-    }
-
     /******************** ACCESS */
+
+    static checkType(asset) {
+        if (!asset) return undefined;
+        if (asset.isBufferGeometry) return 'geometry';
+        if (asset.type === 'Shape') return 'shape';
+        if (asset.isMaterial) return 'material';
+        if (asset.isPalette) return 'palette';
+        if (asset.isScript) return 'script';
+        if (asset.isTexture) return 'texture';
+        if (asset.isEntity) return 'prefab';
+        return 'asset';
+    }
 
     static get(uuid) {
         if (uuid && uuid.uuid) uuid = uuid.uuid;
@@ -27,8 +29,8 @@ class AssetManager {
     /** Retrieve an array of Assets by collected by 'type' and 'category'  */
     static library(type, category) {
         const library = [];
-        for (const [uuid, asset] of Object.entries(_assets)) {
-            if (type && asset.type !== type) continue;
+        for (const [ uuid, asset ] of Object.entries(_assets)) {
+            if (type && AssetManager.checkType(asset) !== type) continue;
             if (category == undefined || (asset.category && asset.category === category)) {
                 library.push(asset);
             }
@@ -38,8 +40,8 @@ class AssetManager {
 
     /******************** ADD / REMOVE */
 
-    static add(asset /* asset, asset, ... */) {
-        const assets = Array.isArray(asset) ? asset : [...arguments];
+    static add(asset /* , asset, asset, ... */) {
+        const assets = Array.isArray(asset) ? asset : [ ...arguments ];
         let returnAsset = undefined;
         for (let i = 0; i < assets.length; i++) {
             let asset = assets[i];
@@ -53,6 +55,14 @@ class AssetManager {
             if (returnAsset === undefined) returnAsset = asset;
         }
         return returnAsset;
+    }
+
+    static clear() {
+        for (const uuid in _assets) {
+            const asset = _assets[uuid];
+            if (asset.isBuiltIn) continue; /* keep built-in assets */
+            AssetManager.remove(_assets[uuid], true);
+        }
     }
 
     static remove(asset, dispose = true) {

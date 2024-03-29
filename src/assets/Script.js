@@ -12,7 +12,7 @@ class Script {
         this.name ='New Script';
         this.uuid = Maths.uuid();
         this.format = format;
-        this.category = null;
+        this.category = 'unknown';
         this.line = 0;
         this.char = 0;
         this.errors = false;

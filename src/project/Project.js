@@ -70,7 +70,7 @@ class Project {
             this.worlds[world.uuid] = world;
             if (this.activeWorldUUID == null) this.activeWorldUUID = world.uuid;
         } else {
-            console.error(`Project.addWorld: World type (${world.type}) not a valid world type`, world);
+            console.error(`Project.addWorld(): Invalid world type '${world.type}'`, world);
         }
         return this;
     }
@@ -112,7 +112,7 @@ class Project {
     /******************** ENTITY */
 
     findEntityByUUID(uuid, searchAllWorlds = false) {
-        const activeWorld = editor.viewport.world;
+        const activeWorld = null; // OLD: get from editor, NEED store in project
 
         let worldList = [];
         if (searchAllWorlds) worldList = [...this.worlds];
@@ -149,7 +149,7 @@ class Project {
         // Check proper JSON type
         const metaType = (json.metadata) ? json.metadata.type : 'Undefined';
         if (metaType !== 'Salinity') {
-            console.error(`Project.fromJSON: Unknown project type ('${metaType}'), expected 'Salinity'`);
+            console.error(`Project.fromJSON(): Unknown project type ('${metaType}'), expected 'Salinity'`);
 
             return;
         }
@@ -157,12 +157,12 @@ class Project {
         // Check project saved with version
         const metaVersion = json.metadata.version;
         if (metaVersion !== VERSION) {
-            console.warn(`Project.fromJSON: Project saved in 'v${metaVersion}', attempting to load with 'v${VERSION}'`);
+            console.warn(`Project.fromJSON(): Project saved in 'v${metaVersion}', attempting to load with 'v${VERSION}'`);
         }
 
         // Check object type
         if (!json.object || json.object.type !== this.type) {
-            console.error(`Project.fromJSON: Save file corrupt, no 'Project' object found!`);
+            console.error(`Project.fromJSON(): Save file corrupt, no 'Project' object found!`);
             return;
         }
 

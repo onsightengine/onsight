@@ -170,7 +170,7 @@ class Entity3D {//extends THREE.Object3D {
             component.detach();
             return component;
         }
-        console.warn(`Entity3D.removeComponent: Component ${component.uuid}, type '${component.type}' not found`);
+        console.warn(`Entity3D.removeComponent(): Component ${component.uuid}, type '${component.type}' not found`);
     }
 
     rebuildComponents() {

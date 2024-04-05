@@ -102,7 +102,7 @@ class Iris {
             return this.set(0);
         // No valid arguments passed
         } else if (r === undefined || r === null || Number.isNaN(r)) {
-            if (g || b) console.warn(`Iris: Passed some valid arguments, however 'r' was ${r}`);
+            if (g || b) console.warn(`Iris.set(): Invalid 'r' value ${r}`);
             // nothing to do
         // r is Object, Hexidecimal, or String
         } else if (g === undefined && b === undefined) {
@@ -112,7 +112,7 @@ class Iris {
             } else if (value && isHSL(value)) { return this.setHSL(value.h * 360, value.s, value.l);
             } else if (value && isRYB(value)) { return this.setRYB(value.r * 255, value.y * 255, value.b * 255);
             } else if (Array.isArray(value) && value.length > 2) {
-                let offset = (g != null && ! Number.isNaN(g) && g > 0) ? g : 0;
+                let offset = (g != null && !Number.isNaN(g) && g > 0) ? g : 0;
                 return this.setRGBF(value[offset], value[offset + 1], value[offset + 2])
             } else if (typeof value === 'string') {
                 return this.setStyle(value);
@@ -130,16 +130,16 @@ class Iris {
     }
 
     setColorName(style) {
-        const hex = COLOR_KEYWORDS[ style.toLowerCase() ];
+        const hex = COLOR_KEYWORDS[style.toLowerCase()];
         if (hex) return this.setHex(hex);
-        console.warn(`Iris: Unknown color ${style}`);
+        console.warn(`Iris.setColorName(): Unknown color ${style}`);
         return this;
     }
 
     setHex(hexColor) {
         hexColor = Math.floor(hexColor);
         if (hexColor > 0xffffff || hexColor < 0) {
-            console.warn(`Iris: Given decimal outside of range, value was ${hexColor}`);
+            console.warn(`Iris.setHex(): Given decimal outside of range, value was ${hexColor}`);
             hexColor = clamp(hexColor, 0, 0xffffff);
         }
         const r = (hexColor & 0xff0000) >> 16;
@@ -375,7 +375,7 @@ class Iris {
 
     /** Adds RGB values from color to this color */
     add(color) {
-        if (! color.isColor) console.warn(`Iris: add() was not called with a 'Color' object`);
+        if (!color.isColor) console.warn(`Iris.add(): Missing 'color' object`);
         return this.setRGBF(this.r + color.r, this.g + color.g, this.b + color.b);
     }
 
@@ -438,7 +438,7 @@ class Iris {
 
     /** Mixes in 'color' by percent to this color */
     mix(color, percent = 0.5) {
-        if (! color.isColor) console.warn(`Iris: mix() was not called with a 'Color' object`);
+        if (!color.isColor) console.warn(`Iris.mix(): Missing 'color' object`);
         percent = clamp(percent, 0, 1);
         const r = (this.r * (1.0 - percent)) + (percent * color.r);
         const g = (this.g * (1.0 - percent)) + (percent * color.g);
@@ -447,7 +447,7 @@ class Iris {
     }
 
     multiply(color) {
-        if (! color.isColor) console.warn(`Iris: multiply() was not called with a 'Color' object`);
+        if (!color.isColor) console.warn(`Iris.multiply(): Missing 'color' object`);
         return this.setRGBF(this.r * color.r, this.g * color.g, this.b * color.b);
     }
 
@@ -483,7 +483,7 @@ class Iris {
 
     /** Subtract RGB values from color to this color */
     subtract(color) {
-        if (! color.isColor) console.warn(`Iris: subtract() was not called with a 'Color' object`);
+        if (!color.isColor) console.warn(`Iris: subtract() was not called with a 'Color' object`);
         return this.setRGBF(this.r - color.r, this.g - color.g, this.b - color.b);
     }
 
@@ -491,7 +491,7 @@ class Iris {
 
     /** Returns true if the RGB values of 'color' are the same as those of this object. */
     equals(color) {
-        if (! color.isColor) console.warn(`Iris: equals() was not called with a 'Color' object`);
+        if (!color.isColor) console.warn(`Iris: equals() was not called with a 'Color' object`);
         return (fuzzy(this.r, color.r) && fuzzy(this.g, color.g) && fuzzy(this.b, color.b));
     }
 
@@ -509,7 +509,7 @@ class Iris {
 
     /** Returns true if color is generally light-ish, false if dark-ish */
     isLight() {
-        return (! this.isDark());
+        return (!this.isDark());
     }
 
 }
@@ -576,7 +576,7 @@ function hsl(hexColor, channel = 'h') {
         case 'h': return _hslH;
         case 's': return _hslS;
         case 'l': return _hslL;
-        default: console.warn(`Iris: Unknown channel (${channel}) requested in hsl()`);
+        default: console.warn(`Iris.hsl(): Unknown channel (${channel}) requested`);
     }
 
     return 0;

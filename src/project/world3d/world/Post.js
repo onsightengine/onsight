@@ -41,7 +41,7 @@ class Post {
                 break;
 
             default:
-                console.error(`Post Component: Invalid style '${data.style}'`);
+                console.error(`PostComponent.init(): Invalid style '${data.style}'`);
 
         }
 

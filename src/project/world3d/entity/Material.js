@@ -94,7 +94,7 @@ class Material {
             case 'standard':
 
             default:
-                console.error(`Material Component: Invalid style '${data.style}'`);
+                console.error(`MaterialComponent.init(): Invalid style '${data.style}'`);
         }
 
         // Modifiy Material

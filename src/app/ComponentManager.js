@@ -107,7 +107,7 @@ class ComponentManager {
             case 'asset':       return null;
             case 'object':      return {};
             case 'divider':     return null;
-            default:            console.warn(`ComponentManager.defaultValue(): Unknown property type: '${type}'`);
+            default:            console.warn(`ComponentManager.defaultValue(): Unknown property type '${type}'`);
         }
         return null;
     }
@@ -117,7 +117,7 @@ class ComponentManager {
     /** Returns class definition of a registered type */
     static registered(type = '') {
         const ComponentClass = _registered[type];
-        if (!ComponentClass) console.warn(`ComponentManager.registered: Component '${type}' not registered'`);
+        if (!ComponentClass) console.warn(`ComponentManager.registered(): Component '${type}' not registered'`);
         return ComponentClass;
     }
 
@@ -131,7 +131,7 @@ class ComponentManager {
 
         // Check for Component Type
         type = type.toLowerCase();
-        if (_registered[type]) return console.warn(`ComponentManager.register: Component '${type}' already registered`);
+        if (_registered[type]) return console.warn(`ComponentManager.register(): Component '${type}' already registered`);
         if (!System.isObject(ComponentClass.config)) ComponentClass.config = {};
         if (!System.isObject(ComponentClass.config.schema)) ComponentClass.config.schema = {};
 

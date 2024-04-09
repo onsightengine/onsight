@@ -4,7 +4,7 @@
 
 # Salinity Engine
 
-Open-source 2D game engine written in JavaScript. Built on WebGL to run games and other interactive content in any web browser.
+Open-source game engine written in JavaScript. Built on WebGL to run games and other interactive content in any web browser.
 
 <br />
 

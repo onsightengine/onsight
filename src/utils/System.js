@@ -41,7 +41,7 @@ class System {
             link.download = filename || 'data.json';
             link.click(); // link.dispatchEvent(new MouseEvent('click'));
             setTimeout(function() {
-                document.body.removeChild(link);
+                // document.body.removeChild(link);
                 window.URL.revokeObjectURL(url);
             }, 0);
         } catch (error) {

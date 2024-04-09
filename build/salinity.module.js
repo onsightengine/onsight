@@ -2,13 +2,13 @@
  * @description Salinity Engine
  * @about       Easy to use JavaScript game engine.
  * @author      Stephens Nunnally <@stevinz>
- * @version     v0.0.2
+ * @version     v0.0.3
  * @license     MIT - Copyright (c) 2024 Stephens Nunnally
  * @source      https://github.com/salinityengine/engine
  */
-var name = "@scidian/salinity";
-var version = "0.0.2";
-var description = "Easy to use 2D / 3D JavaScript game engine.";
+var name = "@salinity/engine";
+var version = "0.0.3";
+var description = "Easy to use JavaScript game engine.";
 var module = "src/Salinity.js";
 var main = "build/salinity.module.js";
 var type = "module";
@@ -38,6 +38,10 @@ var bugs = {
 	url: "https://github.com/salinityengine/engine/issues"
 };
 var homepage = "https://github.com/salinityengine";
+var publishConfig = {
+	access: "public",
+	registry: "https://registry.npmjs.org/"
+};
 var devDependencies = {
 	"@rollup/plugin-json": "^6.1.0",
 	"@rollup/plugin-terser": "^0.4.4",
@@ -60,6 +64,7 @@ var pkg = {
 	bugs: bugs,
 	homepage: homepage,
 	"private": false,
+	publishConfig: publishConfig,
 	devDependencies: devDependencies
 };
 
@@ -110,7 +115,7 @@ class Iris {
         if (arguments.length === 0) {
             return this.set(0);
         } else if (r === undefined || r === null || Number.isNaN(r)) {
-            if (g || b) console.warn(`Iris: Passed some valid arguments, however 'r' was ${r}`);
+            if (g || b) console.warn(`Iris.set(): Invalid 'r' value ${r}`);
         } else if (g === undefined && b === undefined) {
             let value = r;
             if (typeof value === 'number' || value === 0) { return this.setHex(value);
@@ -118,7 +123,7 @@ class Iris {
             } else if (value && isHSL(value)) { return this.setHSL(value.h * 360, value.s, value.l);
             } else if (value && isRYB(value)) { return this.setRYB(value.r * 255, value.y * 255, value.b * 255);
             } else if (Array.isArray(value) && value.length > 2) {
-                let offset = (g != null && ! Number.isNaN(g) && g > 0) ? g : 0;
+                let offset = (g != null && !Number.isNaN(g) && g > 0) ? g : 0;
                 return this.setRGBF(value[offset], value[offset + 1], value[offset + 2])
             } else if (typeof value === 'string') {
                 return this.setStyle(value);
@@ -134,15 +139,15 @@ class Iris {
         return this;
     }
     setColorName(style) {
-        const hex = COLOR_KEYWORDS[ style.toLowerCase() ];
+        const hex = COLOR_KEYWORDS[style.toLowerCase()];
         if (hex) return this.setHex(hex);
-        console.warn(`Iris: Unknown color ${style}`);
+        console.warn(`Iris.setColorName(): Unknown color ${style}`);
         return this;
     }
     setHex(hexColor) {
         hexColor = Math.floor(hexColor);
         if (hexColor > 0xffffff || hexColor < 0) {
-            console.warn(`Iris: Given decimal outside of range, value was ${hexColor}`);
+            console.warn(`Iris.setHex(): Given decimal outside of range, value was ${hexColor}`);
             hexColor = clamp(hexColor, 0, 0xffffff);
         }
         const r = (hexColor & 0xff0000) >> 16;
@@ -319,7 +324,7 @@ class Iris {
         }
     }
     add(color) {
-        if (! color.isColor) console.warn(`Iris: add() was not called with a 'Color' object`);
+        if (!color.isColor) console.warn(`Iris.add(): Missing 'color' object`);
         return this.setRGBF(this.r + color.r, this.g + color.g, this.b + color.b);
     }
     addScalar(scalar) {
@@ -362,7 +367,7 @@ class Iris {
         return this.setHSL(this.hue() + h, this.saturation() + s, this.lightness() + l);
     }
     mix(color, percent = 0.5) {
-        if (! color.isColor) console.warn(`Iris: mix() was not called with a 'Color' object`);
+        if (!color.isColor) console.warn(`Iris.mix(): Missing 'color' object`);
         percent = clamp(percent, 0, 1);
         const r = (this.r * (1.0 - percent)) + (percent * color.r);
         const g = (this.g * (1.0 - percent)) + (percent * color.g);
@@ -370,7 +375,7 @@ class Iris {
         return this.setRGBF(r, g, b);
     }
     multiply(color) {
-        if (! color.isColor) console.warn(`Iris: multiply() was not called with a 'Color' object`);
+        if (!color.isColor) console.warn(`Iris.multiply(): Missing 'color' object`);
         return this.setRGBF(this.r * color.r, this.g * color.g, this.b * color.b);
     }
     multiplyScalar(scalar) {
@@ -394,11 +399,11 @@ class Iris {
         return this.setHSL(hue(matchSpectrum(newHue, SPECTRUM.RYB)), this.saturation(), this.lightness());
     }
     subtract(color) {
-        if (! color.isColor) console.warn(`Iris: subtract() was not called with a 'Color' object`);
+        if (!color.isColor) console.warn(`Iris: subtract() was not called with a 'Color' object`);
         return this.setRGBF(this.r - color.r, this.g - color.g, this.b - color.b);
     }
     equals(color) {
-        if (! color.isColor) console.warn(`Iris: equals() was not called with a 'Color' object`);
+        if (!color.isColor) console.warn(`Iris: equals() was not called with a 'Color' object`);
         return (fuzzy(this.r, color.r) && fuzzy(this.g, color.g) && fuzzy(this.b, color.b));
     }
     isEqual(color) {
@@ -410,7 +415,7 @@ class Iris {
         return ((l < 0.60 && (h >= 210 || h <= 27)) || (l <= 0.32));
     }
     isLight() {
-        return (! this.isDark());
+        return (!this.isDark());
     }
 }
 function isRGB(object) { return (object.r !== undefined && object.g !== undefined && object.b !== undefined); }
@@ -459,7 +464,7 @@ function hsl(hexColor, channel = 'h') {
         case 'h': return _hslH;
         case 's': return _hslS;
         case 'l': return _hslL;
-        default: console.warn(`Iris: Unknown channel (${channel}) requested in hsl()`);
+        default: console.warn(`Iris.hsl(): Unknown channel (${channel}) requested`);
     }
     return 0;
 }
@@ -764,12 +769,16 @@ const _types = {
     'Palette':  Palette,
 };
 let AssetManager$1 = class AssetManager {
-    static clear() {
-        for (const uuid in _assets) {
-            const asset = _assets[uuid];
-            if (asset.isBuiltIn) continue;
-            AssetManager.remove(_assets[uuid], true);
-        }
+    static checkType(asset) {
+        if (!asset) return undefined;
+        if (asset.isBufferGeometry) return 'geometry';
+        if (asset.type === 'Shape') return 'shape';
+        if (asset.isMaterial) return 'material';
+        if (asset.isPalette) return 'palette';
+        if (asset.isScript) return 'script';
+        if (asset.isTexture) return 'texture';
+        if (asset.isEntity) return 'prefab';
+        return 'asset';
     }
     static get(uuid) {
         if (uuid && uuid.uuid) uuid = uuid.uuid;
@@ -777,8 +786,8 @@ let AssetManager$1 = class AssetManager {
     }
     static library(type, category) {
         const library = [];
-        for (const [uuid, asset] of Object.entries(_assets)) {
-            if (type && asset.type !== type) continue;
+        for (const [ uuid, asset ] of Object.entries(_assets)) {
+            if (type && AssetManager.checkType(asset) !== type) continue;
             if (category == undefined || (asset.category && asset.category === category)) {
                 library.push(asset);
             }
@@ -786,7 +795,7 @@ let AssetManager$1 = class AssetManager {
         return library;
     }
     static add(asset ) {
-        const assets = Array.isArray(asset) ? asset : [...arguments];
+        const assets = Array.isArray(asset) ? asset : [ ...arguments ];
         let returnAsset = undefined;
         for (let i = 0; i < assets.length; i++) {
             let asset = assets[i];
@@ -796,6 +805,13 @@ let AssetManager$1 = class AssetManager {
             if (returnAsset === undefined) returnAsset = asset;
         }
         return returnAsset;
+    }
+    static clear() {
+        for (const uuid in _assets) {
+            const asset = _assets[uuid];
+            if (asset.isBuiltIn) continue;
+            AssetManager.remove(_assets[uuid], true);
+        }
     }
     static remove(asset, dispose = true) {
         const assets = Array.isArray(asset) ? asset : [ asset ];
@@ -1001,40 +1017,6 @@ class EntityUtils {
     }
 }
 
-class Strings {
-    static addSpaces(string) {
-        if (typeof string !== 'string') string = String(string);
-        string = string.replace(/([a-z])([A-Z])/g, '$1 $2');
-        string = string.replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
-        return string.trim();
-    }
-    static capitalize(string) {
-        const words = String(string).split(' ');
-        for (let i = 0; i < words.length; i++) {
-            words[i] = words[i][0].toUpperCase() + words[i].substring(1);
-        }
-        return words.join(' ');
-    }
-    static countDigits(number) {
-        return parseFloat(number).toString().length;
-    }
-    static escapeHTML(html) {
-        if (html == undefined) return html;
-        return html
-            .replace(/&/g, '&amp;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
-    }
-    static nameFromUrl(url, capitalize = true) {
-        let imageName = new String(url.replace(/^.*[\\\/]/, ''));
-        imageName = imageName.replace(/\.[^/.]+$/, "");
-        if (capitalize) imageName = Strings.capitalize(imageName);
-        return imageName;
-    }
-}
-
 class System {
     static isIterable(obj) {
         return (obj && typeof obj[Symbol.iterator] === 'function');
@@ -1053,7 +1035,6 @@ class System {
             link.download = filename || 'data.json';
             link.click();
             setTimeout(function() {
-                document.body.removeChild(link);
                 window.URL.revokeObjectURL(url);
             }, 0);
         } catch (error) {
@@ -1170,13 +1151,13 @@ class ComponentManager {
             case 'asset':       return null;
             case 'object':      return {};
             case 'divider':     return null;
-            default:            console.warn(`ComponentManager.defaultValue(): Unknown property type: '${type}'`);
+            default:            console.warn(`ComponentManager.defaultValue(): Unknown property type '${type}'`);
         }
         return null;
     }
     static registered(type = '') {
         const ComponentClass = _registered[type];
-        if (!ComponentClass) console.warn(`ComponentManager.registered: Component '${type}' not registered'`);
+        if (!ComponentClass) console.warn(`ComponentManager.registered(): Component '${type}' not registered'`);
         return ComponentClass;
     }
     static registeredTypes() {
@@ -1184,7 +1165,7 @@ class ComponentManager {
     }
     static register(type = '', ComponentClass) {
         type = type.toLowerCase();
-        if (_registered[type]) return console.warn(`ComponentManager.register: Component '${type}' already registered`);
+        if (_registered[type]) return console.warn(`ComponentManager.register(): Component '${type}' already registered`);
         if (!System.isObject(ComponentClass.config)) ComponentClass.config = {};
         if (!System.isObject(ComponentClass.config.schema)) ComponentClass.config.schema = {};
         const schema = ComponentClass.config.schema;
@@ -1360,7 +1341,7 @@ class Entity3D {
         this.category = null;
         this.components = [];
     }
-    componentGroup() {
+    componentFamily() {
         return 'Entity3D';
     }
     addComponent(type, data = {}, includeDependencies = true) {
@@ -1459,7 +1440,7 @@ class Entity3D {
             component.detach();
             return component;
         }
-        console.warn(`Entity3D.removeComponent: Component ${component.uuid}, type '${component.type}' not found`);
+        console.warn(`Entity3D.removeComponent(): Component ${component.uuid}, type '${component.type}' not found`);
     }
     rebuildComponents() {
         for (const component of this.components) {
@@ -1975,7 +1956,7 @@ class Stage3D extends Entity3D {
         this.start = 0;
         this.finish = -1;
     }
-    componentGroup() {
+    componentFamily() {
         return 'Stage3D';
     }
     cloneEntity(recursive = true) {
@@ -2038,7 +2019,7 @@ class World3D extends Entity3D {
         this.activeStageUUID = null;
         this.loadDistance = 0;
     }
-    componentGroup() {
+    componentFamily() {
         return 'World3D';
     }
     activeStage() {
@@ -2144,7 +2125,7 @@ class World3D extends Entity3D {
             }
         }
         if (data.environment !== undefined) {
-            const environmentTexture = AssetManager.getAsset(data.background);
+            const environmentTexture = AssetManager.get(data.background);
             if (environmentTexture && environmentTexture.isTexture) this.environment = environmentTexture;
         }
         if (data.fog !== undefined) {
@@ -2234,7 +2215,7 @@ class Project {
             this.worlds[world.uuid] = world;
             if (this.activeWorldUUID == null) this.activeWorldUUID = world.uuid;
         } else {
-            console.error(`Project.addWorld: World type (${world.type}) not a valid world type`, world);
+            console.error(`Project.addWorld(): Invalid world type '${world.type}'`, world);
         }
         return this;
     }
@@ -2266,7 +2247,7 @@ class Project {
         return Object.keys(this.worlds).length;
     }
     findEntityByUUID(uuid, searchAllWorlds = false) {
-        const activeWorld = editor.viewport.world;
+        const activeWorld = null;
         let worldList = [];
         if (searchAllWorlds) worldList = [...this.worlds];
         else if (activeWorld) worldList = [ activeWorld ];
@@ -2290,15 +2271,15 @@ class Project {
     fromJSON(json, loadAssets = true, onLoad = () => {}) {
         const metaType = (json.metadata) ? json.metadata.type : 'Undefined';
         if (metaType !== 'Salinity') {
-            console.error(`Project.fromJSON: Unknown project type ('${metaType}'), expected 'Salinity'`);
+            console.error(`Project.fromJSON(): Unknown project type ('${metaType}'), expected 'Salinity'`);
             return;
         }
         const metaVersion = json.metadata.version;
         if (metaVersion !== VERSION) {
-            console.warn(`Project.fromJSON: Project saved in 'v${metaVersion}', attempting to load with 'v${VERSION}'`);
+            console.warn(`Project.fromJSON(): Project saved in 'v${metaVersion}', attempting to load with 'v${VERSION}'`);
         }
         if (!json.object || json.object.type !== this.type) {
-            console.error(`Project.fromJSON: Save file corrupt, no 'Project' object found!`);
+            console.error(`Project.fromJSON(): Save file corrupt, no 'Project' object found!`);
             return;
         }
         this.clear();
@@ -2372,7 +2353,7 @@ class SceneManager {
         for (const component of fromEntity.components) {
             if (component.type !== 'script' || !component.data) continue;
             const scriptUUID = component.data.script;
-            const script = AssetManager$1.getAsset(scriptUUID);
+            const script = AssetManager$1.get(scriptUUID);
             if (!script || !script.isScript) continue;
             if (script.errors) { console.warn(`Entity '${fromEntity.name}' has errors in script '${script.name}'. Script will not be loaded!`); continue; }
             let body = `${script.source}\n`;
@@ -2445,7 +2426,7 @@ class SceneManager {
             if (fromWorld.background.isColor) {
                 toScene.background = fromWorld.background.clone();
             } else {
-                const texture = AssetManager$1.getAsset(fromWorld.background);
+                const texture = AssetManager$1.get(fromWorld.background);
                 if (texture && texture.isTexture) toScene.background = texture.clone();
             }
         }
@@ -2533,8 +2514,6 @@ class App {
         const preload = this.project.setting('preload');
         this.scene = new World3D();
         SceneManager.loadWorld(this.scene, this.world);
-        this.camera = SceneManager.findCamera(this.scene);
-        this.camera.changeFit(this.project.setting('orientation'));
         SceneManager.loadStages(this.scene, this.world, preload);
     }
     animate() {
@@ -2559,16 +2538,16 @@ class App {
     start() {
         if (this.isPlaying) return;
         this.isPlaying = true;
-        this._onKeyDown = onKeyDown.bind(this);
-        this._onKeyUp = onKeyUp.bind(this);
-        this._onPointerDown = onPointerDown.bind(this);
-        this._onPointerUp = onPointerUp.bind(this);
-        this._onPointerMove = onPointerMove.bind(this);
-        document.addEventListener('keydown', this._onKeyDown);
-        document.addEventListener('keyup', this._onKeyUp);
-        document.addEventListener('pointerdown', this._onPointerDown);
-        document.addEventListener('pointerup', this._onPointerUp);
-        document.addEventListener('pointermove', this._onPointerMove);
+        this._appKeyDown = appKeyDown.bind(this);
+        this._appKeyUp = appKeyUp.bind(this);
+        this._appPointerDown = appPointerDown.bind(this);
+        this._appPointerUp = appPointerUp.bind(this);
+        this._appPointerMove = appPointerMove.bind(this);
+        document.addEventListener('keydown', this._appKeyDown);
+        document.addEventListener('keyup', this._appKeyUp);
+        document.addEventListener('pointerdown', this._appPointerDown);
+        document.addEventListener('pointerup', this._appPointerUp);
+        document.addEventListener('pointermove', this._appPointerMove);
         this.gameClock.start(true );
         SceneManager.renderWorld(this.world);
         cancelAnimationFrame(_animationID);
@@ -2581,11 +2560,11 @@ class App {
     stop() {
         if (!this.isPlaying) return;
         this.isPlaying = false;
-        document.removeEventListener('keydown', this._onKeyDown);
-        document.removeEventListener('keyup', this._onKeyUp);
-        document.removeEventListener('pointerdown', this._onPointerDown);
-        document.removeEventListener('pointerup', this._onPointerUp);
-        document.removeEventListener('pointermove', this._onPointerMove);
+        document.removeEventListener('keydown', this._appKeyDown);
+        document.removeEventListener('keyup', this._appKeyUp);
+        document.removeEventListener('pointerdown', this._appPointerDown);
+        document.removeEventListener('pointerup', this._appPointerUp);
+        document.removeEventListener('pointermove', this._appPointerMove);
         cancelAnimationFrame(_animationID);
         _animationID = null;
         if (this.renderer) this.renderer.clear();
@@ -2616,37 +2595,29 @@ class App {
         this.pointer.y = -((eventY / rect.height) * 2) + 1;
     }
 }
-function onKeyDown(event) {
+function appKeyDown(event) {
     if (this.isPlaying) {
         this.keys[event.key] = true;
         this.dispatch('keydown', event);
     }
 }
-function onKeyUp(event) {
+function appKeyUp(event) {
     if (this.isPlaying) {
         this.keys[event.key] = false;
         this.dispatch('keyup', event);
     }
 }
-function onPointerDown(event) {
+function appPointerDown(event) {
     if (this.isPlaying) {
-        this.updatePointer(event);
-        _raycaster.setFromCamera(this.pointer, this.camera);
-        const intersects = _raycaster.intersectObjects(this.scene.children, true);
-        event.entity = undefined;
-        for (let i = 0; i < intersects.length; i++) {
-            event.entity = EntityUtils.parentEntity(intersects[i].object);
-            if (event.entity && event.entity.isEntity) break;
-        }
         this.dispatch('pointerdown', event);
     }
 }
-function onPointerUp(event) {
+function appPointerUp(event) {
     if (this.isPlaying) {
         this.dispatch('pointerup', event);
     }
 }
-function onPointerMove(event) {
+function appPointerMove(event) {
     if (this.isPlaying) {
         this.dispatch('pointermove', event);
     }
@@ -2659,7 +2630,7 @@ let Script$1 = class Script {
         this.name ='New Script';
         this.uuid = Maths.uuid();
         this.format = format;
-        this.category = null;
+        this.category = 'unknown';
         this.line = 0;
         this.char = 0;
         this.errors = false;
@@ -3247,14 +3218,14 @@ class Geometry {
     init(data = {}) {
         if (data.isBufferGeometry) {
             const assetUUID = data.uuid;
-            AssetManager$1.addAsset(data);
+            AssetManager$1.add(data);
             data = this.defaultData('style', 'asset');
             data.asset = assetUUID;
         }
         let geometry = undefined;
         switch (data.style) {
             case 'asset':
-                const assetGeometry = AssetManager$1.getAsset(data.asset);
+                const assetGeometry = AssetManager$1.get(data.asset);
                 if (assetGeometry && assetGeometry.isBufferGeometry) {
                     geometry = assetGeometry;
                 }
@@ -3290,7 +3261,7 @@ class Geometry {
             case 'tube':
                 break;
             default:
-                console.error('Geometry Component: Invalid style ' + data.style);
+                console.error(`GeometryComponent.init(): Invalid style '${data.style}'`);
         }
         if (geometry && geometry.isBufferGeometry) {
             const geometryName = geometry.constructor.name;
@@ -3412,7 +3383,7 @@ Geometry.config = {
     color: 'rgb(255, 113, 0)',
     multiple: false,
     dependencies: [ 'material' ],
-    group: [ 'Entity3D' ],
+    family: [ 'Entity3D' ],
 };
 ComponentManager.register('geometry', Geometry);
 
@@ -3424,7 +3395,7 @@ class Material {
         const parameters = {};
         if (data.isMaterial) {
             const assetUUID = data.uuid;
-            AssetManager$1.addAsset(data);
+            AssetManager$1.add(data);
             data = this.defaultData('style', 'asset');
             data.asset = assetUUID;
         } else {
@@ -3435,9 +3406,9 @@ class Material {
                 if (Array.isArray(variable) && variable.length > 0) variable = variable[0];
                 if (value && variable && variable.type === 'asset') {
                     if (value.isTexture) {
-                        AssetManager$1.addAsset(value);
+                        AssetManager$1.add(value);
                     } else {
-                        const textureCheck = AssetManager$1.getAsset(value);
+                        const textureCheck = AssetManager$1.get(value);
                         if (textureCheck && textureCheck.isTexture) {
                             parameters[key] = textureCheck;
                         } else {
@@ -3460,7 +3431,7 @@ class Material {
         let material = undefined;
         switch (data.style) {
             case 'asset':
-                const assetMaterial = AssetManager$1.getAsset(data.asset);
+                const assetMaterial = AssetManager$1.get(data.asset);
                 if (assetMaterial && assetMaterial.isMaterial) {
                     material = assetMaterial.clone();
                 }
@@ -3476,7 +3447,7 @@ class Material {
             case 'shader':
             case 'standard':
             default:
-                console.error(`Material Component: Invalid style '${data.style}'`);
+                console.error(`MaterialComponent.init(): Invalid style '${data.style}'`);
         }
         if (material && material.isMaterial) {
         } else {
@@ -3556,7 +3527,7 @@ Material.config = {
     color: 'rgb(165, 243, 0)',
     multiple: false,
     dependencies: [ 'geometry' ],
-    group: [ 'Entity3D' ],
+    family: [ 'Entity3D' ],
 };
 ComponentManager.register('material', Material);
 
@@ -3578,7 +3549,7 @@ Mesh.config = {
     icon: ``,
     color: '#F7DB63',
     multiple: true,
-    group: [ 'Entity3D' ],
+    family: [ 'Entity3D' ],
 };
 ComponentManager.register('mesh', Mesh);
 
@@ -3586,11 +3557,11 @@ class Script {
     init(data = {}) {
         if (data.isScript) {
             const assetUUID = data.uuid;
-            AssetManager$1.addAsset(data);
+            AssetManager$1.add(data);
             data = this.defaultData();
             data.script = assetUUID;
         }
-        const script = AssetManager$1.getAsset(data.script);
+        const script = AssetManager$1.get(data.script);
         if (script && script.isScript) {
             if (!data.variables) data.variables = {};
             let variables = {};
@@ -3627,7 +3598,7 @@ Script.config = {
     width: '40%',
     multiple: true,
     dependencies: [],
-    group: [ 'Entity3D' ],
+    family: [ 'Entity3D' ],
 };
 ComponentManager.register('script', Script);
 
@@ -3681,7 +3652,7 @@ Test.config = {
     color: 'rgb(128, 128, 128)',
     multiple: false,
     dependencies: [],
-    group: [ 'Entity3D' ],
+    family: [ 'Entity3D' ],
 };
 ComponentManager.register('test', Test);
 
@@ -3723,7 +3694,7 @@ Physics.config = {
     color: '#0F4F94',
     multiple: false,
     dependencies: [],
-    group: [ 'World3D' ],
+    family: [ 'World3D' ],
 };
 ComponentManager.register('physics', Physics);
 
@@ -3748,7 +3719,7 @@ class Post {
             case 'tint':
                 break;
             default:
-                console.error(`Post Component: Invalid style '${data.style}'`);
+                console.error(`PostComponent.init(): Invalid style '${data.style}'`);
         }
         if (pass) {
         } else {
@@ -3803,7 +3774,7 @@ Post.config = {
     color: 'rgb(64, 64, 64)',
     multiple: true,
     dependencies: [],
-    group: [ 'World3D' ],
+    family: [ 'World3D' ],
 };
 ComponentManager.register('post', Post);
 
@@ -3812,4 +3783,4 @@ if (typeof window !== 'undefined') {
     else window.__SALINITY__ = VERSION;
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, AssetManager$1 as AssetManager, Camera3D, Clock, ColorChange, ComponentManager, DragControls, DrivingControls, Entity3D, EntityUtils, FollowCamera, Iris, KeyControls, Maths, MoveCamera, OrbitEntity, Palette, Project, RotateEntity, SCRIPT_FORMAT, SceneManager, Script$1 as Script, Stage3D, Strings, System, VERSION, Vectors, WORLD_TYPES, World3D, ZigZagControls };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, AssetManager$1 as AssetManager, Camera3D, Clock, ColorChange, ComponentManager, DragControls, DrivingControls, Entity3D, EntityUtils, FollowCamera, Iris, KeyControls, Maths, MoveCamera, OrbitEntity, Palette, Project, RotateEntity, SCRIPT_FORMAT, SceneManager, Script$1 as Script, Stage3D, System, VERSION, Vectors, WORLD_TYPES, World3D, ZigZagControls };

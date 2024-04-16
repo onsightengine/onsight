@@ -38,7 +38,7 @@ const builds = [
 
         output: [{
             format: 'esm',
-            file: './build/salinity.module.js',
+            file: './dist/salinity.module.js',
             sourcemap: false,
             plugins: [
                 header(),
@@ -57,7 +57,7 @@ const builds = [
 
         output: [{
             format: 'esm',
-            file: './build/salinity.min.js',
+            file: './dist/salinity.min.js',
             sourcemap: false,
             plugins: [
                 terser({ format: { comments: false } }),

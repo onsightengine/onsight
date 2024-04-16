@@ -1,16 +1,17 @@
 {
   "name": "@salinity/engine",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Easy to use JavaScript game engine.",
   "module": "src/Salinity.js",
-  "main": "build/salinity.module.js",
+  "main": "dist/salinity.module.js",
   "type": "module",
   "scripts": {
     "build": "rollup -c",
     "prepublishOnly": "npm run build"
   },
   "files": [
-    "build/*",
+    "dist/*",
+    "files/*",
     "src/*"
   ],
   "keywords": [

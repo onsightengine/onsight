@@ -2,22 +2,23 @@
  * @description Salinity Engine
  * @about       Easy to use JavaScript game engine.
  * @author      Stephens Nunnally <@stevinz>
- * @version     v0.0.3
+ * @version     v0.0.4
  * @license     MIT - Copyright (c) 2024 Stephens Nunnally
  * @source      https://github.com/salinityengine/engine
  */
 var name = "@salinity/engine";
-var version = "0.0.3";
+var version = "0.0.4";
 var description = "Easy to use JavaScript game engine.";
 var module = "src/Salinity.js";
-var main = "build/salinity.module.js";
+var main = "dist/salinity.module.js";
 var type = "module";
 var scripts = {
 	build: "rollup -c",
 	prepublishOnly: "npm run build"
 };
 var files = [
-	"build/*",
+	"dist/*",
+	"files/*",
 	"src/*"
 ];
 var keywords = [
@@ -764,20 +765,161 @@ class Palette {
     }
 }
 
+let Script$1 = class Script {
+    constructor(format = SCRIPT_FORMAT.JAVASCRIPT, variables = false) {
+        this.isScript = true;
+        this.type = 'Script';
+        this.name ='New Script';
+        this.uuid = Maths.uuid();
+        this.format = format;
+        this.category = 'unknown';
+        this.line = 0;
+        this.char = 0;
+        this.errors = false;
+        if (format === SCRIPT_FORMAT.JAVASCRIPT) {
+            this.source =
+`//
+// Lifecycle Events:    init, update, destroy
+// Input Events:        keydown, keyup, pointerdown, pointerup, pointermove
+// Within Events:
+//      'this'          represents entity this script is attached to
+//      'app'           access .renderer, .project, .scene, .camera, .keys
+// Pointer Events:
+//      'event.entity'  entity under pointer (if there is one)
+// Update Event:
+//      'event.delta'   time since last frame (in seconds)
+//      'event.total'   total elapsed time (in seconds)
+//
+${variableTemplate(variables)}
+// ...script scope variable declarations allowed here...
+
+// "init()" is executed when an entity is loaded
+function init() {
+
+}
+
+// "update()" is executed once each frame
+function update(event) {
+
+}
+
+// "destroy()" is executed right before an entity is removed
+function destroy() {
+
+}
+
+// Example Input Event
+function keydown(event) {
+
+}
+`;
+        }
+    }
+    fromJSON(json) {
+        const data = json.object;
+        if (data.name !== undefined) this.name = data.name;
+        if (data.uuid !== undefined) this.uuid = data.uuid;
+        if (data.format !== undefined) this.format = data.format;
+        if (data.category !== undefined) this.category = data.category;
+        if (data.line !== undefined) this.line = data.line;
+        if (data.char !== undefined) this.char = data.char;
+        if (data.errors !== undefined) this.errors = data.errors;
+        if (data.source !== undefined) this.source = data.source;
+        return this;
+    }
+    toJSON() {
+        const json = {
+            object: {
+                type: this.type,
+                name: this.name,
+                uuid: this.uuid,
+                format: this.format,
+                category: this.category,
+            }
+        };
+        json.object.line = this.line;
+        json.object.char = this.char;
+        json.object.errors = structuredClone(this.errors);
+        json.object.source = this.source;
+        return json;
+    }
+};
+function variableTemplate(includeVariables = false) {
+    if (!includeVariables) {
+return (`
+// Script Properties:
+let variables = {
+//  myNumber: { type: 'number', default: 10 },
+//  myString: { type: 'string', default: '' },
+//  myColor: { type: 'color', default: 0x0000ff },
+};
+`);
+    } else {
+return (
+`
+//
+// Example Script Properties
+//      - 'info' property text will appear in Advisor
+//      - see 'ComponentManager.js' for more information
+//
+let variables = {
+
+    // The following 'asset' types are saved as asset UUID values
+    geometry: { type: 'asset', class: 'geometry', info: 'Geometry Asset' },
+    material: { type: 'asset', class: 'material', info: 'Material Asset' },
+    script: { type: 'asset', class: 'script', info: 'Script Asset' },
+    shape: { type: 'asset', class: 'shape', info: 'Shape Asset' },
+    texture: { type: 'asset', class: 'texture', info: 'Texture Asset' },
+    divider1: { type: 'divider' },
+    prefab: { type: 'asset', class: 'prefab', info: 'Prefab Asset' },
+    divider2: { type: 'divider' },
+
+    // Dropdown selection box, saved as 'string' value
+    select: { type: 'select', default: 'Banana', select: [ 'Apple', 'Banana', 'Cherry' ], info: 'Selection Box' },
+
+    // Numeric values, saved as 'number' values
+    number: { type: 'number', default: 0.05, min: 0, max: 1, step: 0.05, label: 'test', info: 'Floating Point' },
+    int: { type: 'int', default: 5, min: 3, max: 10, info: 'Integer' },
+
+    // Angle, saved as 'number' value in radians
+    angle: { type: 'angle', default: 2 * Math.PI, min: 0, max: 360, info: 'Angle' },
+
+    // Numeric value +/- a range value, saved as Array
+    variable: { type: 'variable', default: [ 0, 0 ], min: 0, max: 100, info: 'Ranged Value' },
+    slider: { type: 'slider', default: 0, min: 0, max: 9, step: 1, precision: 0, info: 'Numeric Slider' },
+
+    // Boolean
+    boolean: { type: 'boolean', default: true, info: 'true || false' },
+
+    // Color returns integer value at runtime
+    color: { type: 'color', default: 0xff0000, info: 'Color Value' },
+
+    // Strings
+    string: { type: 'string', info: 'String Value' },
+    multiline: { type: 'string', rows: 4, info: 'Multiline String' },
+    keyboard: { type: 'key', default: 'Escape' },
+
+    // Vectors returned as Array types at runtime
+    numberArray: { type: 'vector', size: 1, info: 'Numeric Array' },
+    vector2: { type: 'vector', size: 2, tint: true, label: [ 'x', 'y' ], info: 'Vector 2' },
+    vector3: { type: 'vector', size: 3, tint: true, min: [ 1, 1, 1 ], max: [ 2, 2, 2 ], step: 0.1, precision: 2, info: 'Vector 3' },
+    vector4: { type: 'vector', size: 4, tint: true, info: 'Vector 4' },
+}
+`);
+    }
+}
+
 const _assets = {};
 const _types = {
     'Palette':  Palette,
+    'Script':   Script$1,
 };
 let AssetManager$1 = class AssetManager {
     static checkType(asset) {
         if (!asset) return undefined;
-        if (asset.isBufferGeometry) return 'geometry';
-        if (asset.type === 'Shape') return 'shape';
-        if (asset.isMaterial) return 'material';
+        if (asset.isEntity) return 'prefab';
         if (asset.isPalette) return 'palette';
         if (asset.isScript) return 'script';
-        if (asset.isTexture) return 'texture';
-        if (asset.isEntity) return 'prefab';
         return 'asset';
     }
     static get(uuid) {
@@ -863,7 +1005,6 @@ let AssetManager$1 = class AssetManager {
     }
 };
 
-const _timer = (performance == null || typeof performance === 'undefined') ? Date : performance;
 class Clock {
     #running = false;
     #startTime = 0;
@@ -880,7 +1021,7 @@ class Clock {
     }
     start(reset = false) {
         if (reset) this.reset();
-        this.#startTime = _timer.now();
+        this.#startTime = performance.now();
         this.#lastChecked = this.#startTime;
         this.#running = true;
     }
@@ -893,7 +1034,7 @@ class Clock {
         else this.start();
     }
     reset() {
-        this.#startTime = _timer.now();
+        this.#startTime = performance.now();
         this.#lastChecked = this.#startTime;
         this.#elapsedTime = 0;
         this.#deltaCount = 0;
@@ -906,7 +1047,7 @@ class Clock {
             this.#lastFrameCount = 0;
             return 0;
         }
-        const newTime = _timer.now();
+        const newTime = performance.now();
         const dt = (newTime - this.#lastChecked) / 1000;
         this.#lastChecked = newTime;
         this.#elapsedTime += dt;
@@ -1096,10 +1237,10 @@ class System {
         }
     }
     static sleep(ms) {
-        const beginTime = Date.now();
+        const beginTime = performance.now();
         let endTime = beginTime;
         while (endTime - beginTime < ms) {
-            endTime = Date.now();
+            endTime = performance.now();
         }
     }
     static waitForObject(
@@ -1110,16 +1251,16 @@ class System {
         timeoutMs = -1,
         alertMs = 5000,
     ) {
-        let startTimeMs = Date.now();
-        let alertTimeMs = Date.now();
+        let startTimeMs = performance.now();
+        let alertTimeMs = performance.now();
         function loopSearch() {
-            if (timeoutMs > 0 && (Date.now() - startTimeMs > timeoutMs)) {
+            if (timeoutMs > 0 && (performance.now() - startTimeMs > timeoutMs)) {
                 console.info(`Operation: ${operationName} timed out`);
                 return;
             }
-            if ((alertMs > 0) && Date.now() - alertTimeMs > alertMs) {
+            if ((alertMs > 0) && performance.now() - alertTimeMs > alertMs) {
                 console.info(`Still waiting on operation: ${operationName}`);
-                alertTimeMs = Date.now();
+                alertTimeMs = performance.now();
             }
             if (!getter || typeof getter !== 'function' || getter()) {
                 if (callback && typeof callback === 'function') callback();
@@ -1506,11 +1647,11 @@ class Entity3D {
         return entity;
     }
     traverse(callback, recursive = true) {
-		if (typeof callback === 'function' && callback(this)) return;
+        if (typeof callback === 'function' && callback(this)) return;
         for (const child of this.children) {
             child.traverse(callback, recursive);
         }
-	}
+    }
     traverseEntities(callback, recursive = true) {
         if (typeof callback === 'function' && callback(this)) return;
         for (const child of this.getEntities()) {
@@ -1768,18 +1909,18 @@ class Camera3D extends Entity3D {
     updateMatrix() {
     }
     getWorldDirection(target) {
-		this.updateWorldMatrix(true, false);
-		const e = this.matrixWorld.elements;
-		return target.set(- e[8], - e[9], - e[10]).normalize();
-	}
-	updateMatrixWorld(force) {
-		super.updateMatrixWorld(force);
-		this.matrixWorldInverse.copy(this.matrixWorld).invert();
-	}
-	updateWorldMatrix(updateParents, updateChildren) {
-		super.updateWorldMatrix(updateParents, updateChildren);
-		this.matrixWorldInverse.copy(this.matrixWorld).invert();
-	}
+        this.updateWorldMatrix(true, false);
+        const e = this.matrixWorld.elements;
+        return target.set(- e[8], - e[9], - e[10]).normalize();
+    }
+    updateMatrixWorld(force) {
+        super.updateMatrixWorld(force);
+        this.matrixWorldInverse.copy(this.matrixWorld).invert();
+    }
+    updateWorldMatrix(updateParents, updateChildren) {
+        super.updateWorldMatrix(updateParents, updateChildren);
+        this.matrixWorldInverse.copy(this.matrixWorld).invert();
+    }
     changeType(type) {
         if (!type || typeof type !== 'string') return this;
         type = type.toLowerCase().replace('camera', '');
@@ -1903,9 +2044,9 @@ class Camera3D extends Entity3D {
         super.copy(source, recursive);
         this.changeType(source.type);
         this.matrixWorldInverse.copy(source.matrixWorldInverse);
-		this.projectionMatrix.copy(source.projectionMatrix);
-		this.projectionMatrixInverse.copy(source.projectionMatrixInverse);
-		this.coordinateSystem = source.coordinateSystem;
+        this.projectionMatrix.copy(source.projectionMatrix);
+        this.projectionMatrixInverse.copy(source.projectionMatrixInverse);
+        this.coordinateSystem = source.coordinateSystem;
         this.fit = source.fit;
         this.near = source.near;
         this.far = source.far;
@@ -2012,7 +2153,7 @@ class World3D extends Entity3D {
         this.environment = null;
         this.fog = null;
         this.backgroundBlurriness = 0;
-		this.backgroundIntensity = 1;
+        this.backgroundIntensity = 1;
         this.overrideMaterial = null;
         this.xPos = 0;
         this.yPos = 0;
@@ -2094,11 +2235,11 @@ class World3D extends Entity3D {
                 this.background = source.background;
             }
         }
-		if (source.environment !== null) this.environment = source.environment.clone();
-		if (source.fog !== null) this.fog = source.fog.clone();
-		this.backgroundBlurriness = source.backgroundBlurriness;
-		this.backgroundIntensity = source.backgroundIntensity;
-		if (source.overrideMaterial !== null) this.overrideMaterial = source.overrideMaterial.clone();
+        if (source.environment !== null) this.environment = source.environment.clone();
+        if (source.fog !== null) this.fog = source.fog.clone();
+        this.backgroundBlurriness = source.backgroundBlurriness;
+        this.backgroundIntensity = source.backgroundIntensity;
+        if (source.overrideMaterial !== null) this.overrideMaterial = source.overrideMaterial.clone();
         this.xPos = source.xPos;
         this.yPos = source.yPos;
         const stageIndex = source.getStages().indexOf(source.activeStage());
@@ -2136,7 +2277,7 @@ class World3D extends Entity3D {
             }
         }
         if (data.backgroundBlurriness !== undefined) this.backgroundBlurriness = data.backgroundBlurriness;
-		if (data.backgroundIntensity !== undefined) this.backgroundIntensity = data.backgroundIntensity;
+        if (data.backgroundIntensity !== undefined) this.backgroundIntensity = data.backgroundIntensity;
         if (data.xPos !== undefined) this.xPos = data.xPos;
         if (data.yPos !== undefined) this.yPos = data.yPos;
         if (data.activeStageUUID !== undefined) this.activeStageUUID = data.activeStageUUID;
@@ -2163,7 +2304,7 @@ class World3D extends Entity3D {
         }
         if (this.fog) json.object.fog = this.fog.toJSON();
         if (this.backgroundBlurriness > 0) json.object.backgroundBlurriness = this.backgroundBlurriness;
-		if (this.backgroundIntensity !== 1) json.object.backgroundIntensity = this.backgroundIntensity;
+        if (this.backgroundIntensity !== 1) json.object.backgroundIntensity = this.backgroundIntensity;
         json.object.xPos = this.xPos;
         json.object.yPos = this.yPos;
         json.object.activeStageUUID = this.activeStageUUID;
@@ -2180,6 +2321,8 @@ class Project {
         this.name = name;
         this.uuid = Maths.uuid();
         this.activeWorldUUID = null;
+        this.startWorldUUID = null;
+        this.notes = '';
         this.settings = {
             orientation: APP_ORIENTATION.PORTRAIT,
             preload: 10,
@@ -2198,7 +2341,7 @@ class Project {
     }
     activeWorld() {
         let world = this.getWorldByUUID(this.activeWorldUUID);
-        if (!world || !world.isWorld) {
+        if (!world || !world.isWorld ) {
             const worldUUIDs = Object.keys(this.worlds);
             if (worldUUIDs.length > 0) world = this.worlds[worldUUIDs[0]];
         }
@@ -2289,6 +2432,8 @@ class Project {
         this.name = json.object.name;
         this.uuid = json.object.uuid;
         this.activeWorldUUID = json.object.activeWorldUUID;
+        this.startWorldUUID = json.object.startWorldUUID;
+        this.notes = json.notes;
         this.settings = structuredClone(json.settings);
         for (const worldData of json.worlds) {
             let world = undefined;
@@ -2312,7 +2457,9 @@ class Project {
             name: this.name,
             uuid: this.uuid,
             activeWorldUUID: this.activeWorldUUID,
+            startWorldUUID: this.startWorldUUID,
         };
+        json.notes = this.notes;
         json.settings = structuredClone(this.settings);
         json.worlds = [];
         for (const uuid in this.worlds) {
@@ -2620,150 +2767,6 @@ function appPointerUp(event) {
 function appPointerMove(event) {
     if (this.isPlaying) {
         this.dispatch('pointermove', event);
-    }
-}
-
-let Script$1 = class Script {
-    constructor(format = SCRIPT_FORMAT.JAVASCRIPT, variables = false) {
-        this.isScript = true;
-        this.type = 'Script';
-        this.name ='New Script';
-        this.uuid = Maths.uuid();
-        this.format = format;
-        this.category = 'unknown';
-        this.line = 0;
-        this.char = 0;
-        this.errors = false;
-        if (format === SCRIPT_FORMAT.JAVASCRIPT) {
-            this.source =
-`//
-// Lifecycle Events:    init, update, destroy
-// Input Events:        keydown, keyup, pointerdown, pointerup, pointermove
-// Within Events:
-//      'this'          represents entity this script is attached to
-//      'app'           access .renderer, .project, .scene, .camera, .keys
-// Pointer Events:
-//      'event.entity'  entity under pointer (if there is one)
-// Update Event:
-//      'event.delta'   time since last frame (in seconds)
-//      'event.total'   total elapsed time (in seconds)
-//
-${variableTemplate(variables)}
-// ...script scope variable declarations allowed here...
-
-// "init()" is executed when an entity is loaded
-function init() {
-
-}
-
-// "update()" is executed once each frame
-function update(event) {
-
-}
-
-// "destroy()" is executed right before an entity is removed
-function destroy() {
-
-}
-
-// Example Input Event
-function keydown(event) {
-
-}
-`;
-        }
-    }
-    fromJSON(json) {
-        const data = json.object;
-        if (data.name !== undefined) this.name = data.name;
-        if (data.uuid !== undefined) this.uuid = data.uuid;
-        if (data.format !== undefined) this.format = data.format;
-        if (data.category !== undefined) this.category = data.category;
-        if (data.line !== undefined) this.line = data.line;
-        if (data.char !== undefined) this.char = data.char;
-        if (data.errors !== undefined) this.errors = data.errors;
-        if (data.source !== undefined) this.source = data.source;
-        return this;
-    }
-    toJSON() {
-        const json = {
-            object: {
-                type: this.type,
-                name: this.name,
-                uuid: this.uuid,
-                format: this.format,
-                category: this.category,
-            }
-        };
-        json.object.line = this.line;
-        json.object.char = this.char;
-        json.object.errors = structuredClone(this.errors);
-        json.object.source = this.source;
-        return json;
-    }
-};
-function variableTemplate(includeVariables = false) {
-    if (!includeVariables) {
-return (`
-// Script Properties:
-let variables = {
-//  myNumber: { type: 'number', default: 10 },
-//  myString: { type: 'string', default: '' },
-//  myColor: { type: 'color', default: 0x0000ff },
-};
-`);
-    } else {
-return (
-`
-//
-// Example Script Properties
-//      - 'info' property text will appear in Advisor
-//      - see 'ComponentManager.js' for more information
-//
-let variables = {
-
-    // The following 'asset' types are saved as asset UUID values
-    geometry: { type: 'asset', class: 'geometry', info: 'Geometry Asset' },
-    material: { type: 'asset', class: 'material', info: 'Material Asset' },
-    script: { type: 'asset', class: 'script', info: 'Script Asset' },
-    shape: { type: 'asset', class: 'shape', info: 'Shape Asset' },
-    texture: { type: 'asset', class: 'texture', info: 'Texture Asset' },
-    divider1: { type: 'divider' },
-    prefab: { type: 'asset', class: 'prefab', info: 'Prefab Asset' },
-    divider2: { type: 'divider' },
-
-    // Dropdown selection box, saved as 'string' value
-    select: { type: 'select', default: 'Banana', select: [ 'Apple', 'Banana', 'Cherry' ], info: 'Selection Box' },
-
-    // Numeric values, saved as 'number' values
-    number: { type: 'number', default: 0.05, min: 0, max: 1, step: 0.05, label: 'test', info: 'Floating Point' },
-    int: { type: 'int', default: 5, min: 3, max: 10, info: 'Integer' },
-
-    // Angle, saved as 'number' value in radians
-    angle: { type: 'angle', default: 2 * Math.PI, min: 0, max: 360, info: 'Angle' },
-
-    // Numeric value +/- a range value, saved as Array
-    variable: { type: 'variable', default: [ 0, 0 ], min: 0, max: 100, info: 'Ranged Value' },
-    slider: { type: 'slider', default: 0, min: 0, max: 9, step: 1, precision: 0, info: 'Numeric Slider' },
-
-    // Boolean
-    boolean: { type: 'boolean', default: true, info: 'true || false' },
-
-    // Color returns integer value at runtime
-    color: { type: 'color', default: 0xff0000, info: 'Color Value' },
-
-    // Strings
-    string: { type: 'string', info: 'String Value' },
-    multiline: { type: 'string', rows: 4, info: 'Multiline String' },
-    keyboard: { type: 'key', default: 'Escape' },
-
-    // Vectors returned as Array types at runtime
-    numberArray: { type: 'vector', size: 1, info: 'Numeric Array' },
-    vector2: { type: 'vector', size: 2, tint: true, label: [ 'x', 'y' ], info: 'Vector 2' },
-    vector3: { type: 'vector', size: 3, tint: true, min: [ 1, 1, 1 ], max: [ 2, 2, 2 ], step: 0.1, precision: 2, info: 'Vector 3' },
-    vector4: { type: 'vector', size: 4, tint: true, info: 'Vector 4' },
-}
-`);
     }
 }
 
@@ -3116,7 +3119,7 @@ class FollowCamera extends Script$1 {
 // Properties
 let variables = {
     offsetX: { type: 'number', default: 0 },
-	offsetY: { type: 'number', default: 0 },
+    offsetY: { type: 'number', default: 0 },
     offsetZ: { type: 'number', default: 0 },
 };
 
@@ -3125,18 +3128,18 @@ let offset;
 function init() {
     offset = new THREE.Vector3();
     if (this.target) {
-    	offset.copy(this.position).sub(this.target.position);
+        offset.copy(this.position).sub(this.target.position);
     }
 }
 
 function update(event) {
     if (app.camera && app.camera.target) {
-    	this.position.x = app.camera.target.x + offsetX;
-    	this.position.y = app.camera.target.y + offsetY;
+        this.position.x = app.camera.target.x + offsetX;
+        this.position.y = app.camera.target.y + offsetY;
         this.position.z = app.camera.target.z + offsetZ;
 
         if (this.target) {
-        	this.target.position.copy(this.position).sub(offset);
+            this.target.position.copy(this.position).sub(offset);
         }
     }
 }

@@ -122,10 +122,10 @@ class System {
 
     /** Pauses app for specified milliseconds */
     static sleep(ms) {
-        const beginTime = Date.now();
+        const beginTime = performance.now();
         let endTime = beginTime;
         while (endTime - beginTime < ms) {
-            endTime = Date.now();
+            endTime = performance.now();
         }
     }
 
@@ -138,17 +138,17 @@ class System {
         timeoutMs = -1,
         alertMs = 5000,
     ) {
-        let startTimeMs = Date.now();
-        let alertTimeMs = Date.now();
+        let startTimeMs = performance.now();
+        let alertTimeMs = performance.now();
 
         function loopSearch() {
-            if (timeoutMs > 0 && (Date.now() - startTimeMs > timeoutMs)) {
+            if (timeoutMs > 0 && (performance.now() - startTimeMs > timeoutMs)) {
                 console.info(`Operation: ${operationName} timed out`);
                 return;
             }
-            if ((alertMs > 0) && Date.now() - alertTimeMs > alertMs) {
+            if ((alertMs > 0) && performance.now() - alertTimeMs > alertMs) {
                 console.info(`Still waiting on operation: ${operationName}`);
-                alertTimeMs = Date.now();
+                alertTimeMs = performance.now();
             }
 
             if (!getter || typeof getter !== 'function' || getter()) {

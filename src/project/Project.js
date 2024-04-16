@@ -20,6 +20,10 @@ class Project {
 
         // Properties, World
         this.activeWorldUUID = null;
+        this.startWorldUUID = null;
+
+        // Notes
+        this.notes = '';
 
         // Settings
         this.settings = {
@@ -47,11 +51,10 @@ class Project {
     /******************** WORLD */
 
     activeWorld() {
-        // Active World?
+        // Try to return Active World
         let world = this.getWorldByUUID(this.activeWorldUUID);
-
-        // First World?
-        if (!world || !world.isWorld) {
+        // Else try to return First World
+        if (!world || !world.isWorld ) {
             const worldUUIDs = Object.keys(this.worlds);
             if (worldUUIDs.length > 0) world = this.worlds[worldUUIDs[0]];
         }
@@ -178,6 +181,10 @@ class Project {
         this.name = json.object.name;
         this.uuid = json.object.uuid;
         this.activeWorldUUID = json.object.activeWorldUUID;
+        this.startWorldUUID = json.object.startWorldUUID;
+
+        // Notes
+        this.notes = json.notes;
 
         // Settings
         this.settings = structuredClone(json.settings);
@@ -213,7 +220,11 @@ class Project {
             name: this.name,
             uuid: this.uuid,
             activeWorldUUID: this.activeWorldUUID,
+            startWorldUUID: this.startWorldUUID,
         };
+
+        // Notes
+        json.notes = this.notes;
 
         // Settings
         json.settings = structuredClone(this.settings);

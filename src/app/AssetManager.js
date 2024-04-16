@@ -1,8 +1,10 @@
 import { Palette } from '../assets/Palette.js';
+import { Script } from '../assets/Script.js';
 
 const _assets = {};
 const _types = {
     'Palette':  Palette,
+    'Script':   Script,
 };
 
 class AssetManager {
@@ -11,13 +13,9 @@ class AssetManager {
 
     static checkType(asset) {
         if (!asset) return undefined;
-        if (asset.isBufferGeometry) return 'geometry';
-        if (asset.type === 'Shape') return 'shape';
-        if (asset.isMaterial) return 'material';
+        if (asset.isEntity) return 'prefab';
         if (asset.isPalette) return 'palette';
         if (asset.isScript) return 'script';
-        if (asset.isTexture) return 'texture';
-        if (asset.isEntity) return 'prefab';
         return 'asset';
     }
 

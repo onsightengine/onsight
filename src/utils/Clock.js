@@ -1,5 +1,3 @@
-const _timer = (performance == null || typeof performance === 'undefined') ? Date : performance;
-
 class Clock {
 
     #running = false;
@@ -20,7 +18,7 @@ class Clock {
 
     start(reset = false) {
         if (reset) this.reset();
-        this.#startTime = _timer.now();
+        this.#startTime = performance.now();
         this.#lastChecked = this.#startTime;
         this.#running = true;
     }
@@ -36,7 +34,7 @@ class Clock {
     }
 
     reset() {
-        this.#startTime = _timer.now();
+        this.#startTime = performance.now();
         this.#lastChecked = this.#startTime;
         this.#elapsedTime = 0;
         this.#deltaCount = 0;
@@ -55,7 +53,7 @@ class Clock {
         }
 
         // Delta
-        const newTime = _timer.now();
+        const newTime = performance.now();
         const dt = (newTime - this.#lastChecked) / 1000;
         this.#lastChecked = newTime;
         this.#elapsedTime += dt;

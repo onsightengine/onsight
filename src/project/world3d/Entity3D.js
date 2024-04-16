@@ -257,11 +257,11 @@ class Entity3D {//extends THREE.Object3D {
 
     /** Return 'true' in callback to stop further recursion */
     traverse(callback, recursive = true) {
-		if (typeof callback === 'function' && callback(this)) return;
+        if (typeof callback === 'function' && callback(this)) return;
         for (const child of this.children) {
             child.traverse(callback, recursive);
         }
-	}
+    }
 
     /** Return 'true' in callback to stop further recursion */
     traverseEntities(callback, recursive = true) {

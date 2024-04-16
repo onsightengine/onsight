@@ -18,7 +18,7 @@ class World3D extends Entity3D {
         this.environment = null;            // not implemented
         this.fog = null;
         this.backgroundBlurriness = 0;      // not implemented
-		this.backgroundIntensity = 1;       // not implemented
+        this.backgroundIntensity = 1;       // not implemented
         this.overrideMaterial = null;       // not implemented
 
         // Properties, Nodes
@@ -129,11 +129,11 @@ class World3D extends Entity3D {
                 this.background = source.background; /* texture uuid */
             }
         }
-		if (source.environment !== null) this.environment = source.environment.clone();
-		if (source.fog !== null) this.fog = source.fog.clone();
-		this.backgroundBlurriness = source.backgroundBlurriness;
-		this.backgroundIntensity = source.backgroundIntensity;
-		if (source.overrideMaterial !== null) this.overrideMaterial = source.overrideMaterial.clone();
+        if (source.environment !== null) this.environment = source.environment.clone();
+        if (source.fog !== null) this.fog = source.fog.clone();
+        this.backgroundBlurriness = source.backgroundBlurriness;
+        this.backgroundIntensity = source.backgroundIntensity;
+        if (source.overrideMaterial !== null) this.overrideMaterial = source.overrideMaterial.clone();
 
         // World3D Properties, Node
         this.xPos = source.xPos;
@@ -189,7 +189,7 @@ class World3D extends Entity3D {
             }
         }
         if (data.backgroundBlurriness !== undefined) this.backgroundBlurriness = data.backgroundBlurriness;
-		if (data.backgroundIntensity !== undefined) this.backgroundIntensity = data.backgroundIntensity;
+        if (data.backgroundIntensity !== undefined) this.backgroundIntensity = data.backgroundIntensity;
 
         // World3D Properties, Node
         if (data.xPos !== undefined) this.xPos = data.xPos;
@@ -230,7 +230,7 @@ class World3D extends Entity3D {
         }
         if (this.fog) json.object.fog = this.fog.toJSON();
         if (this.backgroundBlurriness > 0) json.object.backgroundBlurriness = this.backgroundBlurriness;
-		if (this.backgroundIntensity !== 1) json.object.backgroundIntensity = this.backgroundIntensity;
+        if (this.backgroundIntensity !== 1) json.object.backgroundIntensity = this.backgroundIntensity;
 
         // World3D Properties, Node
         json.object.xPos = this.xPos;

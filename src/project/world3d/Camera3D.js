@@ -31,9 +31,9 @@ class Camera3D extends Entity3D {
 
         // // Properties, THREE.Camera
         // this.matrixWorldInverse = new THREE.Matrix4();
-		// this.projectionMatrix = new THREE.Matrix4();
-		// this.projectionMatrixInverse = new THREE.Matrix4();
-		// this.coordinateSystem = THREE.WebGLCoordinateSystem;
+        // this.projectionMatrix = new THREE.Matrix4();
+        // this.projectionMatrixInverse = new THREE.Matrix4();
+        // this.coordinateSystem = THREE.WebGLCoordinateSystem;
 
         // Properties
         if (fit !== 'width' && fit !== 'height') fit = 'none';
@@ -73,20 +73,20 @@ class Camera3D extends Entity3D {
     }
 
     getWorldDirection(target) {
-		this.updateWorldMatrix(true, false);
-		const e = this.matrixWorld.elements;
-		return target.set(- e[8], - e[9], - e[10]).normalize();
-	}
+        this.updateWorldMatrix(true, false);
+        const e = this.matrixWorld.elements;
+        return target.set(- e[8], - e[9], - e[10]).normalize();
+    }
 
-	updateMatrixWorld(force) {
-		super.updateMatrixWorld(force);
-		this.matrixWorldInverse.copy(this.matrixWorld).invert();
-	}
+    updateMatrixWorld(force) {
+        super.updateMatrixWorld(force);
+        this.matrixWorldInverse.copy(this.matrixWorld).invert();
+    }
 
-	updateWorldMatrix(updateParents, updateChildren) {
-		super.updateWorldMatrix(updateParents, updateChildren);
-		this.matrixWorldInverse.copy(this.matrixWorld).invert();
-	}
+    updateWorldMatrix(updateParents, updateChildren) {
+        super.updateWorldMatrix(updateParents, updateChildren);
+        this.matrixWorldInverse.copy(this.matrixWorld).invert();
+    }
 
     /******************** TYPE */
 
@@ -262,9 +262,9 @@ class Camera3D extends Entity3D {
 
         // THREE.Camera Properties
         this.matrixWorldInverse.copy(source.matrixWorldInverse);
-		this.projectionMatrix.copy(source.projectionMatrix);
-		this.projectionMatrixInverse.copy(source.projectionMatrixInverse);
-		this.coordinateSystem = source.coordinateSystem;
+        this.projectionMatrix.copy(source.projectionMatrix);
+        this.projectionMatrixInverse.copy(source.projectionMatrixInverse);
+        this.coordinateSystem = source.coordinateSystem;
 
         // Camera3D Properties
         this.fit = source.fit;

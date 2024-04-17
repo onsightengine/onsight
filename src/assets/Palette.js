@@ -1,4 +1,3 @@
-import { Iris } from '../utils/Iris.js';
 import { Maths } from '../utils/Maths.js';
 
 class Palette {

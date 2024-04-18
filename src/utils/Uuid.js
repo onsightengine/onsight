@@ -29,7 +29,7 @@ class Uuid {
     /** Converts object list or object array to UUID array */
     static arrayFromObjects(...objects) {
         // Arguments Array
-        if (objects.length > 0 && Array.isArray[objects[0]]) objects = objects[0];
+        if (objects.length > 0 && Array.isArray(objects[0])) objects = objects[0];
         // Create UUID Array
         const uuids = [];
         for (const object of objects) {

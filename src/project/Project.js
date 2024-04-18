@@ -152,8 +152,7 @@ class Project {
         // Check proper JSON type
         const metaType = (json.metadata) ? json.metadata.type : 'Undefined';
         if (metaType !== 'Salinity') {
-            console.error(`Project.fromJSON(): Unknown project type ('${metaType}'), expected 'Salinity'`);
-
+            console.error(`Project.fromJSON(): Unknown project type '${metaType}', expected 'Salinity'`);
             return;
         }
 

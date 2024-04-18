@@ -1,26 +1,24 @@
+import { Asset } from './Asset.js';
 import { SCRIPT_FORMAT } from '../constants.js';
-import { Uuid } from '../utils/Uuid.js';
 
-class Script {
+class Script extends Asset {
 
     constructor(format = SCRIPT_FORMAT.JAVASCRIPT, variables = false) {
+        super('New Script');
+
         // Prototype
         this.isScript = true;
         this.type = 'Script';
 
-        // Properties
-        this.name ='New Script';
-        this.uuid = Uuid.random();
+        // Properties, Script
         this.format = format;
-        this.category = 'unknown';
         this.line = 0;
         this.char = 0;
         this.errors = false;
 
         // JavaScript
         if (format === SCRIPT_FORMAT.JAVASCRIPT) {
-            this.source =
-`//
+            this.source = `//
 // Lifecycle Events:    init, update, destroy
 // Input Events:        keydown, keyup, pointerdown, pointerup, pointermove
 // Within Events:
@@ -58,40 +56,32 @@ function keydown(event) {
         }
     }
 
+    /******************** JSON */
+
     fromJSON(json) {
+        // Asset
+        super.fromJSON(json);
+
+        // Script
         const data = json.object;
-
-        if (data.name !== undefined) this.name = data.name;
-        if (data.uuid !== undefined) this.uuid = data.uuid;
-
         if (data.format !== undefined) this.format = data.format;
-        if (data.category !== undefined) this.category = data.category;
-
         if (data.line !== undefined) this.line = data.line;
         if (data.char !== undefined) this.char = data.char;
-        if (data.errors !== undefined) this.errors = data.errors;
+        if (data.errors !== undefined) this.errors = structuredClone(data.errors);
         if (data.source !== undefined) this.source = data.source;
-
         return this;
     }
 
     toJSON() {
-        const json = {
-            object: {
-                type: this.type,
-                name: this.name,
-                uuid: this.uuid,
+        // Asset
+        const json = super.toJSON();
 
-                format: this.format,
-                category: this.category,
-            }
-        };
-
+        // Script
+        json.object.format = this.format;
         json.object.line = this.line;
         json.object.char = this.char;
         json.object.errors = structuredClone(this.errors);
         json.object.source = this.source;
-
         return json;
     }
 

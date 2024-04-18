@@ -1,15 +1,15 @@
-import { Uuid } from '../utils/Uuid.js';
+import { Asset } from './Asset.js';
 
-class Palette {
+class Palette extends Asset {
 
     constructor() {
+        super('New Palette');
+
         // Prototype
         this.isPalette = true;
         this.type = 'Palette';
 
         // Properties, Asset
-        this.name = 'New Palette';
-        this.uuid = Uuid.random();
         this.colors = [];
     }
 
@@ -45,27 +45,24 @@ class Palette {
         return this;
     }
 
+    /******************** JSON */
+
     fromJSON(json) {
+        // Asset
+        super.fromJSON(json);
+
+        // Palette
         const data = json.object;
-
-        if (data.name !== undefined) this.name = data.name;
-        if (data.uuid !== undefined) this.uuid = data.uuid;
         if (data.colors !== undefined) this.colors = JSON.parse(data.colors);
-
         return this;
     }
 
     toJSON() {
-        const json = {
-            object: {
-                type: this.type,
-                name: this.name,
-                uuid: this.uuid,
-            }
-        };
+        // Asset
+        const json = super.toJSON();
 
+        // Palette
         json.object.colors = JSON.stringify(this.colors);
-
         return json;
     }
 

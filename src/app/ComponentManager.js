@@ -56,7 +56,7 @@
 //  not             Do not include property if these conditions are met
 //  default         Default value of item if none provided
 //
-//  NUMERICAL OPTIONS (can be array values for numArrays / variable)
+//  NUMERICAL OPTIONS (can be array values for number arrays / variable)
 //  min             Minimum allowed value
 //  max             Maximum allowed value
 //  step            Mouse wheel / arrow key step of number when being changed in Inspector. See special step values below

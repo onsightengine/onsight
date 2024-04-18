@@ -53,13 +53,11 @@ export { World3D } from './project/world3d/World3D.js';
 
 /******************** UTILS  ********************/
 
-// Object
-export { EntityUtils } from './utils/EntityUtils.js';
-
-// Utils
+export { Arrays } from './utils/Arrays.js';
 export { Clock } from './utils/Clock.js';
 export { Maths } from './utils/Maths.js';
 export { System } from './utils/System.js';
+export { Uuid } from './utils/Uuid.js';
 export { Vectors } from './utils/Vectors.js';
 
 /******************** REGISTER COMPONENTS ********************/

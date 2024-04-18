@@ -1,5 +1,5 @@
+import { Arrays } from '../../utils/Arrays.js';
 import { ComponentManager } from '../../app/ComponentManager.js';
-import { EntityUtils } from '../../utils/EntityUtils.js';
 
 // FLAGS
 //  Object3D.userData.flagIgnore        IGNORE: Select, Focus, Transform, Rubberband, GpuPick, copy(), parentEntity(), getEntities()
@@ -489,7 +489,7 @@ class Entity3D {//extends THREE.Object3D {
         }
 
         while (this.children.length > 0) {
-            EntityUtils.clearObject(this.children[0], true /* removeFromParent */);
+            // Arrays.clearObject(this.children[0], true /* removeFromParent */);
         }
 
         this.dispatchEvent({ type: 'destroy' });

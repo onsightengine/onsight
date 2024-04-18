@@ -1,4 +1,4 @@
-import { Maths } from '../utils/Maths.js';
+import { Uuid } from '../utils/Uuid.js';
 
 class Palette {
 
@@ -9,7 +9,7 @@ class Palette {
 
         // Properties, Asset
         this.name = 'New Palette';
-        this.uuid = Maths.uuid();
+        this.uuid = Uuid.random();
         this.colors = [];
     }
 

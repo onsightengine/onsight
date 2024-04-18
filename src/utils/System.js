@@ -1,35 +1,22 @@
-// ARRAYS
-//  isIterable()            Checks if a javascript object is iterable
+// CHECKS
 //  isObject()              Checks if a variable is an object (and not null / array / function)
-//  swapArrayItems()        Swaps two items in an array
 // FILE SYSTEM
 //  save()                  Saves an URL object to the host system
 // PLATFORM
 //  detectOS()              Attempts to detect current operating system
 //  fullscreen()            Go fullscreen on DOM 'element'
 //  metaKeyOS()             Returns character string of shortcut key depending on OS
-// SYSTEM
+// WAIT
 //  sleep()                 Pauses app for specified milliseconds
 //  waitForObject()         Wait for getter to return an object that exists, then call a function
 
 class System {
 
-    /******************** ARRAYS ********************/
-
-    /** Checks if a javascript object is iterable */
-    static isIterable(obj) {
-        return (obj && typeof obj[Symbol.iterator] === 'function');
-    }
+    /******************** CHECKS ********************/
 
     /** Checks if a variable is an object (and not null / array / function) */
     static isObject(variable) {
         return (variable && typeof variable === 'object' && !Array.isArray(variable));
-    }
-
-    /** Swaps two items in an array */
-    static swapArrayItems(array, a, b) {
-        array[a] = array.splice(b, 1, array[a])[0];
-        return array;
     }
 
     /******************** FILE SYSTEM ********************/
@@ -118,7 +105,7 @@ class System {
         }
     }
 
-    /******************** SYSTEM ********************/
+    /******************** WAIT ********************/
 
     /** Pauses app for specified milliseconds */
     static sleep(ms) {

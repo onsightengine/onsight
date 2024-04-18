@@ -3,7 +3,7 @@ import { WORLD_TYPES } from '../constants.js';
 import { VERSION } from '../constants.js';
 
 import { AssetManager } from '../app/AssetManager.js';
-import { Maths } from '../utils/Maths.js';
+import { Uuid } from '../utils/Uuid.js';
 import { World3D } from './world3d/World3D.js';
 
 class Project {
@@ -16,7 +16,7 @@ class Project {
 
         // Properties
         this.name = name;
-        this.uuid = Maths.uuid();
+        this.uuid = Uuid.random();
 
         // Properties, World
         this.activeWorldUUID = null;
@@ -142,7 +142,7 @@ class Project {
 
         // Reset Properties
         this.name = 'My Project';
-        this.uuid = Maths.uuid();
+        this.uuid = Uuid.random();
         this.activeWorldUUID = null;
     }
 

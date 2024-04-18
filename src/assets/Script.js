@@ -1,5 +1,5 @@
 import { SCRIPT_FORMAT } from '../constants.js';
-import { Maths } from '../utils/Maths.js';
+import { Uuid } from '../utils/Uuid.js';
 
 class Script {
 
@@ -10,7 +10,7 @@ class Script {
 
         // Properties
         this.name ='New Script';
-        this.uuid = Maths.uuid();
+        this.uuid = Uuid.random();
         this.format = format;
         this.category = 'unknown';
         this.line = 0;

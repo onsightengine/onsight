@@ -1,9 +1,9 @@
 import { APP_EVENTS } from '../constants.js';
 import { APP_ORIENTATION } from '../constants.js';
 
+import { Arrays } from '../utils/Arrays.js';
 import { AssetManager } from './AssetManager.js';
 import { Clock } from '../utils/Clock.js';
-import { EntityUtils } from '../utils/EntityUtils.js';
 import { Project } from '../project/Project.js';
 import { SceneManager } from './SceneManager.js';
 import { Stage3D } from '../project/world3d/Stage3D.js';
@@ -231,9 +231,9 @@ class App {
         // Clear Renderer
         SceneManager.dispose();
 
-        // Clear Objects
-        EntityUtils.clearObject(this.camera);
-        EntityUtils.clearObject(this.scene);
+        // // Clear Objects
+        // clearObject(this.camera);
+        // clearObject(this.scene);
         this.project.clear();
         this.clearEvents();
     }
@@ -293,7 +293,7 @@ function appPointerDown(event) {
         // const intersects = _raycaster.intersectObjects(this.scene.children, true);
         // event.entity = undefined;
         // for (let i = 0; i < intersects.length; i++) {
-        //     event.entity = EntityUtils.parentEntity(intersects[i].object);
+        //     event.entity = intersects[i].object.parentEntity();
         //     if (event.entity && event.entity.isEntity) break;
         // }
 

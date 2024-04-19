@@ -1,12 +1,6 @@
 import { Arrays } from '../../utils/Arrays.js';
 import { ComponentManager } from '../../app/ComponentManager.js';
-
-// FLAGS
-//  Object3D.userData.flagIgnore        IGNORE: Select, Focus, Transform, Rubberband, GpuPick, copy(), parentEntity(), getEntities()
-//  Object3D.userData.flagHelper        IGNORE: Delete, copy(), parentEntity(), getEntities()
-// DATA
-//  Object3D.userData.entityID          Used for transform controls to link a transform clone with original entity
-//  Object3D.userData.loadedDistance    Used for tracking removal of Entities loaded into World during App.play()
+import { Uuid } from '../utils/Uuid.js';
 
 class Entity {
 
@@ -15,20 +9,25 @@ class Entity {
         this.isEntity = true;
         this.type = 'Entity';
 
-        // Properties, Basic
+        // Properties
         this.name = name;
-        this.locked = false;                    // locked in Editor (do not allow selection, deletion, duplication, etc.)
+        this.uuid = Uuid.random();
+        this.category = null;                   // used for organizing Prefabs
+        this.locked = false;                    // locked in Editor? (do not allow selection, deletion, duplication, etc.)
+        this.visible = true;                    // should be rendered?
 
-        // Properties, Prefab
-        this.category = null;                   // used for organizing
-
-        // Collections
+        // Structure
+        this.parent = null;
+		this.children = [];
         this.components = [];                   // geometry, material, audio, light, etc.
+
+        // Internal
+        this.loadedDistance = 0;                // for tracking removal during App.play()
     }
 
-    /** Tells which components this entity has access to */
+    /** Component types this Entity is allowed to have */
     componentFamily() {
-        return 'Entity';
+        return [ 'Entity' ];
     }
 
     /******************** COMPONENTS */
@@ -159,7 +158,7 @@ class Entity {
             component.detach();
             return component;
         }
-        console.warn(`Entity3D.removeComponent(): Component ${component.uuid}, type '${component.type}' not found`);
+        console.warn(`Entity.removeComponent(): Component ${component.uuid}, type '${component.type}' not found`);
     }
 
     rebuildComponents() {
@@ -180,35 +179,20 @@ class Entity {
 
     /******************** CHILDREN */
 
-    addEntity(entity, index = -1, maintainWorldTransform = false) {
-        if (!entity || !entity.isEntity3D) return this;
-        if (this.children.indexOf(entity) !== -1) return this;
-
-        // Add Entity
-        if (maintainWorldTransform && entity.parent) {
-            this.attach(entity)
-        } else {
-            this.add(entity);
+    addEntity(...entities) {
+        for (const entity of entities) {
+            if (!entity || !entity.isEntity) continue;
+            if (this.children.indexOf(entity) !== -1) continue;
+            if (entity === this) continue;
+            entity.removeFromParent();
+			entity.parent = this;
+			this.children.push(entity);
         }
-
-        // Preserve desired index
-        if (index !== -1) {
-            this.children.splice(index, 0, entity);
-            this.children.pop();
-        }
-
         return this;
     }
 
     getEntities() {
-        const entities = [];
-        for (const entity of this.children) {
-            if (!entity || !entity.isEntity3D) continue;
-            if (entity.userData.flagIgnore) continue;
-            if (entity.userData.flagHelper) continue;
-            entities.push(entity);
-        }
-        return entities;
+        return [ ...this.children ];
     }
 
     getEntityById(id) {
@@ -233,14 +217,16 @@ class Entity {
         return undefined;
     }
 
-    /** Removes entity, does not call 'dispose()' on Entity!! */
+    /** Removes entity, does not call 'dispose()' on Entity! */
     removeEntity(entity, forceDelete = false) {
         if (!entity) return;
-        if (!forceDelete) {
-            if (entity.locked) return;
-            if (entity.userData.flagHelper) return;
-        }
-        this.remove(entity); /* entity is now out of Project */
+        if (!forceDelete && entity.locked) return;
+        const index = this.children.indexOf(entity);
+		if (index !== -1) {
+			entity.parent = null;
+			this.children.splice(index, 1);
+            /* entity is now out of Project */
+		}
         return entity;
     }
 
@@ -252,37 +238,24 @@ class Entity {
         }
     }
 
-    /** Return 'true' in callback to stop further recursion */
-    traverseEntities(callback, recursive = true) {
-        if (typeof callback === 'function' && callback(this)) return;
-        for (const child of this.getEntities()) {
-            child.traverseEntities(callback, recursive);
-        }
-    }
-
     /******************** PARENT */
 
     changeParent(newParent = undefined, newIndex = -1) {
         if (!newParent) newParent = this.parent;
-        if (!newParent || !newParent.isObject3D) return;
+        if (!newParent || !newParent.isEntity) return;
 
         // Check if we have a parent
         const oldParent = this.parent;
         if (newIndex === -1 && oldParent) newIndex = oldParent.children.indexOf(this);
 
-        // // MOVE
-        // newParent.add(this);
-        // // OR
-        // newParent.attach(this);
-        // // OR
-        newParent.safeAttach(this);
+        // Move
+        newParent.addEntity(this);
 
         // If desired array index was supplied, move entity to that index
         if (newIndex !== -1) {
             newParent.children.splice(newIndex, 0, this);
             newParent.children.pop();
         }
-
         return this;
     }
 
@@ -295,8 +268,6 @@ class Entity {
             entity = entity.parent;
             if (immediateOnly) {
                 let validEntity = entity.isEntity;
-                validEntity = validEntity || entity.userData.flagIgnore;
-                validEntity = validEntity || entity.userData.flagHelper;
                 if (validEntity) return entity;
             }
         }
@@ -306,115 +277,21 @@ class Entity {
     /** Returns parent stage (fallback to world) of an entity */
     parentStage() {
         if (this.isStage || this.isWorld) return this;
-        if (this.parent && this.parent.isEntity3D) return this.parent.parentStage();
+        if (this.parent && this.parent.isEntity) return this.parent.parentStage();
         return null;
     }
 
     /** Returns parent world of an entity */
     parentWorld() {
         if (this.isWorld) return this;
-        if (this.parent && this.parent.isEntity3D) return this.parent.parentWorld();
+        if (this.parent && this.parent.isEntity) return this.parent.parentWorld();
         return null;
     }
 
-    /******************** UPDATE MATRIX */
-
-    updateMatrix() {
-        // Disable callbacks
-        const onRotationChange = this.rotation._onChangeCallback;
-        const onQuaternionChange = this.rotation._onChangeCallback;
-        this.rotation._onChange(() => {});
-        this.quaternion._onChange(() => {});
-
-        // Should look at camera?
-        const camera = window.activeCamera;
-        let lookAtCamera = Boolean(this.lookAtCamera && camera);
-        if (lookAtCamera && this.parent && this.parent.isObject3D) {
-            this.traverseAncestors((parent) => {
-                if (parent.lookAtCamera) lookAtCamera = false;
-            });
-        }
-
-        // Use 'rotation' Property
-        if (!lookAtCamera) {
-            this.quaternion.setFromEuler(this.rotation, false);
-
-        // Look at Camera
-        } else {
-
-            // Subtract parent rotation
-            if (this.parent && this.parent.isObject3D) {
-                this.parent.getWorldQuaternion(_parentQuaternion, false /* ignoreBillboard */);
-                _parentQuaternionInv.copy(_parentQuaternion).invert();
-                this.quaternion.copy(_parentQuaternionInv);
-            } else {
-                this.quaternion.identity();
-            }
-
-            // Gather Transform Data
-            _rotationQuaternion.setFromEuler(this.rotation, false);
-            this.matrixWorld.decompose(_worldPosition, _worldQuaternion, _worldScale);
-            camera.matrixWorld.decompose(_camPosition, _camQuaternion, _camScale);
-
-            // All Axis
-            if (!this.lookAtYOnly) {
-                // // Look at Camera Plane (i.e., Match Camera Plane)
-                // if (camera.isOrthographicCamera) {
-                    _lookQuaternion.copy(_camQuaternion);
-                // // Look Directly at Camera
-                // } else if (camera.isPerspectiveCamera) {
-                //     _lookUpVector.copy(camera.up).applyQuaternion(_camQuaternion);  // Rotate up vector by cam rotation
-                //     _m1.lookAt(_camPosition, _worldPosition, _lookUpVector);        // Create look at matrix
-                //     _lookQuaternion.setFromRotationMatrix(_m1);
-                // }
-            // Y Only
-            } else {
-                _camRotation.set(0, Math.atan2((_camPosition.x - _worldPosition.x), (_camPosition.z - _worldPosition.z)), 0);
-                _lookQuaternion.setFromEuler(_camRotation, false);
-            }
-
-            // Apply Rotations
-            this.quaternion.copy(_lookQuaternion);                          // Start with rotate to camera
-            this.quaternion.multiply(_rotationQuaternion);                  // Add in 'rotation' property
-        }
-
-        ///// ORIGINAL (same as THREE.Object3D.updateMatrix())
-        this.matrix.compose(this.position, this.quaternion, this.scale);
-        this.matrixWorldNeedsUpdate = true;
-        /////
-
-        // Restore callbacks
-        this.rotation._onChange(onRotationChange);
-        this.quaternion._onChange(onQuaternionChange);
-    }
-
-    /** Extracts World Quaternion without rotating to camera, good for Viewport Transform Group! :) */
-    getWorldQuaternion(targetQuaternion, ignoreBillboard = true) {
-        let beforeBillboard = this.lookAtCamera;
-        if (ignoreBillboard && beforeBillboard) {
-            this.lookAtCamera = false;
-        }
-        this.updateWorldMatrix(true, false);
-        this.matrixWorld.decompose(_objPosition, targetQuaternion, _objScale);
-        if (ignoreBillboard && beforeBillboard) {
-            this.lookAtCamera = true;
-            this.updateWorldMatrix(true, false);
-        }
-        return targetQuaternion;
-    }
-
-    /** Custom replacement for THREE.Object3D.attach() that accounts for Entity3D.lookAtCamera */
-    safeAttach(object) {
-        if (!object || !object.isObject3D) return;
-        object.getWorldQuaternion(_worldQuaternion);
-        object.getWorldScale(_worldScale);
-        object.getWorldPosition(_worldPosition);
-        object.removeFromParent();
-        object.rotation.copy(_worldRotation.setFromQuaternion(_worldQuaternion, undefined, false));
-        object.scale.copy(_worldScale);
-        object.position.copy(_worldPosition);
-        this.attach(object);
-        return this;
+    removeFromParent() {
+        const parent = this.parent;
+		if (parent) parent.removeEntity(this);
+		return this;
     }
 
     /******************** COPY / CLONE */
@@ -424,61 +301,26 @@ class Entity {
     }
 
     copy(source, recursive = true) {
-        // THREE.Object3D.copy()
-        super.copy(source, false /* recursive */);
-
-        // Override copy of transform, update 'matrix'
-        this.position.copy(source.position);
-        this.rotation.copy(source.rotation);
-        this.scale.copy(source.scale);
-        if (source.locked) this.locked = true;                  // Entity3D property (attempt to copy)
-        if (source.lookAtCamera) this.lookAtCamera = true;      // Entity3D property (attempt to copy)
-        if (source.lookAtYOnly) this.lookAtYOnly = true;        // Entity3D property (attempt to copy)
-        this.updateMatrix();
-
-        // Copy Children
-        if (recursive) {
-            for (const child of source.children) {
-                if (child.userData.flagIgnore) continue;
-                if (child.userData.flagHelper) continue;
-                this.add(child.clone());
-            }
-        }
-
-        return this;
-    }
-
-    cloneEntity(recursive = true) {
-        return new this.constructor().copyEntity(this, recursive);
-    }
-
-    copyEntity(source, recursive = true) {
         // Remove Existing Children / Components
         this.dispose();
 
-        // Standard Object3D Copy
-        this.copy(source, false /* recursive */);
-
-        // Entity3D Basic Properties
-        this.locked = source.locked;
-        this.lookAtCamera = source.lookAtCamera;
-        this.lookAtYOnly = source.lookAtYOnly;
-        this.bloom = source.bloom;
-
-        // Prefab Properties
+        // Properties
+        this.name = source.name;
+        // uuid???
         this.category = source.category;
+        this.locked = source.locked;
+        this.visible = visible;
 
-        // Copy Components
+        // Components
         for (const component of source.components) {
             const clonedComponent = this.addComponent(component.type, component.toJSON(), false);
-            // Component Properties
             clonedComponent.tag = component.tag;
         }
 
-        // Copy Children
+        // Children
         if (recursive) {
             for (const child of source.getEntities()) {
-                this.add(child.cloneEntity());
+                this.addEntity(child.clone());
             }
         }
 
@@ -495,9 +337,10 @@ class Entity {
         }
 
         while (this.children.length > 0) {
-            // clearObject(this.children[0], true /* removeFromParent */);
+            this.children[0].dispose();
         }
 
+        this.removeFromParent();
         this.dispatchEvent({ type: 'destroy' });
     }
 
@@ -523,9 +366,6 @@ class Entity {
         if (data.layers !== undefined) this.layers.mask = data.layers;
         if (data.up !== undefined) this.up.fromArray(data.up);
         if (data.matrixAutoUpdate !== undefined) this.matrixAutoUpdate = data.matrixAutoUpdate;
-
-        // User Data
-        if (typeof data.userData === 'object') this.userData = structuredClone(data.userData);
 
         // Entity3D Properties
         if (data.locked !== undefined) this.locked = data.locked;
@@ -589,11 +429,6 @@ class Entity {
         json.object.up = this.up.toArray();
         json.object.matrixAutoUpdate = this.matrixAutoUpdate;
 
-        // User Data
-        if (Object.keys(this.userData).length > 0) {
-            json.object.userData = structuredClone(this.userData);
-        }
-
         // Entity3D Basic Properties
         json.object.locked = this.locked;
         json.object.lookAtCamera = this.lookAtCamera;
@@ -620,4 +455,4 @@ class Entity {
 
 }
 
-export { Entity3D };
+export { Entity };

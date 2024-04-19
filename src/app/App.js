@@ -154,8 +154,8 @@ class App {
                 //     // Check for Removal
                 //     } else if (unload >= 0) {
                 //         for (const child of this.scene.children) {
-                //             if (isNaN(child.userData.loadedDistance)) continue;
-                //             if (playerDistance < child.userData.loadedDistance) continue;
+                //             if (isNaN(child.loadedDistance)) continue;
+                //             if (playerDistance < child.loadedDistance) continue;
                 //             if (this.camera.target.distanceTo(child.position) < unload) continue;
                 //             SceneManager.removeEntity(this.scene, child);
                 //         }

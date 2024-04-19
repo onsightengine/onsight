@@ -282,13 +282,13 @@ class Camera3D extends Entity3D {
         return this;
     }
 
-    cloneEntity(recursive = true) {
-        return new this.constructor().copyEntity(this, recursive);
+    clone(recursive = true) {
+        return new this.constructor().copy(this, recursive);
     }
 
-    copyEntity(source, recursive = true) {
-        // Entity3D.copyEntity()
-        super.copyEntity(source, recursive);
+    copy(source, recursive = true) {
+        // Entity3D.copy()
+        super.copy(source, recursive);
 
         return this;
     }

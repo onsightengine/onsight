@@ -20,18 +20,14 @@ class Stage3D extends Entity3D {
     }
 
     componentFamily() {
-        return 'Stage3D';
+        return [ 'Entity', 'Stage3D' ];
     }
 
     /******************** COPY / CLONE */
 
-    cloneEntity(recursive = true) {
-        return new this.constructor().copyEntity(this, recursive);
-    }
-
-    copyEntity(source, recursive = true) {
-        // Entity3D.copyEntity()
-        super.copyEntity(source, recursive);
+    copy(source, recursive = true) {
+        // Entity3D.copy()
+        super.copy(source, recursive);
 
         // Stage3D Properties
         this.enabled = source.enabled;

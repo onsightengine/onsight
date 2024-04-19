@@ -6,6 +6,7 @@
 //  compareEntityArrays()       Checks if two entity arrays include the same entities (by UUID)
 //  includesEntity()            Checks an array to see if it includes an entity (by UUID)
 //  removeEntityFromArray()     Removes all instances of an entity (by UUID) from an array
+//  shareValues()               Checks if two arrays share any values at all
 
 class Arrays {
 
@@ -57,6 +58,14 @@ class Arrays {
         const newArray = [];
         for (const entity of entities) if (entity.uuid !== removeEntity.uuid) newArray.push(entity);
         return newArray;
+    }
+
+    /** Checks if two arrays share any values at all */
+    static shareValues(arrayOne, arrayTwo) {
+        for (let i = 0; i < arrayOne.length; i++) {
+            if (arrayTwo.includes(arrayOne[i])) return true;
+        }
+        return false;
     }
 
 }

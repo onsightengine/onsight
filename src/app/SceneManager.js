@@ -16,7 +16,7 @@ class SceneManager {
     /** Clone and copy children */
     static cloneChildren(toEntity, fromEntity) {
         for (const entity of fromEntity.getEntities()) {
-            const clone = entity.cloneEntity(false /* recursive? */);
+            const clone = entity.clone(false /* recursive? */);
 
             // Scripts
             SceneManager.loadScriptsFromComponents(clone, entity);
@@ -37,7 +37,7 @@ class SceneManager {
                 // Flag for Unloading
                 if (toEntity.isWorld) {
                     const loadedDistance = toEntity.loadDistance + Math.abs(clone.position.length());
-                    clone.traverse((child) => { child.userData.loadedDistance = loadedDistance; });
+                    clone.traverse((child) => { child.loadedDistance = loadedDistance; });
                 }
                 // // Add world load position
                 // clone.scale.multiply(_worldScale);

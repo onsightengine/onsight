@@ -34,7 +34,7 @@ class World3D extends Entity3D {
     }
 
     componentFamily() {
-        return 'World3D';
+        return [ 'Entity', 'World3D' ];
     }
 
     /******************** CHILDREN */
@@ -107,19 +107,15 @@ class World3D extends Entity3D {
         if (cancel) return;
 
         for (const stage of this.getStages()) {
-            stage.traverseEntities(callback, recursive);
+            stage.traverse(callback, recursive);
         }
     }
 
     /******************** COPY / CLONE */
 
-    cloneEntity(recursive = true) {
-        return new this.constructor().copyEntity(this, recursive);
-    }
-
-    copyEntity(source, recursive = true) {
+    copy(source, recursive = true) {
         // Entity3D.copy()
-        super.copyEntity(source, recursive);
+        super.copy(source, recursive);
 
         // THREE.Scene Properties
         if (source.background) {

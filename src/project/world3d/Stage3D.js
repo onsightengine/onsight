@@ -26,15 +26,15 @@ class Stage3D extends Entity3D {
     /******************** COPY / CLONE */
 
     copy(source, recursive = true) {
-        // Entity3D.copy()
+        // Entity3D
         super.copy(source, recursive);
 
-        // Stage3D Properties
+        // Stage3D
         this.enabled = source.enabled;
         this.start = source.start;
         this.finish = source.finish;
-        this.beginPosition.copy(source.beginPosition);
-        this.endPosition.copy(source.endPosition);
+        // this.beginPosition.copy(source.beginPosition);
+        // this.endPosition.copy(source.endPosition);
 
         return this;
     }
@@ -50,41 +50,45 @@ class Stage3D extends Entity3D {
     fromJSON(json) {
         const data = json.object;
 
-        // Entity3D Properties
+        // Entity3D
         super.fromJSON(json);
 
-        // Stage3D Properties
+        // Stage3D
         if (data.enabled !== undefined) this.enabled = data.enabled;
         if (data.start !== undefined) this.start = data.start;
         if (data.finish !== undefined) this.finish = data.finish;
-        if (data.beginPosition !== undefined) this.beginPosition.fromArray(data.beginPosition);
-        if (data.endPosition !== undefined) this.endPosition.fromArray(data.endPosition);
+        // if (data.beginPosition !== undefined) this.beginPosition.fromArray(data.beginPosition);
+        // if (data.endPosition !== undefined) this.endPosition.fromArray(data.endPosition);
 
         return this;
     }
 
-    /** Overloaded to add access to additional Entity3D types */
-    loadChildren(jsonEntities = []) {
-        for (const entityData of jsonEntities) {
-            const entity = new (eval(entityData.object.type))();
-            this.add(entity.fromJSON(entityData));
-        }
+    /** Include in child classes to add access to additional Entity types */
+    createChild(json) {
+        const constructor = _types[json.object.type];
+        if (constructor) return new constructor().fromJSON(json);
+        return undefined;
     }
 
     toJSON() {
-        // Entity3D Properties
+        // Entity3D
         const json = super.toJSON();
 
-        // Stage3D Properties
+        // Stage3D
         json.object.enabled = this.enabled;
         json.object.start = this.start;
         json.object.finish = this.finish;
-        json.object.beginPosition = this.beginPosition.toArray();
-        json.object.endPosition = this.endPosition.toArray();
+        // json.object.beginPosition = this.beginPosition.toArray();
+        // json.object.endPosition = this.endPosition.toArray();
 
         return json;
     }
 
+}
+
+const _types = {
+    'Entity3D':     Entity3D,
+    'Camera3D':     Camera3D,
 }
 
 export { Stage3D };

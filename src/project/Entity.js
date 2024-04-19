@@ -1,5 +1,4 @@
-import { Arrays } from '../../utils/Arrays.js';
-import { ComponentManager } from '../../app/ComponentManager.js';
+import { ComponentManager } from '../app/ComponentManager.js';
 import { Uuid } from '../utils/Uuid.js';
 
 class Entity {
@@ -260,16 +259,12 @@ class Entity {
     }
 
     /** Returns top level entity that is not a world or stage */
-    parentEntity(immediateOnly = false) {
+    parentEntity() {
         let entity = this;
         while (entity && entity.parent) {
             if (entity.parent.isStage) return entity;
             if (entity.parent.isWorld) return entity;
             entity = entity.parent;
-            if (immediateOnly) {
-                let validEntity = entity.isEntity;
-                if (validEntity) return entity;
-            }
         }
         return entity;
     }
@@ -301,12 +296,12 @@ class Entity {
     }
 
     copy(source, recursive = true) {
-        // Remove Existing Children / Components
+        // Remove existing Children / Components
         this.dispose();
 
         // Properties
         this.name = source.name;
-        // uuid???
+        /* don't copy uuid */
         this.category = source.category;
         this.locked = source.locked;
         this.visible = visible;
@@ -330,18 +325,20 @@ class Entity {
     /******************** DISPOSE */
 
     dispose() {
+        // Components
         while (this.components.length > 0) {
             const component = this.components[0];
             this.removeComponent(component);
             if (typeof component.dispose === 'function') component.dispose();
         }
-
+        // Children
         while (this.children.length > 0) {
             this.children[0].dispose();
         }
-
+        // Self
         this.removeFromParent();
-        this.dispatchEvent({ type: 'destroy' });
+        // this.dispatchEvent({ type: 'destroy' });
+        return this;
     }
 
     /******************** JSON */
@@ -349,44 +346,23 @@ class Entity {
     fromJSON(json) {
         const data = json.object;
 
-        // Object3D Properties
+        // Entity
         if (data.name !== undefined) this.name = data.name;
         if (data.uuid !== undefined) this.uuid = data.uuid;
-
-        if (data.position !== undefined) this.position.fromArray(data.position);
-        if (data.rotation !== undefined) this.rotation.fromArray(data.rotation);
-        if (data.scale !== undefined) this.scale.fromArray(data.scale);
-
-        if (data.castShadow !== undefined) this.castShadow = data.castShadow;
-        if (data.receiveShadow !== undefined) this.receiveShadow = data.receiveShadow;
-        if (data.visible !== undefined) this.visible = data.visible;
-        if (data.frustumCulled !== undefined) this.frustumCulled = data.frustumCulled;
-        if (data.renderOrder !== undefined) this.renderOrder = data.renderOrder;
-
-        if (data.layers !== undefined) this.layers.mask = data.layers;
-        if (data.up !== undefined) this.up.fromArray(data.up);
-        if (data.matrixAutoUpdate !== undefined) this.matrixAutoUpdate = data.matrixAutoUpdate;
-
-        // Entity3D Properties
-        if (data.locked !== undefined) this.locked = data.locked;
-        if (data.lookAtCamera !== undefined) this.lookAtCamera = data.lookAtCamera;
-        if (data.lookAtYOnly !== undefined) this.lookAtYOnly = data.lookAtYOnly;
-        if (data.bloom !== undefined) this.bloom = data.bloom;
-
-        // Prefab Properties
         if (data.category !== undefined) this.category = data.category;
+        if (data.locked !== undefined) this.locked = data.locked;
+        if (data.visible !== undefined) this.visible = data.visible;
 
         // Components
         for (const componentData of json.object.components) {
             if (componentData && componentData.base && componentData.base.type) {
                 const component = this.addComponent(componentData.base.type, componentData, false);
-                // Component Properties
                 component.tag = componentData.base.tag;
             }
         }
 
         // Children
-        this.loadChildren(data.entities);
+        this.loadChildren(data.children);
 
         // Matrix
         this.updateMatrix();
@@ -394,11 +370,19 @@ class Entity {
         return this;
     }
 
-    /** Overload when inheriting Entity3D to add access to additional Entity3D types */
-    loadChildren(jsonEntities = []) {
-        for (const entityData of jsonEntities) {
-            const entity = new (eval(entityData.object.type))();
-            this.add(entity.fromJSON(entityData));
+    /** Include in child classes to add access to additional Entity types */
+    createChild(json) {
+        const constructor = _types[json.object.type];
+        if (constructor) return new constructor().fromJSON(json);
+        return undefined;
+    }
+
+    /** Loads children from json array */
+    loadChildren(children = []) {
+        for (const json of children) {
+            const entity = this.createChild(json);
+            if (entity) this.addEntity(entity.fromJSON(json));
+            else console.warn(`Entity.loadChildren(): Could not create Entity from type '${json.object.type}'`);
         }
     }
 
@@ -410,35 +394,14 @@ class Entity {
                 name: this.name,
                 uuid: this.uuid,
                 components: [],
-                entities: [],
+                children: [],
             }
         };
 
-        // Object3D Properties
-        json.object.position  = this.position.toArray();
-        json.object.rotation = this.rotation.toArray();
-        json.object.scale = this.scale.toArray();
-
-        json.object.castShadow = this.castShadow;
-        json.object.receiveShadow = this.receiveShadow;
-        json.object.visible = this.visible;
-        json.object.frustumCulled = this.frustumCulled;
-        json.object.renderOrder = this.renderOrder;
-
-        json.object.layers = this.layers.mask;
-        json.object.up = this.up.toArray();
-        json.object.matrixAutoUpdate = this.matrixAutoUpdate;
-
-        // Entity3D Basic Properties
-        json.object.locked = this.locked;
-        json.object.lookAtCamera = this.lookAtCamera;
-        json.object.lookAtYOnly = this.lookAtYOnly;
-
-        // Entity3D Lighting Properties
-        json.object.bloom = this.bloom;
-
-        // Prefab Properties
+        // Entity
         json.object.category = this.category;
+        json.object.locked = this.locked;
+        json.object.visible = this.visible;
 
         // Components
         for (const component of this.components) {
@@ -447,12 +410,16 @@ class Entity {
 
         // Children
         for (const child of this.getEntities()) {
-            json.object.entities.push(child.toJSON());
+            json.object.children.push(child.toJSON());
         }
 
         return json;
     }
 
 }
+
+const _types = {
+    'Entity':   Entity,
+};
 
 export { Entity };

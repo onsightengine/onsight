@@ -73,19 +73,19 @@ class Camera3D extends Entity3D {
     }
 
     getWorldDirection(target) {
-        this.updateWorldMatrix(true, false);
-        const e = this.matrixWorld.elements;
-        return target.set(- e[8], - e[9], - e[10]).normalize();
+        // this.updateWorldMatrix(true, false);
+        // const e = this.matrixWorld.elements;
+        // return target.set(- e[8], - e[9], - e[10]).normalize();
     }
 
     updateMatrixWorld(force) {
-        super.updateMatrixWorld(force);
-        this.matrixWorldInverse.copy(this.matrixWorld).invert();
+        // super.updateMatrixWorld(force);
+        // this.matrixWorldInverse.copy(this.matrixWorld).invert();
     }
 
     updateWorldMatrix(updateParents, updateChildren) {
-        super.updateWorldMatrix(updateParents, updateChildren);
-        this.matrixWorldInverse.copy(this.matrixWorld).invert();
+        // super.updateWorldMatrix(updateParents, updateChildren);
+        // this.matrixWorldInverse.copy(this.matrixWorld).invert();
     }
 
     /******************** TYPE */
@@ -247,49 +247,32 @@ class Camera3D extends Entity3D {
         }
     }
 
-    /******************** COPY / CLONE */
-
-    clone(recursive) {
-        return new this.constructor().copy(this, recursive);
-    }
+    /******************** COPY */
 
     copy(source, recursive = true) {
-        // Entity3D.copy()
+        // Entity3D
         super.copy(source, recursive);
 
-        // Camera3D Type
+        // THREE.Camera
+        // this.matrixWorldInverse.copy(source.matrixWorldInverse);
+        // this.projectionMatrix.copy(source.projectionMatrix);
+        // this.projectionMatrixInverse.copy(source.projectionMatrixInverse);
+        // this.coordinateSystem = source.coordinateSystem;
+
+        // Camera3D
         this.changeType(source.type);
-
-        // THREE.Camera Properties
-        this.matrixWorldInverse.copy(source.matrixWorldInverse);
-        this.projectionMatrix.copy(source.projectionMatrix);
-        this.projectionMatrixInverse.copy(source.projectionMatrixInverse);
-        this.coordinateSystem = source.coordinateSystem;
-
-        // Camera3D Properties
         this.fit = source.fit;
         this.near = source.near;
         this.far = source.far;
 
-        // Perspective Properties
+        // Perspective
         this.fieldOfView = source.fieldOfView;
 
-        // Orthographic Properties
+        // Orthographic
         // ... EMPTY
 
         // Attempt to Copy Size
         this.setSize(source.lastWidth, source.lastHeight);
-        return this;
-    }
-
-    clone(recursive = true) {
-        return new this.constructor().copy(this, recursive);
-    }
-
-    copy(source, recursive = true) {
-        // Entity3D.copy()
-        super.copy(source, recursive);
-
         return this;
     }
 
@@ -298,24 +281,22 @@ class Camera3D extends Entity3D {
     fromJSON(json) {
         const data = json.object;
 
-        // Entity3D Properties
+        // Entity3D
         super.fromJSON(json, this);
 
-        // Camera3D Type
+        // Camera3D
         if (data.cameraType !== undefined) {
             this.type = data.cameraType;
             this.changeType(this.type);
         }
-
-        // Camera3D Properties
         if (data.fit !== undefined) this.fit = data.fit;
         if (data.near !== undefined) this.near = data.near;
         if (data.far !== undefined) this.far = data.far;
 
-        // Perspective Properties
+        // Perspective
         if (data.fieldOfView !== undefined) this.fieldOfView = data.fieldOfView;
 
-        // Orthographic Properties
+        // Orthographic
         // ... EMPTY
 
         // Projection Matrix
@@ -325,22 +306,20 @@ class Camera3D extends Entity3D {
     }
 
     toJSON() {
-        // Entity3D Properties
+        // Entity3D
         const json = super.toJSON();
 
-        // Camera3D Type
+        // Camera3D
         json.object.cameraType = this.type;
         json.object.type = 'Camera3D';
-
-        // Camera3D Properties
         json.object.fit = this.fit;
         json.object.near = this.near;
         json.object.far = this.far;
 
-        // Perspective Properties
+        // Perspective
         json.object.fieldOfView = this.fieldOfView;
 
-        // Orthographic Properties
+        // Orthographic
         // ... EMPTY
 
         return json;

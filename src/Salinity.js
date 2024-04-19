@@ -45,6 +45,11 @@ export { RotateEntity } from './assets/scripts/RotateEntity.js';
 // Core
 export { Project } from './project/Project.js';
 
+// Core, Scene2D
+export { Entity2D } from './project/world2d/Entity2D.js';
+export { Stage2D } from './project/world2d/Stage2D.js';
+export { World2D } from './project/world2d/World2D.js';
+
 // Core, Scene3D
 export { Camera3D } from './project/world3d/Camera3D.js';
 export { Entity3D } from './project/world3d/Entity3D.js';

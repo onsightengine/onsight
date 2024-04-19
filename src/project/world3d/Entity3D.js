@@ -1,9 +1,9 @@
-import { Entity } from '../Entity.js';
+import { AbstractEntity } from '../AbstractEntity.js';
 
-class Entity3D extends Entity {
+class Entity3D extends AbstractEntity {
 
     constructor(name = 'Entity') {
-        // Entity
+        // AbstractEntity
         super(name);
 
         // Prototype
@@ -11,21 +11,21 @@ class Entity3D extends Entity {
         this.type = 'Entity3D';
 
         // Properties, Basic
-        this.lookAtCamera = false;              // implemented in Entity3D.updateMatrix() overload
-        this.lookAtYOnly = false;               // implemented in Entity3D.updateMatrix() overload
+        this.lookAtCamera = false;              // implemented in Entity3D.updateMatrix()
+        this.lookAtYOnly = false;               // implemented in Entity3D.updateMatrix()
 
         // Properties, Lighting
         this.bloom = false;
     }
 
     componentFamily() {
-        return [ 'Entity', 'Entity3D' ];
+        return [ 'Entity3D' ];
     }
 
     /******************** COPY */
 
     copy(source, recursive = true) {
-        // Entity
+        // AbstractEntity
         super.copy(source, recursive);
 
         // Entity3D
@@ -47,7 +47,7 @@ class Entity3D extends Entity {
     fromJSON(json) {
         const data = json.object;
 
-        // Entity
+        // AbstractEntity
         super.fromJSON(json);
 
         // Entity3D
@@ -62,15 +62,8 @@ class Entity3D extends Entity {
         return this;
     }
 
-    /** Include in child classes to add access to additional Entity types */
-    createChild(json) {
-        const constructor = _types[json.object.type];
-        if (constructor) return new constructor().fromJSON(json);
-        return undefined;
-    }
-
     toJSON() {
-        // Entity
+        // AbstractEntity
         const json = super.toJSON();
 
         // Entity3D
@@ -84,10 +77,14 @@ class Entity3D extends Entity {
         return json;
     }
 
-}
+    /** Include in child classes to add access to additional Entity types */
+    createChild(json) {
+        switch (json.object.type) {
+            case 'Entity3D': return new Entity3D();
+        }
+        return undefined;
+    }
 
-const _types = {
-    'Entity3D':     Entity3D,
 }
 
 export { Entity3D };

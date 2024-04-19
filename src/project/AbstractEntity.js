@@ -1,7 +1,7 @@
 import { ComponentManager } from '../app/ComponentManager.js';
 import { Uuid } from '../utils/Uuid.js';
 
-class Entity {
+class AbstractEntity {
 
     constructor(name = 'Entity') {
         // Prototype
@@ -26,7 +26,7 @@ class Entity {
 
     /** Component types this Entity is allowed to have */
     componentFamily() {
-        return [ 'Entity' ];
+        return [ /* 'Entity' */ ];
     }
 
     /******************** COMPONENTS */
@@ -304,7 +304,7 @@ class Entity {
         /* don't copy uuid */
         this.category = source.category;
         this.locked = source.locked;
-        this.visible = visible;
+        this.visible = source.visible;
 
         // Components
         for (const component of source.components) {
@@ -370,23 +370,7 @@ class Entity {
         return this;
     }
 
-    /** Include in child classes to add access to additional Entity types */
-    createChild(json) {
-        const constructor = _types[json.object.type];
-        if (constructor) return new constructor().fromJSON(json);
-        return undefined;
-    }
-
-    /** Loads children from json array */
-    loadChildren(children = []) {
-        for (const json of children) {
-            const entity = this.createChild(json);
-            if (entity) this.addEntity(entity.fromJSON(json));
-            else console.warn(`Entity.loadChildren(): Could not create Entity from type '${json.object.type}'`);
-        }
-    }
-
-    /** Coverts Entity to JSON, NOTE: Any NON-entity children (Object3D only) are NOT included! */
+    /** Converts Entity to JSON */
     toJSON() {
         const json = {
             object: {
@@ -416,10 +400,14 @@ class Entity {
         return json;
     }
 
+    /** Include in child classes to add access to additional Entity types */
+    createChild(json) {
+        switch (json.object.type) {
+            case 'AbstractEntity': return new AbstractEntity();
+        }
+        return undefined;
+    }
+
 }
 
-const _types = {
-    'Entity':   Entity,
-};
-
-export { Entity };
+export { AbstractEntity };

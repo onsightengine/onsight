@@ -1,4 +1,5 @@
 import { AbstractEntity } from './AbstractEntity.js';
+import { Vec2 } from '../math/Vec2.js';
 
 class AbstractWorld extends AbstractEntity {
 
@@ -10,8 +11,7 @@ class AbstractWorld extends AbstractEntity {
         this.type = 'World';
 
         // Properties, Nodes
-        this.xPos = 0;
-        this.yPos = 0;
+        this.position = new Vec2();
 
         // Properties, Stage
         this.activeStageUUID = null;
@@ -104,8 +104,7 @@ class AbstractWorld extends AbstractEntity {
         super.copy(source, recursive);
 
         // World, Node
-        this.xPos = source.xPos;
-        this.yPos = source.yPos;
+        this.position.copy(source.position);
 
         // World, Stage
         const stageIndex = source.getStages().indexOf(source.activeStage());
@@ -133,8 +132,7 @@ class AbstractWorld extends AbstractEntity {
         super.fromJSON(json);
 
         // World, Node
-        if (data.xPos !== undefined) this.xPos = data.xPos;
-        if (data.yPos !== undefined) this.yPos = data.yPos;
+        if (data.position !== undefined) this.position = JSON.parse(data.position);
 
         // World, Stage
         if (data.activeStageUUID !== undefined) this.activeStageUUID = data.activeStageUUID;
@@ -151,8 +149,7 @@ class AbstractWorld extends AbstractEntity {
         const json = super.toJSON();
 
         // World, Node
-        json.object.xPos = this.xPos;
-        json.object.yPos = this.yPos;
+        json.object.position = JSON.stringify(this.position);
 
         // World, Stage
         json.object.activeStageUUID = this.activeStageUUID;

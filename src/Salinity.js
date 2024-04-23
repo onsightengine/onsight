@@ -19,6 +19,13 @@ export { AssetManager } from './app/AssetManager.js';
 export { ComponentManager } from './app/ComponentManager.js';
 export { SceneManager } from './app/SceneManager.js'
 
+// App, Loading
+export { Cache } from './app/loading/Cache.js';
+export { FileLoader } from './app/loading/FileLoader.js';
+export { ImageLoader } from './app/loading/ImageLoader.js';
+export { Loader } from './app/loading/Loader.js';
+export { LoadingManager } from './app/loading/LoadingManager.js';
+
 /******************** ASSETS  ********************/
 
 // Assets

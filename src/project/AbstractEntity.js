@@ -17,7 +17,7 @@ class AbstractEntity {
 
         // Structure
         this.parent = null;
-		this.children = [];
+        this.children = [];
         this.components = [];                   // geometry, material, audio, light, etc.
 
         // Internal
@@ -184,8 +184,8 @@ class AbstractEntity {
             if (this.children.indexOf(entity) !== -1) continue;
             if (entity === this) continue;
             entity.removeFromParent();
-			entity.parent = this;
-			this.children.push(entity);
+            entity.parent = this;
+            this.children.push(entity);
         }
         return this;
     }
@@ -221,11 +221,11 @@ class AbstractEntity {
         if (!entity) return;
         if (!forceDelete && entity.locked) return;
         const index = this.children.indexOf(entity);
-		if (index !== -1) {
-			entity.parent = null;
-			this.children.splice(index, 1);
+        if (index !== -1) {
+            entity.parent = null;
+            this.children.splice(index, 1);
             /* entity is now out of Project */
-		}
+        }
         return entity;
     }
 
@@ -285,8 +285,8 @@ class AbstractEntity {
 
     removeFromParent() {
         const parent = this.parent;
-		if (parent) parent.removeEntity(this);
-		return this;
+        if (parent) parent.removeEntity(this);
+        return this;
     }
 
     /******************** COPY / CLONE */

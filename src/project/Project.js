@@ -174,7 +174,7 @@ class Project {
 
         // Load Assets into AssetManager
         if (loadAssets) {
-            AssetManager.fromJSON(json, onLoad);
+            AssetManager.fromJSON(json);
         }
 
         // Properties
@@ -197,6 +197,11 @@ class Project {
                 case 'World3D': world = new World3D().fromJSON(worldData); break;
             }
             if (world && world.isWorld) this.addWorld(world);
+        }
+
+        // Loaded
+        if (typeof onLoad === 'function') {
+            onLoad();
         }
 
         return this;

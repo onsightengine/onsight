@@ -1,4 +1,5 @@
 import { AbstractEntity } from './AbstractEntity.js';
+import { Vec3 } from '../math/Vec3.js';
 
 class AbstractStage extends AbstractEntity {
 
@@ -13,8 +14,8 @@ class AbstractStage extends AbstractEntity {
         this.enabled = true;
         this.start = 0;
         this.finish = -1;
-        this.beginPosition = [];
-        this.endPosition = [];
+        this.beginPosition = new Vec3();
+        this.endPosition = new Vec3();
     }
 
     componentFamily() {
@@ -31,8 +32,8 @@ class AbstractStage extends AbstractEntity {
         this.enabled = source.enabled;
         this.start = source.start;
         this.finish = source.finish;
-        this.beginPosition = [ ...source.beginPosition ];
-        this.endPosition = [ ...source.endPosition ];
+        this.beginPosition.copy(source.beginPosition);
+        this.endPosition.copy(source.endPosition);
 
         return this;
     }
@@ -55,8 +56,8 @@ class AbstractStage extends AbstractEntity {
         if (data.enabled !== undefined) this.enabled = data.enabled;
         if (data.start !== undefined) this.start = data.start;
         if (data.finish !== undefined) this.finish = data.finish;
-        if (data.beginPosition !== undefined) this.beginPosition = JSON.parse(data.beginPosition);
-        if (data.endPosition !== undefined) this.endPosition = JSON.parse(data.endPosition);
+        if (data.beginPosition !== undefined) this.beginPosition.copy(JSON.parse(data.beginPosition));
+        if (data.endPosition !== undefined) this.endPosition.copy(JSON.parse(data.endPosition));
 
         return this;
     }

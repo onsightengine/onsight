@@ -1,5 +1,6 @@
 import { AbstractEntity } from './AbstractEntity.js';
 import { Vec2 } from '../math/Vec2.js';
+import { Vec3 } from '../math/Vec3.js';
 
 class AbstractWorld extends AbstractEntity {
 
@@ -17,7 +18,7 @@ class AbstractWorld extends AbstractEntity {
         this.activeStageUUID = null;
 
         // Properties, Gameplay
-        this.loadPosition = [];
+        this.loadPosition = new Vec3();
         this.loadDistance = 0;
     }
 
@@ -111,7 +112,7 @@ class AbstractWorld extends AbstractEntity {
         this.activeStageUUID = (stageIndex !== -1) ? this.getStages()[stageIndex].uuid : null;
 
         // World, Gameplay
-        this.loadPosition = [ ...source.loadPosition ];
+        this.loadPosition.copy(source.loadPosition);
         this.loadDistance = source.loadDistance;
 
         return this;
@@ -132,13 +133,13 @@ class AbstractWorld extends AbstractEntity {
         super.fromJSON(json);
 
         // World, Node
-        if (data.position !== undefined) this.position = JSON.parse(data.position);
+        if (data.position !== undefined) this.position.copy(JSON.parse(data.position));
 
         // World, Stage
         if (data.activeStageUUID !== undefined) this.activeStageUUID = data.activeStageUUID;
 
         // World Properties, Gameplay
-        if (data.loadPosition !== undefined) this.loadPosition = JSON.parse(data.loadPosition);
+        if (data.loadPosition !== undefined) this.loadPosition.copy(JSON.parse(data.loadPosition));
         if (data.loadDistance !== undefined) this.loadDistance = data.loadDistance;
 
         return this;

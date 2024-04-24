@@ -362,10 +362,10 @@ class AbstractEntity {
         }
 
         // Children
-        this.loadChildren(data.children);
-
-        // Matrix
-        this.updateMatrix();
+        for (const entityData of data.children) {
+            const entity = this.createChild(entityData);
+            if (entity) this.addEntity(entity.fromJSON(entityData));
+        }
 
         return this;
     }

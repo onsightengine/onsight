@@ -109,8 +109,13 @@ class Project {
         }
     }
 
-    worldCount() {
-        return Object.keys(this.worlds).length;
+    worldCount(type) {
+        if (!type) return Object.keys(this.worlds).length;
+        let count = 0;
+        for (const key in this.worlds) {
+            if (this.worlds[key].type === type) count++;
+        }
+        return count;
     }
 
     /******************** ENTITY */

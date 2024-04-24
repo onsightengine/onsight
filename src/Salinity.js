@@ -63,6 +63,11 @@ export { Entity3D } from './project/world3d/Entity3D.js';
 export { Stage3D } from './project/world3d/Stage3D.js';
 export { World3D } from './project/world3d/World3D.js';
 
+// Core, SceneUI
+export { EntityUI } from './project/worldui/EntityUI.js';
+export { StageUI } from './project/worldui/StageUI.js';
+export { WorldUI } from './project/worldui/WorldUI.js';
+
 /******************** UTILS  ********************/
 
 export { Arrays } from './utils/Arrays.js';

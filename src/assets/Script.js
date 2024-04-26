@@ -15,6 +15,8 @@ class Script extends Asset {
         this.position = 0;
         this.scrollLeft = 0;
         this.scrollTop = 0;
+        this.selectFrom = 0;
+        this.selectTo = 0;
         this.errors = false;
 
         // JavaScript
@@ -83,6 +85,8 @@ print('The sum of {0} and {1} is {2}'.format(num1, num2, sum))
         if (data.position !== undefined) this.position = data.position;
         if (data.scrollLeft !== undefined) this.scrollLeft = data.scrollLeft;
         if (data.scrollTop !== undefined) this.scrollTop = data.scrollTop;
+        if (data.selectFrom !== undefined) this.selectFrom = data.selectFrom;
+        if (data.selectTo !== undefined) this.selectTo = data.selectTo;
         if (data.errors !== undefined) this.errors = structuredClone(data.errors);
         if (data.source !== undefined) this.source = data.source;
         return this;
@@ -97,6 +101,8 @@ print('The sum of {0} and {1} is {2}'.format(num1, num2, sum))
         json.object.position = this.position;
         json.object.scrollLeft = this.scrollLeft;
         json.object.scrollTop = this.scrollTop;
+        json.object.selectFrom = this.selectFrom;
+        json.object.selectTo = this.selectTo;
         json.object.errors = structuredClone(this.errors);
         json.object.source = this.source;
         return json;

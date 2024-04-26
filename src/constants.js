@@ -26,6 +26,6 @@ export const WORLD_TYPES = {
 };
 
 export const SCRIPT_FORMAT = {
-    JAVASCRIPT:     'js',
+    JAVASCRIPT:     'javascript',
     PYTHON:         'python',
 };

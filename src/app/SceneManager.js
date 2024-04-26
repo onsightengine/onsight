@@ -68,7 +68,6 @@ class SceneManager {
             const scriptUUID = component.data.script;
             const script = AssetManager.get(scriptUUID);
             if (!script || !script.isScript) continue;
-            if (script.errors) { console.warn(`Entity '${fromEntity.name}' has errors in script '${script.name}'. Script will not be loaded!`); continue; }
 
             // Script Body
             let body = `${script.source}\n`;

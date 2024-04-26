@@ -17,7 +17,6 @@ class Script extends Asset {
         this.scrollTop = 0;
         this.selectFrom = 0;
         this.selectTo = 0;
-        this.errors = false;
 
         // JavaScript
         if (format === SCRIPT_FORMAT.JAVASCRIPT) {
@@ -87,7 +86,6 @@ print('The sum of {0} and {1} is {2}'.format(num1, num2, sum))
         if (data.scrollTop !== undefined) this.scrollTop = data.scrollTop;
         if (data.selectFrom !== undefined) this.selectFrom = data.selectFrom;
         if (data.selectTo !== undefined) this.selectTo = data.selectTo;
-        if (data.errors !== undefined) this.errors = structuredClone(data.errors);
         if (data.source !== undefined) this.source = data.source;
         return this;
     }
@@ -103,7 +101,6 @@ print('The sum of {0} and {1} is {2}'.format(num1, num2, sum))
         json.object.scrollTop = this.scrollTop;
         json.object.selectFrom = this.selectFrom;
         json.object.selectTo = this.selectTo;
-        json.object.errors = structuredClone(this.errors);
         json.object.source = this.source;
         return json;
     }
@@ -174,7 +171,7 @@ let variables = {
     vector2: { type: 'vector', size: 2, tint: true, label: [ 'x', 'y' ], info: 'Vector 2' },
     vector3: { type: 'vector', size: 3, tint: true, min: [ 1, 1, 1 ], max: [ 2, 2, 2 ], step: 0.1, precision: 2, info: 'Vector 3' },
     vector4: { type: 'vector', size: 4, tint: true, info: 'Vector 4' },
-}
+};
 `);
     }
 }

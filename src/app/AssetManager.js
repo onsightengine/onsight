@@ -11,25 +11,19 @@ class AssetManager {
 
     /******************** ACCESS */
 
-    static checkType(asset) {
-        if (!asset) return undefined;
-        if (asset.isEntity) return 'prefab';
-        if (asset.isPalette) return 'palette';
-        if (asset.isScript) return 'script';
-        return 'asset';
-    }
-
     static get(uuid) {
         if (uuid && uuid.uuid) uuid = uuid.uuid;
         return _assets[uuid];
     }
 
-    /** Retrieve an array of Assets by collected by 'type' and 'category'  */
+    /** Retrieve an array of Assets collected by 'type' and 'category'  */
     static library(type, category) {
         const library = [];
+        if (type && typeof type === 'string') type = type.toLowerCase();
+        if (category && typeof category === 'string') category = category.toLowerCase();
         for (const [ uuid, asset ] of Object.entries(_assets)) {
-            if (type && AssetManager.checkType(asset) !== type) continue;
-            if (category == undefined || (asset.category && asset.category === category)) {
+            if (type && typeof asset.type === 'string' && asset.type.toLowerCase() !== type) continue;
+            if (category == undefined || (typeof asset.category === 'string' && asset.category.toLowerCase() === category)) {
                 library.push(asset);
             }
         }
@@ -38,11 +32,11 @@ class AssetManager {
 
     /******************** ADD / REMOVE */
 
-    static add(asset /* , asset, asset, ... */) {
-        const assets = Array.isArray(asset) ? asset : [ ...arguments ];
-        let returnAsset = undefined;
-        for (let i = 0; i < assets.length; i++) {
-            let asset = assets[i];
+    static add(...assets) {
+        if (assets.length > 0 && Array.isArray(assets[0])) assets = assets[0];
+        let addedAsset = undefined;
+
+        for (const asset of assets) {
             if (!asset || !asset.uuid) continue;
 
             // Ensure asset has a Name
@@ -50,9 +44,9 @@ class AssetManager {
 
             // Add Asset
             _assets[asset.uuid] = asset;
-            if (returnAsset === undefined) returnAsset = asset;
+            addedAsset = addedAsset ?? asset;
         }
-        return returnAsset;
+        return addedAsset;
     }
 
     static clear() {

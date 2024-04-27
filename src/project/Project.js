@@ -6,6 +6,7 @@ import { AssetManager } from '../app/AssetManager.js';
 import { Uuid } from '../utils/Uuid.js';
 import { World2D } from './world2d/World2D.js';
 import { World3D } from './world3d/World3D.js';
+import { WorldUI } from './worldui/WorldUI.js';
 
 class Project {
 
@@ -200,6 +201,7 @@ class Project {
             switch (worldData.object.type) {
                 case 'World2D': world = new World2D().fromJSON(worldData); break;
                 case 'World3D': world = new World3D().fromJSON(worldData); break;
+                case 'WorldUI': world = new WorldUI().fromJSON(worldData); break;
             }
             if (world && world.isWorld) this.addWorld(world);
         }

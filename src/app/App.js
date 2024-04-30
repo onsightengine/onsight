@@ -1,13 +1,14 @@
 import { APP_EVENTS } from '../constants.js';
 import { APP_ORIENTATION } from '../constants.js';
+import { WORLD_TYPES } from '../constants.js';
 
 import { Arrays } from '../utils/Arrays.js';
 import { AssetManager } from './AssetManager.js';
 import { Clock } from '../utils/Clock.js';
-import { Project } from '../Project.js';
+import { Project } from '../project/Project.js';
 import { SceneManager } from './SceneManager.js';
-import { Stage3D } from '../worlds/world3d/Stage3D.js';
-import { World3D } from '../worlds/world3d/World3D.js';
+import { Stage } from '../project/Stage.js';
+import { World } from '../project/World.js';
 
 let _animationID = null;
 
@@ -103,7 +104,7 @@ class App {
 
         // Create Scene
         const preload = this.project.setting('preload');
-        this.scene = new World3D();
+        this.scene = new World(WORLD_TYPES.WORLD_2D);
         SceneManager.loadWorld(this.scene, this.world);
 
         // // Find Camera
@@ -142,7 +143,7 @@ class App {
 
             // Add / Remove Entities
             if (this.camera && this.camera.target && this.camera.target.isVector3) {
-                // if (this.scene && this.scene.isWorld3D) {
+                // if (this.scene && this.scene.isWorld) {
                 //     const preload = this.project.setting('preload');
                 //     const unload = this.project.setting('unload');
                 //     _position.set(0, 0, 0).applyMatrix4(this.scene.loadPosition);

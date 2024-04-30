@@ -1,14 +1,21 @@
 import { Entity } from './Entity.js';
+import { STAGE_TYPES } from '../constants.js';
 import { Vec3 } from '../math/Vec3.js';
 
 class Stage extends Entity {
 
-    constructor(name = 'Start') {
+    constructor(type = STAGE_TYPES.STAGE_2D, name = 'Start') {
         super(name);
+
+        // Check
+        if (Object.values(STAGE_TYPES).indexOf(type) === -1) {
+            console.warn(`Stage: Invalid stage type '${type}', using 'Stage2D`);
+            type = STAGE_TYPES.STAGE_2D;
+        }
 
         // Prototype
         this.isStage = true;
-        this.type = 'Stage';
+        this.type = type;
 
         // Properties, Display
         this.enabled = true;
@@ -19,7 +26,7 @@ class Stage extends Entity {
     }
 
     componentFamily() {
-        return [ /* 'Stage' */ ];
+        return [ 'Stage', this.type ];
     }
 
     /******************** COPY / CLONE */
@@ -76,6 +83,8 @@ class Stage extends Entity {
 
 }
 
-Entity.register('Stage', Stage);
+Entity.register('Stage2D', Stage);
+Entity.register('Stage3D', Stage);
+Entity.register('StageUI', Stage);
 
 export { Stage };

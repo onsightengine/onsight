@@ -1,5 +1,6 @@
 import { ComponentManager } from '../app/ComponentManager.js';
 import { Uuid } from '../utils/Uuid.js';
+import { VERSION } from '../constants.js';
 
 class Entity {
 
@@ -26,7 +27,7 @@ class Entity {
 
     /** Component types this Entity is allowed to have */
     componentFamily() {
-        return [ /* 'Entity' */ ];
+        return [ 'Entity' ];
     }
 
     /******************** COMPONENTS */
@@ -356,6 +357,14 @@ class Entity {
             children: [],
         };
 
+        // Meta Data
+        if (recursive === false) {
+            data.meta = {
+                type: this.type,
+                version: VERSION,
+            };
+        }
+
         // Components
         for (const component of this.components) {
             data.components.push(component.toJSON());
@@ -373,6 +382,7 @@ class Entity {
 
     fromJSON(data) {
         // Entity
+        if (data.type !== undefined) this.type = data.type;
         if (data.name !== undefined) this.name = data.name;
         if (data.uuid !== undefined) this.uuid = data.uuid;
         if (data.category !== undefined) this.category = data.category;

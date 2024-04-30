@@ -19,10 +19,16 @@ export const APP_ORIENTATION = {
     LANDSCAPE:      'landscape',
 };
 
+export const STAGE_TYPES = {
+    STAGE_2D:        'Stage2D',
+    STAGE_3D:        'Stage3D',
+    STAGE_UI:        'StageUI',
+};
+
 export const WORLD_TYPES = {
-    World2D:        'World2D',
-    World3D:        'World3D',
-    WorldUI:        'WorldUI',
+    WORLD_2D:        'World2D',
+    WORLD_3D:        'World3D',
+    WORLD_UI:        'WorldUI',
 };
 
 export const SCRIPT_FORMAT = {

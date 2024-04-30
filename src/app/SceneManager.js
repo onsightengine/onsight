@@ -101,8 +101,8 @@ class SceneManager {
     }
 
     static removeEntity(fromScene, entity) {
-        if (!fromScene || !fromScene.isWorld3D) return;
-        if (!entity || !entity.isObject3D) return;
+        if (!fromScene || !fromScene.isWorld) return;
+        if (!entity || !entity.isEntity) return;
         SceneManager.app.dispatch('destroy', {}, [ entity.uuid ]);
         fromScene.removeEntity(entity, true /* forceDelete */);
         if (typeof entity.dispose === 'function') entity.dispose();
@@ -111,8 +111,8 @@ class SceneManager {
     /********** SCENE */
 
     static cloneStage(toScene, fromStage, updateLoadPosition = true) {
-        if (!toScene || !toScene.isWorld3D) return;
-        if (!fromStage || !fromStage.isStage3D) return;
+        if (!toScene || !toScene.isWorld) return;
+        if (!fromStage || !fromStage.isStage) return;
 
         // Add children
         // toScene.loadPosition.decompose(_worldPosition, _worldQuaternion, _worldScale);
@@ -141,8 +141,8 @@ class SceneManager {
     }
 
     static loadStages(toScene, fromWorld, preload = 10) {
-        if (!toScene || !toScene.isWorld3D) return;
-        if (!fromWorld || !fromWorld.isWorld3D) return;
+        if (!toScene || !toScene.isWorld) return;
+        if (!fromWorld || !fromWorld.isWorld) return;
         if (preload < 0) return;
 
         const startDistance = toScene.loadDistance;
@@ -175,8 +175,8 @@ class SceneManager {
     }
 
     static loadWorld(toScene, fromWorld) {
-        if (!toScene || !toScene.isWorld3D) return;
-        if (!fromWorld || !fromWorld.isWorld3D) return;
+        if (!toScene || !toScene.isWorld) return;
+        if (!fromWorld || !fromWorld.isWorld) return;
 
         // Background
         if (fromWorld.background != null) {
@@ -203,7 +203,7 @@ class SceneManager {
     /********** RENDER */
 
     static renderWorld(world) {
-        if (!world || !world.isWorld3D) return;
+        if (!world || !world.isWorld) return;
 
     }
 

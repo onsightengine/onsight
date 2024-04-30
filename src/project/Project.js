@@ -1,10 +1,10 @@
-import { APP_ORIENTATION } from './constants.js';
-import { WORLD_TYPES } from './constants.js';
-import { VERSION } from './constants.js';
+import { APP_ORIENTATION } from '../constants.js';
+import { WORLD_TYPES } from '../constants.js';
+import { VERSION } from '../constants.js';
 
-import { AssetManager } from './app/AssetManager.js';
-import { Entity } from './worlds/Entity.js';
-import { Uuid } from './utils/Uuid.js';
+import { AssetManager } from '../app/AssetManager.js';
+import { Uuid } from '../utils/Uuid.js';
+import { World } from './World.js';
 
 class Project {
 
@@ -69,7 +69,7 @@ class Project {
 
     addWorld(world) {
         if (!world || !world.isWorld) return this;
-        if (WORLD_TYPES[world.type]) {
+        if (Object.values(WORLD_TYPES).indexOf(world.type) !== -1) {
             this.worlds[world.uuid] = world;
             if (this.activeWorldUUID == null) this.activeWorldUUID = world.uuid;
         } else {
@@ -233,13 +233,9 @@ class Project {
 
         // Worlds
         for (const worldData of data.worlds) {
-            const Constructor = Entity.type(worldData.type);
-            if (Constructor) {
-                const world = new Constructor().fromJSON(worldData);
-                this.addWorld(world);
-            } else {
-                console.warn(`Project.fromJSON(): Unknown world type '${worldData.type}'`);
-            }
+            const world = new World().fromJSON(worldData);
+            console.log(world.type);
+            this.addWorld(world);
         }
 
         return this;

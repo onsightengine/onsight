@@ -11,7 +11,7 @@
 import { VERSION } from './constants.js';
 export * from './constants.js';
 
-export { Project } from './Project.js';
+export { Project } from './project/Project.js';
 
 /******************** APPLICATION ********************/
 
@@ -58,42 +58,36 @@ export { System } from './utils/System.js';
 export { Uuid } from './utils/Uuid.js';
 export { Vectors } from './utils/Vectors.js';
 
-/******************** WORLDS ********************/
+/******************** PROJECT ********************/
 
 // Base
-export { Entity } from './worlds/Entity.js';
-export { Stage } from './worlds/Stage.js';
-export { World } from './worlds/World.js';
+export { Entity } from './project/Entity.js';
+export { Stage } from './project/Stage.js';
+export { World } from './project/World.js';
 
 // World2D
-export { Entity2D } from './worlds/world2d/Entity2D.js';
-export { Stage2D } from './worlds/world2d/Stage2D.js';
-export { World2D } from './worlds/world2d/World2D.js';
+export { Entity2D } from './project/world2d/Entity2D.js';
 
 // World3D
-export { Camera3D } from './worlds/world3d/Camera3D.js';
-export { Entity3D } from './worlds/world3d/Entity3D.js';
-export { Stage3D } from './worlds/world3d/Stage3D.js';
-export { World3D } from './worlds/world3d/World3D.js';
+export { Camera3D } from './project/world3d/Camera3D.js';
+export { Entity3D } from './project/world3d/Entity3D.js';
 
 // WorldUI
-export { EntityUI } from './worlds/worldui/EntityUI.js';
-export { StageUI } from './worlds/worldui/StageUI.js';
-export { WorldUI } from './worlds/worldui/WorldUI.js';
+export { EntityUI } from './project/worldui/EntityUI.js';
 
 /******************** REGISTER COMPONENTS ********************/
 
 // Entity
-import './worlds/world3d/entity/Geometry.js';
-import './worlds/world3d/entity/Material.js';
-import './worlds/world3d/entity/Mesh.js';
-import './worlds/world3d/entity/Script.js';
-import './worlds/world3d/entity/Test.js';
+import './project/world3d/entity/Geometry.js';
+import './project/world3d/entity/Material.js';
+import './project/world3d/entity/Mesh.js';
+import './project/world3d/entity/Script.js';
+import './project/world3d/entity/Test.js';
 // import './project/world3d/entity/Sprite.js';
 
 // World
-import './worlds/world3d/world/Physics.js';
-import './worlds/world3d/world/Post.js';
+import './project/world3d/world/Physics.js';
+import './project/world3d/world/Post.js';
 
 /******************** ENSURE SINGLE IMPORT ********************/
 

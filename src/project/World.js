@@ -1,15 +1,22 @@
 import { Entity } from './Entity.js';
 import { Vec2 } from '../math/Vec2.js';
 import { Vec3 } from '../math/Vec3.js';
+import { WORLD_TYPES } from '../constants.js';
 
 class World extends Entity {
 
-    constructor(name = 'World 1') {
+    constructor(type = WORLD_TYPES.WORLD_2D, name = 'World 1') {
         super(name);
+
+        // Check
+        if (Object.values(WORLD_TYPES).indexOf(type) === -1) {
+            console.warn(`World: Invalid world type '${type}', using 'World2D`);
+            type = WORLD_TYPES.WORLD_2D;
+        }
 
         // Prototype
         this.isWorld = true;
-        this.type = 'World';
+        this.type = type;
 
         // Properties, Nodes
         this.position = new Vec2();
@@ -23,7 +30,7 @@ class World extends Entity {
     }
 
     componentFamily() {
-        return [ /* 'World' */ ];
+        return [ 'World', this.type ];
     }
 
     /******************** CHILDREN */
@@ -162,6 +169,8 @@ class World extends Entity {
 
 }
 
-Entity.register('World', World);
+Entity.register('World2D', World);
+Entity.register('World3D', World);
+Entity.register('WorldUI', World);
 
 export { World };

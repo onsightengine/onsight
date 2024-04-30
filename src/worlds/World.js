@@ -124,11 +124,11 @@ class World extends Entity {
         super.dispose();
     }
 
-    /******************** SERIALIZE */
+    /******************** JSON */
 
-    serialize(recursive = true) {
+    toJSON(recursive = true) {
         // Entity
-        const data = super.serialize(recursive);
+        const data = super.toJSON(recursive);
 
         // World, Node
         data.position = JSON.stringify(this.position.toArray());
@@ -143,9 +143,9 @@ class World extends Entity {
         return data;
     }
 
-    parse(data) {
+    fromJSON(data) {
         // Entity
-        super.parse(data);
+        super.fromJSON(data);
 
         // World, Node
         if (data.position !== undefined) this.position.copy(JSON.parse(data.position));

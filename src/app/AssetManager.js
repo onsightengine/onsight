@@ -64,9 +64,9 @@ class AssetManager {
         }
     }
 
-    /******************** SERIALIZE */
+    /******************** JSON */
 
-    static serialize() {
+    static toJSON() {
         const data = {};
 
         // Save Assets
@@ -75,7 +75,7 @@ class AssetManager {
             if (assets.length > 0) {
                 data[type] = [];
                 for (const asset of assets) {
-                    data[type].push(asset.serialize());
+                    data[type].push(asset.toJSON());
                 }
             }
         }
@@ -83,7 +83,7 @@ class AssetManager {
         return data;
     }
 
-    static parse(json, onLoad = () => {}) {
+    static fromJSON(json, onLoad = () => {}) {
         // Clear Assets
         AssetManager.clear()
 
@@ -93,10 +93,10 @@ class AssetManager {
             for (const assetData of json[type]) {
                 const Constructor = _types[type];
                 if (Constructor) {
-                    const asset = new Constructor().parse(assetData);
+                    const asset = new Constructor().fromJSON(assetData);
                     AssetManager.add(asset);
                 } else {
-                    console.warn(`AssetManager.parse(): Unknown asset type '${assetData.type}'`);
+                    console.warn(`AssetManager.fromJSON(): Unknown asset type '${assetData.type}'`);
                 }
             }
         }

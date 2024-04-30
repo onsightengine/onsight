@@ -218,7 +218,7 @@ class ComponentManager {
                 return data;
             }
 
-            serialize() {
+            toJSON() {
                 const data = (this.data?.style) ? this.defaultData('style', this.data.style) : this.defaultData();
 
                 // Copy existing 'data' properties

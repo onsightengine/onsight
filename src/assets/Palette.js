@@ -46,20 +46,20 @@ class Palette extends Asset {
         return this;
     }
 
-    /******************** SERIALIZE */
+    /******************** JSON */
 
-    serialize() {
+    toJSON() {
         // Asset
-        const data = super.serialize();
+        const data = super.toJSON();
 
         // Palette
         data.colors = JSON.stringify(this.colors);
         return data;
     }
 
-    parse(data) {
+    fromJSON(data) {
         // Asset
-        super.parse(data);
+        super.fromJSON(data);
 
         // Palette
         if (data.colors !== undefined) this.colors = JSON.parse(data.colors);

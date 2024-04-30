@@ -44,11 +44,11 @@ class Stage extends Entity {
         super.dispose();
     }
 
-    /******************** SERIALIZE */
+    /******************** JSON */
 
-    serialize(recursive = true) {
+    toJSON(recursive = true) {
         // Entity
-        const data = super.serialize(recursive);
+        const data = super.toJSON(recursive);
 
         // Stage
         data.enabled = this.enabled;
@@ -60,9 +60,9 @@ class Stage extends Entity {
         return data;
     }
 
-    parse(data) {
+    fromJSON(data) {
         // Entity
-        super.parse(data);
+        super.fromJSON(data);
 
         // Stage
         if (data.enabled !== undefined) this.enabled = data.enabled;

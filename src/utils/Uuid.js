@@ -10,7 +10,7 @@ class Uuid {
     /******************** ASSIGN ********************/
 
     /** Returns randomized UUID */
-    static random() {
+    static generate() {
         if (window.crypto && window.crypto.randomUUID) return crypto.randomUUID();
 
         // https://github.com/mrdoob/three.js/blob/dev/src/math/MathUtils.js

@@ -73,7 +73,7 @@ class Entity {
         this.components.push(component);
         component.detach();
         component.entity = this;
-        component.init(component.serialize());
+        component.init(component.toJSON());
         component.attach();
         return component;
     }
@@ -163,7 +163,7 @@ class Entity {
     rebuildComponents() {
         for (const component of this.components) {
             component.detach();
-            component.init(component.serialize());
+            component.init(component.toJSON());
             component.attach();
         }
         return this;
@@ -308,7 +308,7 @@ class Entity {
 
         // Components
         for (const component of source.components) {
-            const clonedComponent = this.addComponent(component.type, component.serialize(), false);
+            const clonedComponent = this.addComponent(component.type, component.toJSON(), false);
             clonedComponent.tag = component.tag;
         }
 
@@ -341,9 +341,9 @@ class Entity {
         return this;
     }
 
-    /******************** SERIALIZE */
+    /******************** JSON */
 
-    serialize(recursive = true) {
+    toJSON(recursive = true) {
         // Entity
         const data = {
             type: this.type,
@@ -358,20 +358,20 @@ class Entity {
 
         // Components
         for (const component of this.components) {
-            data.components.push(component.serialize());
+            data.components.push(component.toJSON());
         }
 
         // Children
         if (recursive) {
             for (const child of this.getEntities()) {
-                data.children.push(child.serialize(recursive));
+                data.children.push(child.toJSON(recursive));
             }
         }
 
         return data;
     }
 
-    parse(data) {
+    fromJSON(data) {
         // Entity
         if (data.name !== undefined) this.name = data.name;
         if (data.uuid !== undefined) this.uuid = data.uuid;
@@ -394,10 +394,10 @@ class Entity {
             for (const childData of data.children) {
                 const Constructor = Entity.type(childData.type);
                 if (Constructor) {
-                    const child = new Constructor().parse(childData);
+                    const child = new Constructor().fromJSON(childData);
                     this.addEntity(child);
                 } else {
-                    console.warn(`Entity.parse(): Unknown entity type '${childData.type}'`);
+                    console.warn(`Entity.fromJSON(): Unknown entity type '${childData.type}'`);
                 }
             }
         }

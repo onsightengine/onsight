@@ -13,9 +13,9 @@ class Asset {
         this.category = 'unknown';
     }
 
-    /******************** SERIALIZE */
+    /******************** JSON */
 
-    serialize() {
+    toJSON() {
         const data = {
             type: this.type,
             name: this.name,
@@ -25,7 +25,7 @@ class Asset {
         return data;
     }
 
-    parse(data) {
+    fromJSON(data) {
         if (data.name !== undefined) this.name = data.name;
         if (data.uuid !== undefined) this.uuid = data.uuid;
         if (data.category !== undefined) this.category = data.category;

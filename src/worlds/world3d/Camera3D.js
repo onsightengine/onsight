@@ -277,11 +277,11 @@ class Camera3D extends Entity3D {
         return this;
     }
 
-    /******************** SERIALIZE */
+    /******************** JSON */
 
-    serialize(recursive = true) {
+    toJSON(recursive = true) {
         // Entity3D
-        const data = super.serialize(recursive);
+        const data = super.toJSON(recursive);
 
         // Camera3D
         data.cameraType = this.type;
@@ -299,9 +299,9 @@ class Camera3D extends Entity3D {
         return data;
     }
 
-    parse(data) {
+    fromJSON(data) {
         // Entity3D
-        super.parse(data);
+        super.fromJSON(data);
 
         // Camera3D
         if (data.cameraType !== undefined) {

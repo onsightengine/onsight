@@ -153,18 +153,18 @@ class Project {
 
     /******************** JSON */
 
-    serialize() {
+    toJSON() {
         const data = {};
 
         // Meta Data
         data.meta = {
             type: 'Salinity',
             version: VERSION,
-            generator: 'Salinity.Project.serialize()',
+            generator: 'Salinity.Project.toJSON()',
         };
 
         // Assets
-        data.assets = AssetManager.serialize();
+        data.assets = AssetManager.toJSON();
 
         // Project Properties
         data.object = {
@@ -185,29 +185,29 @@ class Project {
         data.worlds = [];
         for (const uuid in this.worlds) {
             const world = this.worlds[uuid];
-            data.worlds.push(world.serialize());
+            data.worlds.push(world.toJSON());
         }
 
         return data;
     }
 
-    parse(data, loadAssets = true) {
+    fromJSON(data, loadAssets = true) {
         // Check proper JSON type
         const type = data.meta?.type ?? 'undefined';
         if (type !== 'Salinity') {
-            console.error(`Project.parse(): Unknown project type '${type}', expected 'Salinity'`);
+            console.error(`Project.fromJSON(): Unknown project type '${type}', expected 'Salinity'`);
             return;
         }
 
         // Check project saved with version
         const version = data.meta?.version ?? 'unknown';
         if (version !== VERSION) {
-            console.warn(`Project.parse(): Project saved in 'v${metaVersion}', attempting to load with 'v${VERSION}'`);
+            console.warn(`Project.fromJSON(): Project saved in 'v${metaVersion}', attempting to load with 'v${VERSION}'`);
         }
 
         // Check object type
         if (!data.object || data.object.type !== this.type) {
-            console.error(`Project.parse(): Save file corrupt, no 'Project' object found!`);
+            console.error(`Project.fromJSON(): Save file corrupt, no 'Project' object found!`);
             return;
         }
 
@@ -216,7 +216,7 @@ class Project {
 
         // Load Assets into AssetManager
         if (loadAssets) {
-            AssetManager.parse(data.assets);
+            AssetManager.fromJSON(data.assets);
         }
 
         // Properties
@@ -235,10 +235,10 @@ class Project {
         for (const worldData of data.worlds) {
             const Constructor = Entity.type(worldData.type);
             if (Constructor) {
-                const world = new Constructor().parse(worldData);
+                const world = new Constructor().fromJSON(worldData);
                 this.addWorld(world);
             } else {
-                console.warn(`Project.parse: Unknown world type '${worldData.type}'`);
+                console.warn(`Project.fromJSON(): Unknown world type '${worldData.type}'`);
             }
         }
 

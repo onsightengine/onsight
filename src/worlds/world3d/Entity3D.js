@@ -42,11 +42,11 @@ class Entity3D extends Entity {
         super.dispose();
     }
 
-    /******************** SERIALIZE */
+    /******************** JSON */
 
-    serialize(recursive = true) {
+    toJSON(recursive = true) {
         // Entity
-        const data = super.serialize(recursive);
+        const data = super.toJSON(recursive);
 
         // Entity2D
         data.lookAtCamera = this.lookAtCamera;
@@ -59,9 +59,9 @@ class Entity3D extends Entity {
         return data;
     }
 
-    parse(data) {
+    fromJSON(data) {
         // Entity
-        super.parse(data);
+        super.fromJSON(data);
 
         // Entity2D
         if (data.lookAtCamera !== undefined) this.lookAtCamera = data.lookAtCamera;

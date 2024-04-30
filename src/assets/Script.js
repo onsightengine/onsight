@@ -73,11 +73,11 @@ print('The sum of {0} and {1} is {2}'.format(num1, num2, sum))
 
     }
 
-    /******************** SERIALIZE */
+    /******************** JSON */
 
-    serialize() {
+    toJSON() {
         // Asset
-        const data = super.serialize();
+        const data = super.toJSON();
 
         // Script
         data.format = this.format;
@@ -90,9 +90,9 @@ print('The sum of {0} and {1} is {2}'.format(num1, num2, sum))
         return data;
     }
 
-    parse(data) {
+    fromJSON(data) {
         // Asset
-        super.parse(data);
+        super.fromJSON(data);
 
         // Script
         if (data.format !== undefined) this.format = data.format;

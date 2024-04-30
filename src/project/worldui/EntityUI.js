@@ -1,9 +1,9 @@
-import { AbstractEntity } from '../AbstractEntity.js';
+import { Entity } from '../Entity.js';
 
-class EntityUI extends AbstractEntity {
+class EntityUI extends Entity {
 
     constructor(name = 'Entity') {
-        // AbstractEntity
+        // Entity
         super(name);
 
         // Prototype
@@ -18,7 +18,7 @@ class EntityUI extends AbstractEntity {
     /******************** COPY */
 
     copy(source, recursive = true) {
-        // AbstractEntity
+        // Entity
         super.copy(source, recursive);
 
         // EntityUI
@@ -33,13 +33,21 @@ class EntityUI extends AbstractEntity {
         super.dispose();
     }
 
-    /******************** JSON */
+    /******************** SERIALIZE */
 
-    fromJSON(json) {
-        const data = json.object;
+    serialize(recursive = true) {
+        // Entity
+        const data = super.serialize(recursive);
 
-        // AbstractEntity
-        super.fromJSON(json);
+        // EntityUI
+        // EMPTY
+
+        return data;
+    }
+
+    parse(data) {
+        // Entity
+        super.parse(data);
 
         // EntityUI
         // EMPTY
@@ -47,24 +55,8 @@ class EntityUI extends AbstractEntity {
         return this;
     }
 
-    toJSON() {
-        // AbstractEntity
-        const json = super.toJSON();
-
-        // EntityUI
-        // EMPTY
-
-        return json;
-    }
-
-    /** Include in child classes to add access to additional Entity types */
-    createChild(json) {
-        switch (json.object.type) {
-            case 'EntityUI': return new EntityUI();
-        }
-        return undefined;
-    }
-
 }
+
+Entity.register('EntityUI', EntityUI);
 
 export { EntityUI };

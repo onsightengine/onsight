@@ -3,10 +3,8 @@ import { WORLD_TYPES } from '../constants.js';
 import { VERSION } from '../constants.js';
 
 import { AssetManager } from '../app/AssetManager.js';
+import { Entity } from './Entity.js';
 import { Uuid } from '../utils/Uuid.js';
-import { World2D } from './world2d/World2D.js';
-import { World3D } from './world3d/World3D.js';
-import { WorldUI } from './worldui/WorldUI.js';
 
 class Project {
 
@@ -155,79 +153,21 @@ class Project {
 
     /******************** JSON */
 
-    fromJSON(json, loadAssets = true, onLoad = () => {}) {
-        // Check proper JSON type
-        const metaType = (json.metadata) ? json.metadata.type : 'Undefined';
-        if (metaType !== 'Salinity') {
-            console.error(`Project.fromJSON(): Unknown project type '${metaType}', expected 'Salinity'`);
-            return;
-        }
-
-        // Check project saved with version
-        const metaVersion = json.metadata.version;
-        if (metaVersion !== VERSION) {
-            console.warn(`Project.fromJSON(): Project saved in 'v${metaVersion}', attempting to load with 'v${VERSION}'`);
-        }
-
-        // Check object type
-        if (!json.object || json.object.type !== this.type) {
-            console.error(`Project.fromJSON(): Save file corrupt, no 'Project' object found!`);
-            return;
-        }
-
-        // Clear Project
-        this.clear();
-
-        // Load Assets into AssetManager
-        if (loadAssets) {
-            AssetManager.fromJSON(json);
-        }
-
-        // Properties
-        this.name = json.object.name;
-        this.uuid = json.object.uuid;
-        this.activeWorldUUID = json.object.activeWorldUUID;
-        this.startWorldUUID = json.object.startWorldUUID;
-
-        // Notes
-        this.notes = json.notes;
-
-        // Settings
-        this.settings = structuredClone(json.settings);
-
-        // Worlds
-        for (const worldData of json.worlds) {
-            let world = undefined;
-            switch (worldData.object.type) {
-                case 'World2D': world = new World2D().fromJSON(worldData); break;
-                case 'World3D': world = new World3D().fromJSON(worldData); break;
-                case 'WorldUI': world = new WorldUI().fromJSON(worldData); break;
-            }
-            if (world && world.isWorld) this.addWorld(world);
-        }
-
-        // Loaded
-        if (typeof onLoad === 'function') {
-            onLoad();
-        }
-
-        return this;
-    }
-
-    toJSON() {
-        // Assets
-        const meta = {};
-        const json = AssetManager.toJSON(meta);
+    serialize() {
+        const data = {};
 
         // Meta Data
-        json.metadata = {
+        data.meta = {
             type: 'Salinity',
             version: VERSION,
-            generator: 'Salinity.Project.toJSON',
+            generator: 'Salinity.Project.serialize()',
         };
 
+        // Assets
+        data.assets = AssetManager.serialize();
+
         // Project Properties
-        json.object = {
+        data.object = {
             type: this.type,
             name: this.name,
             uuid: this.uuid,
@@ -236,19 +176,73 @@ class Project {
         };
 
         // Notes
-        json.notes = this.notes;
+        data.notes = this.notes;
 
         // Settings
-        json.settings = structuredClone(this.settings);
+        data.settings = structuredClone(this.settings);
 
         // Worlds
-        json.worlds = [];
+        data.worlds = [];
         for (const uuid in this.worlds) {
             const world = this.worlds[uuid];
-            json.worlds.push(world.toJSON());
+            data.worlds.push(world.serialize());
         }
 
-        return json;
+        return data;
+    }
+
+    parse(data, loadAssets = true) {
+        // Check proper JSON type
+        const type = data.meta?.type ?? 'undefined';
+        if (type !== 'Salinity') {
+            console.error(`Project.parse(): Unknown project type '${type}', expected 'Salinity'`);
+            return;
+        }
+
+        // Check project saved with version
+        const version = data.meta?.version ?? 'unknown';
+        if (version !== VERSION) {
+            console.warn(`Project.parse(): Project saved in 'v${metaVersion}', attempting to load with 'v${VERSION}'`);
+        }
+
+        // Check object type
+        if (!data.object || data.object.type !== this.type) {
+            console.error(`Project.parse(): Save file corrupt, no 'Project' object found!`);
+            return;
+        }
+
+        // Clear Project
+        this.clear();
+
+        // Load Assets into AssetManager
+        if (loadAssets) {
+            AssetManager.parse(data.assets);
+        }
+
+        // Properties
+        this.name = data.object.name;
+        this.uuid = data.object.uuid;
+        this.activeWorldUUID = data.object.activeWorldUUID;
+        this.startWorldUUID = data.object.startWorldUUID;
+
+        // Notes
+        this.notes = data.notes;
+
+        // Settings
+        this.settings = structuredClone(data.settings);
+
+        // Worlds
+        for (const worldData of data.worlds) {
+            const Constructor = Entity.type(worldData.type);
+            if (Constructor) {
+                const world = new Constructor().parse(worldData);
+                this.addWorld(world);
+            } else {
+                console.warn(`Project.parse: Unknown world type '${worldData.type}'`);
+            }
+        }
+
+        return this;
     }
 
 }

@@ -1,9 +1,9 @@
-import { AbstractEntity } from '../AbstractEntity.js';
+import { Entity } from '../Entity.js';
 
-class Entity2D extends AbstractEntity {
+class Entity2D extends Entity {
 
     constructor(name = 'Entity') {
-        // AbstractEntity
+        // Entity
         super(name);
 
         // Prototype
@@ -24,7 +24,7 @@ class Entity2D extends AbstractEntity {
     /******************** COPY */
 
     copy(source, recursive = true) {
-        // AbstractEntity
+        // Entity
         super.copy(source, recursive);
 
         // Entity2D
@@ -40,46 +40,38 @@ class Entity2D extends AbstractEntity {
         super.dispose();
     }
 
-    /******************** JSON */
+    /******************** SERIALIZE */
 
-    fromJSON(json) {
-        const data = json.object;
+    serialize(recursive = true) {
+        // Entity
+        const data = super.serialize(recursive);
 
-        // AbstractEntity
-        super.fromJSON(json);
+        // Entity2D
+        data.lookAtCamera = this.lookAtCamera;
+        data.bloom = this.bloom;
+        // data.position  = JSON.stringify(this.position.toArray());
+        // data.rotation = JSON.stringify(this.rotation.toArray());
+        // data.scale = JSON.stringify(this.scale.toArray());
+
+        return data;
+    }
+
+    parse(data) {
+        // Entity
+        super.parse(data);
 
         // Entity2D
         if (data.lookAtCamera !== undefined) this.lookAtCamera = data.lookAtCamera;
         if (data.bloom !== undefined) this.bloom = data.bloom;
-        // if (data.position !== undefined) this.position.fromArray(data.position);
-        // if (data.rotation !== undefined) this.rotation.fromArray(data.rotation);
-        // if (data.scale !== undefined) this.scale.fromArray(data.scale);
+        // if (data.position !== undefined) this.position.copy(JSON.parse(data.position));
+        // if (data.rotation !== undefined) this.rotation.copy(JSON.parse(data.rotation));
+        // if (data.scale !== undefined) this.scale.copy(JSON.parse(data.scale));
 
         return this;
     }
 
-    toJSON() {
-        // AbstractEntity
-        const json = super.toJSON();
-
-        // Entity2D
-        json.object.lookAtCamera = this.lookAtCamera;
-        json.object.bloom = this.bloom;
-        // json.object.position  = this.position.toArray();
-        // json.object.rotation = this.rotation.toArray();
-        // json.object.scale = this.scale.toArray();
-
-        return json;
-    }
-
-    /** Include in child classes to add access to additional Entity types */
-    createChild(json) {
-        switch (json.object.type) {
-            case 'Entity2D': return new Entity2D();
-        }
-        return undefined;
-    }
-
 }
+
+Entity.register('Entity2D', Entity2D);
 
 export { Entity2D };

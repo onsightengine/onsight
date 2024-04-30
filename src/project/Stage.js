@@ -1,7 +1,7 @@
-import { AbstractEntity } from './AbstractEntity.js';
+import { Entity } from './Entity.js';
 import { Vec3 } from '../math/Vec3.js';
 
-class AbstractStage extends AbstractEntity {
+class Stage extends Entity {
 
     constructor(name = 'Start') {
         super(name);
@@ -25,7 +25,7 @@ class AbstractStage extends AbstractEntity {
     /******************** COPY / CLONE */
 
     copy(source, recursive = true) {
-        // AbstractEntity
+        // Entity
         super.copy(source, recursive);
 
         // Stage
@@ -44,13 +44,25 @@ class AbstractStage extends AbstractEntity {
         super.dispose();
     }
 
-    /******************** JSON */
+    /******************** SERIALIZE */
 
-    fromJSON(json) {
-        const data = json.object;
+    serialize(recursive = true) {
+        // Entity
+        const data = super.serialize(recursive);
 
-        // AbstractEntity
-        super.fromJSON(json);
+        // Stage
+        data.enabled = this.enabled;
+        data.start = this.start;
+        data.finish = this.finish;
+        data.beginPosition = JSON.stringify(this.beginPosition.toArray());
+        data.endPosition = JSON.stringify(this.endPosition.toArray());
+
+        return data;
+    }
+
+    parse(data) {
+        // Entity
+        super.parse(data);
 
         // Stage
         if (data.enabled !== undefined) this.enabled = data.enabled;
@@ -62,28 +74,8 @@ class AbstractStage extends AbstractEntity {
         return this;
     }
 
-    toJSON() {
-        // AbstractEntity
-        const json = super.toJSON();
-
-        // Stage
-        json.object.enabled = this.enabled;
-        json.object.start = this.start;
-        json.object.finish = this.finish;
-        json.object.beginPosition = JSON.stringify(this.beginPosition);
-        json.object.endPosition = JSON.stringify(this.endPosition);
-
-        return json;
-    }
-
-    /** Include in child classes to add access to additional Entity types */
-    createChild(json) {
-        switch (json.object.type) {
-            case 'AbstractEntity': return new AbstractEntity();
-        }
-        return undefined;
-    }
-
 }
 
-export { AbstractStage };
+Entity.register('Stage', Stage);
+
+export { Stage };

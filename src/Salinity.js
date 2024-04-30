@@ -50,6 +50,9 @@ export { RotateEntity } from './assets/scripts/RotateEntity.js';
 /******************** PROJECT  ********************/
 
 // Core
+export { Entity } from './project/Entity.js';
+export { Stage } from './project/Stage.js';
+export { World } from './project/World.js';
 export { Project } from './project/Project.js';
 
 // Core, Scene2D
@@ -76,6 +79,30 @@ export { Maths } from './utils/Maths.js';
 export { System } from './utils/System.js';
 export { Uuid } from './utils/Uuid.js';
 export { Vectors } from './utils/Vectors.js';
+
+/******************** REGISTER ASSET TYPES ********************/
+
+import './assets/Palette.js';
+import './assets/Script.js';
+
+/******************** REGISTER ENTITY TYPES ********************/
+
+import './project/Entity.js';
+import './project/Stage.js';
+import './project/World.js';
+
+import './project/world2d/Entity2D.js';
+import './project/world2d/Stage2D.js';
+import './project/world2d/World2D.js';
+
+import './project/world3d/Camera3D.js';
+import './project/world3d/Entity3D.js';
+import './project/world3d/Stage3D.js';
+import './project/world3d/World3D.js';
+
+import './project/worldui/EntityUI.js';
+import './project/worldui/StageUI.js';
+import './project/worldui/WorldUI.js';
 
 /******************** REGISTER COMPONENTS ********************/
 

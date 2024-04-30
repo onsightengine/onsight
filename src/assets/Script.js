@@ -1,3 +1,4 @@
+import { AssetManager } from '../app/AssetManager.js';
 import { Asset } from './Asset.js';
 import { SCRIPT_FORMAT } from '../constants.js';
 
@@ -72,14 +73,28 @@ print('The sum of {0} and {1} is {2}'.format(num1, num2, sum))
 
     }
 
-    /******************** JSON */
+    /******************** SERIALIZE */
 
-    fromJSON(json) {
+    serialize() {
         // Asset
-        super.fromJSON(json);
+        const data = super.serialize();
 
         // Script
-        const data = json.object;
+        data.format = this.format;
+        data.position = this.position;
+        data.scrollLeft = this.scrollLeft;
+        data.scrollTop = this.scrollTop;
+        data.selectFrom = this.selectFrom;
+        data.selectTo = this.selectTo;
+        data.source = this.source;
+        return data;
+    }
+
+    parse(data) {
+        // Asset
+        super.parse(data);
+
+        // Script
         if (data.format !== undefined) this.format = data.format;
         if (data.position !== undefined) this.position = data.position;
         if (data.scrollLeft !== undefined) this.scrollLeft = data.scrollLeft;
@@ -90,22 +105,9 @@ print('The sum of {0} and {1} is {2}'.format(num1, num2, sum))
         return this;
     }
 
-    toJSON() {
-        // Asset
-        const json = super.toJSON();
-
-        // Script
-        json.object.format = this.format;
-        json.object.position = this.position;
-        json.object.scrollLeft = this.scrollLeft;
-        json.object.scrollTop = this.scrollTop;
-        json.object.selectFrom = this.selectFrom;
-        json.object.selectTo = this.selectTo;
-        json.object.source = this.source;
-        return json;
-    }
-
 }
+
+AssetManager.register('Script', Script);
 
 export { Script };
 

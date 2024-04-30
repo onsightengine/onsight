@@ -1,4 +1,5 @@
 import { APP_SIZE } from '../../constants.js';
+import { Entity } from '../Entity.js';
 import { Entity3D } from './Entity3D.js';
 import { Maths } from '../../utils/Maths.js';
 
@@ -276,13 +277,31 @@ class Camera3D extends Entity3D {
         return this;
     }
 
-    /******************** JSON */
+    /******************** SERIALIZE */
 
-    fromJSON(json) {
-        const data = json.object;
-
+    serialize(recursive = true) {
         // Entity3D
-        super.fromJSON(json, this);
+        const data = super.serialize(recursive);
+
+        // Camera3D
+        data.cameraType = this.type;
+        data.type = 'Camera3D';
+        data.fit = this.fit;
+        data.near = this.near;
+        data.far = this.far;
+
+        // Perspective
+        data.fieldOfView = this.fieldOfView;
+
+        // Orthographic
+        // ... EMPTY
+
+        return data;
+    }
+
+    parse(data) {
+        // Entity3D
+        super.parse(data);
 
         // Camera3D
         if (data.cameraType !== undefined) {
@@ -299,32 +318,14 @@ class Camera3D extends Entity3D {
         // Orthographic
         // ... EMPTY
 
-        // Projection Matrix
-        this.updateProjectionMatrix();
+        // // Projection Matrix
+        // this.updateProjectionMatrix();
 
         return this;
     }
 
-    toJSON() {
-        // Entity3D
-        const json = super.toJSON();
-
-        // Camera3D
-        json.object.cameraType = this.type;
-        json.object.type = 'Camera3D';
-        json.object.fit = this.fit;
-        json.object.near = this.near;
-        json.object.far = this.far;
-
-        // Perspective
-        json.object.fieldOfView = this.fieldOfView;
-
-        // Orthographic
-        // ... EMPTY
-
-        return json;
-    }
-
 }
+
+Entity.register('Camera3D', Camera3D);
 
 export { Camera3D };

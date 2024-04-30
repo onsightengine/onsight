@@ -1,8 +1,8 @@
-import { AbstractEntity } from './AbstractEntity.js';
+import { Entity } from './Entity.js';
 import { Vec2 } from '../math/Vec2.js';
 import { Vec3 } from '../math/Vec3.js';
 
-class AbstractWorld extends AbstractEntity {
+class World extends Entity {
 
     constructor(name = 'World 1') {
         super(name);
@@ -101,7 +101,7 @@ class AbstractWorld extends AbstractEntity {
     /******************** COPY */
 
     copy(source, recursive = true) {
-        // AbstractEntity
+        // Entity
         super.copy(source, recursive);
 
         // World, Node
@@ -124,13 +124,28 @@ class AbstractWorld extends AbstractEntity {
         super.dispose();
     }
 
-    /******************** JSON */
+    /******************** SERIALIZE */
 
-    fromJSON(json) {
-        const data = json.object;
+    serialize(recursive = true) {
+        // Entity
+        const data = super.serialize(recursive);
 
-        // AbstractEntity
-        super.fromJSON(json);
+        // World, Node
+        data.position = JSON.stringify(this.position.toArray());
+
+        // World, Stage
+        data.activeStageUUID = this.activeStageUUID;
+
+        // World, Gameplay
+        data.loadPosition = JSON.stringify(this.loadPosition.toArray());
+        data.loadDistance = this.loadDistance;
+
+        return data;
+    }
+
+    parse(data) {
+        // Entity
+        super.parse(data);
 
         // World, Node
         if (data.position !== undefined) this.position.copy(JSON.parse(data.position));
@@ -145,32 +160,8 @@ class AbstractWorld extends AbstractEntity {
         return this;
     }
 
-    toJSON() {
-        // AbstractEntity
-        const json = super.toJSON();
-
-        // World, Node
-        json.object.position = JSON.stringify(this.position);
-
-        // World, Stage
-        json.object.activeStageUUID = this.activeStageUUID;
-
-        // World, Gameplay
-        json.object.loadPosition = JSON.stringify(this.loadPosition);
-        json.object.loadDistance = this.loadDistance;
-
-        return json;
-    }
-
-    /** Include in child classes to add access to additional Entity types */
-    createChild(json) {
-        switch (json.object.type) {
-            case 'AbstractEntity': return new AbstractEntity();
-            case 'AbstractStage': return new AbstractStage();
-        }
-        return undefined;
-    }
-
 }
 
-export { AbstractWorld };
+Entity.register('World', World);
+
+export { World };

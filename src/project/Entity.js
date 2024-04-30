@@ -1,7 +1,7 @@
 import { ComponentManager } from '../app/ComponentManager.js';
 import { Uuid } from '../utils/Uuid.js';
 
-class AbstractEntity {
+class Entity {
 
     constructor(name = 'Entity') {
         // Prototype
@@ -16,9 +16,9 @@ class AbstractEntity {
         this.visible = true;                    // should be rendered?
 
         // Structure
-        this.parent = null;
-        this.children = [];
         this.components = [];                   // geometry, material, audio, light, etc.
+        this.children = [];
+        this.parent = null;
 
         // Internal
         this.loadedDistance = 0;                // for tracking removal during App.play()
@@ -73,7 +73,7 @@ class AbstractEntity {
         this.components.push(component);
         component.detach();
         component.entity = this;
-        component.init(component.toJSON());
+        component.init(component.serialize());
         component.attach();
         return component;
     }
@@ -163,7 +163,7 @@ class AbstractEntity {
     rebuildComponents() {
         for (const component of this.components) {
             component.detach();
-            component.init(component.toJSON());
+            component.init(component.serialize());
             component.attach();
         }
         return this;
@@ -308,7 +308,7 @@ class AbstractEntity {
 
         // Components
         for (const component of source.components) {
-            const clonedComponent = this.addComponent(component.type, component.toJSON(), false);
+            const clonedComponent = this.addComponent(component.type, component.serialize(), false);
             clonedComponent.tag = component.tag;
         }
 
@@ -341,11 +341,37 @@ class AbstractEntity {
         return this;
     }
 
-    /******************** JSON */
+    /******************** SERIALIZE */
 
-    fromJSON(json) {
-        const data = json.object;
+    serialize(recursive = true) {
+        // Entity
+        const data = {
+            type: this.type,
+            name: this.name,
+            uuid: this.uuid,
+            category: this.category,
+            locked: this.locked,
+            visible: this.visible,
+            components: [],
+            children: [],
+        };
 
+        // Components
+        for (const component of this.components) {
+            data.components.push(component.serialize());
+        }
+
+        // Children
+        if (recursive) {
+            for (const child of this.getEntities()) {
+                data.children.push(child.serialize(recursive));
+            }
+        }
+
+        return data;
+    }
+
+    parse(data) {
         // Entity
         if (data.name !== undefined) this.name = data.name;
         if (data.uuid !== undefined) this.uuid = data.uuid;
@@ -354,60 +380,41 @@ class AbstractEntity {
         if (data.visible !== undefined) this.visible = data.visible;
 
         // Components
-        for (const componentData of json.object.components) {
-            if (componentData && componentData.base && componentData.base.type) {
-                const component = this.addComponent(componentData.base.type, componentData, false);
-                component.tag = componentData.base.tag;
+        if (data.components) {
+            for (const componentData of data.components) {
+                if (componentData && componentData.base && componentData.base.type) {
+                    const component = this.addComponent(componentData.base.type, componentData, false);
+                    component.tag = componentData.base.tag;
+                }
             }
         }
 
         // Children
-        for (const entityData of data.children) {
-            const entity = this.createChild(entityData);
-            if (entity) this.addEntity(entity.fromJSON(entityData));
+        if (data.children) {
+            for (const childData of data.children) {
+                const Constructor = Entity.type(childData.type);
+                if (Constructor) {
+                    const child = new Constructor().parse(childData);
+                    this.addEntity(child);
+                } else {
+                    console.warn(`Entity.parse(): Unknown entity type '${childData.type}'`);
+                }
+            }
         }
 
         return this;
     }
 
-    /** Converts Entity to JSON */
-    toJSON() {
-        const json = {
-            object: {
-                type: this.type,
-                name: this.name,
-                uuid: this.uuid,
-                components: [],
-                children: [],
-            }
-        };
-
-        // Entity
-        json.object.category = this.category;
-        json.object.locked = this.locked;
-        json.object.visible = this.visible;
-
-        // Components
-        for (const component of this.components) {
-            json.object.components.push(component.toJSON());
-        }
-
-        // Children
-        for (const child of this.getEntities()) {
-            json.object.children.push(child.toJSON());
-        }
-
-        return json;
+    static register(type, EntityClass) {
+	    if (!_types[type]) _types[type] = EntityClass;
     }
 
-    /** Include in child classes to add access to additional Entity types */
-    createChild(json) {
-        switch (json.object.type) {
-            case 'AbstractEntity': return new AbstractEntity();
-        }
-        return undefined;
+    static type(type) {
+        return _types[type];
     }
 
 }
 
-export { AbstractEntity };
+const _types = { 'Entity': Entity };
+
+export { Entity };

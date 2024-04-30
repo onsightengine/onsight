@@ -1,11 +1,4 @@
-import { Palette } from '../assets/Palette.js';
-import { Script } from '../assets/Script.js';
-
 const _assets = {};
-const _types = {
-    'Palette':  Palette,
-    'Script':   Script,
-};
 
 class AssetManager {
 
@@ -73,7 +66,24 @@ class AssetManager {
 
     /******************** SERIALIZE */
 
-    static fromJSON(json, onLoad = () => {}) {
+    static serialize() {
+        const data = {};
+
+        // Save Assets
+        for (const type of Object.keys(_types)) {
+            const assets = AssetManager.library(type);
+            if (assets.length > 0) {
+                data[type] = [];
+                for (const asset of assets) {
+                    data[type].push(asset.serialize());
+                }
+            }
+        }
+
+        return data;
+    }
+
+    static parse(json, onLoad = () => {}) {
         // Clear Assets
         AssetManager.clear()
 
@@ -82,48 +92,25 @@ class AssetManager {
             if (!json[type]) continue;
             for (const assetData of json[type]) {
                 const Constructor = _types[type];
-                const asset = new Constructor();
-                asset.fromJSON(assetData);
-                AssetManager.add(asset);
+                if (Constructor) {
+                    const asset = new Constructor().parse(assetData);
+                    AssetManager.add(asset);
+                } else {
+                    console.warn(`AssetManager.parse(): Unknown asset type '${assetData.type}'`);
+                }
             }
         }
 
         // Loaded
-        if (typeof onLoad === 'function') {
-            onLoad();
-        }
+        if (typeof onLoad === 'function') onLoad();
     }
 
-    static toJSON(meta) {
-        const json = {};
-
-        if (!meta) meta = {};
-
-        // Save Assets
-        for (const type of Object.keys(_types)) {
-            const assets = AssetManager.library(type);
-            if (assets.length === 0) continue;
-            meta[type] = {};
-            for (const asset of assets) {
-                if (!asset.uuid || meta[type][asset.uuid]) continue;
-                meta[type][asset.uuid] = asset.toJSON();
-            }
-        }
-
-        // Add 'meta' caches to 'json' as arrays
-        for (const library in meta) {
-            const valueArray = [];
-            for (const key in meta[library]) {
-                const data = meta[library][key];
-                delete data.metadata;
-                valueArray.push(data);
-            }
-            json[library] = valueArray;
-        }
-
-        return json;
+    static register(type, AssetClass) {
+	    if (!_types[type]) _types[type] = AssetClass;
     }
 
 }
+
+const _types = {};
 
 export { AssetManager };

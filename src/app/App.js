@@ -96,7 +96,7 @@ class App {
         SceneManager.app = this;
 
         // Load Project
-        this.project.fromJSON(json, loadAssets);
+        this.project.parse(json, loadAssets);
 
         // Active World
         this.world = this.project.activeWorld();

@@ -1,3 +1,4 @@
+import { AssetManager } from '../app/AssetManager.js';
 import { Asset } from './Asset.js';
 
 class Palette extends Asset {
@@ -45,27 +46,28 @@ class Palette extends Asset {
         return this;
     }
 
-    /******************** JSON */
+    /******************** SERIALIZE */
 
-    fromJSON(json) {
+    serialize() {
         // Asset
-        super.fromJSON(json);
+        const data = super.serialize();
 
         // Palette
-        const data = json.object;
+        data.colors = JSON.stringify(this.colors);
+        return data;
+    }
+
+    parse(data) {
+        // Asset
+        super.parse(data);
+
+        // Palette
         if (data.colors !== undefined) this.colors = JSON.parse(data.colors);
         return this;
     }
 
-    toJSON() {
-        // Asset
-        const json = super.toJSON();
-
-        // Palette
-        json.object.colors = JSON.stringify(this.colors);
-        return json;
-    }
-
 }
+
+AssetManager.register('Palette', Palette);
 
 export { Palette };

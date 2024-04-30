@@ -1,7 +1,7 @@
-import { AbstractStage } from '../AbstractStage.js';
-import { Entity2D } from './Entity2D.js';
+import { Entity } from '../Entity.js';
+import { Stage } from '../Stage.js';
 
-class Stage2D extends AbstractStage {
+class Stage2D extends Stage {
 
     constructor(name = 'Start') {
         super(name);
@@ -15,16 +15,8 @@ class Stage2D extends AbstractStage {
         return [ 'Stage2D' ];
     }
 
-    /******************** JSON */
-
-    /** Include in child classes to add access to additional Entity types */
-    createChild(json) {
-        switch (json.object.type) {
-            case 'Entity2D': return new Entity2D();
-        }
-        return undefined;
-    }
-
 }
+
+Entity.register('Stage2D', Stage2D);
 
 export { Stage2D };

@@ -191,7 +191,7 @@ class SceneManager {
         // Physics?
         const worldPhysicsComponent = fromWorld.getComponentByType('physics');
         if (worldPhysicsComponent) {
-            const scenePhysicsComponent = toScene.addComponent(worldPhysicsComponent.type, worldPhysicsComponent.toJSON(), false);
+            const scenePhysicsComponent = toScene.addComponent(worldPhysicsComponent.type, worldPhysicsComponent.serialize(), false);
             scenePhysicsComponent.onLoad();
             toScene.physics = scenePhysicsComponent;
         }

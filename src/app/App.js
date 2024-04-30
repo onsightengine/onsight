@@ -4,10 +4,10 @@ import { APP_ORIENTATION } from '../constants.js';
 import { Arrays } from '../utils/Arrays.js';
 import { AssetManager } from './AssetManager.js';
 import { Clock } from '../utils/Clock.js';
-import { Project } from '../project/Project.js';
+import { Project } from '../Project.js';
 import { SceneManager } from './SceneManager.js';
-import { Stage3D } from '../project/world3d/Stage3D.js';
-import { World3D } from '../project/world3d/World3D.js';
+import { Stage3D } from '../worlds/world3d/Stage3D.js';
+import { World3D } from '../worlds/world3d/World3D.js';
 
 let _animationID = null;
 

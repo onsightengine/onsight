@@ -6,10 +6,12 @@
  * @source      https://github.com/stevinz/salinity
  */
 
-/******************** CONSTANTS ********************/
+/******************** CORE ********************/
 
 import { VERSION } from './constants.js';
 export * from './constants.js';
+
+export { Project } from './Project.js';
 
 /******************** APPLICATION ********************/
 
@@ -47,30 +49,6 @@ export { ColorChange } from './assets/scripts/ColorChange.js';
 export { FollowCamera } from './assets/scripts/FollowCamera.js';
 export { RotateEntity } from './assets/scripts/RotateEntity.js';
 
-/******************** PROJECT  ********************/
-
-// Core
-export { Entity } from './project/Entity.js';
-export { Stage } from './project/Stage.js';
-export { World } from './project/World.js';
-export { Project } from './project/Project.js';
-
-// Core, Scene2D
-export { Entity2D } from './project/world2d/Entity2D.js';
-export { Stage2D } from './project/world2d/Stage2D.js';
-export { World2D } from './project/world2d/World2D.js';
-
-// Core, Scene3D
-export { Camera3D } from './project/world3d/Camera3D.js';
-export { Entity3D } from './project/world3d/Entity3D.js';
-export { Stage3D } from './project/world3d/Stage3D.js';
-export { World3D } from './project/world3d/World3D.js';
-
-// Core, SceneUI
-export { EntityUI } from './project/worldui/EntityUI.js';
-export { StageUI } from './project/worldui/StageUI.js';
-export { WorldUI } from './project/worldui/WorldUI.js';
-
 /******************** UTILS  ********************/
 
 export { Arrays } from './utils/Arrays.js';
@@ -80,43 +58,42 @@ export { System } from './utils/System.js';
 export { Uuid } from './utils/Uuid.js';
 export { Vectors } from './utils/Vectors.js';
 
-/******************** REGISTER ASSET TYPES ********************/
+/******************** WORLDS ********************/
 
-import './assets/Palette.js';
-import './assets/Script.js';
+// Base
+export { Entity } from './worlds/Entity.js';
+export { Stage } from './worlds/Stage.js';
+export { World } from './worlds/World.js';
 
-/******************** REGISTER ENTITY TYPES ********************/
+// World2D
+export { Entity2D } from './worlds/world2d/Entity2D.js';
+export { Stage2D } from './worlds/world2d/Stage2D.js';
+export { World2D } from './worlds/world2d/World2D.js';
 
-import './project/Entity.js';
-import './project/Stage.js';
-import './project/World.js';
+// World3D
+export { Camera3D } from './worlds/world3d/Camera3D.js';
+export { Entity3D } from './worlds/world3d/Entity3D.js';
+export { Stage3D } from './worlds/world3d/Stage3D.js';
+export { World3D } from './worlds/world3d/World3D.js';
 
-import './project/world2d/Entity2D.js';
-import './project/world2d/Stage2D.js';
-import './project/world2d/World2D.js';
-
-import './project/world3d/Camera3D.js';
-import './project/world3d/Entity3D.js';
-import './project/world3d/Stage3D.js';
-import './project/world3d/World3D.js';
-
-import './project/worldui/EntityUI.js';
-import './project/worldui/StageUI.js';
-import './project/worldui/WorldUI.js';
+// WorldUI
+export { EntityUI } from './worlds/worldui/EntityUI.js';
+export { StageUI } from './worlds/worldui/StageUI.js';
+export { WorldUI } from './worlds/worldui/WorldUI.js';
 
 /******************** REGISTER COMPONENTS ********************/
 
 // Entity
-import './project/world3d/entity/Geometry.js';
-import './project/world3d/entity/Material.js';
-import './project/world3d/entity/Mesh.js';
-import './project/world3d/entity/Script.js';
-import './project/world3d/entity/Test.js';
+import './worlds/world3d/entity/Geometry.js';
+import './worlds/world3d/entity/Material.js';
+import './worlds/world3d/entity/Mesh.js';
+import './worlds/world3d/entity/Script.js';
+import './worlds/world3d/entity/Test.js';
 // import './project/world3d/entity/Sprite.js';
 
 // World
-import './project/world3d/world/Physics.js';
-import './project/world3d/world/Post.js';
+import './worlds/world3d/world/Physics.js';
+import './worlds/world3d/world/Post.js';
 
 /******************** ENSURE SINGLE IMPORT ********************/
 

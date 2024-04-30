@@ -10,7 +10,7 @@ class Entity {
 
         // Properties
         this.name = name;
-        this.uuid = Uuid.random();
+        this.uuid = Uuid.generate();
         this.category = null;                   // used for organizing Prefabs
         this.locked = false;                    // locked in Editor? (do not allow selection, deletion, duplication, etc.)
         this.visible = true;                    // should be rendered?

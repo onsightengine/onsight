@@ -9,7 +9,7 @@ class Asset {
 
         // Properties
         this.name = name ?? '';
-        this.uuid = Uuid.random();
+        this.uuid = Uuid.generate();
         this.category = 'unknown';
     }
 

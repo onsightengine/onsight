@@ -1,10 +1,10 @@
-import { APP_ORIENTATION } from '../constants.js';
-import { WORLD_TYPES } from '../constants.js';
-import { VERSION } from '../constants.js';
+import { APP_ORIENTATION } from './constants.js';
+import { WORLD_TYPES } from './constants.js';
+import { VERSION } from './constants.js';
 
-import { AssetManager } from '../app/AssetManager.js';
-import { Entity } from './Entity.js';
-import { Uuid } from '../utils/Uuid.js';
+import { AssetManager } from './app/AssetManager.js';
+import { Entity } from './worlds/Entity.js';
+import { Uuid } from './utils/Uuid.js';
 
 class Project {
 
@@ -16,7 +16,7 @@ class Project {
 
         // Properties
         this.name = name;
-        this.uuid = Uuid.random();
+        this.uuid = Uuid.generate();
 
         // Properties, World
         this.activeWorldUUID = null;
@@ -147,7 +147,7 @@ class Project {
 
         // Reset Properties
         this.name = 'My Project';
-        this.uuid = Uuid.random();
+        this.uuid = Uuid.generate();
         this.activeWorldUUID = null;
     }
 

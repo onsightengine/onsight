@@ -202,7 +202,7 @@ class Project {
         // Check project saved with version
         const version = data.meta?.version ?? 'unknown';
         if (version !== VERSION) {
-            console.warn(`Project.fromJSON(): Project saved in 'v${metaVersion}', attempting to load with 'v${VERSION}'`);
+            console.warn(`Project.fromJSON(): Project saved in 'v${version}', attempting to load with 'v${VERSION}'`);
         }
 
         // Check object type

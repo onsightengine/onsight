@@ -2,12 +2,12 @@
  * @description Salinity Engine
  * @about       Easy to use JavaScript game engine.
  * @author      Stephens Nunnally <@stevinz>
- * @version     v0.0.4
+ * @version     v0.0.5
  * @license     MIT - Copyright (c) 2024 Stephens Nunnally
- * @source      https://github.com/salinityengine/engine
+ * @source      https://github.com/salinityengine/core
  */
-var name = "@salinity/engine";
-var version = "0.0.4";
+var name = "@salinity/core";
+var version = "0.0.5";
 var description = "Easy to use JavaScript game engine.";
 var module = "src/Salinity.js";
 var main = "dist/salinity.module.js";
@@ -31,12 +31,12 @@ var keywords = [
 ];
 var repository = {
 	type: "git",
-	url: "git+https://github.com/salinityengine/engine.git"
+	url: "git+https://github.com/salinityengine/core.git"
 };
 var author = "Stephens Nunnally <stephens@scidian.com>";
 var license = "MIT";
 var bugs = {
-	url: "https://github.com/salinityengine/engine/issues"
+	url: "https://github.com/salinityengine/core/issues"
 };
 var homepage = "https://github.com/salinityengine";
 var publishConfig = {
@@ -85,521 +85,335 @@ const APP_ORIENTATION = {
     PORTRAIT:       'portrait',
     LANDSCAPE:      'landscape',
 };
+const STAGE_TYPES = {
+    STAGE_2D:        'Stage2D',
+    STAGE_3D:        'Stage3D',
+    STAGE_UI:        'StageUI',
+};
 const WORLD_TYPES = {
-    World2D:        'World2D',
-    World3D:        'World3D',
-    WorldUI:        'WorldUI',
+    WORLD_2D:        'World2D',
+    WORLD_3D:        'World3D',
+    WORLD_UI:        'WorldUI',
 };
 const SCRIPT_FORMAT = {
-    JAVASCRIPT:     'js',
+    JAVASCRIPT:     'javascript',
     PYTHON:         'python',
 };
 
-class Iris {
-    static get NAMES() { return COLOR_KEYWORDS; }
-    constructor(r = 0xffffff, g, b, format = '') {
-        this.isColor = true;
-        this.isIris = true;
-        this.type = 'Color';
-        this.r = 1;
-        this.g = 1;
-        this.b = 1;
-        this.set(r, g, b, format);
+const _assets = {};
+class AssetManager {
+    static get(uuid) {
+        if (uuid && uuid.uuid) uuid = uuid.uuid;
+        return _assets[uuid];
     }
-    copy(colorObject) {
-        return this.set(colorObject);
-    }
-    clone() {
-        return new this.constructor(this.r, this.g, this.b);
-    }
-    set(r = 0, g, b, format = '') {
-        if (arguments.length === 0) {
-            return this.set(0);
-        } else if (r === undefined || r === null || Number.isNaN(r)) {
-            if (g || b) console.warn(`Iris.set(): Invalid 'r' value ${r}`);
-        } else if (g === undefined && b === undefined) {
-            let value = r;
-            if (typeof value === 'number' || value === 0) { return this.setHex(value);
-            } else if (value && isRGB(value)) { return this.setRGBF(value.r, value.g, value.b);
-            } else if (value && isHSL(value)) { return this.setHSL(value.h * 360, value.s, value.l);
-            } else if (value && isRYB(value)) { return this.setRYB(value.r * 255, value.y * 255, value.b * 255);
-            } else if (Array.isArray(value) && value.length > 2) {
-                let offset = (g != null && !Number.isNaN(g) && g > 0) ? g : 0;
-                return this.setRGBF(value[offset], value[offset + 1], value[offset + 2])
-            } else if (typeof value === 'string') {
-                return this.setStyle(value);
-            }
-        } else {
-            switch (format) {
-                case 'rgb': return this.setRGB(r, g, b);
-                case 'hsl': return this.setHSL(r, g, b);
-                case 'ryb': return this.setRYB(r, g, b);
-                default:    return this.setRGBF(r, g, b);
+    static library(type, category) {
+        const library = [];
+        if (type && typeof type === 'string') type = type.toLowerCase();
+        if (category && typeof category === 'string') category = category.toLowerCase();
+        for (const [ uuid, asset ] of Object.entries(_assets)) {
+            if (type && typeof asset.type === 'string' && asset.type.toLowerCase() !== type) continue;
+            if (category == undefined || (typeof asset.category === 'string' && asset.category.toLowerCase() === category)) {
+                library.push(asset);
             }
         }
-        return this;
+        return library;
     }
-    setColorName(style) {
-        const hex = COLOR_KEYWORDS[style.toLowerCase()];
-        if (hex) return this.setHex(hex);
-        console.warn(`Iris.setColorName(): Unknown color ${style}`);
-        return this;
-    }
-    setHex(hexColor) {
-        hexColor = Math.floor(hexColor);
-        if (hexColor > 0xffffff || hexColor < 0) {
-            console.warn(`Iris.setHex(): Given decimal outside of range, value was ${hexColor}`);
-            hexColor = clamp(hexColor, 0, 0xffffff);
+    static add(...assets) {
+        if (assets.length > 0 && Array.isArray(assets[0])) assets = assets[0];
+        let addedAsset = undefined;
+        for (const asset of assets) {
+            if (!asset || !asset.uuid) continue;
+            if (!asset.name || asset.name === '') asset.name = asset.constructor.name;
+            _assets[asset.uuid] = asset;
+            addedAsset = addedAsset ?? asset;
         }
-        const r = (hexColor & 0xff0000) >> 16;
-        const g = (hexColor & 0x00ff00) >>  8;
-        const b = (hexColor & 0x0000ff);
-        return this.setRGB(r, g, b);
+        return addedAsset;
     }
-    setHSL(h, s, l) {
-        h = keepInRange(h, 0, 360);
-        s = clamp(s, 0, 1);
-        l = clamp(l, 0, 1);
-        let c = (1 - Math.abs(2 * l - 1)) * s;
-        let x = c * (1 - Math.abs((h / 60) % 2 - 1));
-        let m = l - (c / 2);
-        let r = 0, g = 0, b = 0;
-        if                  (h <  60) { r = c; g = x; b = 0; }
-        else if ( 60 <= h && h < 120) { r = x; g = c; b = 0; }
-        else if (120 <= h && h < 180) { r = 0; g = c; b = x; }
-        else if (180 <= h && h < 240) { r = 0; g = x; b = c; }
-        else if (240 <= h && h < 300) { r = x; g = 0; b = c; }
-        else if (300 <= h)            { r = c; g = 0; b = x; }
-        this.setRGBF(r + m, g + m, b + m);
-        return this;
+    static clear() {
+        for (const uuid in _assets) {
+            const asset = _assets[uuid];
+            if (asset.isBuiltIn) continue;
+            AssetManager.remove(_assets[uuid], true);
+        }
     }
-    setRandom() {
-        return this.setRGBF(Math.random(), Math.random(), Math.random());
-    };
-    setRGB(r, g, b) {
-        return this.setRGBF(r / 255, g / 255, b / 255);
-    }
-    setRGBF(r, g, b) {
-        this.r = clamp(r, 0, 1);
-        this.g = clamp(g, 0, 1);
-        this.b = clamp(b, 0, 1);
-        return this;
-    }
-    setRYB(r, y, b) {
-        const hexColor = cubicInterpolation(clamp(r, 0, 255), clamp(y, 0, 255), clamp(b, 0, 255), 255, CUBE.RYB_TO_RGB);
-        return this.setHex(hexColor);
-    }
-    setScalar(scalar) {
-        return this.setRGB(scalar, scalar, scalar);
-    }
-    setScalarF(scalar) {
-        return this.setRGBF(scalar, scalar, scalar);
-    }
-    setStyle(style) {
-        let m;
-        if (m = /^((?:rgb|hsl)a?)\(([^\)]*)\)/.exec(style)) {
-            let color;
-            const name = m[1];
-            const components = m[2];
-            switch (name) {
-                case 'rgb':
-                case 'rgba':
-                    if (color = /^\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*(\d*\.?\d+)\s*)?$/.exec(components)) {
-                        const r = Math.min(255, parseInt(color[1], 10));
-                        const g = Math.min(255, parseInt(color[2], 10));
-                        const b = Math.min(255, parseInt(color[3], 10));
-                        return this.setRGB(r, g, b);
-                    }
-                    if (color = /^\s*(\d+)\%\s*,\s*(\d+)\%\s*,\s*(\d+)\%\s*(?:,\s*(\d*\.?\d+)\s*)?$/.exec(components)) {
-                        const r = (Math.min(100, parseInt(color[1], 10)) / 100);
-                        const g = (Math.min(100, parseInt(color[2], 10)) / 100);
-                        const b = (Math.min(100, parseInt(color[3], 10)) / 100);
-                        return this.setRGBF(r, g, b);
-                    }
-                    break;
-                case 'hsl':
-                case 'hsla':
-                    if (color = /^\s*(\d*\.?\d+)\s*,\s*(\d+)\%\s*,\s*(\d+)\%\s*(?:,\s*(\d*\.?\d+)\s*)?$/.exec(components)) {
-                        const h = parseFloat(color[1]);
-                        const s = parseInt(color[2], 10) / 100;
-                        const l = parseInt(color[3], 10) / 100;
-                        return this.setHSL(h, s, l);
-                    }
-                    break;
-            }
-        } else if (m = /^\#([A-Fa-f\d]+)$/.exec(style)) {
-            const hex = m[1];
-            const size = hex.length;
-            if (size === 3) {
-                const r = parseInt(hex.charAt(0) + hex.charAt(0), 16);
-                const g = parseInt(hex.charAt(1) + hex.charAt(1), 16);
-                const b = parseInt(hex.charAt(2) + hex.charAt(2), 16);
-                return this.setRGB(r, g, b);
-            } else if (size === 6) {
-                const r = parseInt(hex.charAt(0) + hex.charAt(1), 16);
-                const g = parseInt(hex.charAt(2) + hex.charAt(3), 16);
-                const b = parseInt(hex.charAt(4) + hex.charAt(5), 16);
-                return this.setRGB(r, g, b);
+    static remove(asset, dispose = true) {
+        const assets = Array.isArray(asset) ? asset : [ asset ];
+        for (const asset of assets) {
+            if (!asset || !asset.uuid) continue;
+            if (_assets[asset.uuid]) {
+                if (dispose && typeof asset.dispose === 'function') asset.dispose();
+                delete _assets[asset.uuid];
             }
         }
-        if (style && style.length > 0) {
-            return this.setColorName(style);
-        }
-        return this;
     }
-    cssString(alpha ) {
-        return ('rgb(' + this.rgbString(alpha) + ')');
-    }
-    hex() {
-        return ((this.red() << 16) + (this.green() << 8) + this.blue());
-    }
-    hexString(inputColorData ){
-        if (inputColorData) this.set(inputColorData);
-        return Iris.hexString(this.hex());
-    }
-    static hexString(inputColorData = 0x000000){
-        _temp.set(inputColorData);
-        return '#' + ('000000' + ((_temp.hex()) >>> 0).toString(16)).slice(-6);
-    }
-    static randomHex() {
-        return _random.setRandom().hex();
-    }
-    rgbString(alpha) {
-        const rgb = this.red() + ', ' + this.green() + ', ' + this.blue();
-        return ((alpha != undefined) ? String(rgb + ', ' + alpha) : rgb);
-    }
-    toJSON() {
-        return this.hex();
-    }
-    getHSL(target) {
-        if (target && isHSL(target)) {
-            target.h = hueF(this.hex());
-            target.s = saturation(this.hex());
-            target.l = lightness(this.hex());
-        } else {
-            return { h: hueF(this.hex()), s: saturation(this.hex()), l: lightness(this.hex()) };
-        }
-    }
-    getRGB(target) {
-        if (target && isHSL(target)) {
-            target.r = this.r;
-            target.g = this.g;
-            target.b = this.b;
-        } else {
-            return { r: this.r, g: this.g, b: this.b };
-        }
-    }
-    getRYB(target) {
-        let rybAsHex = cubicInterpolation(this.r, this.g, this.b, 1.0, CUBE.RGB_TO_RYB);
-        if (target && isRYB(target)) {
-            target.r = redF(rybAsHex);
-            target.y = greenF(rybAsHex);
-            target.b = blueF(rybAsHex);
-            return target;
-        }
-        return {
-            r: redF(rybAsHex),
-            y: greenF(rybAsHex),
-            b: blueF(rybAsHex)
-        };
-    }
-    toArray(array = [], offset = 0) {
-        array[offset] = this.r;
-        array[offset + 1] = this.g;
-        array[offset + 2] = this.b;
-        return array;
-    }
-    red() { return clamp(Math.floor(this.r * 255), 0, 255); }
-    green() { return clamp(Math.floor(this.g * 255), 0, 255); }
-    blue() { return clamp(Math.floor(this.b * 255), 0, 255); }
-    redF() { return this.r; }
-    greenF() { return this.g; }
-    blueF() { return this.b; }
-    hue() { return hue(this.hex()); }
-    saturation() { return saturation(this.hex()); }
-    lightness() { return lightness(this.hex()); }
-    hueF() { return hueF(this.hex()); }
-    hueRYB() {
-        for (let i = 1; i < RYB_OFFSET.length; i++) {
-            if (RYB_OFFSET[i] > this.hue()) return i - 2;
-        }
-    }
-    add(color) {
-        if (!color.isColor) console.warn(`Iris.add(): Missing 'color' object`);
-        return this.setRGBF(this.r + color.r, this.g + color.g, this.b + color.b);
-    }
-    addScalar(scalar) {
-        return this.setRGB(this.red() + scalar, this.green() + scalar, this.blue() + scalar);
-    }
-    addScalarF(scalar) {
-        return this.setRGBF(this.r + scalar, this.g + scalar, this.b + scalar);
-    }
-    brighten(amount = 0.5  ) {
-        let h = hue(this.hex());
-        let s = saturation(this.hex());
-        let l = lightness(this.hex());
-        l = l + ((1.0 - l) * amount);
-        this.setHSL(h, s, l);
-        return this;
-    }
-    darken(amount = 0.5  ) {
-        let h = hue(this.hex());
-        let s = saturation(this.hex());
-        let l = lightness(this.hex()) * amount;
-        return this.setHSL(h, s, l);
-    }
-    greyscale(percent = 1.0, format = 'luminosity') { return this.grayscale(percent, format) }
-    grayscale(percent = 1.0, format = 'luminosity') {
-        let gray = 0;
-        switch (format) {
-            case 'luminosity':
-                gray = (this.r * 0.21) + (this.g * 0.72) + (this.b * 0.07);
-            case 'average':
-            default:
-                gray = (this.r + this.g + this.b) / 3;
-        }
-        percent = clamp(percent, 0, 1);
-        const r = (this.r * (1.0 - percent)) + (percent * gray);
-        const g = (this.g * (1.0 - percent)) + (percent * gray);
-        const b = (this.b * (1.0 - percent)) + (percent * gray);
-        return this.setRGBF(r, g, b);
-    }
-    hslOffset(h, s, l) {
-        return this.setHSL(this.hue() + h, this.saturation() + s, this.lightness() + l);
-    }
-    mix(color, percent = 0.5) {
-        if (!color.isColor) console.warn(`Iris.mix(): Missing 'color' object`);
-        percent = clamp(percent, 0, 1);
-        const r = (this.r * (1.0 - percent)) + (percent * color.r);
-        const g = (this.g * (1.0 - percent)) + (percent * color.g);
-        const b = (this.b * (1.0 - percent)) + (percent * color.b);
-        return this.setRGBF(r, g, b);
-    }
-    multiply(color) {
-        if (!color.isColor) console.warn(`Iris.multiply(): Missing 'color' object`);
-        return this.setRGBF(this.r * color.r, this.g * color.g, this.b * color.b);
-    }
-    multiplyScalar(scalar) {
-        return this.setRGBF(this.r * scalar, this.g * scalar, this.b * scalar);
-    }
-    rgbComplementary() {
-        return this.rgbRotateHue(180);
-    }
-    rgbRotateHue(degrees = 90) {
-        const newHue = keepInRange(this.hue() + degrees);
-        return this.setHSL(newHue, this.saturation(), this.lightness());
-    }
-    rybAdjust() {
-        return this.setHSL(hue(matchSpectrum(this.hue(), SPECTRUM.RYB)), this.saturation(), this.lightness());
-    }
-    rybComplementary() {
-        return this.rybRotateHue(180);
-    }
-    rybRotateHue(degrees = 90) {
-        const newHue = keepInRange(this.hueRYB() + degrees);
-        return this.setHSL(hue(matchSpectrum(newHue, SPECTRUM.RYB)), this.saturation(), this.lightness());
-    }
-    subtract(color) {
-        if (!color.isColor) console.warn(`Iris: subtract() was not called with a 'Color' object`);
-        return this.setRGBF(this.r - color.r, this.g - color.g, this.b - color.b);
-    }
-    equals(color) {
-        if (!color.isColor) console.warn(`Iris: equals() was not called with a 'Color' object`);
-        return (fuzzy(this.r, color.r) && fuzzy(this.g, color.g) && fuzzy(this.b, color.b));
-    }
-    isEqual(color) {
-        return this.equals(color);
-    }
-    isDark() {
-        const h = this.hue();
-        const l = this.lightness();
-        return ((l < 0.60 && (h >= 210 || h <= 27)) || (l <= 0.32));
-    }
-    isLight() {
-        return (!this.isDark());
-    }
-}
-function isRGB(object) { return (object.r !== undefined && object.g !== undefined && object.b !== undefined); }
-function isHSL(object) { return (object.h !== undefined && object.s !== undefined && object.l !== undefined); }
-function isRYB(object) { return (object.r !== undefined && object.y !== undefined && object.b !== undefined); }
-function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
-function red(hexColor) { return clamp((hexColor & 0xff0000) >> 16, 0, 255); }
-function green(hexColor) { return clamp((hexColor & 0x00ff00) >> 8, 0, 255); }
-function blue(hexColor) { return clamp((hexColor & 0x0000ff), 0, 255); }
-function redF(hexColor) { return red(hexColor) / 255.0; }
-function greenF(hexColor) { return green(hexColor) / 255.0; }
-function blueF(hexColor) { return blue(hexColor) / 255.0; }
-function hue(hexColor) { return hsl(hexColor, 'h'); }
-function hueF(hexColor) { return hue(hexColor) / 360; }
-function saturation(hexColor) { return hsl(hexColor, 's'); }
-function lightness(hexColor) { return hsl(hexColor, 'l'); }
-function fuzzy(a, b, tolerance = 0.0015) { return ((a < (b + tolerance)) && (a > (b - tolerance))); }
-function keepInRange(value, min = 0, max = 360) {
-    while (value >= max) value -= (max - min);
-    while (value <  min) value += (max - min);
-    return value;
-}
-let _hslHex, _hslH, _hslS, _hslL;
-function hsl(hexColor, channel = 'h') {
-    if (hexColor !== _hslHex) {
-        if (hexColor === undefined || hexColor === null) return 0;
-        const r = redF(hexColor), g = greenF(hexColor), b = blueF(hexColor);
-        const max = Math.max(r, g, b), min = Math.min(r, g, b);
-        const delta = max - min;
-        _hslL = (max + min) / 2;
-        if (delta === 0) {
-            _hslH = _hslS = 0;
-        } else {
-            _hslS = (_hslL <= 0.5) ? (delta / (max + min)) : (delta / (2 - max - min));
-            switch (max) {
-                case r: _hslH = (g - b) / delta + (g < b ? 6 : 0); break;
-                case g: _hslH = (b - r) / delta + 2; break;
-                case b: _hslH = (r - g) / delta + 4; break;
+    static toJSON() {
+        const data = {};
+        for (const type of Object.keys(_types$1)) {
+            const assets = AssetManager.library(type);
+            if (assets.length > 0) {
+                data[type] = [];
+                for (const asset of assets) {
+                    data[type].push(asset.toJSON());
+                }
             }
-            _hslH = Math.round(_hslH * 60);
-            if (_hslH < 0) _hslH += 360;
         }
-        _hslHex = hexColor;
+        return data;
     }
-    switch (channel) {
-        case 'h': return _hslH;
-        case 's': return _hslS;
-        case 'l': return _hslL;
-        default: console.warn(`Iris.hsl(): Unknown channel (${channel}) requested`);
-    }
-    return 0;
-}
-const _interpolate = new Iris();
-const _mix1 = new Iris();
-const _mix2 = new Iris();
-const _random = new Iris();
-const _temp = new Iris();
-function matchSpectrum(matchHue, spectrum = SPECTRUM.RYB) {
-    let colorDegrees = 360 / spectrum.length;
-    let degreeCount = colorDegrees;
-    let stopCount = 0;
-    for (let i = 0; i < spectrum.length; i++) {
-        if (matchHue < degreeCount) {
-            let percent = (degreeCount - matchHue) / colorDegrees;
-            _mix1.set(spectrum[stopCount + 1]);
-            return _mix1.mix(_mix2.set(spectrum[stopCount]), percent).hex();
-        } else {
-            degreeCount = degreeCount + colorDegrees;
-            stopCount = stopCount + 1;
+    static fromJSON(json, onLoad = () => {}) {
+        AssetManager.clear();
+        for (const type of Object.keys(_types$1)) {
+            if (!json[type]) continue;
+            for (const assetData of json[type]) {
+                const Constructor = _types$1[type];
+                if (Constructor) {
+                    const asset = new Constructor().fromJSON(assetData);
+                    AssetManager.add(asset);
+                } else {
+                    console.warn(`AssetManager.fromJSON(): Unknown asset type '${assetData.type}'`);
+                }
+            }
         }
+        if (typeof onLoad === 'function') onLoad();
+    }
+    static register(type, AssetClass) {
+	    if (!_types$1[type]) _types$1[type] = AssetClass;
     }
 }
-function cubicInterpolation(v1, v2, v3, scale = 255, table = CUBE.RYB_TO_RGB) {
-    v1 = clamp(v1 / scale, 0, 1);
-    v2 = clamp(v2 / scale, 0, 1);
-    v3 = clamp(v3 / scale, 0, 1);
-    const f0 = table[0], f1 = table[1], f2 = table[2], f3 = table[3];
-    const f4 = table[4], f5 = table[5], f6 = table[6], f7 = table[7];
-    const i1 = 1.0 - v1;
-    const i2 = 1.0 - v2;
-    const i3 = 1.0 - v3;
-    const c0 = i1 * i2 * i3;
-    const c1 = i1 * i2 * v3;
-    const c2 = i1 * v2 * i3;
-    const c3 = v1 * i2 * i3;
-    const c4 = i1 * v2 * v3;
-    const c5 = v1 * i2 * v3;
-    const c6 = v1 * v2 * i3;
-    const v7 = v1 * v2 * v3;
-    const o1 = c0*f0[0] + c1*f1[0] + c2*f2[0] + c3*f3[0] + c4*f4[0] + c5*f5[0] + c6*f6[0] + v7*f7[0];
-    const o2 = c0*f0[1] + c1*f1[1] + c2*f2[1] + c3*f3[1] + c4*f4[1] + c5*f5[1] + c6*f6[1] + v7*f7[1];
-    const o3 = c0*f0[2] + c1*f1[2] + c2*f2[2] + c3*f3[2] + c4*f4[2] + c5*f5[2] + c6*f6[2] + v7*f7[2];
-    return _interpolate.set(o1, o2, o3, 'gl').hex();
-}
-const CUBE = {
-    RYB_TO_RGB: [
-        [ 1.000, 1.000, 1.000 ],
-        [ 0.163, 0.373, 0.600 ],
-        [ 1.000, 1.000, 0.000 ],
-        [ 1.000, 0.000, 0.000 ],
-        [ 0.000, 0.660, 0.200 ],
-        [ 0.500, 0.000, 0.500 ],
-        [ 1.000, 0.500, 0.000 ],
-        [ 0.000, 0.000, 0.000 ]
-    ],
-    RGB_TO_RYB: [
-        [ 1.000, 1.000, 1.000 ],
-        [ 0.000, 0.000, 1.000 ],
-        [ 0.000, 1.000, 0.483 ],
-        [ 1.000, 0.000, 0.000 ],
-        [ 0.000, 0.053, 0.210 ],
-        [ 0.309, 0.000, 0.469 ],
-        [ 0.000, 1.000, 0.000 ],
-        [ 0.000, 0.000, 0.000 ]
-    ]
-};
-const SPECTRUM = {
-    RYB: [
-        0xFF0000, 0xFF4900, 0xFF7400, 0xFF9200, 0xFFAA00, 0xFFBF00, 0xFFD300, 0xFFE800,
-        0xFFFF00, 0xCCF600, 0x9FEE00, 0x67E300, 0x00CC00, 0x00AF64, 0x009999, 0x0B61A4,
-        0x1240AB, 0x1B1BB3, 0x3914AF, 0x530FAD, 0x7109AA, 0xA600A6, 0xCD0074, 0xE40045,
-        0xFF0000
-    ]
-};
-const RYB_OFFSET = [
-    0,   1,   2,   3,   5,   6,   7,   8,   9,  10,  11,  13,  14,  15,  16,  17,  18,  19,  19,  20,
-    21,  21,  22,  23,  23,  24,  25,  25,  26,  27,  27,  28,  28,  29,  29,  30,  30,  31,  31,  32,
-    32,  32,  33,  33,  34,  34,  35,  35,  35,  36,  36,  37,  37,  37,  38,  38,  38,  39,  39,  40,
-    40,  40,  41,  41,  41,  42,  42,  42,  43,  43,  43,  44,  44,  44,  45,  45,  45,  46,  46,  46,
-    47,  47,  47,  47,  48,  48,  48,  49,  49,  49,  50,  50,  50,  51,  51,  51,  52,  52,  52,  53,
-    53,  53,  54,  54,  54,  55,  55,  55,  56,  56,  56,  57,  57,  57,  58,  58,  59,  59,  59,  60,
-    60,  61,  61,  62,  63,  63,  64,  65,  65,  66,  67,  68,  68,  69,  70,  70,  71,  72,  72,  73,
-    73,  74,  75,  75,  76,  77,  77,  78,  79,  79,  80,  81,  82,  82,  83,  84,  85,  86,  87,  88,
-    88,  89,  90,  91,  92,  93,  95,  96,  98, 100, 102, 104, 105, 107, 109, 111, 113, 115, 116, 118,
-    120, 122, 125, 127, 129, 131, 134, 136, 138, 141, 143, 145, 147, 150, 152, 154, 156, 158, 159, 161,
-    163, 165, 166, 168, 170, 171, 173, 175, 177, 178, 180, 182, 184, 185, 187, 189, 191, 192, 194, 196,
-    198, 199, 201, 203, 205, 206, 207, 208, 209, 210, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221,
-    222, 223, 224, 226, 227, 228, 229, 230, 232, 233, 234, 235, 236, 238, 239, 240, 241, 242, 243, 244,
-    245, 246, 247, 248, 249, 250, 251, 251, 252, 253, 254, 255, 256, 257, 257, 258, 259, 260, 260, 261,
-    262, 263, 264, 264, 265, 266, 267, 268, 268, 269, 270, 271, 272, 273, 274, 274, 275, 276, 277, 278,
-    279, 280, 282, 283, 284, 286, 287, 289, 290, 292, 293, 294, 296, 297, 299, 300, 302, 303, 305, 307,
-    309, 310, 312, 314, 316, 317, 319, 321, 323, 324, 326, 327, 328, 329, 330, 331, 332, 333, 334, 336,
-    337, 338, 339, 340, 341, 342, 343, 344, 345, 347, 348, 349, 350, 352, 353, 354, 355, 356, 358, 359,
-    999
-];
-const COLOR_KEYWORDS = {
-    'aliceblue': 0xF0F8FF, 'antiquewhite': 0xFAEBD7, 'aqua': 0x00FFFF, 'aquamarine': 0x7FFFD4,
-    'azure': 0xF0FFFF, 'beige': 0xF5F5DC, 'bisque': 0xFFE4C4, 'black': 0x000000, 'blanchedalmond': 0xFFEBCD,
-    'blue': 0x0000FF, 'blueviolet': 0x8A2BE2, 'brown': 0xA52A2A, 'burlywood': 0xDEB887, 'cadetblue': 0x5F9EA0,
-    'chartreuse': 0x7FFF00, 'chocolate': 0xD2691E, 'coral': 0xFF7F50, 'cornflowerblue': 0x6495ED,
-    'cornsilk': 0xFFF8DC, 'crimson': 0xDC143C, 'cyan': 0x00FFFF, 'darkblue': 0x00008B, 'darkcyan': 0x008B8B,
-    'darkgoldenrod': 0xB8860B, 'darkgray': 0xA9A9A9, 'darkgreen': 0x006400, 'darkgrey': 0xA9A9A9,
-    'darkkhaki': 0xBDB76B, 'darkmagenta': 0x8B008B, 'darkolivegreen': 0x556B2F, 'darkorange': 0xFF8C00,
-    'darkorchid': 0x9932CC, 'darkred': 0x8B0000, 'darksalmon': 0xE9967A, 'darkseagreen': 0x8FBC8F,
-    'darkslateblue': 0x483D8B, 'darkslategray': 0x2F4F4F, 'darkslategrey': 0x2F4F4F, 'darkturquoise': 0x00CED1,
-    'darkviolet': 0x9400D3, 'deeppink': 0xFF1493, 'deepskyblue': 0x00BFFF, 'dimgray': 0x696969,
-    'dimgrey': 0x696969, 'dodgerblue': 0x1E90FF, 'firebrick': 0xB22222, 'floralwhite': 0xFFFAF0,
-    'forestgreen': 0x228B22, 'fuchsia': 0xFF00FF, 'gainsboro': 0xDCDCDC, 'ghostwhite': 0xF8F8FF,
-    'gold': 0xFFD700, 'goldenrod': 0xDAA520, 'gray': 0x808080, 'green': 0x008000, 'greenyellow': 0xADFF2F,
-    'grey': 0x808080, 'honeydew': 0xF0FFF0, 'hotpink': 0xFF69B4, 'indianred': 0xCD5C5C, 'indigo': 0x4B0082,
-    'ivory': 0xFFFFF0, 'khaki': 0xF0E68C, 'lavender': 0xE6E6FA, 'lavenderblush': 0xFFF0F5, 'lawngreen': 0x7CFC00,
-    'lemonchiffon': 0xFFFACD, 'lightblue': 0xADD8E6, 'lightcoral': 0xF08080, 'lightcyan': 0xE0FFFF,
-    'lightgoldenrodyellow': 0xFAFAD2, 'lightgray': 0xD3D3D3, 'lightgreen': 0x90EE90, 'lightgrey': 0xD3D3D3,
-    'lightpink': 0xFFB6C1, 'lightsalmon': 0xFFA07A, 'lightseagreen': 0x20B2AA, 'lightskyblue': 0x87CEFA,
-    'lightslategray': 0x778899, 'lightslategrey': 0x778899, 'lightsteelblue': 0xB0C4DE, 'lightyellow': 0xFFFFE0,
-    'lime': 0x00FF00, 'limegreen': 0x32CD32, 'linen': 0xFAF0E6, 'magenta': 0xFF00FF, 'maroon': 0x800000,
-    'mediumaquamarine': 0x66CDAA, 'mediumblue': 0x0000CD, 'mediumorchid': 0xBA55D3, 'mediumpurple': 0x9370DB,
-    'mediumseagreen': 0x3CB371, 'mediumslateblue': 0x7B68EE, 'mediumspringgreen': 0x00FA9A,
-    'mediumturquoise': 0x48D1CC, 'mediumvioletred': 0xC71585, 'midnightblue': 0x191970, 'mintcream': 0xF5FFFA,
-    'mistyrose': 0xFFE4E1, 'moccasin': 0xFFE4B5, 'navajowhite': 0xFFDEAD, 'navy': 0x000080, 'oldlace': 0xFDF5E6,
-    'olive': 0x808000, 'olivedrab': 0x6B8E23, 'orange': 0xFFA500, 'orangered': 0xFF4500, 'orchid': 0xDA70D6,
-    'palegoldenrod': 0xEEE8AA, 'palegreen': 0x98FB98, 'paleturquoise': 0xAFEEEE, 'palevioletred': 0xDB7093,
-    'papayawhip': 0xFFEFD5, 'peachpuff': 0xFFDAB9, 'peru': 0xCD853F, 'pink': 0xFFC0CB, 'plum': 0xDDA0DD,
-    'powderblue': 0xB0E0E6, 'purple': 0x800080, 'rebeccapurple': 0x663399, 'red': 0xFF0000,
-    'rosybrown': 0xBC8F8F, 'royalblue': 0x4169E1, 'saddlebrown': 0x8B4513, 'salmon': 0xFA8072,
-    'sandybrown': 0xF4A460, 'seagreen': 0x2E8B57, 'seashell': 0xFFF5EE, 'sienna': 0xA0522D, 'silver': 0xC0C0C0,
-    'skyblue': 0x87CEEB, 'slateblue': 0x6A5ACD, 'slategray': 0x708090, 'slategrey': 0x708090, 'snow': 0xFFFAFA,
-    'springgreen': 0x00FF7F, 'steelblue': 0x4682B4, 'tan': 0xD2B48C, 'teal': 0x008080, 'thistle': 0xD8BFD8,
-    'tomato': 0xFF6347, 'turquoise': 0x40E0D0, 'transparent': 0x000000, 'violet': 0xEE82EE, 'wheat': 0xF5DEB3,
-    'white': 0xFFFFFF, 'whitesmoke': 0xF5F5F5, 'yellow': 0xFFFF00, 'yellowgreen': 0x9ACD32
-};
+const _types$1 = {};
 
 const _lut = [ '00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '0a', '0b', '0c', '0d', '0e', '0f', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '1a', '1b', '1c', '1d', '1e', '1f', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '2a', '2b', '2c', '2d', '2e', '2f', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '3a', '3b', '3c', '3d', '3e', '3f', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49', '4a', '4b', '4c', '4d', '4e', '4f', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59', '5a', '5b', '5c', '5d', '5e', '5f', '60', '61', '62', '63', '64', '65', '66', '67', '68', '69', '6a', '6b', '6c', '6d', '6e', '6f', '70', '71', '72', '73', '74', '75', '76', '77', '78', '79', '7a', '7b', '7c', '7d', '7e', '7f', '80', '81', '82', '83', '84', '85', '86', '87', '88', '89', '8a', '8b', '8c', '8d', '8e', '8f', '90', '91', '92', '93', '94', '95', '96', '97', '98', '99', '9a', '9b', '9c', '9d', '9e', '9f', 'a0', 'a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7', 'a8', 'a9', 'aa', 'ab', 'ac', 'ad', 'ae', 'af', 'b0', 'b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'b8', 'b9', 'ba', 'bb', 'bc', 'bd', 'be', 'bf', 'c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9', 'ca', 'cb', 'cc', 'cd', 'ce', 'cf', 'd0', 'd1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8', 'd9', 'da', 'db', 'dc', 'dd', 'de', 'df', 'e0', 'e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7', 'e8', 'e9', 'ea', 'eb', 'ec', 'ed', 'ee', 'ef', 'f0', 'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'fa', 'fb', 'fc', 'fd', 'fe', 'ff' ];
+class Uuid {
+    static generate() {
+        if (window.crypto && window.crypto.randomUUID) return crypto.randomUUID();
+        const d0 = Math.random() * 0xffffffff | 0;
+        const d1 = Math.random() * 0xffffffff | 0;
+        const d2 = Math.random() * 0xffffffff | 0;
+        const d3 = Math.random() * 0xffffffff | 0;
+        const uuid = _lut[ d0 & 0xff ] + _lut[ d0 >> 8 & 0xff ] + _lut[ d0 >> 16 & 0xff ] + _lut[ d0 >> 24 & 0xff ] + '-' +
+            _lut[ d1 & 0xff ] + _lut[ d1 >> 8 & 0xff ] + '-' + _lut[ d1 >> 16 & 0x0f | 0x40 ] + _lut[ d1 >> 24 & 0xff ] + '-' +
+            _lut[ d2 & 0x3f | 0x80 ] + _lut[ d2 >> 8 & 0xff ] + '-' + _lut[ d2 >> 16 & 0xff ] + _lut[ d2 >> 24 & 0xff ] +
+            _lut[ d3 & 0xff ] + _lut[ d3 >> 8 & 0xff ] + _lut[ d3 >> 16 & 0xff ] + _lut[ d3 >> 24 & 0xff ];
+        return uuid.toLowerCase();
+    }
+    static arrayFromObjects(...objects) {
+        if (objects.length > 0 && Array.isArray(objects[0])) objects = objects[0];
+        const uuids = [];
+        for (const object of objects) {
+            if (typeof object === 'object' && object.uuid) uuids.push(object.uuid);
+        }
+        return uuids;
+    }
+}
+
+const EPSILON$1 = 0.000001;
+function length$1(a) {
+    let x = a[0];
+    let y = a[1];
+    let z = a[2];
+    return Math.sqrt(x * x + y * y + z * z);
+}
+function copy$1(out, a) {
+    out[0] = a[0];
+    out[1] = a[1];
+    out[2] = a[2];
+    return out;
+}
+function set$1(out, x, y, z) {
+    out[0] = x;
+    out[1] = y;
+    out[2] = z;
+    return out;
+}
+function add$1(out, a, b) {
+    out[0] = a[0] + b[0];
+    out[1] = a[1] + b[1];
+    out[2] = a[2] + b[2];
+    return out;
+}
+function subtract$1(out, a, b) {
+    out[0] = a[0] - b[0];
+    out[1] = a[1] - b[1];
+    out[2] = a[2] - b[2];
+    return out;
+}
+function multiply$1(out, a, b) {
+    out[0] = a[0] * b[0];
+    out[1] = a[1] * b[1];
+    out[2] = a[2] * b[2];
+    return out;
+}
+function divide$1(out, a, b) {
+    out[0] = a[0] / b[0];
+    out[1] = a[1] / b[1];
+    out[2] = a[2] / b[2];
+    return out;
+}
+function scale$1(out, a, b) {
+    out[0] = a[0] * b;
+    out[1] = a[1] * b;
+    out[2] = a[2] * b;
+    return out;
+}
+function distance$1(a, b) {
+    let x = b[0] - a[0];
+    let y = b[1] - a[1];
+    let z = b[2] - a[2];
+    return Math.sqrt(x * x + y * y + z * z);
+}
+function squaredDistance$1(a, b) {
+    let x = b[0] - a[0];
+    let y = b[1] - a[1];
+    let z = b[2] - a[2];
+    return x * x + y * y + z * z;
+}
+function squaredLength$1(a) {
+    let x = a[0];
+    let y = a[1];
+    let z = a[2];
+    return x * x + y * y + z * z;
+}
+function negate$1(out, a) {
+    out[0] = -a[0];
+    out[1] = -a[1];
+    out[2] = -a[2];
+    return out;
+}
+function inverse$1(out, a) {
+    out[0] = 1.0 / a[0];
+    out[1] = 1.0 / a[1];
+    out[2] = 1.0 / a[2];
+    return out;
+}
+function normalize$1(out, a) {
+    let x = a[0];
+    let y = a[1];
+    let z = a[2];
+    let len = x * x + y * y + z * z;
+    if (len > 0) {
+        len = 1 / Math.sqrt(len);
+    }
+    out[0] = a[0] * len;
+    out[1] = a[1] * len;
+    out[2] = a[2] * len;
+    return out;
+}
+function dot$1(a, b) {
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+function cross$1(out, a, b) {
+    let ax = a[0], ay = a[1], az = a[2];
+    let bx = b[0], by = b[1], bz = b[2];
+    out[0] = ay * bz - az * by;
+    out[1] = az * bx - ax * bz;
+    out[2] = ax * by - ay * bx;
+    return out;
+}
+function lerp$1(out, a, b, t) {
+    let ax = a[0];
+    let ay = a[1];
+    let az = a[2];
+    out[0] = ax + t * (b[0] - ax);
+    out[1] = ay + t * (b[1] - ay);
+    out[2] = az + t * (b[2] - az);
+    return out;
+}
+function transformMat4$1(out, a, m) {
+    let x = a[0],
+        y = a[1],
+        z = a[2];
+    let w = m[3] * x + m[7] * y + m[11] * z + m[15];
+    w = w || 1.0;
+    out[0] = (m[0] * x + m[4] * y + m[8] * z + m[12]) / w;
+    out[1] = (m[1] * x + m[5] * y + m[9] * z + m[13]) / w;
+    out[2] = (m[2] * x + m[6] * y + m[10] * z + m[14]) / w;
+    return out;
+}
+function scaleRotateMat4(out, a, m) {
+    let x = a[0],
+        y = a[1],
+        z = a[2];
+    let w = m[3] * x + m[7] * y + m[11] * z + m[15];
+    w = w || 1.0;
+    out[0] = (m[0] * x + m[4] * y + m[8] * z) / w;
+    out[1] = (m[1] * x + m[5] * y + m[9] * z) / w;
+    out[2] = (m[2] * x + m[6] * y + m[10] * z) / w;
+    return out;
+}
+function transformMat3$1(out, a, m) {
+    let x = a[0],
+        y = a[1],
+        z = a[2];
+    out[0] = x * m[0] + y * m[3] + z * m[6];
+    out[1] = x * m[1] + y * m[4] + z * m[7];
+    out[2] = x * m[2] + y * m[5] + z * m[8];
+    return out;
+}
+function transformQuat(out, a, q) {
+    let x = a[0],
+        y = a[1],
+        z = a[2];
+    let qx = q[0],
+        qy = q[1],
+        qz = q[2],
+        qw = q[3];
+    let uvx = qy * z - qz * y;
+    let uvy = qz * x - qx * z;
+    let uvz = qx * y - qy * x;
+    let uuvx = qy * uvz - qz * uvy;
+    let uuvy = qz * uvx - qx * uvz;
+    let uuvz = qx * uvy - qy * uvx;
+    let w2 = qw * 2;
+    uvx *= w2;
+    uvy *= w2;
+    uvz *= w2;
+    uuvx *= 2;
+    uuvy *= 2;
+    uuvz *= 2;
+    out[0] = x + uvx + uuvx;
+    out[1] = y + uvy + uuvy;
+    out[2] = z + uvz + uuvz;
+    return out;
+}
+const angle = (function() {
+    const tempA = [ 0, 0, 0 ];
+    const tempB = [ 0, 0, 0 ];
+    return function(a, b) {
+        copy$1(tempA, a);
+        copy$1(tempB, b);
+        normalize$1(tempA, tempA);
+        normalize$1(tempB, tempB);
+        let cosine = dot$1(tempA, tempB);
+        if (cosine > 1.0) {
+            return 0;
+        } else if (cosine < -1.0) {
+            return Math.PI;
+        } else {
+            return Math.acos(cosine);
+        }
+    };
+})();
+function exactEquals$1(a, b) {
+    return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
+}
+function fuzzyEquals(a, b, tolerance = 0.001) {
+    if (fuzzyFloat(a[0], b[0], tolerance) === false) return false;
+    if (fuzzyFloat(a[1], b[1], tolerance) === false) return false;
+    if (fuzzyFloat(a[2], b[2], tolerance) === false) return false;
+    return true;
+}
+const calculateNormal = (function() {
+    const temp = [ 0, 0, 0 ];
+    return function(out, a, b, c) {
+        subtract$1(temp, a, b);
+        subtract$1(out, b, c);
+        cross$1(out, temp, out);
+        normalize$1(out, out);
+    };
+})();
+function fuzzyFloat(a, b, tolerance = 0.001) {
+    return ((a < (b + tolerance)) && (a > (b - tolerance)));
+}
+
 const v0 = [ 0, 0, 0 ];
 const v1 = [ 0, 0, 0 ];
 const vc = [ 0, 0, 0 ];
@@ -682,10 +496,10 @@ class Maths {
         return (rectLeft || rectRight || rectTop || rectDown);
     }
     static triangleArea(a, b, c) {
-        Vec3Func.subtract(v0, c, b);
-        Vec3Func.subtract(v1, a, b);
-        Vec3Func.cross(vc, v0, v1);
-        return (Vec3Func.length(vc) * 0.5);
+        subtract$1(v0, c, b);
+        subtract$1(v1, a, b);
+        cross$1(vc, v0, v1);
+        return (length$1(vc) * 0.5);
     }
     static randomFloat(min, max) {
         return min + Math.random() * (max - min);
@@ -693,481 +507,11 @@ class Maths {
     static randomInt(min = 0, max = 1) {
         return min + Math.floor(Math.random() * (max - min));
     }
-    static uuid() {
-        if (window.crypto && window.crypto.randomUUID) return crypto.randomUUID();
-        const d0 = Math.random() * 0xffffffff | 0;
-        const d1 = Math.random() * 0xffffffff | 0;
-        const d2 = Math.random() * 0xffffffff | 0;
-        const d3 = Math.random() * 0xffffffff | 0;
-        const uuid = _lut[ d0 & 0xff ] + _lut[ d0 >> 8 & 0xff ] + _lut[ d0 >> 16 & 0xff ] + _lut[ d0 >> 24 & 0xff ] + '-' +
-            _lut[ d1 & 0xff ] + _lut[ d1 >> 8 & 0xff ] + '-' + _lut[ d1 >> 16 & 0x0f | 0x40 ] + _lut[ d1 >> 24 & 0xff ] + '-' +
-            _lut[ d2 & 0x3f | 0x80 ] + _lut[ d2 >> 8 & 0xff ] + '-' + _lut[ d2 >> 16 & 0xff ] + _lut[ d2 >> 24 & 0xff ] +
-            _lut[ d3 & 0xff ] + _lut[ d3 >> 8 & 0xff ] + _lut[ d3 >> 16 & 0xff ] + _lut[ d3 >> 24 & 0xff ];
-        return uuid.toLowerCase();
-    }
-}
-
-class Palette {
-    constructor() {
-        this.isPalette = true;
-        this.type = 'Palette';
-        this.name = 'New Palette';
-        this.uuid = Maths.uuid();
-        this.colors = [];
-    }
-    default16() {
-        this.colors = [
-            0x000000,
-            0x808080,
-            0xc0c0c0,
-            0xffffff,
-            0x00ffff,
-            0x0000ff,
-            0x000080,
-            0x800080,
-            0xff00ff,
-            0xff0000,
-            0x800000,
-            0x808000,
-            0xffff00,
-            0x00ff00,
-            0x008000,
-            0x008080,
-        ];
-        return this;
-    }
-    purpleGold() {
-        this.colors = [
-            0x000000,
-            0xffffff,
-            0xd400ff,
-            0xffc800,
-        ];
-        return this;
-    }
-    fromJSON(json) {
-        const data = json.object;
-        if (data.name !== undefined) this.name = data.name;
-        if (data.uuid !== undefined) this.uuid = data.uuid;
-        if (data.colors !== undefined) this.colors = JSON.parse(data.colors);
-        return this;
-    }
-    toJSON() {
-        const json = {
-            object: {
-                type: this.type,
-                name: this.name,
-                uuid: this.uuid,
-            }
-        };
-        json.object.colors = JSON.stringify(this.colors);
-        return json;
-    }
-}
-
-let Script$1 = class Script {
-    constructor(format = SCRIPT_FORMAT.JAVASCRIPT, variables = false) {
-        this.isScript = true;
-        this.type = 'Script';
-        this.name ='New Script';
-        this.uuid = Maths.uuid();
-        this.format = format;
-        this.category = 'unknown';
-        this.line = 0;
-        this.char = 0;
-        this.errors = false;
-        if (format === SCRIPT_FORMAT.JAVASCRIPT) {
-            this.source =
-`//
-// Lifecycle Events:    init, update, destroy
-// Input Events:        keydown, keyup, pointerdown, pointerup, pointermove
-// Within Events:
-//      'this'          represents entity this script is attached to
-//      'app'           access .renderer, .project, .scene, .camera, .keys
-// Pointer Events:
-//      'event.entity'  entity under pointer (if there is one)
-// Update Event:
-//      'event.delta'   time since last frame (in seconds)
-//      'event.total'   total elapsed time (in seconds)
-//
-${variableTemplate(variables)}
-// ...script scope variable declarations allowed here...
-
-// "init()" is executed when an entity is loaded
-function init() {
-
-}
-
-// "update()" is executed once each frame
-function update(event) {
-
-}
-
-// "destroy()" is executed right before an entity is removed
-function destroy() {
-
-}
-
-// Example Input Event
-function keydown(event) {
-
-}
-`;
-        }
-    }
-    fromJSON(json) {
-        const data = json.object;
-        if (data.name !== undefined) this.name = data.name;
-        if (data.uuid !== undefined) this.uuid = data.uuid;
-        if (data.format !== undefined) this.format = data.format;
-        if (data.category !== undefined) this.category = data.category;
-        if (data.line !== undefined) this.line = data.line;
-        if (data.char !== undefined) this.char = data.char;
-        if (data.errors !== undefined) this.errors = data.errors;
-        if (data.source !== undefined) this.source = data.source;
-        return this;
-    }
-    toJSON() {
-        const json = {
-            object: {
-                type: this.type,
-                name: this.name,
-                uuid: this.uuid,
-                format: this.format,
-                category: this.category,
-            }
-        };
-        json.object.line = this.line;
-        json.object.char = this.char;
-        json.object.errors = structuredClone(this.errors);
-        json.object.source = this.source;
-        return json;
-    }
-};
-function variableTemplate(includeVariables = false) {
-    if (!includeVariables) {
-return (`
-// Script Properties:
-let variables = {
-//  myNumber: { type: 'number', default: 10 },
-//  myString: { type: 'string', default: '' },
-//  myColor: { type: 'color', default: 0x0000ff },
-};
-`);
-    } else {
-return (
-`
-//
-// Example Script Properties
-//      - 'info' property text will appear in Advisor
-//      - see 'ComponentManager.js' for more information
-//
-let variables = {
-
-    // The following 'asset' types are saved as asset UUID values
-    geometry: { type: 'asset', class: 'geometry', info: 'Geometry Asset' },
-    material: { type: 'asset', class: 'material', info: 'Material Asset' },
-    script: { type: 'asset', class: 'script', info: 'Script Asset' },
-    shape: { type: 'asset', class: 'shape', info: 'Shape Asset' },
-    texture: { type: 'asset', class: 'texture', info: 'Texture Asset' },
-    divider1: { type: 'divider' },
-    prefab: { type: 'asset', class: 'prefab', info: 'Prefab Asset' },
-    divider2: { type: 'divider' },
-
-    // Dropdown selection box, saved as 'string' value
-    select: { type: 'select', default: 'Banana', select: [ 'Apple', 'Banana', 'Cherry' ], info: 'Selection Box' },
-
-    // Numeric values, saved as 'number' values
-    number: { type: 'number', default: 0.05, min: 0, max: 1, step: 0.05, label: 'test', info: 'Floating Point' },
-    int: { type: 'int', default: 5, min: 3, max: 10, info: 'Integer' },
-
-    // Angle, saved as 'number' value in radians
-    angle: { type: 'angle', default: 2 * Math.PI, min: 0, max: 360, info: 'Angle' },
-
-    // Numeric value +/- a range value, saved as Array
-    variable: { type: 'variable', default: [ 0, 0 ], min: 0, max: 100, info: 'Ranged Value' },
-    slider: { type: 'slider', default: 0, min: 0, max: 9, step: 1, precision: 0, info: 'Numeric Slider' },
-
-    // Boolean
-    boolean: { type: 'boolean', default: true, info: 'true || false' },
-
-    // Color returns integer value at runtime
-    color: { type: 'color', default: 0xff0000, info: 'Color Value' },
-
-    // Strings
-    string: { type: 'string', info: 'String Value' },
-    multiline: { type: 'string', rows: 4, info: 'Multiline String' },
-    keyboard: { type: 'key', default: 'Escape' },
-
-    // Vectors returned as Array types at runtime
-    numberArray: { type: 'vector', size: 1, info: 'Numeric Array' },
-    vector2: { type: 'vector', size: 2, tint: true, label: [ 'x', 'y' ], info: 'Vector 2' },
-    vector3: { type: 'vector', size: 3, tint: true, min: [ 1, 1, 1 ], max: [ 2, 2, 2 ], step: 0.1, precision: 2, info: 'Vector 3' },
-    vector4: { type: 'vector', size: 4, tint: true, info: 'Vector 4' },
-}
-`);
-    }
-}
-
-const _assets = {};
-const _types = {
-    'Palette':  Palette,
-    'Script':   Script$1,
-};
-let AssetManager$1 = class AssetManager {
-    static checkType(asset) {
-        if (!asset) return undefined;
-        if (asset.isEntity) return 'prefab';
-        if (asset.isPalette) return 'palette';
-        if (asset.isScript) return 'script';
-        return 'asset';
-    }
-    static get(uuid) {
-        if (uuid && uuid.uuid) uuid = uuid.uuid;
-        return _assets[uuid];
-    }
-    static library(type, category) {
-        const library = [];
-        for (const [ uuid, asset ] of Object.entries(_assets)) {
-            if (type && AssetManager.checkType(asset) !== type) continue;
-            if (category == undefined || (asset.category && asset.category === category)) {
-                library.push(asset);
-            }
-        }
-        return library;
-    }
-    static add(asset ) {
-        const assets = Array.isArray(asset) ? asset : [ ...arguments ];
-        let returnAsset = undefined;
-        for (let i = 0; i < assets.length; i++) {
-            let asset = assets[i];
-            if (!asset || !asset.uuid) continue;
-            if (!asset.name || asset.name === '') asset.name = asset.constructor.name;
-            _assets[asset.uuid] = asset;
-            if (returnAsset === undefined) returnAsset = asset;
-        }
-        return returnAsset;
-    }
-    static clear() {
-        for (const uuid in _assets) {
-            const asset = _assets[uuid];
-            if (asset.isBuiltIn) continue;
-            AssetManager.remove(_assets[uuid], true);
-        }
-    }
-    static remove(asset, dispose = true) {
-        const assets = Array.isArray(asset) ? asset : [ asset ];
-        for (const asset of assets) {
-            if (!asset || !asset.uuid) continue;
-            if (_assets[asset.uuid]) {
-                if (dispose && typeof asset.dispose === 'function') asset.dispose();
-                delete _assets[asset.uuid];
-            }
-        }
-    }
-    static fromJSON(json, onLoad = () => {}) {
-        AssetManager.clear();
-        for (const type of Object.keys(_types)) {
-            if (!json[type]) continue;
-            for (const assetData of json[type]) {
-                const Constructor = _types[type];
-                const asset = new Constructor();
-                asset.fromJSON(assetData);
-                AssetManager.add(asset);
-            }
-        }
-        if (typeof onLoad === 'function') {
-            onLoad();
-        }
-    }
-    static toJSON(meta) {
-        const json = {};
-        if (!meta) meta = {};
-        for (const type of Object.keys(_types)) {
-            const assets = AssetManager.library(type);
-            if (assets.length === 0) continue;
-            meta[type] = {};
-            for (const asset of assets) {
-                if (!asset.uuid || meta[type][asset.uuid]) continue;
-                meta[type][asset.uuid] = asset.toJSON();
-            }
-        }
-        for (const library in meta) {
-            const valueArray = [];
-            for (const key in meta[library]) {
-                const data = meta[library][key];
-                delete data.metadata;
-                valueArray.push(data);
-            }
-            json[library] = valueArray;
-        }
-        return json;
-    }
-};
-
-class Clock {
-    #running = false;
-    #startTime = 0;
-    #elapsedTime = 0;
-    #lastChecked = 0;
-    #deltaCount = 0;
-    #frameTime = 0;
-    #frameCount = 0;
-    #lastFrameCount = 0;
-    constructor(autoStart = true, msRewind = 0) {
-        if (autoStart) this.start();
-        this.#startTime -= msRewind;
-        this.#lastChecked -= msRewind;
-    }
-    start(reset = false) {
-        if (reset) this.reset();
-        this.#startTime = performance.now();
-        this.#lastChecked = this.#startTime;
-        this.#running = true;
-    }
-    stop() {
-        this.getDeltaTime();
-        this.#running = false;
-    }
-    toggle() {
-        if (this.#running) this.stop();
-        else this.start();
-    }
-    reset() {
-        this.#startTime = performance.now();
-        this.#lastChecked = this.#startTime;
-        this.#elapsedTime = 0;
-        this.#deltaCount = 0;
-    }
-    getElapsedTime() {
-        return this.#elapsedTime;
-    }
-    getDeltaTime() {
-        if (!this.#running) {
-            this.#lastFrameCount = 0;
-            return 0;
-        }
-        const newTime = performance.now();
-        const dt = (newTime - this.#lastChecked) / 1000;
-        this.#lastChecked = newTime;
-        this.#elapsedTime += dt;
-        this.#deltaCount++;
-        this.#frameTime += dt;
-        this.#frameCount++;
-        if (this.#frameTime > 1) {
-            this.#lastFrameCount = this.#frameCount;
-            this.#frameTime = 0;
-            this.#frameCount = 0;
-        }
-        return dt;
-    }
-    isRunning() {
-        return this.#running;
-    }
-    isStopped() {
-        return !(this.#running);
-    }
-    count() {
-        return this.#deltaCount;
-    }
-    averageDelta() {
-        const frameRate = 1 / this.#lastFrameCount;
-        return Math.min(1, frameRate);
-    }
-    fps() {
-        return this.#lastFrameCount;
-    }
-}
-
-class EntityUtils {
-    static clearObject(object, removeFromParent = true) {
-    }
-    static combineEntityArrays(intoEntityArray, entityArrayToAdd) {
-        for (const entity of entityArrayToAdd) {
-            if (EntityUtils.containsEntity(intoEntityArray, entity) === false) {
-                intoEntityArray.push(entity);
-            }
-        }
-    }
-    static commonEntity(entityArrayOne, entityArrayTwo) {
-        entityArrayOne = Array.isArray(entityArrayOne) ? entityArrayOne : [ entityArrayOne ];
-        entityArrayTwo = Array.isArray(entityArrayTwo) ? entityArrayTwo : [ entityArrayTwo ];
-        for (let i = 0; i < entityArrayOne.length; i++) {
-            if (EntityUtils.containsEntity(entityArrayTwo, entityArrayOne[i]) === true) return true;
-        }
-        for (let i = 0; i < entityArrayTwo.length; i++) {
-            if (EntityUtils.containsEntity(entityArrayOne, entityArrayTwo[i]) === true) return true;
-        }
-        return false;
-    }
-    static compareArrayOfEntities(entityArrayOne, entityArrayTwo) {
-        entityArrayOne = Array.isArray(entityArrayOne) ? entityArrayOne : [ entityArrayOne ];
-        entityArrayTwo = Array.isArray(entityArrayTwo) ? entityArrayTwo : [ entityArrayTwo ];
-        for (let i = 0; i < entityArrayOne.length; i++) {
-            if (EntityUtils.containsEntity(entityArrayTwo, entityArrayOne[i]) === false) return false;
-        }
-        for (let i = 0; i < entityArrayTwo.length; i++) {
-            if (EntityUtils.containsEntity(entityArrayOne, entityArrayTwo[i]) === false) return false;
-        }
-        return true;
-    }
-    static containsEntity(arrayOfEntities, entity) {
-        if (!Array.isArray(arrayOfEntities)) return false;
-        if (!entity || !entity.isEntity) return false;
-        for (const checkEntity of arrayOfEntities) {
-            if (checkEntity.isEntity && checkEntity.uuid === entity.uuid) return true;
-        }
-        return false;
-    }
-    static copyTransform(source, target) {
-        target.position.copy(source.position);
-        target.rotation.order = source.rotation.order;
-        target.quaternion.copy(source.quaternion);
-        target.scale.copy(source.scale);
-        target.matrix.copy(source.matrix);
-        target.matrixWorld.copy(source.matrixWorld);
-    }
-    static parentEntity(entity, immediateOnly = false) {
-        while (entity && entity.parent) {
-            if (entity.parent.isStage) return entity;
-            if (entity.parent.isWorld) return entity;
-            entity = entity.parent;
-            if (immediateOnly) {
-                let validEntity = entity.isEntity;
-                validEntity = validEntity || entity.userData.flagIgnore;
-                validEntity = validEntity || entity.userData.flagHelper;
-                if (validEntity) return entity;
-            }
-        }
-        return entity;
-    }
-    static removeEntityFromArray(entityArray, entity) {
-        if (!entity || !entity.isEntity || !Array.isArray(entityArray)) return;
-        for (let i = entityArray.length - 1; i >= 0; --i) {
-            if (entityArray[i].uuid === entity.uuid) entityArray.splice(i, 1);
-        }
-        return entityArray;
-    }
-    static uuidArray(objects) {
-        objects = Array.isArray(objects) ? objects : [...arguments];
-        const uuids = [];
-        for (const object of objects) {
-            if (typeof object === 'object' && object.uuid) uuids.push(object.uuid);
-        }
-        return uuids;
-    }
 }
 
 class System {
-    static isIterable(obj) {
-        return (obj && typeof obj[Symbol.iterator] === 'function');
-    }
     static isObject(variable) {
         return (variable && typeof variable === 'object' && !Array.isArray(variable));
-    }
-    static swapArrayItems(array, a, b) {
-        array[a] = array.splice(b, 1, array[a])[0];
-        return array;
     }
     static save(url, filename) {
         try {
@@ -1369,12 +713,7 @@ class ComponentManager {
                 return data;
             }
             toJSON() {
-                let data;
-                if (this.data && this.data.style) {
-                    data = this.defaultData('style', this.data.style);
-                } else {
-                    data = this.defaultData();
-                }
+                const data = (this.data?.style) ? this.defaultData('style', this.data.style) : this.defaultData();
                 for (const key in data) {
                     if (this.data[key] !== undefined) {
                         if (this.data[key] && this.data[key].isTexture) {
@@ -1467,23 +806,22 @@ class ComponentManager {
     }
 }
 
-class Entity3D {
+class Entity {
     constructor(name = 'Entity') {
-        this.name = name;
-        this.castShadow = true;
-        this.receiveShadow = true;
         this.isEntity = true;
-        this.isEntity3D = true;
-        this.type = 'Entity3D';
-        this.locked = false;
-        this.lookAtCamera = false;
-        this.lookAtYOnly = false;
-        this.bloom = false;
+        this.type = 'Entity';
+        this.name = name;
+        this.uuid = Uuid.generate();
         this.category = null;
+        this.locked = false;
+        this.visible = true;
         this.components = [];
+        this.children = [];
+        this.parent = null;
+        this.loadedDistance = 0;
     }
     componentFamily() {
-        return 'Entity3D';
+        return [ 'Entity' ];
     }
     addComponent(type, data = {}, includeDependencies = true) {
         const ComponentClass = ComponentManager.registered(type);
@@ -1581,7 +919,7 @@ class Entity3D {
             component.detach();
             return component;
         }
-        console.warn(`Entity3D.removeComponent(): Component ${component.uuid}, type '${component.type}' not found`);
+        console.warn(`Entity.removeComponent(): Component ${component.uuid}, type '${component.type}' not found`);
     }
     rebuildComponents() {
         for (const component of this.components) {
@@ -1596,29 +934,19 @@ class Entity3D {
             if (typeof callback === 'function' && callback(component)) return;
         }
     }
-    addEntity(entity, index = -1, maintainWorldTransform = false) {
-        if (!entity || !entity.isEntity3D) return this;
-        if (this.children.indexOf(entity) !== -1) return this;
-        if (maintainWorldTransform && entity.parent) {
-            this.attach(entity);
-        } else {
-            this.add(entity);
-        }
-        if (index !== -1) {
-            this.children.splice(index, 0, entity);
-            this.children.pop();
+    addEntity(...entities) {
+        for (const entity of entities) {
+            if (!entity || !entity.isEntity) continue;
+            if (this.children.indexOf(entity) !== -1) continue;
+            if (entity === this) continue;
+            entity.removeFromParent();
+            entity.parent = this;
+            this.children.push(entity);
         }
         return this;
     }
     getEntities() {
-        const entities = [];
-        for (const entity of this.children) {
-            if (!entity || !entity.isEntity3D) continue;
-            if (entity.userData.flagIgnore) continue;
-            if (entity.userData.flagHelper) continue;
-            entities.push(entity);
-        }
-        return entities;
+        return [ ...this.children ];
     }
     getEntityById(id) {
         return this.getEntityByProperty('id', parseInt(id));
@@ -1639,11 +967,12 @@ class Entity3D {
     }
     removeEntity(entity, forceDelete = false) {
         if (!entity) return;
-        if (!forceDelete) {
-            if (entity.locked) return;
-            if (entity.userData.flagHelper) return;
+        if (!forceDelete && entity.locked) return;
+        const index = this.children.indexOf(entity);
+        if (index !== -1) {
+            entity.parent = null;
+            this.children.splice(index, 1);
         }
-        this.remove(entity);
         return entity;
     }
     traverse(callback, recursive = true) {
@@ -1652,137 +981,58 @@ class Entity3D {
             child.traverse(callback, recursive);
         }
     }
-    traverseEntities(callback, recursive = true) {
-        if (typeof callback === 'function' && callback(this)) return;
-        for (const child of this.getEntities()) {
-            child.traverseEntities(callback, recursive);
-        }
-    }
     changeParent(newParent = undefined, newIndex = -1) {
         if (!newParent) newParent = this.parent;
-        if (!newParent || !newParent.isObject3D) return;
+        if (!newParent || !newParent.isEntity) return;
         const oldParent = this.parent;
         if (newIndex === -1 && oldParent) newIndex = oldParent.children.indexOf(this);
-        newParent.safeAttach(this);
+        newParent.addEntity(this);
         if (newIndex !== -1) {
             newParent.children.splice(newIndex, 0, this);
             newParent.children.pop();
         }
         return this;
     }
+    parentEntity() {
+        let entity = this;
+        while (entity && entity.parent) {
+            if (entity.parent.isStage) return entity;
+            if (entity.parent.isWorld) return entity;
+            entity = entity.parent;
+        }
+        return entity;
+    }
     parentStage() {
         if (this.isStage || this.isWorld) return this;
-        if (this.parent && this.parent.isEntity3D) return this.parent.parentStage();
+        if (this.parent && this.parent.isEntity) return this.parent.parentStage();
         return null;
     }
     parentWorld() {
         if (this.isWorld) return this;
-        if (this.parent && this.parent.isEntity3D) return this.parent.parentWorld();
+        if (this.parent && this.parent.isEntity) return this.parent.parentWorld();
         return null;
     }
-    updateMatrix() {
-        const onRotationChange = this.rotation._onChangeCallback;
-        const onQuaternionChange = this.rotation._onChangeCallback;
-        this.rotation._onChange(() => {});
-        this.quaternion._onChange(() => {});
-        const camera = window.activeCamera;
-        let lookAtCamera = Boolean(this.lookAtCamera && camera);
-        if (lookAtCamera && this.parent && this.parent.isObject3D) {
-            this.traverseAncestors((parent) => {
-                if (parent.lookAtCamera) lookAtCamera = false;
-            });
-        }
-        if (!lookAtCamera) {
-            this.quaternion.setFromEuler(this.rotation, false);
-        } else {
-            if (this.parent && this.parent.isObject3D) {
-                this.parent.getWorldQuaternion(_parentQuaternion, false );
-                _parentQuaternionInv.copy(_parentQuaternion).invert();
-                this.quaternion.copy(_parentQuaternionInv);
-            } else {
-                this.quaternion.identity();
-            }
-            _rotationQuaternion.setFromEuler(this.rotation, false);
-            this.matrixWorld.decompose(_worldPosition, _worldQuaternion, _worldScale);
-            camera.matrixWorld.decompose(_camPosition, _camQuaternion, _camScale);
-            if (!this.lookAtYOnly) {
-                    _lookQuaternion.copy(_camQuaternion);
-            } else {
-                _camRotation.set(0, Math.atan2((_camPosition.x - _worldPosition.x), (_camPosition.z - _worldPosition.z)), 0);
-                _lookQuaternion.setFromEuler(_camRotation, false);
-            }
-            this.quaternion.copy(_lookQuaternion);
-            this.quaternion.multiply(_rotationQuaternion);
-        }
-        this.matrix.compose(this.position, this.quaternion, this.scale);
-        this.matrixWorldNeedsUpdate = true;
-        this.rotation._onChange(onRotationChange);
-        this.quaternion._onChange(onQuaternionChange);
-    }
-    getWorldQuaternion(targetQuaternion, ignoreBillboard = true) {
-        let beforeBillboard = this.lookAtCamera;
-        if (ignoreBillboard && beforeBillboard) {
-            this.lookAtCamera = false;
-        }
-        this.updateWorldMatrix(true, false);
-        this.matrixWorld.decompose(_objPosition, targetQuaternion, _objScale);
-        if (ignoreBillboard && beforeBillboard) {
-            this.lookAtCamera = true;
-            this.updateWorldMatrix(true, false);
-        }
-        return targetQuaternion;
-    }
-    safeAttach(object) {
-        if (!object || !object.isObject3D) return;
-        object.getWorldQuaternion(_worldQuaternion);
-        object.getWorldScale(_worldScale);
-        object.getWorldPosition(_worldPosition);
-        object.removeFromParent();
-        object.rotation.copy(_worldRotation.setFromQuaternion(_worldQuaternion, undefined, false));
-        object.scale.copy(_worldScale);
-        object.position.copy(_worldPosition);
-        this.attach(object);
+    removeFromParent() {
+        const parent = this.parent;
+        if (parent) parent.removeEntity(this);
         return this;
     }
     clone(recursive) {
         return new this.constructor().copy(this, recursive);
     }
     copy(source, recursive = true) {
-        super.copy(source, false );
-        this.position.copy(source.position);
-        this.rotation.copy(source.rotation);
-        this.scale.copy(source.scale);
-        if (source.locked) this.locked = true;
-        if (source.lookAtCamera) this.lookAtCamera = true;
-        if (source.lookAtYOnly) this.lookAtYOnly = true;
-        this.updateMatrix();
-        if (recursive) {
-            for (const child of source.children) {
-                if (child.userData.flagIgnore) continue;
-                if (child.userData.flagHelper) continue;
-                this.add(child.clone());
-            }
-        }
-        return this;
-    }
-    cloneEntity(recursive = true) {
-        return new this.constructor().copyEntity(this, recursive);
-    }
-    copyEntity(source, recursive = true) {
         this.dispose();
-        this.copy(source, false );
-        this.locked = source.locked;
-        this.lookAtCamera = source.lookAtCamera;
-        this.lookAtYOnly = source.lookAtYOnly;
-        this.bloom = source.bloom;
+        this.name = source.name;
         this.category = source.category;
+        this.locked = source.locked;
+        this.visible = source.visible;
         for (const component of source.components) {
             const clonedComponent = this.addComponent(component.type, component.toJSON(), false);
             clonedComponent.tag = component.tag;
         }
         if (recursive) {
             for (const child of source.getEntities()) {
-                this.add(child.cloneEntity());
+                this.addEntity(child.clone());
             }
         }
         return this;
@@ -1794,394 +1044,483 @@ class Entity3D {
             if (typeof component.dispose === 'function') component.dispose();
         }
         while (this.children.length > 0) {
-            EntityUtils.clearObject(this.children[0], true );
+            this.children[0].dispose();
         }
-        this.dispatchEvent({ type: 'destroy' });
+        this.removeFromParent();
+        return this;
     }
-    fromJSON(json) {
-        const data = json.object;
+    toJSON(recursive = true) {
+        const data = {
+            type: this.type,
+            name: this.name,
+            uuid: this.uuid,
+            category: this.category,
+            locked: this.locked,
+            visible: this.visible,
+            components: [],
+            children: [],
+        };
+        if (recursive === false) {
+            data.meta = {
+                type: this.type,
+                version: VERSION,
+            };
+        }
+        for (const component of this.components) {
+            data.components.push(component.toJSON());
+        }
+        if (recursive) {
+            for (const child of this.getEntities()) {
+                data.children.push(child.toJSON(recursive));
+            }
+        }
+        return data;
+    }
+    fromJSON(data) {
+        if (data.type !== undefined) this.type = data.type;
         if (data.name !== undefined) this.name = data.name;
         if (data.uuid !== undefined) this.uuid = data.uuid;
-        if (data.position !== undefined) this.position.fromArray(data.position);
-        if (data.rotation !== undefined) this.rotation.fromArray(data.rotation);
-        if (data.scale !== undefined) this.scale.fromArray(data.scale);
-        if (data.castShadow !== undefined) this.castShadow = data.castShadow;
-        if (data.receiveShadow !== undefined) this.receiveShadow = data.receiveShadow;
-        if (data.visible !== undefined) this.visible = data.visible;
-        if (data.frustumCulled !== undefined) this.frustumCulled = data.frustumCulled;
-        if (data.renderOrder !== undefined) this.renderOrder = data.renderOrder;
-        if (data.layers !== undefined) this.layers.mask = data.layers;
-        if (data.up !== undefined) this.up.fromArray(data.up);
-        if (data.matrixAutoUpdate !== undefined) this.matrixAutoUpdate = data.matrixAutoUpdate;
-        if (typeof data.userData === 'object') this.userData = structuredClone(data.userData);
-        if (data.locked !== undefined) this.locked = data.locked;
-        if (data.lookAtCamera !== undefined) this.lookAtCamera = data.lookAtCamera;
-        if (data.lookAtYOnly !== undefined) this.lookAtYOnly = data.lookAtYOnly;
-        if (data.bloom !== undefined) this.bloom = data.bloom;
         if (data.category !== undefined) this.category = data.category;
-        for (const componentData of json.object.components) {
-            if (componentData && componentData.base && componentData.base.type) {
-                const component = this.addComponent(componentData.base.type, componentData, false);
-                component.tag = componentData.base.tag;
-            }
-        }
-        this.loadChildren(data.entities);
-        this.updateMatrix();
-        return this;
-    }
-    loadChildren(jsonEntities = []) {
-        for (const entityData of jsonEntities) {
-            const entity = new (eval(entityData.object.type))();
-            this.add(entity.fromJSON(entityData));
-        }
-    }
-    toJSON() {
-        const json = {
-            object: {
-                type: this.type,
-                name: this.name,
-                uuid: this.uuid,
-                components: [],
-                entities: [],
-            }
-        };
-        json.object.position  = this.position.toArray();
-        json.object.rotation = this.rotation.toArray();
-        json.object.scale = this.scale.toArray();
-        json.object.castShadow = this.castShadow;
-        json.object.receiveShadow = this.receiveShadow;
-        json.object.visible = this.visible;
-        json.object.frustumCulled = this.frustumCulled;
-        json.object.renderOrder = this.renderOrder;
-        json.object.layers = this.layers.mask;
-        json.object.up = this.up.toArray();
-        json.object.matrixAutoUpdate = this.matrixAutoUpdate;
-        if (Object.keys(this.userData).length > 0) {
-            json.object.userData = structuredClone(this.userData);
-        }
-        json.object.locked = this.locked;
-        json.object.lookAtCamera = this.lookAtCamera;
-        json.object.lookAtYOnly = this.lookAtYOnly;
-        json.object.bloom = this.bloom;
-        json.object.category = this.category;
-        for (const component of this.components) {
-            json.object.components.push(component.toJSON());
-        }
-        for (const child of this.getEntities()) {
-            json.object.entities.push(child.toJSON());
-        }
-        return json;
-    }
-}
-
-class Camera3D extends Entity3D {
-    constructor({
-        name,
-        type = 'PerspectiveCamera',
-        width = APP_SIZE,
-        height = APP_SIZE,
-        fit,
-        near,
-        far,
-        fieldOfView,
-    } = {}) {
-        super(name ?? 'Camera');
-        if (type !== 'OrthographicCamera' && type !== 'PerspectiveCamera') {
-            type = 'PerspectiveCamera';
-        }
-        this.isCamera = true;
-        this.isCamera3D = true;
-        this.type = type;
-        if (fit !== 'width' && fit !== 'height') fit = 'none';
-        this.fit = fit;
-        this.near = near ?? ((type === 'PerspectiveCamera') ? 0.01 : - 1000);
-        this.far = far ?? ((type === 'OrthographicCamera') ? 1000 : 1000);
-        this.fieldOfView = fieldOfView ?? 58.10;
-        this.isPerspectiveCamera = (type === 'PerspectiveCamera');
-        this.isOrthographicCamera = (type === 'OrthographicCamera');
-        this.aspect = 1;
-        this.rotateLock = false;
-        this.view = null;
-        this.zoom = 1;
-        this.fov = 58.10;
-        this.setSize(width, height);
-    }
-    updateMatrix() {
-    }
-    getWorldDirection(target) {
-        this.updateWorldMatrix(true, false);
-        const e = this.matrixWorld.elements;
-        return target.set(- e[8], - e[9], - e[10]).normalize();
-    }
-    updateMatrixWorld(force) {
-        super.updateMatrixWorld(force);
-        this.matrixWorldInverse.copy(this.matrixWorld).invert();
-    }
-    updateWorldMatrix(updateParents, updateChildren) {
-        super.updateWorldMatrix(updateParents, updateChildren);
-        this.matrixWorldInverse.copy(this.matrixWorld).invert();
-    }
-    changeType(type) {
-        if (!type || typeof type !== 'string') return this;
-        type = type.toLowerCase().replace('camera', '');
-        if (type === 'orthographic') this.type = 'OrthographicCamera';
-        else if (type === 'perspective') this.type = 'PerspectiveCamera';
-        else return this;
-        this.isPerspectiveCamera = (this.type === 'PerspectiveCamera');
-        this.isOrthographicCamera = (this.type === 'OrthographicCamera');
-        if (this.isPerspectiveCamera) this.near = (10 / this.far);
-        if (this.isOrthographicCamera) this.near = (this.far * -1);
-        this.updateProjectionMatrix();
-        return this;
-    }
-    changeFit(fit) {
-        if (fit === 'landscape') fit = 'width';
-        if (fit === 'portrait') fit = 'height';
-        if (fit !== 'width' && fit !== 'height') fit = 'none';
-        this.fit = fit;
-        return this;
-    }
-    setSize(width = APP_SIZE, height = APP_SIZE) {
-        this.lastWidth = width;
-        this.lastHeight = height;
-        this.aspect = width / height;
-         {
-            if (this.fit === 'height') {
-                this.fov = this.fieldOfView;
-            } else {
-                const tanFOV = Math.tan(((Math.PI / 180) * this.fieldOfView) / 2);
-                if (this.fit === 'width') {
-                    this.fov = (360 / Math.PI) * Math.atan(tanFOV / this.aspect);
-                } else {
-                    this.fov = (360 / Math.PI) * Math.atan(tanFOV * (height / APP_SIZE));
+        if (data.locked !== undefined) this.locked = data.locked;
+        if (data.visible !== undefined) this.visible = data.visible;
+        if (data.components) {
+            for (const componentData of data.components) {
+                if (componentData && componentData.base && componentData.base.type) {
+                    const component = this.addComponent(componentData.base.type, componentData, false);
+                    component.tag = componentData.base.tag;
                 }
             }
         }
-         {
-            if (this.fit === 'width') {
-                width = APP_SIZE;
-                height = width / this.aspect;
-            } else if (this.fit === 'height') {
-                height = APP_SIZE;
-                width = height * this.aspect;
+        if (data.children) {
+            for (const childData of data.children) {
+                const Constructor = Entity.type(childData.type);
+                if (Constructor) {
+                    const child = new Constructor().fromJSON(childData);
+                    this.addEntity(child);
+                } else {
+                    console.warn(`Entity.fromJSON(): Unknown entity type '${childData.type}'`);
+                }
             }
-            this.left =    - width / 2;
-            this.right =     width / 2;
-            this.top =       height / 2;
-            this.bottom =  - height / 2;
         }
-        this.updateProjectionMatrix();
         return this;
     }
-    updateProjectionMatrix(target ) {
-        if (target) {
-            if (target.isObject3D) target = target.position;
-            this.target.copy(target);
-        }
-        const distance = this.position.distanceTo(this.target);
-        const zoom = Maths.noZero(1000 / distance);
-        this.zoom = zoom;
-        if (this.isPerspectiveCamera) {
-            let top = this.near * Math.tan((Math.PI / 180) * 0.5 * this.fov);
-            let height = 2 * top;
-            let width = this.aspect * height;
-            let left = - 0.5 * width;
-            const view = this.view;
-            if (view && view.enabled) {
-                const fullWidth = view.fullWidth;
-                const fullHeight = view.fullHeight;
-                left += view.offsetX * width / fullWidth;
-                top -= view.offsetY * height / fullHeight;
-                width *= view.width / fullWidth;
-                height *= view.height / fullHeight;
-            }
-            this.projectionMatrix.makePerspective(left, left + width, top, top - height, this.near, this.far, this.coordinateSystem);
-            this.projectionMatrixInverse.copy(this.projectionMatrix).invert();
-        }
-        if (this.isOrthographicCamera) {
-            const dx = (this.right - this.left) / (2 * zoom);
-            const dy = (this.top - this.bottom) / (2 * zoom);
-            const cx = (this.right + this.left) / 2;
-            const cy = (this.top + this.bottom) / 2;
-            let left = cx - dx;
-            let right = cx + dx;
-            let top = cy + dy;
-            let bottom = cy - dy;
-            const view = this.view;
-            if (view && view.enabled) {
-                const scaleW = (this.right - this.left) / view.fullWidth / zoom;
-                const scaleH = (this.top - this.bottom) / view.fullHeight / zoom;
-                left += scaleW * view.offsetX;
-                right = left + scaleW * view.width;
-                top -= scaleH * view.offsetY;
-                bottom = top - scaleH * view.height;
-            }
-            this.projectionMatrix.makeOrthographic(left, right, top, bottom, this.near, this.far, this.coordinateSystem);
-            this.projectionMatrixInverse.copy(this.projectionMatrix).invert();
-        }
+    static register(type, EntityClass) {
+	    if (!_types[type]) _types[type] = EntityClass;
     }
-    setViewOffset(fullWidth, fullHeight, x, y, width, height) {
-        if (!this.view) this.view = {};
-        this.view.enabled = true;
-        this.view.fullWidth = fullWidth;
-        this.view.fullHeight = fullHeight;
-        this.view.offsetX = x;
-        this.view.offsetY = y;
-        this.view.width = width;
-        this.view.height = height;
-        this.setSize(fullWidth, fullHeight);
+    static type(type) {
+        return _types[type];
     }
-    clearViewOffset() {
-        if (this.view && this.view.enabled) {
-            this.view.enabled = false;
-            this.setSize(this.view.fullWidth, this.view.fullHeight);
-        }
+}
+const _types = { 'Entity': Entity };
+
+const EPSILON = 0.000001;
+function copy(out, a) {
+    out[0] = a[0];
+    out[1] = a[1];
+    return out;
+}
+function set(out, x, y) {
+    out[0] = x;
+    out[1] = y;
+    return out;
+}
+function add(out, a, b) {
+    out[0] = a[0] + b[0];
+    out[1] = a[1] + b[1];
+    return out;
+}
+function subtract(out, a, b) {
+    out[0] = a[0] - b[0];
+    out[1] = a[1] - b[1];
+    return out;
+}
+function multiply(out, a, b) {
+    out[0] = a[0] * b[0];
+    out[1] = a[1] * b[1];
+    return out;
+}
+function divide(out, a, b) {
+    out[0] = a[0] / b[0];
+    out[1] = a[1] / b[1];
+    return out;
+}
+function scale(out, a, b) {
+    out[0] = a[0] * b;
+    out[1] = a[1] * b;
+    return out;
+}
+function distance(a, b) {
+    var x = b[0] - a[0],
+        y = b[1] - a[1];
+    return Math.sqrt(x * x + y * y);
+}
+function squaredDistance(a, b) {
+    var x = b[0] - a[0],
+        y = b[1] - a[1];
+    return x * x + y * y;
+}
+function length(a) {
+    var x = a[0],
+        y = a[1];
+    return Math.sqrt(x * x + y * y);
+}
+function squaredLength(a) {
+    var x = a[0],
+        y = a[1];
+    return x * x + y * y;
+}
+function negate(out, a) {
+    out[0] = -a[0];
+    out[1] = -a[1];
+    return out;
+}
+function inverse(out, a) {
+    out[0] = 1.0 / a[0];
+    out[1] = 1.0 / a[1];
+    return out;
+}
+function normalize(out, a) {
+    var x = a[0],
+        y = a[1];
+    var len = x * x + y * y;
+    if (len > 0) {
+        len = 1 / Math.sqrt(len);
     }
-    clone(recursive) {
-        return new this.constructor().copy(this, recursive);
-    }
-    copy(source, recursive = true) {
-        super.copy(source, recursive);
-        this.changeType(source.type);
-        this.matrixWorldInverse.copy(source.matrixWorldInverse);
-        this.projectionMatrix.copy(source.projectionMatrix);
-        this.projectionMatrixInverse.copy(source.projectionMatrixInverse);
-        this.coordinateSystem = source.coordinateSystem;
-        this.fit = source.fit;
-        this.near = source.near;
-        this.far = source.far;
-        this.fieldOfView = source.fieldOfView;
-        this.setSize(source.lastWidth, source.lastHeight);
+    out[0] = a[0] * len;
+    out[1] = a[1] * len;
+    return out;
+}
+function dot(a, b) {
+    return a[0] * b[0] + a[1] * b[1];
+}
+function cross(a, b) {
+    return a[0] * b[1] - a[1] * b[0];
+}
+function lerp(out, a, b, t) {
+    var ax = a[0],
+        ay = a[1];
+    out[0] = ax + t * (b[0] - ax);
+    out[1] = ay + t * (b[1] - ay);
+    return out;
+}
+function transformMat3(out, a, m) {
+    var x = a[0],
+        y = a[1];
+    out[0] = m[0] * x + m[3] * y + m[6];
+    out[1] = m[1] * x + m[4] * y + m[7];
+    return out;
+}
+function transformMat4(out, a, m) {
+    let x = a[0];
+    let y = a[1];
+    out[0] = m[0] * x + m[4] * y + m[12];
+    out[1] = m[1] * x + m[5] * y + m[13];
+    return out;
+}
+function exactEquals(a, b) {
+    return a[0] === b[0] && a[1] === b[1];
+}
+
+class Vec2 extends Array {
+    constructor(x = 0, y = x) {
+        super(x, y);
         return this;
     }
-    cloneEntity(recursive = true) {
-        return new this.constructor().copyEntity(this, recursive);
+    get x() {
+        return this[0];
     }
-    copyEntity(source, recursive = true) {
-        super.copyEntity(source, recursive);
+    get y() {
+        return this[1];
+    }
+    set x(v) {
+        this[0] = v;
+    }
+    set y(v) {
+        this[1] = v;
+    }
+    set(x, y = x) {
+        if (x.length) return this.copy(x);
+        set(this, x, y);
         return this;
     }
-    fromJSON(json) {
-        const data = json.object;
-        super.fromJSON(json, this);
-        if (data.cameraType !== undefined) {
-            this.type = data.cameraType;
-            this.changeType(this.type);
-        }
-        if (data.fit !== undefined) this.fit = data.fit;
-        if (data.near !== undefined) this.near = data.near;
-        if (data.far !== undefined) this.far = data.far;
-        if (data.fieldOfView !== undefined) this.fieldOfView = data.fieldOfView;
-        this.updateProjectionMatrix();
+    copy(v) {
+        copy(this, v);
         return this;
     }
-    toJSON() {
-        const json = super.toJSON();
-        json.object.cameraType = this.type;
-        json.object.type = 'Camera3D';
-        json.object.fit = this.fit;
-        json.object.near = this.near;
-        json.object.far = this.far;
-        json.object.fieldOfView = this.fieldOfView;
-        return json;
+    add(va, vb) {
+        if (vb) add(this, va, vb);
+        else add(this, this, va);
+        return this;
+    }
+    sub(va, vb) {
+        if (vb) subtract(this, va, vb);
+        else subtract(this, this, va);
+        return this;
+    }
+    multiply(v) {
+        if (v.length) multiply(this, this, v);
+        else scale(this, this, v);
+        return this;
+    }
+    divide(v) {
+        if (v.length) divide(this, this, v);
+        else scale(this, this, 1 / v);
+        return this;
+    }
+    inverse(v = this) {
+        inverse(this, v);
+        return this;
+    }
+    len() {
+        return length(this);
+    }
+    distance(v) {
+        if (v) return distance(this, v);
+        else return length(this);
+    }
+    squaredLen() {
+        return this.squaredDistance();
+    }
+    squaredDistance(v) {
+        if (v) return squaredDistance(this, v);
+        else return squaredLength(this);
+    }
+    negate(v = this) {
+        negate(this, v);
+        return this;
+    }
+    cross(va, vb) {
+        if (vb) return cross(va, vb);
+        return cross(this, va);
+    }
+    scale(v) {
+        scale(this, this, v);
+        return this;
+    }
+    normalize() {
+        normalize(this, this);
+        return this;
+    }
+    dot(v) {
+        return dot(this, v);
+    }
+    equals(v) {
+        return exactEquals(this, v);
+    }
+    applyMatrix3(mat3) {
+        transformMat3(this, this, mat3);
+        return this;
+    }
+    applyMatrix4(mat4) {
+        transformMat4(this, this, mat4);
+        return this;
+    }
+    lerp(v, a) {
+        lerp(this, this, v, a);
+        return this;
+    }
+    clone() {
+        return new Vec2(this[0], this[1]);
+    }
+    fromArray(a, o = 0) {
+        this[0] = a[o];
+        this[1] = a[o + 1];
+        return this;
+    }
+    toArray(a = [], o = 0) {
+        a[o] = this[0];
+        a[o + 1] = this[1];
+        return a;
+    }
+    log(description = '') {
+        if (description !== '') description += ' - ';
+        console.log(`${description}X: ${this.x}, Y: ${this.y}`);
     }
 }
 
-class Stage3D extends Entity3D {
-    constructor(name = 'Start') {
-        super(name);
-        this.isStage = true;
-        this.isStage3D = true;
-        this.type = 'Stage3D';
-        this.enabled = true;
-        this.start = 0;
-        this.finish = -1;
-    }
-    componentFamily() {
-        return 'Stage3D';
-    }
-    cloneEntity(recursive = true) {
-        return new this.constructor().copyEntity(this, recursive);
-    }
-    copyEntity(source, recursive = true) {
-        super.copyEntity(source, recursive);
-        this.enabled = source.enabled;
-        this.start = source.start;
-        this.finish = source.finish;
-        this.beginPosition.copy(source.beginPosition);
-        this.endPosition.copy(source.endPosition);
+class Vec3 extends Array {
+    constructor(x = 0, y = x, z = x) {
+        super(x, y, z);
         return this;
     }
-    dispose() {
-        super.dispose();
+    get x() {
+        return this[0];
     }
-    fromJSON(json) {
-        const data = json.object;
-        super.fromJSON(json);
-        if (data.enabled !== undefined) this.enabled = data.enabled;
-        if (data.start !== undefined) this.start = data.start;
-        if (data.finish !== undefined) this.finish = data.finish;
-        if (data.beginPosition !== undefined) this.beginPosition.fromArray(data.beginPosition);
-        if (data.endPosition !== undefined) this.endPosition.fromArray(data.endPosition);
+    get y() {
+        return this[1];
+    }
+    get z() {
+        return this[2];
+    }
+    set x(v) {
+        this[0] = v;
+    }
+    set y(v) {
+        this[1] = v;
+    }
+    set z(v) {
+        this[2] = v;
+    }
+    set(x, y = x, z = x) {
+        if (x.length) return this.copy(x);
+        set$1(this, x, y, z);
         return this;
     }
-    loadChildren(jsonEntities = []) {
-        for (const entityData of jsonEntities) {
-            const entity = new (eval(entityData.object.type))();
-            this.add(entity.fromJSON(entityData));
-        }
+    copy(v) {
+        copy$1(this, v);
+        return this;
     }
-    toJSON() {
-        const json = super.toJSON();
-        json.object.enabled = this.enabled;
-        json.object.start = this.start;
-        json.object.finish = this.finish;
-        json.object.beginPosition = this.beginPosition.toArray();
-        json.object.endPosition = this.endPosition.toArray();
-        return json;
+    add(va, vb) {
+        if (vb) add$1(this, va, vb);
+        else add$1(this, this, va);
+        return this;
+    }
+    sub(va, vb) {
+        if (vb) subtract$1(this, va, vb);
+        else subtract$1(this, this, va);
+        return this;
+    }
+    multiply(v) {
+        if (v.length) multiply$1(this, this, v);
+        else scale$1(this, this, v);
+        return this;
+    }
+    divide(v) {
+        if (v.length) divide$1(this, this, v);
+        else scale$1(this, this, 1 / v);
+        return this;
+    }
+    inverse(v = this) {
+        inverse$1(this, v);
+        return this;
+    }
+    len() {
+        return length$1(this);
+    }
+    distance(v) {
+        if (v) return distance$1(this, v);
+        else return length$1(this);
+    }
+    squaredLen() {
+        return squaredLength$1(this);
+    }
+    squaredDistance(v) {
+        if (v) return squaredDistance$1(this, v);
+        else return squaredLength$1(this);
+    }
+    negate(v = this) {
+        negate$1(this, v);
+        return this;
+    }
+    cross(va, vb) {
+        if (vb) cross$1(this, va, vb);
+        else cross$1(this, this, va);
+        return this;
+    }
+    scale(multiplier) {
+        scale$1(this, this, multiplier);
+        return this;
+    }
+    normalize() {
+        normalize$1(this, this);
+        return this;
+    }
+    dot(v) {
+        return dot$1(this, v);
+    }
+    equals(v) {
+        return exactEquals$1(this, v);
+    }
+    fuzzyEquals(v, tolerance) {
+        return fuzzyEquals(this, v, tolerance);
+    }
+    applyMatrix3(mat3) {
+        transformMat3$1(this, this, mat3);
+        return this;
+    }
+    applyMatrix4(mat4) {
+        transformMat4$1(this, this, mat4);
+        return this;
+    }
+    scaleRotateMatrix4(mat4) {
+        scaleRotateMat4(this, this, mat4);
+        return this;
+    }
+    applyQuaternion(q) {
+        transformQuat(this, this, q);
+        return this;
+    }
+    angle(v) {
+        return angle(this, v);
+    }
+    lerp(v, t) {
+        lerp$1(this, this, v, t);
+        return this;
+    }
+    clone() {
+        return new Vec3(this[0], this[1], this[2]);
+    }
+    fromArray(a, o = 0) {
+        this[0] = a[o];
+        this[1] = a[o + 1];
+        this[2] = a[o + 2];
+        return this;
+    }
+    toArray(a = [], o = 0) {
+        a[o] = this[0];
+        a[o + 1] = this[1];
+        a[o + 2] = this[2];
+        return a;
+    }
+    transformDirection(mat4) {
+        const x = this[0];
+        const y = this[1];
+        const z = this[2];
+        this[0] = mat4[0] * x + mat4[4] * y + mat4[8] * z;
+        this[1] = mat4[1] * x + mat4[5] * y + mat4[9] * z;
+        this[2] = mat4[2] * x + mat4[6] * y + mat4[10] * z;
+        return this.normalize();
+    }
+    log(description = '') {
+        if (description !== '') description += ' - ';
+        console.log(`${description}X: ${this.x}, Y: ${this.y}, Z: ${this.z}`);
     }
 }
 
-class World3D extends Entity3D {
-    constructor(name = 'World 1') {
+class World extends Entity {
+    constructor(type = WORLD_TYPES.WORLD_2D, name = 'World 1') {
         super(name);
-        this.isScene = true;
+        if (Object.values(WORLD_TYPES).indexOf(type) === -1) {
+            console.warn(`World: Invalid world type '${type}', using 'World2D`);
+            type = WORLD_TYPES.WORLD_2D;
+        }
         this.isWorld = true;
-        this.isWorld3D = true;
-        this.type = 'World3D';
-        this.background = null;
-        this.environment = null;
-        this.fog = null;
-        this.backgroundBlurriness = 0;
-        this.backgroundIntensity = 1;
-        this.overrideMaterial = null;
-        this.xPos = 0;
-        this.yPos = 0;
+        this.type = type;
+        this.position = new Vec2();
         this.activeStageUUID = null;
+        this.loadPosition = new Vec3();
         this.loadDistance = 0;
     }
     componentFamily() {
-        return 'World3D';
+        return [ 'World', this.type ];
     }
     activeStage() {
         const stage = this.getStageByUUID(this.activeStageUUID);
         return stage ?? this;
     }
     setActiveStage(stage) {
+        this.activeStageUUID = null;
         if (stage && stage.isEntity && this.getStageByUUID(stage.uuid)) {
             this.activeStageUUID = stage.uuid;
-        } else {
-            this.activeStageUUID = null;
         }
         return this;
     }
-    addEntity(entity, index = -1, maintainWorldTransform = false) {
-        if (!entity || !entity.isEntity3D) return this;
-        if (this.children.indexOf(entity) !== -1) return this;
-        if (entity.isWorld) return this;
-        if (entity.isStage) maintainWorldTransform = false;
-        super.addEntity(entity, index, maintainWorldTransform);
-        if (entity.isStage && this.getStages().length === 1) this.setActiveStage(entity);
+    addEntity(...entities) {
+        super.addEntity(...entities);
+        if (!this.activeStageUUID) {
+            const stages = this.getStages();
+            if (stages.length > 0) this.setActiveStage(stages[0]);
+        }
         return this;
     }
     getEntities(includeStages = true) {
@@ -2220,28 +1559,12 @@ class World3D extends Entity3D {
         const cancel = (typeof callback === 'function') ? callback(this) : false;
         if (cancel) return;
         for (const stage of this.getStages()) {
-            stage.traverseEntities(callback, recursive);
+            stage.traverse(callback, recursive);
         }
     }
-    cloneEntity(recursive = true) {
-        return new this.constructor().copyEntity(this, recursive);
-    }
-    copyEntity(source, recursive = true) {
-        super.copyEntity(source, recursive);
-        if (source.background) {
-            if (source.background.isColor) {
-                this.background = source.background.clone();
-            } else {
-                this.background = source.background;
-            }
-        }
-        if (source.environment !== null) this.environment = source.environment.clone();
-        if (source.fog !== null) this.fog = source.fog.clone();
-        this.backgroundBlurriness = source.backgroundBlurriness;
-        this.backgroundIntensity = source.backgroundIntensity;
-        if (source.overrideMaterial !== null) this.overrideMaterial = source.overrideMaterial.clone();
-        this.xPos = source.xPos;
-        this.yPos = source.yPos;
+    copy(source, recursive = true) {
+        super.copy(source, recursive);
+        this.position.copy(source.position);
         const stageIndex = source.getStages().indexOf(source.activeStage());
         this.activeStageUUID = (stageIndex !== -1) ? this.getStages()[stageIndex].uuid : null;
         this.loadPosition.copy(source.loadPosition);
@@ -2250,76 +1573,34 @@ class World3D extends Entity3D {
     }
     dispose() {
         super.dispose();
-        if (this.background && typeof this.background.dispose === 'function') this.background.dispose();
-        if (this.environment && typeof this.environment.dispose === 'function') this.environment.dispose();
-        if (this.fog && typeof this.fog.dispose === 'function') this.fog.dispose();
-        if (this.overrideMaterial && typeof this.overrideMaterial.dispose === 'function') this.overrideMaterial.dispose();
     }
-    fromJSON(json) {
-        const data = json.object;
-        super.fromJSON(json);
-        if (data.background !== undefined) {
-            if (Number.isInteger(data.background)) {
-                this.background = new THREE.Color(data.background);
-            } else {
-                this.background = data.background;
-            }
-        }
-        if (data.environment !== undefined) {
-            const environmentTexture = AssetManager.get(data.background);
-            if (environmentTexture && environmentTexture.isTexture) this.environment = environmentTexture;
-        }
-        if (data.fog !== undefined) {
-            if (data.fog.type === 'Fog') {
-                this.fog = new THREE.Fog(data.fog.color, data.fog.near, data.fog.far);
-            } else if (data.fog.type === 'FogExp2') {
-                this.fog = new THREE.FogExp2(data.fog.color, data.fog.density);
-            }
-        }
-        if (data.backgroundBlurriness !== undefined) this.backgroundBlurriness = data.backgroundBlurriness;
-        if (data.backgroundIntensity !== undefined) this.backgroundIntensity = data.backgroundIntensity;
-        if (data.xPos !== undefined) this.xPos = data.xPos;
-        if (data.yPos !== undefined) this.yPos = data.yPos;
+    toJSON(recursive = true) {
+        const data = super.toJSON(recursive);
+        data.position = JSON.stringify(this.position.toArray());
+        data.activeStageUUID = this.activeStageUUID;
+        data.loadPosition = JSON.stringify(this.loadPosition.toArray());
+        data.loadDistance = this.loadDistance;
+        return data;
+    }
+    fromJSON(data) {
+        super.fromJSON(data);
+        if (data.position !== undefined) this.position.copy(JSON.parse(data.position));
         if (data.activeStageUUID !== undefined) this.activeStageUUID = data.activeStageUUID;
-        if (data.loadPosition !== undefined) this.loadPosition.fromArray(data.loadPosition);
+        if (data.loadPosition !== undefined) this.loadPosition.copy(JSON.parse(data.loadPosition));
         if (data.loadDistance !== undefined) this.loadDistance = data.loadDistance;
         return this;
     }
-    loadChildren(jsonEntities = []) {
-        for (const entityData of jsonEntities) {
-            const entity = new (eval(entityData.object.type))();
-            this.add(entity.fromJSON(entityData));
-        }
-    }
-    toJSON() {
-        const json = super.toJSON();
-        if (this.background) {
-            if (this.background.isColor) {
-                json.object.background = this.background.toJSON();
-            } else {
-                json.object.background = this.background;
-            }
-        }
-        if (this.environment) {
-        }
-        if (this.fog) json.object.fog = this.fog.toJSON();
-        if (this.backgroundBlurriness > 0) json.object.backgroundBlurriness = this.backgroundBlurriness;
-        if (this.backgroundIntensity !== 1) json.object.backgroundIntensity = this.backgroundIntensity;
-        json.object.xPos = this.xPos;
-        json.object.yPos = this.yPos;
-        json.object.activeStageUUID = this.activeStageUUID;
-        json.object.loadPosition = this.loadPosition.toArray();
-        json.object.loadDistance = this.loadDistance;
-        return json;
-    }
 }
+Entity.register('World2D', World);
+Entity.register('World3D', World);
+Entity.register('WorldUI', World);
 
 class Project {
     constructor(name = 'My Project') {
         this.isProject = true;
         this.type = 'Project';
         this.name = name;
-        this.uuid = Maths.uuid();
+        this.uuid = Uuid.generate();
         this.activeWorldUUID = null;
         this.startWorldUUID = null;
         this.notes = '';
@@ -2354,7 +1635,7 @@ class Project {
     }
     addWorld(world) {
         if (!world || !world.isWorld) return this;
-        if (WORLD_TYPES[world.type]) {
+        if (Object.values(WORLD_TYPES).indexOf(world.type) !== -1) {
             this.worlds[world.uuid] = world;
             if (this.activeWorldUUID == null) this.activeWorldUUID = world.uuid;
         } else {
@@ -2386,8 +1667,13 @@ class Project {
             if (recursive) world.traverseStages(callback, recursive);
         }
     }
-    worldCount() {
-        return Object.keys(this.worlds).length;
+    worldCount(type) {
+        if (!type) return Object.keys(this.worlds).length;
+        let count = 0;
+        for (const key in this.worlds) {
+            if (this.worlds[key].type === type) count++;
+        }
+        return count;
     }
     findEntityByUUID(uuid, searchAllWorlds = false) {
         const activeWorld = null;
@@ -2408,65 +1694,179 @@ class Project {
             if (typeof world.dispose === 'function') world.dispose();
         }
         this.name = 'My Project';
-        this.uuid = Maths.uuid();
+        this.uuid = Uuid.generate();
         this.activeWorldUUID = null;
     }
-    fromJSON(json, loadAssets = true, onLoad = () => {}) {
-        const metaType = (json.metadata) ? json.metadata.type : 'Undefined';
-        if (metaType !== 'Salinity') {
-            console.error(`Project.fromJSON(): Unknown project type ('${metaType}'), expected 'Salinity'`);
-            return;
-        }
-        const metaVersion = json.metadata.version;
-        if (metaVersion !== VERSION) {
-            console.warn(`Project.fromJSON(): Project saved in 'v${metaVersion}', attempting to load with 'v${VERSION}'`);
-        }
-        if (!json.object || json.object.type !== this.type) {
-            console.error(`Project.fromJSON(): Save file corrupt, no 'Project' object found!`);
-            return;
-        }
-        this.clear();
-        if (loadAssets) {
-            AssetManager$1.fromJSON(json, onLoad);
-        }
-        this.name = json.object.name;
-        this.uuid = json.object.uuid;
-        this.activeWorldUUID = json.object.activeWorldUUID;
-        this.startWorldUUID = json.object.startWorldUUID;
-        this.notes = json.notes;
-        this.settings = structuredClone(json.settings);
-        for (const worldData of json.worlds) {
-            let world = undefined;
-            switch (worldData.object.type) {
-                case 'World3D': world = new World3D().fromJSON(worldData); break;
-            }
-            if (world && world.isWorld) this.addWorld(world);
-        }
-        return this;
-    }
     toJSON() {
-        const meta = {};
-        const json = AssetManager$1.toJSON(meta);
-        json.metadata = {
+        const data = {};
+        data.meta = {
             type: 'Salinity',
             version: VERSION,
-            generator: 'Salinity.Project.toJSON',
+            generator: 'Salinity.Project.toJSON()',
         };
-        json.object = {
+        data.assets = AssetManager.toJSON();
+        data.object = {
             type: this.type,
             name: this.name,
             uuid: this.uuid,
             activeWorldUUID: this.activeWorldUUID,
             startWorldUUID: this.startWorldUUID,
         };
-        json.notes = this.notes;
-        json.settings = structuredClone(this.settings);
-        json.worlds = [];
+        data.notes = this.notes;
+        data.settings = structuredClone(this.settings);
+        data.worlds = [];
         for (const uuid in this.worlds) {
             const world = this.worlds[uuid];
-            json.worlds.push(world.toJSON());
+            data.worlds.push(world.toJSON());
         }
-        return json;
+        return data;
+    }
+    fromJSON(data, loadAssets = true) {
+        const type = data.meta?.type ?? 'undefined';
+        if (type !== 'Salinity') {
+            console.error(`Project.fromJSON(): Unknown project type '${type}', expected 'Salinity'`);
+            return;
+        }
+        const version = data.meta?.version ?? 'unknown';
+        if (version !== VERSION) {
+            console.warn(`Project.fromJSON(): Project saved in 'v${version}', attempting to load with 'v${VERSION}'`);
+        }
+        if (!data.object || data.object.type !== this.type) {
+            console.error(`Project.fromJSON(): Save file corrupt, no 'Project' object found!`);
+            return;
+        }
+        this.clear();
+        if (loadAssets) {
+            AssetManager.fromJSON(data.assets);
+        }
+        this.name = data.object.name;
+        this.uuid = data.object.uuid;
+        this.activeWorldUUID = data.object.activeWorldUUID;
+        this.startWorldUUID = data.object.startWorldUUID;
+        this.notes = data.notes;
+        this.settings = structuredClone(data.settings);
+        for (const worldData of data.worlds) {
+            const world = new World().fromJSON(worldData);
+            console.log(world.type);
+            this.addWorld(world);
+        }
+        return this;
+    }
+}
+
+class Arrays {
+    static isIterable(obj) {
+        return (obj && typeof obj[Symbol.iterator] === 'function');
+    }
+    static swapItems(array, a, b) {
+        array[a] = array.splice(b, 1, array[a])[0];
+        return array;
+    }
+    static combineEntityArrays(arrayOne, arrayTwo) {
+        const entities = [...arrayOne];
+        for (const entity of arrayTwo) if (Arrays.includesEntity(entity, arrayOne) === false) entities.push(entity);
+        return entities;
+    }
+    static compareEntityArrays(arrayOne, arrayTwo) {
+        arrayOne = Array.isArray(arrayOne) ? arrayOne : [ arrayOne ];
+        arrayTwo = Array.isArray(arrayTwo) ? arrayTwo : [ arrayTwo ];
+        for (const entity of arrayOne) if (Arrays.includesEntity(entity, arrayTwo) === false) return false;
+        for (const entity of arrayTwo) if (Arrays.includesEntity(entity, arrayOne) === false) return false;
+        return true;
+    }
+    static includesEntity(findEntity, ...entities) {
+        if (!findEntity || !findEntity.isEntity) return false;
+        if (entities.length === 0) return false;
+        if (entities.length > 0 && Array.isArray(entities[0])) entities = entities[0];
+        for (const entity of entities) if (entity.isEntity && entity.uuid === findEntity.uuid) return true;
+        return false;
+    }
+    static removeEntityFromArray(removeEntity, ...entities) {
+        if (entities.length > 0 && Array.isArray(entities[0])) entities = entities[0];
+        if (!removeEntity || !removeEntity.isEntity) return [...entities];
+        const newArray = [];
+        for (const entity of entities) if (entity.uuid !== removeEntity.uuid) newArray.push(entity);
+        return newArray;
+    }
+    static shareValues(arrayOne, arrayTwo) {
+        for (let i = 0; i < arrayOne.length; i++) {
+            if (arrayTwo.includes(arrayOne[i])) return true;
+        }
+        return false;
+    }
+}
+
+class Clock {
+    #running = false;
+    #startTime = 0;
+    #elapsedTime = 0;
+    #lastChecked = 0;
+    #deltaCount = 0;
+    #frameTime = 0;
+    #frameCount = 0;
+    #lastFrameCount = 0;
+    constructor(autoStart = true, msRewind = 0) {
+        if (autoStart) this.start();
+        this.#startTime -= msRewind;
+        this.#lastChecked -= msRewind;
+    }
+    start(reset = false) {
+        if (reset) this.reset();
+        this.#startTime = performance.now();
+        this.#lastChecked = this.#startTime;
+        this.#running = true;
+    }
+    stop() {
+        this.getDeltaTime();
+        this.#running = false;
+    }
+    toggle() {
+        if (this.#running) this.stop();
+        else this.start();
+    }
+    reset() {
+        this.#startTime = performance.now();
+        this.#lastChecked = this.#startTime;
+        this.#elapsedTime = 0;
+        this.#deltaCount = 0;
+    }
+    getElapsedTime() {
+        return this.#elapsedTime;
+    }
+    getDeltaTime() {
+        if (!this.#running) {
+            this.#lastFrameCount = 0;
+            return 0;
+        }
+        const newTime = performance.now();
+        const dt = (newTime - this.#lastChecked) / 1000;
+        this.#lastChecked = newTime;
+        this.#elapsedTime += dt;
+        this.#deltaCount++;
+        this.#frameTime += dt;
+        this.#frameCount++;
+        if (this.#frameTime > 1) {
+            this.#lastFrameCount = this.#frameCount;
+            this.#frameTime = 0;
+            this.#frameCount = 0;
+        }
+        return dt;
+    }
+    isRunning() {
+        return this.#running;
+    }
+    isStopped() {
+        return !(this.#running);
+    }
+    count() {
+        return this.#deltaCount;
+    }
+    averageDelta() {
+        const frameRate = 1 / this.#lastFrameCount;
+        return Math.min(1, frameRate);
+    }
+    fps() {
+        return this.#lastFrameCount;
     }
 }
 
@@ -2479,13 +1879,13 @@ class SceneManager {
     static app = undefined;
     static cloneChildren(toEntity, fromEntity) {
         for (const entity of fromEntity.getEntities()) {
-            const clone = entity.cloneEntity(false );
+            const clone = entity.clone(false );
             SceneManager.loadScriptsFromComponents(clone, entity);
             if (!entity.isStage) SceneManager.cloneChildren(clone, entity);
             if (fromEntity.isStage) {
                 if (toEntity.isWorld) {
                     const loadedDistance = toEntity.loadDistance + Math.abs(clone.position.length());
-                    clone.traverse((child) => { child.userData.loadedDistance = loadedDistance; });
+                    clone.traverse((child) => { child.loadedDistance = loadedDistance; });
                 }
             }
             toEntity.add(clone);
@@ -2500,9 +1900,8 @@ class SceneManager {
         for (const component of fromEntity.components) {
             if (component.type !== 'script' || !component.data) continue;
             const scriptUUID = component.data.script;
-            const script = AssetManager$1.get(scriptUUID);
+            const script = AssetManager.get(scriptUUID);
             if (!script || !script.isScript) continue;
-            if (script.errors) { console.warn(`Entity '${fromEntity.name}' has errors in script '${script.name}'. Script will not be loaded!`); continue; }
             let body = `${script.source}\n`;
             for (const variable in component.data.variables) {
                 const value = component.data.variables[variable];
@@ -2527,22 +1926,22 @@ class SceneManager {
         }
     }
     static removeEntity(fromScene, entity) {
-        if (!fromScene || !fromScene.isWorld3D) return;
-        if (!entity || !entity.isObject3D) return;
+        if (!fromScene || !fromScene.isWorld) return;
+        if (!entity || !entity.isEntity) return;
         SceneManager.app.dispatch('destroy', {}, [ entity.uuid ]);
         fromScene.removeEntity(entity, true );
         if (typeof entity.dispose === 'function') entity.dispose();
     }
     static cloneStage(toScene, fromStage, updateLoadPosition = true) {
-        if (!toScene || !toScene.isWorld3D) return;
-        if (!fromStage || !fromStage.isStage3D) return;
+        if (!toScene || !toScene.isWorld) return;
+        if (!fromStage || !fromStage.isStage) return;
         SceneManager.cloneChildren(toScene, fromStage);
         if (updateLoadPosition) {
         }
     }
     static loadStages(toScene, fromWorld, preload = 10) {
-        if (!toScene || !toScene.isWorld3D) return;
-        if (!fromWorld || !fromWorld.isWorld3D) return;
+        if (!toScene || !toScene.isWorld) return;
+        if (!fromWorld || !fromWorld.isWorld) return;
         if (preload < 0) return;
         const startDistance = toScene.loadDistance;
         let addedStageCount = 0;
@@ -2567,13 +1966,13 @@ class SceneManager {
         }
     }
     static loadWorld(toScene, fromWorld) {
-        if (!toScene || !toScene.isWorld3D) return;
-        if (!fromWorld || !fromWorld.isWorld3D) return;
+        if (!toScene || !toScene.isWorld) return;
+        if (!fromWorld || !fromWorld.isWorld) return;
         if (fromWorld.background != null) {
             if (fromWorld.background.isColor) {
                 toScene.background = fromWorld.background.clone();
             } else {
-                const texture = AssetManager$1.get(fromWorld.background);
+                const texture = AssetManager.get(fromWorld.background);
                 if (texture && texture.isTexture) toScene.background = texture.clone();
             }
         }
@@ -2586,7 +1985,7 @@ class SceneManager {
         SceneManager.cloneChildren(toScene, fromWorld);
     }
     static renderWorld(world) {
-        if (!world || !world.isWorld3D) return;
+        if (!world || !world.isWorld) return;
     }
     static setCamera(world, camera) {
         SceneManager.app.camera = camera;
@@ -2600,6 +1999,59 @@ class SceneManager {
     static dispose() {
     }
 }
+
+class Stage extends Entity {
+    constructor(type = STAGE_TYPES.STAGE_2D, name = 'Start') {
+        super(name);
+        if (Object.values(STAGE_TYPES).indexOf(type) === -1) {
+            console.warn(`Stage: Invalid stage type '${type}', using 'Stage2D`);
+            type = STAGE_TYPES.STAGE_2D;
+        }
+        this.isStage = true;
+        this.type = type;
+        this.enabled = true;
+        this.start = 0;
+        this.finish = -1;
+        this.beginPosition = new Vec3();
+        this.endPosition = new Vec3();
+    }
+    componentFamily() {
+        return [ 'Stage', this.type ];
+    }
+    copy(source, recursive = true) {
+        super.copy(source, recursive);
+        this.enabled = source.enabled;
+        this.start = source.start;
+        this.finish = source.finish;
+        this.beginPosition.copy(source.beginPosition);
+        this.endPosition.copy(source.endPosition);
+        return this;
+    }
+    dispose() {
+        super.dispose();
+    }
+    toJSON(recursive = true) {
+        const data = super.toJSON(recursive);
+        data.enabled = this.enabled;
+        data.start = this.start;
+        data.finish = this.finish;
+        data.beginPosition = JSON.stringify(this.beginPosition.toArray());
+        data.endPosition = JSON.stringify(this.endPosition.toArray());
+        return data;
+    }
+    fromJSON(data) {
+        super.fromJSON(data);
+        if (data.enabled !== undefined) this.enabled = data.enabled;
+        if (data.start !== undefined) this.start = data.start;
+        if (data.finish !== undefined) this.finish = data.finish;
+        if (data.beginPosition !== undefined) this.beginPosition.copy(JSON.parse(data.beginPosition));
+        if (data.endPosition !== undefined) this.endPosition.copy(JSON.parse(data.endPosition));
+        return this;
+    }
+}
+Entity.register('Stage2D', Stage);
+Entity.register('Stage3D', Stage);
+Entity.register('StageUI', Stage);
 
 let _animationID = null;
 class App {
@@ -2659,7 +2111,7 @@ class App {
         this.project.fromJSON(json, loadAssets);
         this.world = this.project.activeWorld();
         const preload = this.project.setting('preload');
-        this.scene = new World3D();
+        this.scene = new World(WORLD_TYPES.WORLD_2D);
         SceneManager.loadWorld(this.scene, this.world);
         SceneManager.loadStages(this.scene, this.world, preload);
     }
@@ -2717,8 +2169,6 @@ class App {
         if (this.renderer) this.renderer.clear();
         this.gameClock.stop();
         SceneManager.dispose();
-        EntityUtils.clearObject(this.camera);
-        EntityUtils.clearObject(this.scene);
         this.project.clear();
         this.clearEvents();
     }
@@ -2767,6 +2217,551 @@ function appPointerUp(event) {
 function appPointerMove(event) {
     if (this.isPlaying) {
         this.dispatch('pointermove', event);
+    }
+}
+
+class Cache {
+    constructor() {
+        this.items = {};
+    }
+    add(key, item) {
+        this.items[key] = item;
+    }
+    get(key) {
+        return this.items[key];
+    }
+    getByProperty(property, value) {
+        for (const key in this.items) {
+            if (this.items[key][property] === value) {
+                return this.items[key];
+            }
+        }
+    }
+    remove(key) {
+        delete this.items[key];
+    }
+    removeByProperty(property, value) {
+        for (const key in this.items) {
+            if (this.items[key][property] === value) {
+                delete this.items[key];
+            }
+        }
+    }
+    clear() {
+        this.items = {};
+    }
+}
+
+class LoadingManager {
+    constructor(onLoad, onProgress, onError) {
+        const self = this;
+        let isLoading = false;
+        let itemsLoaded = 0;
+        let itemsTotal = 0;
+        let urlModifier = undefined;
+        const handlers = [];
+        this.onStart = undefined;
+        this.onLoad = onLoad;
+        this.onProgress = onProgress;
+        this.onError = onError;
+        this.itemStart = function (url) {
+            itemsTotal++;
+            if (!isLoading && typeof self.onStart === 'function') {
+                self.onStart(url, itemsLoaded, itemsTotal);
+            }
+            isLoading = true;
+        };
+        this.itemEnd = function (url) {
+            itemsLoaded++;
+            if (typeof self.onProgress === 'function') {
+                self.onProgress(url, itemsLoaded, itemsTotal);
+            }
+            if (itemsLoaded === itemsTotal) {
+                isLoading = false;
+                if (typeof self.onLoad === 'function') self.onLoad();
+            }
+        };
+        this.itemError = function (url) {
+            if (typeof self.onError === 'function') self.onError(url);
+        };
+        this.resolveURL = function (url) {
+            if (urlModifier) return urlModifier(url);
+            return url;
+        };
+        this.setURLModifier = function (transform) {
+            urlModifier = transform;
+            return this;
+        };
+        this.addHandler = function (regex, loader) {
+            handlers.push(regex, loader);
+            return this;
+        };
+        this.removeHandler = function (regex) {
+            const index = handlers.indexOf(regex);
+            if (index !== -1) handlers.splice(index, 2);
+            return this;
+        };
+        this.getHandler = function (file) {
+            for (let i = 0, l = handlers.length; i < l; i += 2) {
+                const regex = handlers[i];
+                const loader = handlers[i + 1];
+                if (regex.global) regex.lastIndex = 0;
+                if (regex.test(file)) return loader;
+            }
+            return null;
+        };
+    }
+}
+const DefaultLoadingManager = new LoadingManager();
+
+class Loader {
+    constructor(manager) {
+        this.manager = (manager !== undefined) ? manager : DefaultLoadingManager;
+        this.crossOrigin = 'anonymous';
+        this.withCredentials = false;
+        this.path = '';
+        this.resourcePath = '';
+        this.requestHeader = {};
+    }
+    load() {}
+    loadAsync(url, onProgress) {
+        const scope = this;
+        return new Promise(function (resolve, reject) {
+            scope.load(url, resolve, onProgress, reject);
+        });
+    }
+    parse() {}
+    setCrossOrigin(crossOrigin) {
+        this.crossOrigin = crossOrigin;
+        return this;
+    }
+    setWithCredentials(value) {
+        this.withCredentials = value;
+        return this;
+    }
+    setPath(path) {
+        this.path = path;
+        return this;
+    }
+    setResourcePath(resourcePath) {
+        this.resourcePath = resourcePath;
+        return this;
+    }
+    setRequestHeader(requestHeader) {
+        this.requestHeader = requestHeader;
+        return this;
+    }
+}
+
+const loading = {};
+class FileLoader extends Loader {
+    constructor(manager) {
+        super(manager);
+    }
+    load(url, onLoad, onProgress, onError) {
+        if (url === undefined) url = '';
+        if (this.path !== undefined) url = this.path + url;
+        url = this.manager.resolveURL(url);
+        const cached = Cache.get(url);
+        if (cached !== undefined) {
+            this.manager.itemStart(url);
+            setTimeout(() => {
+                if (onLoad) onLoad(cached);
+                this.manager.itemEnd(url);
+            }, 0);
+            return cached;
+        }
+        if (loading[url] !== undefined) {
+            loading[url].push({
+                onLoad: onLoad,
+                onProgress: onProgress,
+                onError: onError
+            });
+            return;
+        }
+        loading[url] = [];
+        loading[url].push({
+            onLoad: onLoad,
+            onProgress: onProgress,
+            onError: onError,
+        });
+        const req = new Request(url, {
+            headers: new Headers(this.requestHeader),
+            credentials: this.withCredentials ? 'include' : 'same-origin',
+        });
+        const mimeType = this.mimeType;
+        const responseType = this.responseType;
+        fetch(req)
+            .then(response => {
+                if (response.status === 200 || response.status === 0) {
+                    if (response.status === 0) {
+                        console.warn('FileLoader.load(): HTTP Status 0 received');
+                    }
+                    if (typeof ReadableStream === 'undefined' || response.body === undefined || response.body.getReader === undefined) {
+                        return response;
+                    }
+                    const callbacks = loading[url];
+                    const reader = response.body.getReader();
+                    const contentLength = response.headers.get('X-File-Size') || response.headers.get('Content-Length');
+                    const total = contentLength ? parseInt(contentLength) : 0;
+                    const lengthComputable = total !== 0;
+                    let loaded = 0;
+                    const stream = new ReadableStream({
+                        start(controller) {
+                            readData();
+                            function readData() {
+                                reader.read().then(({ done, value }) => {
+                                    if (done) {
+                                        controller.close();
+                                    } else {
+                                        loaded += value.byteLength;
+                                        const event = new ProgressEvent('progress', { lengthComputable, loaded, total });
+                                        for (let i = 0, il = callbacks.length; i < il; i ++) {
+                                            const callback = callbacks[ i ];
+                                            if (callback.onProgress) callback.onProgress(event);
+                                        }
+                                        controller.enqueue(value);
+                                        readData();
+                                    }
+                                });
+                            }
+                        }
+                    });
+                    return new Response(stream);
+                } else {
+                    console.error(`Fetch for "${response.url}" responded with ${response.status}: ${response.statusText}`, response);
+                }
+            })
+            .then(response => {
+                switch (responseType) {
+                    case 'arraybuffer':
+                        return response.arrayBuffer();
+                    case 'blob':
+                        return response.blob();
+                    case 'document':
+                        return response.text()
+                            .then(text => {
+                                const parser = new DOMParser();
+                                return parser.parseFromString(text, mimeType);
+                            });
+                    case 'json':
+                        return response.json();
+                    default:
+                        if (mimeType === undefined) {
+                            return response.text();
+                        } else {
+                            const re = /charset="?([^;"\s]*)"?/i;
+                            const exec = re.exec(mimeType);
+                            const label = exec && exec[1] ? exec[1].toLowerCase() : undefined;
+                            const decoder = new TextDecoder(label);
+                            return response.arrayBuffer().then(ab => decoder.decode(ab));
+                        }
+                }
+            })
+            .then(data => {
+                Cache.add(url, data);
+                const callbacks = loading[url];
+                delete loading[url];
+                for (let i = 0, il = callbacks.length; i < il; i++) {
+                    const callback = callbacks[i];
+                    if (callback.onLoad) callback.onLoad(data);
+                }
+            })
+            .catch(err => {
+                const callbacks = loading[url];
+                if (callbacks === undefined) {
+                    this.manager.itemError(url);
+                    throw err;
+                }
+                delete loading[url];
+                for (let i = 0, il = callbacks.length; i < il; i ++) {
+                    const callback = callbacks[i];
+                    if (callback.onError) callback.onError(err);
+                }
+                this.manager.itemError(url);
+            })
+            .finally(() => {
+                this.manager.itemEnd(url);
+            });
+        this.manager.itemStart(url);
+    }
+    setResponseType(value) {
+        this.responseType = value;
+        return this;
+    }
+    setMimeType(value) {
+        this.mimeType = value;
+        return this;
+    }
+}
+
+class ImageLoader extends Loader {
+    constructor(manager) {
+        super(manager);
+    }
+    load(url, onLoad, onProgress, onError) {
+        if (this.path !== undefined) url = this.path + url;
+        url = this.manager.resolveURL(url);
+        const scope = this;
+        const cached = Cache.get(url);
+        if (cached !== undefined) {
+            scope.manager.itemStart(url);
+            setTimeout(function () {
+                if (onLoad) onLoad(cached);
+                scope.manager.itemEnd(url);
+            }, 0);
+            return cached;
+        }
+        const image = document.createElement('img');
+        function onImageLoad() {
+            removeEventListeners();
+            Cache.add(url, this);
+            if (onLoad) onLoad(this);
+            scope.manager.itemEnd(url);
+        }
+        function onImageError(event) {
+            removeEventListeners();
+            if (onError) onError(event);
+            scope.manager.itemError(url);
+            scope.manager.itemEnd(url);
+        }
+        function removeEventListeners() {
+            image.removeEventListener('load', onImageLoad, false);
+            image.removeEventListener('error', onImageError, false);
+        }
+        image.addEventListener('load', onImageLoad, false);
+        image.addEventListener('error', onImageError, false);
+        if (url.slice(0, 5) !== 'data:') {
+            if (this.crossOrigin !== undefined) image.crossOrigin = this.crossOrigin;
+        }
+        scope.manager.itemStart(url);
+        image.src = url;
+        return image;
+    }
+}
+
+class Asset {
+    constructor(name = '') {
+        this.isAsset = true;
+        this.type = 'Asset';
+        this.name = name ?? '';
+        this.uuid = Uuid.generate();
+        this.category = 'unknown';
+    }
+    toJSON() {
+        const data = {
+            type: this.type,
+            name: this.name,
+            uuid: this.uuid,
+            category: this.category,
+        };
+        return data;
+    }
+    fromJSON(data) {
+        if (data.name !== undefined) this.name = data.name;
+        if (data.uuid !== undefined) this.uuid = data.uuid;
+        if (data.category !== undefined) this.category = data.category;
+        return this;
+    }
+}
+
+class Palette extends Asset {
+    constructor() {
+        super('New Palette');
+        this.isPalette = true;
+        this.type = 'Palette';
+        this.colors = [];
+    }
+    default16() {
+        this.colors = [
+            0x000000,
+            0x808080,
+            0xc0c0c0,
+            0xffffff,
+            0x00ffff,
+            0x0000ff,
+            0x000080,
+            0x800080,
+            0xff00ff,
+            0xff0000,
+            0x800000,
+            0x808000,
+            0xffff00,
+            0x00ff00,
+            0x008000,
+            0x008080,
+        ];
+        return this;
+    }
+    purpleGold() {
+        this.colors = [
+            0x000000,
+            0xffffff,
+            0xd400ff,
+            0xffc800,
+        ];
+        return this;
+    }
+    toJSON() {
+        const data = super.toJSON();
+        data.colors = JSON.stringify(this.colors);
+        return data;
+    }
+    fromJSON(data) {
+        super.fromJSON(data);
+        if (data.colors !== undefined) this.colors = JSON.parse(data.colors);
+        return this;
+    }
+}
+AssetManager.register('Palette', Palette);
+
+let Script$1 = class Script extends Asset {
+    constructor(format = SCRIPT_FORMAT.JAVASCRIPT, variables = false) {
+        super('New Script');
+        this.isScript = true;
+        this.type = 'Script';
+        this.format = format;
+        this.position = 0;
+        this.scrollLeft = 0;
+        this.scrollTop = 0;
+        this.selectFrom = 0;
+        this.selectTo = 0;
+        if (format === SCRIPT_FORMAT.JAVASCRIPT) {
+            this.source = `//
+// Lifecycle Events:    init, update, destroy
+// Input Events:        keydown, keyup, pointerdown, pointerup, pointermove
+// Within Events:
+//      'this'          represents entity this script is attached to
+//      'app'           access .renderer, .project, .scene, .camera, .keys
+// Pointer Events:
+//      'event.entity'  entity under pointer (if there is one)
+// Update Event:
+//      'event.delta'   time since last frame (in seconds)
+//      'event.total'   total elapsed time (in seconds)
+//
+${variableTemplate(variables)}
+// ...script scope variable declarations allowed here...
+
+// "init()" is executed when an entity is loaded
+function init() {
+
+}
+
+// "update()" is executed once each frame
+function update(event) {
+
+}
+
+// "destroy()" is executed right before an entity is removed
+function destroy() {
+
+}
+
+// Example Input Event
+function keydown(event) {
+
+}
+`;
+        } else if (format === SCRIPT_FORMAT.PYTHON) {
+            this.source = `# This program adds two numbers
+
+num1 = 1.5
+num2 = 6.3
+
+# Add two numbers
+sum = num1 + num2
+
+# Display the sum
+print('The sum of {0} and {1} is {2}'.format(num1, num2, sum))
+`;
+        }
+    }
+    toJSON() {
+        const data = super.toJSON();
+        data.format = this.format;
+        data.position = this.position;
+        data.scrollLeft = this.scrollLeft;
+        data.scrollTop = this.scrollTop;
+        data.selectFrom = this.selectFrom;
+        data.selectTo = this.selectTo;
+        data.source = this.source;
+        return data;
+    }
+    fromJSON(data) {
+        super.fromJSON(data);
+        if (data.format !== undefined) this.format = data.format;
+        if (data.position !== undefined) this.position = data.position;
+        if (data.scrollLeft !== undefined) this.scrollLeft = data.scrollLeft;
+        if (data.scrollTop !== undefined) this.scrollTop = data.scrollTop;
+        if (data.selectFrom !== undefined) this.selectFrom = data.selectFrom;
+        if (data.selectTo !== undefined) this.selectTo = data.selectTo;
+        if (data.source !== undefined) this.source = data.source;
+        return this;
+    }
+};
+AssetManager.register('Script', Script$1);
+function variableTemplate(includeVariables = false) {
+    if (!includeVariables) {
+return (`
+// Script Properties:
+let variables = {
+//  myNumber: { type: 'number', default: 10 },
+//  myString: { type: 'string', default: '' },
+//  myColor: { type: 'color', default: 0x0000ff },
+};
+`);
+    } else {
+return (
+`
+//
+// Example Script Properties
+//      - 'info' property text will appear in Advisor
+//      - see 'ComponentManager.js' for more information
+//
+let variables = {
+
+    // The following 'asset' types are saved as asset UUID values
+    geometry: { type: 'asset', class: 'geometry', info: 'Geometry Asset' },
+    material: { type: 'asset', class: 'material', info: 'Material Asset' },
+    script: { type: 'asset', class: 'script', info: 'Script Asset' },
+    shape: { type: 'asset', class: 'shape', info: 'Shape Asset' },
+    texture: { type: 'asset', class: 'texture', info: 'Texture Asset' },
+    divider1: { type: 'divider' },
+    prefab: { type: 'asset', class: 'prefab', info: 'Prefab Asset' },
+    divider2: { type: 'divider' },
+
+    // Dropdown selection box, saved as 'string' value
+    select: { type: 'select', default: 'Banana', select: [ 'Apple', 'Banana', 'Cherry' ], info: 'Selection Box' },
+
+    // Numeric values, saved as 'number' values
+    number: { type: 'number', default: 0.05, min: 0, max: 1, step: 0.05, label: 'test', info: 'Floating Point' },
+    int: { type: 'int', default: 5, min: 3, max: 10, info: 'Integer' },
+
+    // Angle, saved as 'number' value in radians
+    angle: { type: 'angle', default: 2 * Math.PI, min: 0, max: 360, info: 'Angle' },
+
+    // Numeric value +/- a range value, saved as Array
+    variable: { type: 'variable', default: [ 0, 0 ], min: 0, max: 100, info: 'Ranged Value' },
+    slider: { type: 'slider', default: 0, min: 0, max: 9, step: 1, precision: 0, info: 'Numeric Slider' },
+
+    // Boolean
+    boolean: { type: 'boolean', default: true, info: 'true || false' },
+
+    // Color returns integer value at runtime
+    color: { type: 'color', default: 0xff0000, info: 'Color Value' },
+
+    // Strings
+    string: { type: 'string', info: 'String Value' },
+    multiline: { type: 'string', rows: 4, info: 'Multiline String' },
+    keyboard: { type: 'key', default: 'Escape' },
+
+    // Vectors returned as Array types at runtime
+    numberArray: { type: 'vector', size: 1, info: 'Numeric Array' },
+    vector2: { type: 'vector', size: 2, tint: true, label: [ 'x', 'y' ], info: 'Vector 2' },
+    vector3: { type: 'vector', size: 3, tint: true, min: [ 1, 1, 1 ], max: [ 2, 2, 2 ], step: 0.1, precision: 2, info: 'Vector 3' },
+    vector4: { type: 'vector', size: 4, tint: true, info: 'Vector 4' },
+};
+`);
     }
 }
 
@@ -3217,18 +3212,310 @@ class Vectors {
     }
 }
 
+class Entity2D extends Entity {
+    constructor(name = 'Entity') {
+        super(name);
+        this.isEntity2D = true;
+        this.type = 'Entity2D';
+        this.lookAtCamera = false;
+        this.bloom = false;
+    }
+    componentFamily() {
+        return [ 'Entity2D' ];
+    }
+    copy(source, recursive = true) {
+        super.copy(source, recursive);
+        this.lookAtCamera = source.lookAtCamera;
+        this.bloom = source.bloom;
+        return this;
+    }
+    dispose() {
+        super.dispose();
+    }
+    toJSON(recursive = true) {
+        const data = super.toJSON(recursive);
+        data.lookAtCamera = this.lookAtCamera;
+        data.bloom = this.bloom;
+        return data;
+    }
+    fromJSON(data) {
+        super.fromJSON(data);
+        if (data.lookAtCamera !== undefined) this.lookAtCamera = data.lookAtCamera;
+        if (data.bloom !== undefined) this.bloom = data.bloom;
+        return this;
+    }
+}
+Entity.register('Entity2D', Entity2D);
+
+class Entity3D extends Entity {
+    constructor(name = 'Entity') {
+        super(name);
+        this.isEntity3D = true;
+        this.type = 'Entity3D';
+        this.lookAtCamera = false;
+        this.lookAtYOnly = false;
+        this.bloom = false;
+    }
+    componentFamily() {
+        return [ 'Entity3D' ];
+    }
+    copy(source, recursive = true) {
+        super.copy(source, recursive);
+        this.lookAtCamera = source.lookAtCamera;
+        this.lookAtYOnly = source.lookAtYOnly;
+        this.bloom = source.bloom;
+        return this;
+    }
+    dispose() {
+        super.dispose();
+    }
+    toJSON(recursive = true) {
+        const data = super.toJSON(recursive);
+        data.lookAtCamera = this.lookAtCamera;
+        data.lookAtYOnly = this.lookAtYOnly;
+        data.bloom = this.bloom;
+        return data;
+    }
+    fromJSON(data) {
+        super.fromJSON(data);
+        if (data.lookAtCamera !== undefined) this.lookAtCamera = data.lookAtCamera;
+        if (data.lookAtYOnly !== undefined) this.lookAtYOnly = data.lookAtYOnly;
+        if (data.bloom !== undefined) this.bloom = data.bloom;
+        return this;
+    }
+}
+Entity.register('Entity3D', Entity3D);
+
+class Camera3D extends Entity3D {
+    constructor({
+        name,
+        type = 'PerspectiveCamera',
+        width = APP_SIZE,
+        height = APP_SIZE,
+        fit,
+        near,
+        far,
+        fieldOfView,
+    } = {}) {
+        super(name ?? 'Camera');
+        if (type !== 'OrthographicCamera' && type !== 'PerspectiveCamera') {
+            type = 'PerspectiveCamera';
+        }
+        this.isCamera = true;
+        this.isCamera3D = true;
+        this.type = type;
+        if (fit !== 'width' && fit !== 'height') fit = 'none';
+        this.fit = fit;
+        this.near = near ?? ((type === 'PerspectiveCamera') ? 0.01 : - 1000);
+        this.far = far ?? ((type === 'OrthographicCamera') ? 1000 : 1000);
+        this.fieldOfView = fieldOfView ?? 58.10;
+        this.isPerspectiveCamera = (type === 'PerspectiveCamera');
+        this.isOrthographicCamera = (type === 'OrthographicCamera');
+        this.aspect = 1;
+        this.rotateLock = false;
+        this.view = null;
+        this.zoom = 1;
+        this.fov = 58.10;
+        this.setSize(width, height);
+    }
+    updateMatrix() {
+    }
+    getWorldDirection(target) {
+    }
+    updateMatrixWorld(force) {
+    }
+    updateWorldMatrix(updateParents, updateChildren) {
+    }
+    changeType(type) {
+        if (!type || typeof type !== 'string') return this;
+        type = type.toLowerCase().replace('camera', '');
+        if (type === 'orthographic') this.type = 'OrthographicCamera';
+        else if (type === 'perspective') this.type = 'PerspectiveCamera';
+        else return this;
+        this.isPerspectiveCamera = (this.type === 'PerspectiveCamera');
+        this.isOrthographicCamera = (this.type === 'OrthographicCamera');
+        if (this.isPerspectiveCamera) this.near = (10 / this.far);
+        if (this.isOrthographicCamera) this.near = (this.far * -1);
+        this.updateProjectionMatrix();
+        return this;
+    }
+    changeFit(fit) {
+        if (fit === 'landscape') fit = 'width';
+        if (fit === 'portrait') fit = 'height';
+        if (fit !== 'width' && fit !== 'height') fit = 'none';
+        this.fit = fit;
+        return this;
+    }
+    setSize(width = APP_SIZE, height = APP_SIZE) {
+        this.lastWidth = width;
+        this.lastHeight = height;
+        this.aspect = width / height;
+         {
+            if (this.fit === 'height') {
+                this.fov = this.fieldOfView;
+            } else {
+                const tanFOV = Math.tan(((Math.PI / 180) * this.fieldOfView) / 2);
+                if (this.fit === 'width') {
+                    this.fov = (360 / Math.PI) * Math.atan(tanFOV / this.aspect);
+                } else {
+                    this.fov = (360 / Math.PI) * Math.atan(tanFOV * (height / APP_SIZE));
+                }
+            }
+        }
+         {
+            if (this.fit === 'width') {
+                width = APP_SIZE;
+                height = width / this.aspect;
+            } else if (this.fit === 'height') {
+                height = APP_SIZE;
+                width = height * this.aspect;
+            }
+            this.left =    - width / 2;
+            this.right =     width / 2;
+            this.top =       height / 2;
+            this.bottom =  - height / 2;
+        }
+        this.updateProjectionMatrix();
+        return this;
+    }
+    updateProjectionMatrix(target ) {
+        if (target) {
+            if (target.isObject3D) target = target.position;
+            this.target.copy(target);
+        }
+        const distance = this.position.distanceTo(this.target);
+        const zoom = Maths.noZero(1000 / distance);
+        this.zoom = zoom;
+        if (this.isPerspectiveCamera) {
+            let top = this.near * Math.tan((Math.PI / 180) * 0.5 * this.fov);
+            let height = 2 * top;
+            let width = this.aspect * height;
+            let left = - 0.5 * width;
+            const view = this.view;
+            if (view && view.enabled) {
+                const fullWidth = view.fullWidth;
+                const fullHeight = view.fullHeight;
+                left += view.offsetX * width / fullWidth;
+                top -= view.offsetY * height / fullHeight;
+                width *= view.width / fullWidth;
+                height *= view.height / fullHeight;
+            }
+            this.projectionMatrix.makePerspective(left, left + width, top, top - height, this.near, this.far, this.coordinateSystem);
+            this.projectionMatrixInverse.copy(this.projectionMatrix).invert();
+        }
+        if (this.isOrthographicCamera) {
+            const dx = (this.right - this.left) / (2 * zoom);
+            const dy = (this.top - this.bottom) / (2 * zoom);
+            const cx = (this.right + this.left) / 2;
+            const cy = (this.top + this.bottom) / 2;
+            let left = cx - dx;
+            let right = cx + dx;
+            let top = cy + dy;
+            let bottom = cy - dy;
+            const view = this.view;
+            if (view && view.enabled) {
+                const scaleW = (this.right - this.left) / view.fullWidth / zoom;
+                const scaleH = (this.top - this.bottom) / view.fullHeight / zoom;
+                left += scaleW * view.offsetX;
+                right = left + scaleW * view.width;
+                top -= scaleH * view.offsetY;
+                bottom = top - scaleH * view.height;
+            }
+            this.projectionMatrix.makeOrthographic(left, right, top, bottom, this.near, this.far, this.coordinateSystem);
+            this.projectionMatrixInverse.copy(this.projectionMatrix).invert();
+        }
+    }
+    setViewOffset(fullWidth, fullHeight, x, y, width, height) {
+        if (!this.view) this.view = {};
+        this.view.enabled = true;
+        this.view.fullWidth = fullWidth;
+        this.view.fullHeight = fullHeight;
+        this.view.offsetX = x;
+        this.view.offsetY = y;
+        this.view.width = width;
+        this.view.height = height;
+        this.setSize(fullWidth, fullHeight);
+    }
+    clearViewOffset() {
+        if (this.view && this.view.enabled) {
+            this.view.enabled = false;
+            this.setSize(this.view.fullWidth, this.view.fullHeight);
+        }
+    }
+    copy(source, recursive = true) {
+        super.copy(source, recursive);
+        this.changeType(source.type);
+        this.fit = source.fit;
+        this.near = source.near;
+        this.far = source.far;
+        this.fieldOfView = source.fieldOfView;
+        this.setSize(source.lastWidth, source.lastHeight);
+        return this;
+    }
+    toJSON(recursive = true) {
+        const data = super.toJSON(recursive);
+        data.cameraType = this.type;
+        data.type = 'Camera3D';
+        data.fit = this.fit;
+        data.near = this.near;
+        data.far = this.far;
+        data.fieldOfView = this.fieldOfView;
+        return data;
+    }
+    fromJSON(data) {
+        super.fromJSON(data);
+        if (data.cameraType !== undefined) {
+            this.type = data.cameraType;
+            this.changeType(this.type);
+        }
+        if (data.fit !== undefined) this.fit = data.fit;
+        if (data.near !== undefined) this.near = data.near;
+        if (data.far !== undefined) this.far = data.far;
+        if (data.fieldOfView !== undefined) this.fieldOfView = data.fieldOfView;
+        return this;
+    }
+}
+Entity.register('Camera3D', Camera3D);
+
+class EntityUI extends Entity {
+    constructor(name = 'Entity') {
+        super(name);
+        this.isEntityUI = true;
+        this.type = 'EntityUI';
+    }
+    componentFamily() {
+        return [ 'EntityUI' ];
+    }
+    copy(source, recursive = true) {
+        super.copy(source, recursive);
+        return this;
+    }
+    dispose() {
+        super.dispose();
+    }
+    toJSON(recursive = true) {
+        const data = super.toJSON(recursive);
+        return data;
+    }
+    fromJSON(data) {
+        super.fromJSON(data);
+        return this;
+    }
+}
+Entity.register('EntityUI', EntityUI);
+
 class Geometry {
     init(data = {}) {
         if (data.isBufferGeometry) {
             const assetUUID = data.uuid;
-            AssetManager$1.add(data);
+            AssetManager.add(data);
             data = this.defaultData('style', 'asset');
             data.asset = assetUUID;
         }
         let geometry = undefined;
         switch (data.style) {
             case 'asset':
-                const assetGeometry = AssetManager$1.get(data.asset);
+                const assetGeometry = AssetManager.get(data.asset);
                 if (assetGeometry && assetGeometry.isBufferGeometry) {
                     geometry = assetGeometry;
                 }
@@ -3398,7 +3685,7 @@ class Material {
         const parameters = {};
         if (data.isMaterial) {
             const assetUUID = data.uuid;
-            AssetManager$1.add(data);
+            AssetManager.add(data);
             data = this.defaultData('style', 'asset');
             data.asset = assetUUID;
         } else {
@@ -3409,9 +3696,9 @@ class Material {
                 if (Array.isArray(variable) && variable.length > 0) variable = variable[0];
                 if (value && variable && variable.type === 'asset') {
                     if (value.isTexture) {
-                        AssetManager$1.add(value);
+                        AssetManager.add(value);
                     } else {
-                        const textureCheck = AssetManager$1.get(value);
+                        const textureCheck = AssetManager.get(value);
                         if (textureCheck && textureCheck.isTexture) {
                             parameters[key] = textureCheck;
                         } else {
@@ -3434,7 +3721,7 @@ class Material {
         let material = undefined;
         switch (data.style) {
             case 'asset':
-                const assetMaterial = AssetManager$1.get(data.asset);
+                const assetMaterial = AssetManager.get(data.asset);
                 if (assetMaterial && assetMaterial.isMaterial) {
                     material = assetMaterial.clone();
                 }
@@ -3560,11 +3847,11 @@ class Script {
     init(data = {}) {
         if (data.isScript) {
             const assetUUID = data.uuid;
-            AssetManager$1.add(data);
+            AssetManager.add(data);
             data = this.defaultData();
             data.script = assetUUID;
         }
-        const script = AssetManager$1.get(data.script);
+        const script = AssetManager.get(data.script);
         if (script && script.isScript) {
             if (!data.variables) data.variables = {};
             let variables = {};
@@ -3786,4 +4073,4 @@ if (typeof window !== 'undefined') {
     else window.__SALINITY__ = VERSION;
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, AssetManager$1 as AssetManager, Camera3D, Clock, ColorChange, ComponentManager, DragControls, DrivingControls, Entity3D, EntityUtils, FollowCamera, Iris, KeyControls, Maths, MoveCamera, OrbitEntity, Palette, Project, RotateEntity, SCRIPT_FORMAT, SceneManager, Script$1 as Script, Stage3D, System, VERSION, Vectors, WORLD_TYPES, World3D, ZigZagControls };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, Arrays, AssetManager, Cache, Camera3D, Clock, ColorChange, ComponentManager, DragControls, DrivingControls, Entity, Entity2D, Entity3D, EntityUI, FileLoader, FollowCamera, ImageLoader, KeyControls, Loader, LoadingManager, Maths, MoveCamera, OrbitEntity, Palette, Project, RotateEntity, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script$1 as Script, Stage, System, Uuid, VERSION, Vectors, WORLD_TYPES, World, ZigZagControls };

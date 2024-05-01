@@ -1,11 +1,11 @@
 // ARRAYS
 //  isIterable()                Checks if a JavaScript object is iterable (i.e. Array.isArray())
 //  swapItems()                 Swaps two items in an array
-// ENTITY
-//  combineEntityArrays()       Combines two entity arrays into one
-//  compareEntityArrays()       Checks if two entity arrays include the same entities (by UUID)
-//  includesEntity()            Checks an array to see if it includes an entity (by UUID)
-//  removeEntityFromArray()     Removes all instances of an entity (by UUID) from an array
+// THING
+//  combineThingArrays()        Combines two thing arrays into one
+//  compareThingArrays()        Checks if two thing arrays include the same things (by UUID)
+//  includesThing()             Checks an array to see if it includes an thing (by UUID)
+//  removeThingFromArray()      Removes all instances of an thing (by UUID) from an array
 //  shareValues()               Checks if two arrays share any values at all
 
 class ArrayUtils {
@@ -23,39 +23,41 @@ class ArrayUtils {
         return array;
     }
 
-    /******************** ENTITY ********************/
+    /******************** THING ********************/
 
-    /** Combines two entity arrays into one */
-    static combineEntityArrays(arrayOne, arrayTwo) {
-        const entities = [...arrayOne];
-        for (const entity of arrayTwo) if (ArrayUtils.includesEntity(entity, arrayOne) === false) entities.push(entity);
-        return entities;
+    /** Combines two thing arrays into one */
+    static combineThingArrays(arrayOne, arrayTwo) {
+        const things = [ ...arrayOne ];
+        for (const thing of arrayTwo) {
+            if (ArrayUtils.includesThing(thing, arrayOne) === false) things.push(thing);
+        }
+        return things;
     }
 
-    /** Checks if two entity arrays include the same entities (by UUID) */
-    static compareEntityArrays(arrayOne, arrayTwo) {
+    /** Checks if two thing arrays include the same things (by UUID) */
+    static compareThingArrays(arrayOne, arrayTwo) {
         arrayOne = Array.isArray(arrayOne) ? arrayOne : [ arrayOne ];
         arrayTwo = Array.isArray(arrayTwo) ? arrayTwo : [ arrayTwo ];
-        for (const entity of arrayOne) if (ArrayUtils.includesEntity(entity, arrayTwo) === false) return false;
-        for (const entity of arrayTwo) if (ArrayUtils.includesEntity(entity, arrayOne) === false) return false;
+        for (const thing of arrayOne) if (ArrayUtils.includesThing(thing, arrayTwo) === false) return false;
+        for (const thing of arrayTwo) if (ArrayUtils.includesThing(thing, arrayOne) === false) return false;
         return true;
     }
 
-    /** Checks an array to see if it includes an entity (by entity.uuid) */
-    static includesEntity(findEntity, ...entities) {
-        if (!findEntity || !findEntity.isEntity) return false;
-        if (entities.length === 0) return false;
-        if (entities.length > 0 && Array.isArray(entities[0])) entities = entities[0];
-        for (const entity of entities) if (entity.isEntity && entity.uuid === findEntity.uuid) return true;
+    /** Checks an array to see if it includes an thing (by thing.uuid) */
+    static includesThing(findThing, ...things) {
+        if (!findThing || !findThing.isThing) return false;
+        if (things.length === 0) return false;
+        if (things.length > 0 && Array.isArray(things[0])) things = things[0];
+        for (const thing of things) if (thing.isThing && thing.uuid === findThing.uuid) return true;
         return false;
     }
 
-    /** Removes all instances of an entity (by UUID) from an array */
-    static removeEntityFromArray(removeEntity, ...entities) {
-        if (entities.length > 0 && Array.isArray(entities[0])) entities = entities[0];
-        if (!removeEntity || !removeEntity.isEntity) return [...entities];
+    /** Removes all instances of an thing (by UUID) from an array */
+    static removeThingFromArray(removeThing, ...things) {
+        if (things.length > 0 && Array.isArray(things[0])) things = things[0];
+        if (!removeThing || !removeThing.isThing) return [ ...things ];
         const newArray = [];
-        for (const entity of entities) if (entity.uuid !== removeEntity.uuid) newArray.push(entity);
+        for (const thing of things) if (thing.uuid !== removeThing.uuid) newArray.push(thing);
         return newArray;
     }
 

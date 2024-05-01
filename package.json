@@ -1,6 +1,6 @@
 {
-  "name": "@salinity/core",
-  "version": "0.0.5",
+  "name": "@salinity/engine",
+  "version": "0.0.6",
   "description": "Easy to use JavaScript game engine.",
   "module": "src/Salinity.js",
   "main": "dist/salinity.module.js",
@@ -24,12 +24,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/salinityengine/core.git"
+    "url": "git+https://github.com/salinityengine/engine.git"
   },
   "author": "Stephens Nunnally <stephens@scidian.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/salinityengine/core/issues"
+    "url": "https://github.com/salinityengine/engine/issues"
   },
   "homepage": "https://github.com/salinityengine",
   "private": false,

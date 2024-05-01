@@ -14,7 +14,7 @@ function header() {
  * @author      Stephens Nunnally <@stevinz>
  * @version     v${pkg.version}
  * @license     MIT - Copyright (c) 2024 Stephens Nunnally
- * @source      https://github.com/salinityengine/core
+ * @source      https://github.com/salinityengine/engine
  */
 ${code}`;
         }

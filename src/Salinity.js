@@ -6,12 +6,10 @@
  * @source      https://github.com/stevinz/salinity
  */
 
-/******************** CORE ********************/
+/******************** CONSTANTS ********************/
 
 import { VERSION } from './constants.js';
 export * from './constants.js';
-
-export { Project } from './project/Project.js';
 
 /******************** APPLICATION ********************/
 
@@ -61,6 +59,9 @@ export { Vectors } from './utils/Vectors.js';
 /******************** PROJECT ********************/
 
 // Base
+export { Project } from './project/Project.js';
+
+// Entity
 export { Entity } from './project/Entity.js';
 export { Stage } from './project/Stage.js';
 export { World } from './project/World.js';

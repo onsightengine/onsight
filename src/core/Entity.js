@@ -1,4 +1,4 @@
-import { ComponentManager } from '../app/ComponentManager.js';
+import { ComponentManager } from '../components/ComponentManager.js';
 import { MathUtils } from '../utils/MathUtils.js';
 import { VERSION } from '../constants.js';
 

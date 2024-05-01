@@ -1,4 +1,4 @@
-import { ComponentManager } from '../../../app/ComponentManager.js';
+import { ComponentManager } from '../../../components/ComponentManager.js';
 
 class Mesh {
 

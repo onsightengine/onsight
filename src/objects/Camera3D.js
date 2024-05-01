@@ -1,7 +1,7 @@
-import { APP_SIZE } from '../../constants.js';
-import { Entity } from '../../core/Entity.js';
+import { APP_SIZE } from '../constants.js';
+import { Entity } from '../core/Entity.js';
 import { Entity3D } from './Entity3D.js';
-import { MathUtils } from '../../utils/MathUtils.js';
+import { MathUtils } from '../utils/MathUtils.js';
 
 class Camera3D extends Entity3D {
 

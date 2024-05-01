@@ -1,24 +1,25 @@
-import { Entity } from '../../core/Entity.js';
+import { Entity } from '../core/Entity.js';
 
-class Entity2D extends Entity {
+class Entity3D extends Entity {
 
     constructor(name = 'Entity') {
         // Entity
         super(name);
 
         // Prototype
-        this.isEntity2D = true;
-        this.type = 'Entity2D';
+        this.isEntity3D = true;
+        this.type = 'Entity3D';
 
         // Properties, Basic
-        this.lookAtCamera = false;
+        this.lookAtCamera = false;              // implemented in Entity3D.updateMatrix()
+        this.lookAtYOnly = false;               // implemented in Entity3D.updateMatrix()
 
         // Properties, Lighting
         this.bloom = false;
     }
 
     componentFamily() {
-        return [ 'Entity2D' ];
+        return [ 'Entity3D' ];
     }
 
     /******************** COPY */
@@ -27,8 +28,9 @@ class Entity2D extends Entity {
         // Entity
         super.copy(source, recursive);
 
-        // Entity2D
+        // Entity3D
         this.lookAtCamera = source.lookAtCamera;
+        this.lookAtYOnly = source.lookAtYOnly;
         this.bloom = source.bloom;
 
         return this;
@@ -48,6 +50,7 @@ class Entity2D extends Entity {
 
         // Entity2D
         data.lookAtCamera = this.lookAtCamera;
+        data.lookAtYOnly = this.lookAtYOnly;
         data.bloom = this.bloom;
         // data.position  = JSON.stringify(this.position.toArray());
         // data.rotation = JSON.stringify(this.rotation.toArray());
@@ -62,6 +65,7 @@ class Entity2D extends Entity {
 
         // Entity2D
         if (data.lookAtCamera !== undefined) this.lookAtCamera = data.lookAtCamera;
+        if (data.lookAtYOnly !== undefined) this.lookAtYOnly = data.lookAtYOnly;
         if (data.bloom !== undefined) this.bloom = data.bloom;
         // if (data.position !== undefined) this.position.copy(JSON.parse(data.position));
         // if (data.rotation !== undefined) this.rotation.copy(JSON.parse(data.rotation));
@@ -72,6 +76,6 @@ class Entity2D extends Entity {
 
 }
 
-Entity.register('Entity2D', Entity2D);
+Entity.register('Entity3D', Entity3D);
 
-export { Entity2D };
+export { Entity3D };

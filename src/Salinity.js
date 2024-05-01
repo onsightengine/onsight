@@ -16,8 +16,6 @@ export * from './constants.js';
 // App
 export { App } from './app/App.js';
 export { AssetManager } from './app/AssetManager.js';
-export { Clock } from './app/Clock.js';
-export { ComponentManager } from './app/ComponentManager.js';
 export { SceneManager } from './app/SceneManager.js'
 
 // App, Loading
@@ -30,6 +28,7 @@ export { LoadingManager } from './app/loading/LoadingManager.js';
 /******************** ASSETS  ********************/
 
 // Assets
+export { Asset } from './assets/Asset.js';
 export { Palette } from './assets/Palette.js';
 export { Script } from './assets/Script.js';
 
@@ -48,45 +47,28 @@ export { ColorChange } from './assets/scripts/ColorChange.js';
 export { FollowCamera } from './assets/scripts/FollowCamera.js';
 export { RotateEntity } from './assets/scripts/RotateEntity.js';
 
+/******************** COMPONENTS ********************/
+
+export { ComponentManager } from './components/ComponentManager.js';
+
+/******************** CORE ********************/
+
+export { Clock } from './core/Clock.js';
+export { Entity } from './core/Entity.js';
+export { Project } from './core/Project.js';
+
 /******************** UTILS  ********************/
 
 export { ArrayUtils } from './utils/ArrayUtils.js';
 export { MathUtils } from './utils/MathUtils.js';
 export { SysUtils } from './utils/SysUtils.js';
 
-/******************** PROJECT ********************/
+/******************** OBJECTS ********************/
 
-// Base
-export { Project } from './project/Project.js';
-
-// Entity
-export { Entity } from './core/Entity.js';
-export { Stage } from './project/Stage.js';
-export { World } from './project/World.js';
-
-// World2D
-export { Entity2D } from './project/world2d/Entity2D.js';
-
-// World3D
-export { Camera3D } from './project/world3d/Camera3D.js';
-export { Entity3D } from './project/world3d/Entity3D.js';
-
-// WorldUI
-export { EntityUI } from './project/worldui/EntityUI.js';
-
-/******************** REGISTER COMPONENTS ********************/
-
-// Entity
-import './project/world3d/entity/Geometry.js';
-import './project/world3d/entity/Material.js';
-import './project/world3d/entity/Mesh.js';
-import './project/world3d/entity/Script.js';
-import './project/world3d/entity/Test.js';
-// import './project/world3d/entity/Sprite.js';
-
-// World
-import './project/world3d/world/Physics.js';
-import './project/world3d/world/Post.js';
+export { Camera3D } from './objects/Camera3D.js';
+export { Entity3D } from './objects/Entity3D.js';
+export { Stage } from './objects/Stage.js';
+export { World } from './objects/World.js';
 
 /******************** ENSURE SINGLE IMPORT ********************/
 

@@ -4,7 +4,7 @@ import { VERSION } from '../constants.js';
 
 import { AssetManager } from '../app/AssetManager.js';
 import { MathUtils } from '../utils/MathUtils.js';
-import { World } from './World.js';
+import { World } from '../objects/World.js';
 
 class Project {
 

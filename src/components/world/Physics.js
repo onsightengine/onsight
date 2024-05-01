@@ -1,6 +1,6 @@
 // https://github.com/mrdoob/three.js/blob/dev/examples/jsm/physics/RapierPhysics.js
 
-import { ComponentManager } from '../../../app/ComponentManager.js';
+import { ComponentManager } from '../../../components/ComponentManager.js';
 
 const _gravity = { x: 0, y: 9.81, z: 0 };
 

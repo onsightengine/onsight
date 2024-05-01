@@ -1,10 +1,13 @@
-import { APP_ORIENTATION } from '../constants.js';
+import {
+    APP_ORIENTATION,
+    VERSION,
+    WORLD_TYPES,
+} from '../constants.js';
 import { AssetManager } from '../app/AssetManager.js';
 import { MathUtils } from '../utils/MathUtils.js';
-import { SysUtils } from './utils/SysUtils.js';
+import { SysUtils } from '../utils/SysUtils.js';
 import { Thing } from './Thing.js';
 import { World } from '../objects/World.js';
-import { WORLD_TYPES } from '../constants.js';
 
 class Project extends Thing {
 
@@ -168,25 +171,23 @@ class Project extends Thing {
         }
         data.activeWorldUUID = this.activeWorldUUID;
         data.startWorldUUID = this.startWorldUUID;
-
         return data;
     }
 
     fromJSON(data, loadAssets = true) {
-        // Check for meta data
-        if (!SysUtils.isObject(data.meta)) {
-            return console.error(`Project.fromJSON(): No meta data found within JSON data`);
-        }
-
-        // Check proper type
-        const type = data.meta.type ?? 'unknown';
-        if (type !== 'Salinity') {
-            return console.error(`Project.fromJSON(): Unknown project type '${type}', expected '${this.type}'`);
-        }
-
-        // Check project saved with version
-        const version = data.meta.version ?? 'unknown';
-        if (version !== VERSION) {
+        // Checks for Data / Type
+        const type = data?.meta?.type ?? 'unknown';
+        const version = data?.meta?.version ?? 'unknown';
+        if (!SysUtils.isObject(data)) {
+            console.error(`Project.fromJSON(): No json data provided`);
+            return this;
+        } else if (!SysUtils.isObject(data.meta)) {
+            console.error(`Project.fromJSON(): No meta data found within JSON data`);
+            return this;
+        } else if (type !== 'Salinity') {
+            console.error(`Project.fromJSON(): Unknown project type '${type}', expected '${this.type}'`);
+            return this;
+        } else if (version !== VERSION) {
             console.warn(`Project.fromJSON(): Project saved in 'v${version}', attempting to load with 'v${VERSION}'`);
         }
 
@@ -194,7 +195,7 @@ class Project extends Thing {
         this.clear();
 
         // Base Properties
-        super.fromJSON();
+        super.fromJSON(data);
 
         // Load Assets into AssetManager
         if (loadAssets) AssetManager.fromJSON(data.assets);
@@ -213,7 +214,6 @@ class Project extends Thing {
         }
         this.activeWorldUUID = data.activeWorldUUID;
         this.startWorldUUID = data.startWorldUUID;
-
         return this;
     }
 

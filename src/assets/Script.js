@@ -1,6 +1,8 @@
+import {
+    SCRIPT_FORMAT,
+} from '../constants.js';
 import { AssetManager } from '../app/AssetManager.js';
 import { Asset } from './Asset.js';
-import { SCRIPT_FORMAT } from '../constants.js';
 
 class Script extends Asset {
 
@@ -76,10 +78,7 @@ print('The sum of {0} and {1} is {2}'.format(num1, num2, sum))
     /******************** JSON */
 
     toJSON() {
-        // Asset
         const data = super.toJSON();
-
-        // Script
         data.format = this.format;
         data.position = this.position;
         data.scrollLeft = this.scrollLeft;
@@ -91,10 +90,7 @@ print('The sum of {0} and {1} is {2}'.format(num1, num2, sum))
     }
 
     fromJSON(data) {
-        // Asset
         super.fromJSON(data);
-
-        // Script
         if (data.format !== undefined) this.format = data.format;
         if (data.position !== undefined) this.position = data.position;
         if (data.scrollLeft !== undefined) this.scrollLeft = data.scrollLeft;

@@ -1,5 +1,7 @@
-import { Entity } from '../core/Thing.js';
-import { STAGE_TYPES } from '../constants.js';
+import {
+    STAGE_TYPES,
+} from '../constants.js';
+import { Entity } from '../core/Entity.js';
 import { Vec3 } from '../math/Vec3.js';
 
 class Stage extends Entity {
@@ -32,16 +34,15 @@ class Stage extends Entity {
     /******************** COPY / CLONE */
 
     copy(source, recursive = true) {
-        // Entity
         super.copy(source, recursive);
-
-        // Stage
+        // Type
+        this.type = data.type;
+        // Display
         this.enabled = source.enabled;
         this.start = source.start;
         this.finish = source.finish;
         this.beginPosition.copy(source.beginPosition);
         this.endPosition.copy(source.endPosition);
-
         return this;
     }
 
@@ -54,30 +55,28 @@ class Stage extends Entity {
     /******************** JSON */
 
     toJSON(recursive = true) {
-        // Entity
         const data = super.toJSON(recursive);
-
-        // Stage
+        // Type
+        data.type = this.type;
+        // Display
         data.enabled = this.enabled;
         data.start = this.start;
         data.finish = this.finish;
         data.beginPosition = JSON.stringify(this.beginPosition.toArray());
         data.endPosition = JSON.stringify(this.endPosition.toArray());
-
         return data;
     }
 
     fromJSON(data) {
-        // Entity
         super.fromJSON(data);
-
-        // Stage
+        // Type
+        if (data.type !== undefined) this.type = data.type;
+        // Display
         if (data.enabled !== undefined) this.enabled = data.enabled;
         if (data.start !== undefined) this.start = data.start;
         if (data.finish !== undefined) this.finish = data.finish;
         if (data.beginPosition !== undefined) this.beginPosition.copy(JSON.parse(data.beginPosition));
         if (data.endPosition !== undefined) this.endPosition.copy(JSON.parse(data.endPosition));
-
         return this;
     }
 

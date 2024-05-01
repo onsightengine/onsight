@@ -1,7 +1,8 @@
-import { APP_EVENTS } from '../constants.js';
-import { APP_ORIENTATION } from '../constants.js';
-import { WORLD_TYPES } from '../constants.js';
-
+import {
+    APP_EVENTS,
+    APP_ORIENTATION,
+    WORLD_TYPES,
+ } from '../constants.js';
 import { ArrayUtils } from '../utils/ArrayUtils.js';
 import { AssetManager } from './AssetManager.js';
 import { Clock } from '../core/Clock.js';

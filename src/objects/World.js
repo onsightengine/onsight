@@ -1,7 +1,9 @@
-import { Entity } from '../core/Thing.js';
+import {
+    WORLD_TYPES,
+} from '../constants.js';
+import { Entity } from '../core/Entity.js';
 import { Vec2 } from '../math/Vec2.js';
 import { Vec3 } from '../math/Vec3.js';
-import { WORLD_TYPES } from '../constants.js';
 
 class World extends Entity {
 
@@ -99,7 +101,6 @@ class World extends Entity {
     traverseStages(callback, recursive = true) {
         const cancel = (typeof callback === 'function') ? callback(this) : false;
         if (cancel) return;
-
         for (const stage of this.getStages()) {
             stage.traverse(callback, recursive);
         }
@@ -108,20 +109,21 @@ class World extends Entity {
     /******************** COPY */
 
     copy(source, recursive = true) {
-        // Entity
         super.copy(source, recursive);
 
-        // World, Node
+        // Type
+        this.type = source.type;
+
+        // Node
         this.position.copy(source.position);
 
-        // World, Stage
+        // Stage
         const stageIndex = source.getStages().indexOf(source.activeStage());
         this.activeStageUUID = (stageIndex !== -1) ? this.getStages()[stageIndex].uuid : null;
 
-        // World, Gameplay
+        // Gameplay
         this.loadPosition.copy(source.loadPosition);
         this.loadDistance = source.loadDistance;
-
         return this;
     }
 
@@ -134,36 +136,38 @@ class World extends Entity {
     /******************** JSON */
 
     toJSON(recursive = true) {
-        // Entity
         const data = super.toJSON(recursive);
 
-        // World, Node
+        // Type
+        data.type = this.type;
+
+        // Node
         data.position = JSON.stringify(this.position.toArray());
 
-        // World, Stage
+        // Stage
         data.activeStageUUID = this.activeStageUUID;
 
-        // World, Gameplay
+        // Gameplay
         data.loadPosition = JSON.stringify(this.loadPosition.toArray());
         data.loadDistance = this.loadDistance;
-
         return data;
     }
 
     fromJSON(data) {
-        // Entity
         super.fromJSON(data);
 
-        // World, Node
+        // Type
+        if (data.type !== undefined) this.type = data.type;
+
+        // Node
         if (data.position !== undefined) this.position.copy(JSON.parse(data.position));
 
-        // World, Stage
+        // Stage
         if (data.activeStageUUID !== undefined) this.activeStageUUID = data.activeStageUUID;
 
-        // World Properties, Gameplay
+        // Gameplay
         if (data.loadPosition !== undefined) this.loadPosition.copy(JSON.parse(data.loadPosition));
         if (data.loadDistance !== undefined) this.loadDistance = data.loadDistance;
-
         return this;
     }
 

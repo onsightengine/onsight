@@ -49,19 +49,13 @@ class Palette extends Asset {
     /******************** JSON */
 
     toJSON() {
-        // Asset
         const data = super.toJSON();
-
-        // Palette
         data.colors = JSON.stringify(this.colors);
         return data;
     }
 
     fromJSON(data) {
-        // Asset
         super.fromJSON(data);
-
-        // Palette
         if (data.colors !== undefined) this.colors = JSON.parse(data.colors);
         return this;
     }

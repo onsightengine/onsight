@@ -310,7 +310,6 @@ class Entity extends Thing {
                 this.addEntity(child.clone());
             }
         }
-
         return this;
     }
 
@@ -355,7 +354,6 @@ class Entity extends Thing {
                 data.children.push(child.toJSON(recursive));
             }
         }
-
         return data;
     }
 
@@ -389,7 +387,6 @@ class Entity extends Thing {
                 }
             }
         }
-
         return this;
     }
 

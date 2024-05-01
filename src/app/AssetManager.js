@@ -70,7 +70,7 @@ class AssetManager {
         const data = {};
 
         // Save Assets
-        for (const type of Object.keys(_types)) {
+        for (const type of _types.keys()) {
             const assets = AssetManager.library(type);
             if (assets.length > 0) {
                 data[type] = [];
@@ -88,7 +88,7 @@ class AssetManager {
         AssetManager.clear()
 
         // Load Assets
-        for (const type of Object.keys(_types)) {
+        for (const type of _types.keys()) {
             if (!json[type]) continue;
             for (const assetData of json[type]) {
                 const Constructor = AssetManager.type(type);

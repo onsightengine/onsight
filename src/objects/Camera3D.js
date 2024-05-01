@@ -1,5 +1,7 @@
-import { APP_SIZE } from '../constants.js';
-import { Entity } from '../core/Thing.js';
+import {
+    APP_SIZE,
+} from '../constants.js';
+import { Entity } from '../core/Entity.js';
 import { Entity3D } from './Entity3D.js';
 import { MathUtils } from '../utils/MathUtils.js';
 
@@ -295,7 +297,6 @@ class Camera3D extends Entity3D {
 
         // Orthographic
         // ... EMPTY
-
         return data;
     }
 
@@ -320,7 +321,6 @@ class Camera3D extends Entity3D {
 
         // // Projection Matrix
         // this.updateProjectionMatrix();
-
         return this;
     }
 

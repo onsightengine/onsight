@@ -1,5 +1,8 @@
+import {
+    VERSION,
+} from '../constants.js';
 import { MathUtils } from '../utils/MathUtils.js';
-import { VERSION } from '../constants.js';
+import { SysUtils } from '../Salinity.js';
 
 class Thing {
 
@@ -43,6 +46,10 @@ class Thing {
     }
 
     fromJSON(data) {
+        if (!SysUtils.isObject(data)) {
+            console.warn(`Thing.fromJSON(): No json data provided for ${this.constructor.name}`);
+            return this;
+        }
         if (data.name !== undefined) this.name = data.name;
         if (data.uuid !== undefined) this.uuid = data.uuid;
         return this;

@@ -1,4 +1,4 @@
-import { Entity } from '../core/Thing.js';
+import { Entity } from '../core/Entity.js';
 
 class Entity3D extends Entity {
 
@@ -45,17 +45,19 @@ class Entity3D extends Entity {
     /******************** JSON */
 
     toJSON(recursive = true) {
-        // Entity
         const data = super.toJSON(recursive);
 
-        // Entity2D
-        data.lookAtCamera = this.lookAtCamera;
-        data.lookAtYOnly = this.lookAtYOnly;
-        data.bloom = this.bloom;
+        // Position
         // data.position  = JSON.stringify(this.position.toArray());
         // data.rotation = JSON.stringify(this.rotation.toArray());
         // data.scale = JSON.stringify(this.scale.toArray());
 
+        // Basic
+        data.lookAtCamera = this.lookAtCamera;
+        data.lookAtYOnly = this.lookAtYOnly;
+
+        // Lighting
+        data.bloom = this.bloom;
         return data;
     }
 
@@ -63,14 +65,17 @@ class Entity3D extends Entity {
         // Entity
         super.fromJSON(data);
 
-        // Entity2D
-        if (data.lookAtCamera !== undefined) this.lookAtCamera = data.lookAtCamera;
-        if (data.lookAtYOnly !== undefined) this.lookAtYOnly = data.lookAtYOnly;
-        if (data.bloom !== undefined) this.bloom = data.bloom;
+        // Position
         // if (data.position !== undefined) this.position.copy(JSON.parse(data.position));
         // if (data.rotation !== undefined) this.rotation.copy(JSON.parse(data.rotation));
         // if (data.scale !== undefined) this.scale.copy(JSON.parse(data.scale));
 
+        // Basic
+        if (data.lookAtCamera !== undefined) this.lookAtCamera = data.lookAtCamera;
+        if (data.lookAtYOnly !== undefined) this.lookAtYOnly = data.lookAtYOnly;
+
+        // Lighting
+        if (data.bloom !== undefined) this.bloom = data.bloom;
         return this;
     }
 

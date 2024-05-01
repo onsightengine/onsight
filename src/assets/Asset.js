@@ -1,4 +1,4 @@
-import { Uuid } from '../utils/Uuid.js';
+import { MathUtils } from '../utils/MathUtils.js';
 
 class Asset {
 
@@ -9,7 +9,7 @@ class Asset {
 
         // Properties
         this.name = name ?? '';
-        this.uuid = Uuid.generate();
+        this.uuid = MathUtils.randomUUID();
         this.category = 'unknown';
     }
 

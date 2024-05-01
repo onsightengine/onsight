@@ -3,22 +3,10 @@ import * as Mat4Func from './functions/Mat4Func.js';
 export class Mat4 extends Array {
 
     constructor(
-        m00 = 1,
-        m01 = 0,
-        m02 = 0,
-        m03 = 0,
-        m10 = 0,
-        m11 = 1,
-        m12 = 0,
-        m13 = 0,
-        m20 = 0,
-        m21 = 0,
-        m22 = 1,
-        m23 = 0,
-        m30 = 0,
-        m31 = 0,
-        m32 = 0,
-        m33 = 1
+        m00 = 1, m01 = 0, m02 = 0, m03 = 0,
+        m10 = 0, m11 = 1, m12 = 0, m13 = 0,
+        m20 = 0, m21 = 0, m22 = 1, m23 = 0,
+        m30 = 0, m31 = 0, m32 = 0, m33 = 1,
     ) {
         super(m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33);
         return this;
@@ -73,36 +61,26 @@ export class Mat4 extends Array {
     }
 
     scale(v, m = this) {
-        Mat4Func.scale(this, m, typeof v === 'number' ? [v, v, v] : v);
+        Mat4Func.scale(this, m, typeof v === 'number' ? [ v, v, v ] : v);
         return this;
     }
 
     add(ma, mb) {
-        if (mb) {
-            Mat4Func.add(this, ma, mb);
-        } else {
-            Mat4Func.add(this, this, ma);
-        }
+        if (mb) Mat4Func.add(this, ma, mb);
+        else Mat4Func.add(this, this, ma);
         return this;
     }
 
     sub(ma, mb) {
-        if (mb) {
-            Mat4Func.subtract(this, ma, mb);
-        } else {
-            Mat4Func.subtract(this, this, ma);
-        }
+        if (mb) Mat4Func.subtract(this, ma, mb);
+        else Mat4Func.subtract(this, this, ma);
         return this;
     }
 
     multiply(ma, mb) {
-        if (!ma.length) {
-            Mat4Func.multiplyScalar(this, this, ma);
-        } else if (mb) {
-            Mat4Func.multiply(this, ma, mb);
-        } else {
-            Mat4Func.multiply(this, this, ma);
-        }
+        if (!ma.length) Mat4Func.multiplyScalar(this, this, ma);
+        else if (mb) Mat4Func.multiply(this, ma, mb);
+        else Mat4Func.multiply(this, this, ma);
         return this;
     }
 
@@ -121,7 +99,7 @@ export class Mat4 extends Array {
         return this;
     }
 
-    fromOrthogonal({ left, right, bottom, top, near, far }) {
+    fromOrthogonal({ left, right, bottom, top, near, far } = {}) {
         Mat4Func.ortho(this, left, right, bottom, top, near, far);
         return this;
     }

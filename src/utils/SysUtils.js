@@ -10,7 +10,7 @@
 //  sleep()                 Pauses app for specified milliseconds
 //  waitForObject()         Wait for getter to return an object that exists, then call a function
 
-class System {
+class SysUtils {
 
     /******************** CHECKS ********************/
 
@@ -39,16 +39,16 @@ class System {
 
     static saveBuffer(buffer, filename, optionalType = { type: 'application/octet-stream' }) {
         const url = URL.createObjectURL(new Blob([ buffer ], { type: optionalType }));
-        System.save(url, filename);
+        SysUtils.save(url, filename);
     }
 
     static saveImage(imageUrl, filename) {
-        System.save(imageUrl, filename);
+        SysUtils.save(imageUrl, filename);
     }
 
     static saveString(text, filename) {
         const url = URL.createObjectURL(new Blob([ text ], { type: 'text/plain' }));
-        System.save(url, filename);
+        SysUtils.save(url, filename);
     }
 
     /******************** PLATFORM ********************/
@@ -97,7 +97,7 @@ class System {
 
     /** Returns character string of shortcut key depending on OS */
     static metaKeyOS() {
-        const system = System.detectOS();
+        const system = SysUtils.detectOS();
         if (system === 'Mac') {
             return '⌘';
         } else {
@@ -151,4 +151,4 @@ class System {
 
 }
 
-export { System };
+export { SysUtils };

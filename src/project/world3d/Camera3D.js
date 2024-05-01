@@ -1,7 +1,7 @@
 import { APP_SIZE } from '../../constants.js';
-import { Entity } from '../Entity.js';
+import { Entity } from '../../core/Entity.js';
 import { Entity3D } from './Entity3D.js';
-import { Maths } from '../../utils/Maths.js';
+import { MathUtils } from '../../utils/MathUtils.js';
 
 class Camera3D extends Entity3D {
 
@@ -71,6 +71,7 @@ class Camera3D extends Entity3D {
     updateMatrix() {
         // const superUpdateMatrix = THREE.Object3D.prototype.updateMatrix.bind(this);
         // superUpdateMatrix();
+        this.matrix.compose(this.position, this.quaternion, this.scale);
     }
 
     getWorldDirection(target) {
@@ -174,7 +175,7 @@ class Camera3D extends Entity3D {
         //  1 world unit === 10 pixels at distance 100
         //  1 world unit === 1 pixels at distance 1000 (careful near / far)
         const distance = this.position.distanceTo(this.target);
-        const zoom = Maths.noZero(1000 / distance);
+        const zoom = MathUtils.noZero(1000 / distance);
         this.zoom = zoom;
 
         // https://github.com/mrdoob/three.js/blob/dev/src/cameras/PerspectiveCamera.js
@@ -237,7 +238,6 @@ class Camera3D extends Entity3D {
         this.view.offsetY = y;
         this.view.width = width;
         this.view.height = height;
-
         this.setSize(fullWidth, fullHeight);
     }
 

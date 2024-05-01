@@ -1,6 +1,5 @@
 import { AssetManager } from '../../../app/AssetManager.js';
 import { ComponentManager } from '../../../app/ComponentManager.js';
-import { Maths } from '../../../utils/Maths.js';
 
 class Geometry {
 

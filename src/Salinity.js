@@ -16,6 +16,7 @@ export * from './constants.js';
 // App
 export { App } from './app/App.js';
 export { AssetManager } from './app/AssetManager.js';
+export { Clock } from './app/Clock.js';
 export { ComponentManager } from './app/ComponentManager.js';
 export { SceneManager } from './app/SceneManager.js'
 
@@ -49,12 +50,9 @@ export { RotateEntity } from './assets/scripts/RotateEntity.js';
 
 /******************** UTILS  ********************/
 
-export { Arrays } from './utils/Arrays.js';
-export { Clock } from './utils/Clock.js';
-export { Maths } from './utils/Maths.js';
-export { System } from './utils/System.js';
-export { Uuid } from './utils/Uuid.js';
-export { Vectors } from './utils/Vectors.js';
+export { ArrayUtils } from './utils/ArrayUtils.js';
+export { MathUtils } from './utils/MathUtils.js';
+export { SysUtils } from './utils/SysUtils.js';
 
 /******************** PROJECT ********************/
 
@@ -62,7 +60,7 @@ export { Vectors } from './utils/Vectors.js';
 export { Project } from './project/Project.js';
 
 // Entity
-export { Entity } from './project/Entity.js';
+export { Entity } from './core/Entity.js';
 export { Stage } from './project/Stage.js';
 export { World } from './project/World.js';
 

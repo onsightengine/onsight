@@ -1,4 +1,4 @@
-import { Entity } from './Entity.js';
+import { Entity } from '../core/Entity.js';
 import { STAGE_TYPES } from '../constants.js';
 import { Vec3 } from '../math/Vec3.js';
 

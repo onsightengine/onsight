@@ -8,14 +8,13 @@
 //  removeEntityFromArray()     Removes all instances of an entity (by UUID) from an array
 //  shareValues()               Checks if two arrays share any values at all
 
-class Arrays {
+class ArrayUtils {
 
     /******************** ARRAYS ********************/
 
-
     /** Checks if a JavaScript object is iterable (i.e. Array.isArray()) */
-    static isIterable(obj) {
-        return (obj && typeof obj[Symbol.iterator] === 'function');
+    static isIterable(array) {
+        return (array && (typeof array[Symbol.iterator] === 'function') || Array.isArray(array));
     }
 
     /** Swaps two items in an array */
@@ -29,7 +28,7 @@ class Arrays {
     /** Combines two entity arrays into one */
     static combineEntityArrays(arrayOne, arrayTwo) {
         const entities = [...arrayOne];
-        for (const entity of arrayTwo) if (Arrays.includesEntity(entity, arrayOne) === false) entities.push(entity);
+        for (const entity of arrayTwo) if (ArrayUtils.includesEntity(entity, arrayOne) === false) entities.push(entity);
         return entities;
     }
 
@@ -37,8 +36,8 @@ class Arrays {
     static compareEntityArrays(arrayOne, arrayTwo) {
         arrayOne = Array.isArray(arrayOne) ? arrayOne : [ arrayOne ];
         arrayTwo = Array.isArray(arrayTwo) ? arrayTwo : [ arrayTwo ];
-        for (const entity of arrayOne) if (Arrays.includesEntity(entity, arrayTwo) === false) return false;
-        for (const entity of arrayTwo) if (Arrays.includesEntity(entity, arrayOne) === false) return false;
+        for (const entity of arrayOne) if (ArrayUtils.includesEntity(entity, arrayTwo) === false) return false;
+        for (const entity of arrayTwo) if (ArrayUtils.includesEntity(entity, arrayOne) === false) return false;
         return true;
     }
 
@@ -70,4 +69,4 @@ class Arrays {
 
 }
 
-export { Arrays };
+export { ArrayUtils };

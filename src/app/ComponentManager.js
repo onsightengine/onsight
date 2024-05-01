@@ -81,8 +81,8 @@
 //  class           If left out, can be any asset in project. Otherwise specifies which asset type to use (geometry, texture, etc.)
 //
 
-import { Maths } from '../utils/Maths.js';
-import { System } from '../utils/System.js';
+import { MathUtils } from '../utils/MathUtils.js';
+import { SysUtils } from '../utils/SysUtils.js';
 
 const _registered = {};
 
@@ -132,8 +132,8 @@ class ComponentManager {
         // Check for Component Type
         type = type.toLowerCase();
         if (_registered[type]) return console.warn(`ComponentManager.register(): Component '${type}' already registered`);
-        if (!System.isObject(ComponentClass.config)) ComponentClass.config = {};
-        if (!System.isObject(ComponentClass.config.schema)) ComponentClass.config.schema = {};
+        if (!SysUtils.isObject(ComponentClass.config)) ComponentClass.config = {};
+        if (!SysUtils.isObject(ComponentClass.config.schema)) ComponentClass.config.schema = {};
 
         // Ensure Property Default Values
         const schema = ComponentClass.config.schema;
@@ -283,7 +283,7 @@ class ComponentManager {
         const ComponentClass = ComponentManager.registered(type);
         if (!ComponentClass || !ComponentClass.config || !ComponentClass.config.schema) return;
         const schema = ComponentClass.config.schema;
-        if (!System.isObject(schema)) return;
+        if (!SysUtils.isObject(schema)) return;
 
         // PARSE KEYS
         for (const schemaKey in schema) {
@@ -316,7 +316,7 @@ class ComponentManager {
                     }
                 }
 
-                if (Maths.isNumber(data[schemaKey])) {
+                if (MathUtils.isNumber(data[schemaKey])) {
                     const min = itemToInclude['min'] ?? -Infinity;
                     const max = itemToInclude['max'] ??  Infinity;
                     if (data[schemaKey] < min) data[schemaKey] = min;
@@ -338,7 +338,7 @@ class ComponentManager {
         const ComponentClass = ComponentManager.registered(type);
         if (!ComponentClass || !ComponentClass.config || !ComponentClass.config.schema) return;
         const schema = ComponentClass.config.schema;
-        if (!System.isObject(schema)) return;
+        if (!SysUtils.isObject(schema)) return;
 
         // PARSE KEYS
         for (const schemaKey in schema) {

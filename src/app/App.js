@@ -2,9 +2,9 @@ import { APP_EVENTS } from '../constants.js';
 import { APP_ORIENTATION } from '../constants.js';
 import { WORLD_TYPES } from '../constants.js';
 
-import { Arrays } from '../utils/Arrays.js';
+import { ArrayUtils } from '../utils/ArrayUtils.js';
 import { AssetManager } from './AssetManager.js';
-import { Clock } from '../utils/Clock.js';
+import { Clock } from './Clock.js';
 import { Project } from '../project/Project.js';
 import { SceneManager } from './SceneManager.js';
 import { Stage } from '../project/Stage.js';

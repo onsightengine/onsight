@@ -49,13 +49,13 @@ export { RotateEntity } from './assets/scripts/RotateEntity.js';
 
 /******************** COMPONENTS ********************/
 
-export { ComponentManager } from './components/ComponentManager.js';
+export { ComponentManager } from './app/ComponentManager.js';
 
 /******************** CORE ********************/
 
 export { Clock } from './core/Clock.js';
-export { Entity } from './core/Entity.js';
 export { Project } from './core/Project.js';
+export { Thing } from './core/Thing.js';
 
 /******************** UTILS  ********************/
 
@@ -67,6 +67,7 @@ export { SysUtils } from './utils/SysUtils.js';
 
 export { Camera3D } from './objects/Camera3D.js';
 export { Entity3D } from './objects/Entity3D.js';
+export { Entity } from './core/Entity.js';
 export { Stage } from './objects/Stage.js';
 export { World } from './objects/World.js';
 

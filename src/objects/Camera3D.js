@@ -1,5 +1,5 @@
 import { APP_SIZE } from '../constants.js';
-import { Entity } from '../core/Entity.js';
+import { Entity } from '../core/Thing.js';
 import { Entity3D } from './Entity3D.js';
 import { MathUtils } from '../utils/MathUtils.js';
 

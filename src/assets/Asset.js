@@ -1,33 +1,28 @@
-import { MathUtils } from '../utils/MathUtils.js';
+import { Thing } from '../core/Thing.js';
 
-class Asset {
+class Asset extends Thing {
 
     constructor(name = '') {
+        super(name);
+
         // Prototype
         this.isAsset = true;
         this.type = 'Asset';
 
         // Properties
-        this.name = name ?? '';
-        this.uuid = MathUtils.randomUUID();
         this.category = 'unknown';
     }
 
     /******************** JSON */
 
     toJSON() {
-        const data = {
-            type: this.type,
-            name: this.name,
-            uuid: this.uuid,
-            category: this.category,
-        };
+        const data = super.toJSON();
+        data.category = this.category;
         return data;
     }
 
     fromJSON(data) {
-        if (data.name !== undefined) this.name = data.name;
-        if (data.uuid !== undefined) this.uuid = data.uuid;
+        super.fromJSON(data);
         if (data.category !== undefined) this.category = data.category;
         return this;
     }

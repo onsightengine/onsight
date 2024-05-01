@@ -225,6 +225,18 @@ class SceneManager {
 
     }
 
+    /******************** TYPES */
+
+    static register(type, ObjectClass) {
+        _types.set(type, ObjectClass);
+    }
+
+    static type(type) {
+        return _types.get(type);
+    }
+
 }
+
+const _types = new Map();
 
 export { SceneManager };

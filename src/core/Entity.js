@@ -1,17 +1,15 @@
-import { ComponentManager } from '../components/ComponentManager.js';
-import { MathUtils } from '../utils/MathUtils.js';
-import { VERSION } from '../constants.js';
+import { Thing } from './Thing.js';
 
-class Entity {
+class Entity extends Thing {
 
     constructor(name = 'Entity') {
+        super(name);
+
         // Prototype
         this.isEntity = true;
         this.type = 'Entity';
 
         // Properties
-        this.name = name;
-        this.uuid = MathUtils.randomUUID();
         this.category = null;                   // used for organizing Prefabs
         this.locked = false;                    // locked in Editor? (do not allow selection, deletion, duplication, etc.)
         this.visible = true;                    // should be rendered?
@@ -290,19 +288,12 @@ class Entity {
         return this;
     }
 
-    /******************** COPY / CLONE */
-
-    clone(recursive) {
-        return new this.constructor().copy(this, recursive);
-    }
+    /******************** COPY */
 
     copy(source, recursive = true) {
-        // Remove existing Children / Components
-        this.dispose();
+        super.copy(source, recursive);
 
         // Properties
-        this.name = source.name;
-        /* don't copy uuid */
         this.category = source.category;
         this.locked = source.locked;
         this.visible = source.visible;
@@ -338,32 +329,20 @@ class Entity {
         }
         // Self
         this.removeFromParent();
-        // this.dispatchEvent({ type: 'destroy' });
         return this;
     }
 
     /******************** JSON */
 
     toJSON(recursive = true) {
-        // Entity
-        const data = {
-            type: this.type,
-            name: this.name,
-            uuid: this.uuid,
-            category: this.category,
-            locked: this.locked,
-            visible: this.visible,
-            components: [],
-            children: [],
-        };
+        const data = super.toJSON(recursive);
 
-        // Meta Data
-        if (recursive === false) {
-            data.meta = {
-                type: this.type,
-                version: VERSION,
-            };
-        }
+        // Entity
+        data.category = this.category;
+        data.locked = this.locked;
+        data.visible = this.visible;
+        data.components = [];
+        data.children = [];
 
         // Components
         for (const component of this.components) {
@@ -381,10 +360,9 @@ class Entity {
     }
 
     fromJSON(data) {
+        super.fromJSON(data);
+
         // Entity
-        if (data.type !== undefined) this.type = data.type;
-        if (data.name !== undefined) this.name = data.name;
-        if (data.uuid !== undefined) this.uuid = data.uuid;
         if (data.category !== undefined) this.category = data.category;
         if (data.locked !== undefined) this.locked = data.locked;
         if (data.visible !== undefined) this.visible = data.visible;
@@ -415,16 +393,19 @@ class Entity {
         return this;
     }
 
+    /******************** TYPES */
+
     static register(type, EntityClass) {
-	    if (!_types[type]) _types[type] = EntityClass;
+	    _types.set(type, EntityClass);
     }
 
     static type(type) {
-        return _types[type];
+        return _types.get(type);
     }
 
 }
 
-const _types = { 'Entity': Entity };
+const _types = new Map();
+Entity.register('Entity', Entity);
 
 export { Entity };

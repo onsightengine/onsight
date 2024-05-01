@@ -1,4 +1,4 @@
-import { Entity } from '../core/Entity.js';
+import { Entity } from '../core/Thing.js';
 
 class Entity3D extends Entity {
 

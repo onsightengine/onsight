@@ -91,7 +91,7 @@ class AssetManager {
         for (const type of Object.keys(_types)) {
             if (!json[type]) continue;
             for (const assetData of json[type]) {
-                const Constructor = _types[type];
+                const Constructor = AssetManager.type(type);
                 if (Constructor) {
                     const asset = new Constructor().fromJSON(assetData);
                     AssetManager.add(asset);
@@ -105,12 +105,18 @@ class AssetManager {
         if (typeof onLoad === 'function') onLoad();
     }
 
+    /******************** TYPES */
+
     static register(type, AssetClass) {
-	    if (!_types[type]) _types[type] = AssetClass;
+        _types.set(type, AssetClass);
+    }
+
+    static type(type) {
+        return _types.get(type);
     }
 
 }
 
-const _types = {};
+const _types = new Map();
 
 export { AssetManager };

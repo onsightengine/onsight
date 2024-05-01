@@ -1,26 +1,19 @@
 import { APP_ORIENTATION } from '../constants.js';
-import { WORLD_TYPES } from '../constants.js';
-import { VERSION } from '../constants.js';
-
 import { AssetManager } from '../app/AssetManager.js';
 import { MathUtils } from '../utils/MathUtils.js';
+import { SysUtils } from './utils/SysUtils.js';
+import { Thing } from './Thing.js';
 import { World } from '../objects/World.js';
+import { WORLD_TYPES } from '../constants.js';
 
-class Project {
+class Project extends Thing {
 
     constructor(name = 'My Project') {
+        super(name);
 
         // Prototype
         this.isProject = true;
-        this.type = 'Project';
-
-        // Properties
-        this.name = name;
-        this.uuid = MathUtils.randomUUID();
-
-        // Properties, World
-        this.activeWorldUUID = null;
-        this.startWorldUUID = null;
+        this.type = 'Salinity';
 
         // Notes
         this.notes = '';
@@ -34,6 +27,8 @@ class Project {
 
         // Worlds
         this.worlds = {};
+        this.activeWorldUUID = null;
+        this.startWorldUUID = null;
     }
 
     /******************** SETTINGS */
@@ -154,26 +149,10 @@ class Project {
     /******************** JSON */
 
     toJSON() {
-        const data = {};
-
-        // Meta Data
-        data.meta = {
-            type: 'Salinity',
-            version: VERSION,
-            generator: 'Salinity.Project.toJSON()',
-        };
+        const data = super.toJSON();
 
         // Assets
         data.assets = AssetManager.toJSON();
-
-        // Project Properties
-        data.object = {
-            type: this.type,
-            name: this.name,
-            uuid: this.uuid,
-            activeWorldUUID: this.activeWorldUUID,
-            startWorldUUID: this.startWorldUUID,
-        };
 
         // Notes
         data.notes = this.notes;
@@ -187,43 +166,38 @@ class Project {
             const world = this.worlds[uuid];
             data.worlds.push(world.toJSON());
         }
+        data.activeWorldUUID = this.activeWorldUUID;
+        data.startWorldUUID = this.startWorldUUID;
 
         return data;
     }
 
     fromJSON(data, loadAssets = true) {
-        // Check proper JSON type
-        const type = data.meta?.type ?? 'undefined';
+        // Check for meta data
+        if (!SysUtils.isObject(data.meta)) {
+            return console.error(`Project.fromJSON(): No meta data found within JSON data`);
+        }
+
+        // Check proper type
+        const type = data.meta.type ?? 'unknown';
         if (type !== 'Salinity') {
-            console.error(`Project.fromJSON(): Unknown project type '${type}', expected 'Salinity'`);
-            return;
+            return console.error(`Project.fromJSON(): Unknown project type '${type}', expected '${this.type}'`);
         }
 
         // Check project saved with version
-        const version = data.meta?.version ?? 'unknown';
+        const version = data.meta.version ?? 'unknown';
         if (version !== VERSION) {
             console.warn(`Project.fromJSON(): Project saved in 'v${version}', attempting to load with 'v${VERSION}'`);
-        }
-
-        // Check object type
-        if (!data.object || data.object.type !== this.type) {
-            console.error(`Project.fromJSON(): Save file corrupt, no 'Project' object found!`);
-            return;
         }
 
         // Clear Project
         this.clear();
 
-        // Load Assets into AssetManager
-        if (loadAssets) {
-            AssetManager.fromJSON(data.assets);
-        }
+        // Base Properties
+        super.fromJSON();
 
-        // Properties
-        this.name = data.object.name;
-        this.uuid = data.object.uuid;
-        this.activeWorldUUID = data.object.activeWorldUUID;
-        this.startWorldUUID = data.object.startWorldUUID;
+        // Load Assets into AssetManager
+        if (loadAssets) AssetManager.fromJSON(data.assets);
 
         // Notes
         this.notes = data.notes;
@@ -237,6 +211,8 @@ class Project {
             console.log(world.type);
             this.addWorld(world);
         }
+        this.activeWorldUUID = data.activeWorldUUID;
+        this.startWorldUUID = data.startWorldUUID;
 
         return this;
     }

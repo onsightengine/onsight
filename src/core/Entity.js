@@ -228,11 +228,11 @@ class Entity extends Thing {
         return entity;
     }
 
-    /** Return 'true' in callback to stop further recursion */
+    /** Traverse an entity and it's children, recursively. Return 'true 'in callback to stop traversing. */
     traverse(callback, recursive = true) {
-        if (typeof callback === 'function' && callback(this)) return;
+        if (typeof callback === 'function' && callback(this)) return true;
         for (const child of this.children) {
-            child.traverse(callback, recursive);
+            if (child.traverse(callback, recursive)) return true;
         }
     }
 

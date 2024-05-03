@@ -32,8 +32,7 @@ class SysUtils {
                 window.URL.revokeObjectURL(url);
             }, 0);
         } catch (error) {
-            console.warn(error);
-            return;
+            return console.warn(error);
         }
     }
 

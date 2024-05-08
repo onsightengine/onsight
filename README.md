@@ -4,12 +4,22 @@
 
 # Salinity Engine
 
-Open-source game engine written in JavaScript. Built on Canvas and WebGL to run games and other interactive content in any web browser.
+Open-source app & game framework written in JavaScript. Built on Canvas and WebGL to run games and other interactive content in the browser.
 
 <br />
 
 ## Status
 
 Under development, expect frequent breaking changes...
+
+<br />
+
+## Credits
+
+Thanks to inspiration and code from these wonderful projects:
+- [escher.js](https://github.com/tentone/escher.js) - Interactive 2D canvas graphics framework.
+- [ogl](https://github.com/oframe/ogl) - Minimal WebGL library.
+- [taro](https://github.com/Cloud9c/taro) - Lightweight component-based game framework.
+- [three.js](https://github.com/mrdoob/three.js/) - JavaScript 3D library.
 
 <br />

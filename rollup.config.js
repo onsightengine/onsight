@@ -10,7 +10,7 @@ function header() {
         renderChunk(code) {
             return `/**
  * @description Salinity Engine
- * @about       Easy to use JavaScript game engine.
+ * @about       Interactive, easy to use JavaScript app & game framework.
  * @author      Stephens Nunnally <@stevinz>
  * @version     v${pkg.version}
  * @license     MIT - Copyright (c) 2024 Stephens Nunnally
@@ -46,25 +46,48 @@ const builds = [
         }],
     },
 
-    { // Minified
-        input: './src/Salinity.js',
+    { // Scene Only
+        input: './src/scene/Scene.js',
         treeshake: false,
 
         plugins: [
             json(),
-            visualizer(),
+            cleanup({
+                comments: "none",
+                extensions: [ "js", "ts" ],
+                sourcemap: false,
+            }),
         ],
 
         output: [{
             format: 'esm',
-            file: './dist/salinity.min.js',
+            file: './dist/scene.module.js',
             sourcemap: false,
             plugins: [
-                terser({ format: { comments: false } }),
                 header(),
             ],
         }],
     },
+
+    // { // Minified
+    //     input: './src/Salinity.js',
+    //     treeshake: false,
+
+    //     plugins: [
+    //         json(),
+    //         visualizer(),
+    //     ],
+
+    //     output: [{
+    //         format: 'esm',
+    //         file: './dist/salinity.min.js',
+    //         sourcemap: false,
+    //         plugins: [
+    //             terser({ format: { comments: false } }),
+    //             header(),
+    //         ],
+    //     }],
+    // },
 
 ];
 

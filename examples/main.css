@@ -1,0 +1,233 @@
+/***** ROOT *****/
+
+@font-face { font-family: 'Aileron'; src: url('../files/fonts/Aileron-Regular.ttf'); }
+@font-face { font-family: 'Roboto';  src: url('../files/fonts/Roboto-Regular.ttf'); }
+
+#gtx-trans { display: none !important; } /* disable google translate */
+
+:root {
+    --scroll-size:  0.5em;
+
+    overflow-x: hidden;
+}
+
+/***** SCROLL *****/
+
+*::-webkit-scrollbar {
+    height: var(--scroll-size);
+    width: var(--scroll-size);
+    background: #202020;
+    border-radius: calc(var(--scroll-size) / 2.0);
+}
+*::-webkit-scrollbar-thumb:horizontal {
+    background: linear-gradient(to left, #808080, #404040);
+    border-radius: calc(var(--scroll-size) / 2.0);
+}
+*::-webkit-scrollbar-thumb:vertical {
+    background: linear-gradient(to bottom, #808080, #404040);
+    border-radius: calc(var(--scroll-size) / 2.0);
+}
+*::-webkit-scrollbar-corner {
+    background: #202020;
+}
+
+/***** HTML *****/
+
+* {
+    font-family: 'Roboto', Helvetica, Arial, sans-serif;
+    font-weight: 700;
+}
+
+html {
+    box-sizing: border-box;
+    height: 100%;
+    width: 100%;
+}
+
+html *, html *::before, html *::after {
+    box-sizing: inherit;
+}
+
+body {
+    position: fixed;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    color: #b0b0b0;
+    background: #202428;
+}
+
+button,
+select {
+    border: none;
+    outline: none;
+    background: none;
+    font-family: inherit;
+}
+
+a {
+    color: inherit; /* blue colors for links too */
+    text-decoration: inherit; /* no underline */
+}
+
+/***** Sections *****/
+
+.Side {
+    position: relative;
+    width: 220px;
+    height: 100%;
+    overflow: auto;
+    padding-bottom: 100px;
+    background: #202020;
+}
+
+.Iframe {
+    position: absolute;
+    left: 220px;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    height: 100%;
+    width: calc(100% - 220px);
+    border: none;
+    margin: 0;
+}
+
+/***** Navigation Bar *****/
+
+div {
+    margin: 0;
+}
+
+.Title {
+    font-size: 18px;
+    padding: 5px 5px 5px 10px;
+    display: block;
+    color: #00aacc;
+}
+
+.Title:hover {
+    color: #4bc7e0;
+}
+
+.Section {
+    font-weight: 400;
+    padding: 5px 5px 5px 20px; /* top, right, bottom, left */
+    color: #ff7100;
+}
+
+.Example {
+    padding: 5px 5px 5px 30px; /* top, right, bottom, left */
+    display: block;
+    border-top: solid 2px transparent;
+    border-bottom: solid 2px transparent;
+}
+
+.Example:hover {
+    color: rgb(234, 22, 170);
+}
+
+.Example.active {
+    background-color: #00aacc;
+    border-left: none;
+    border-right: none;
+    border-top: solid 2px #006b80;
+    border-bottom: solid 2px #006b80;
+    font-weight: bold;
+    color: white;
+}
+
+.WorkInProgress {
+    color: #dd1008;
+}
+
+/***** Icons *****/
+
+.SideIcon,
+.CodeIcon {
+    position: absolute;
+    display: block;
+    z-index: 1;
+    margin: 20px;
+    width: 50px;
+    height: 50px;
+    line-height: 44px;
+    text-align: center;
+    color: #00aacc;
+    background: #202020;
+    border-radius: 100%;
+    border: solid 3px #00aacc;
+    font-size: 19px;
+    letter-spacing: -0.1em;
+    box-shadow: 1px 1px 6px rgba(0, 0, 0, 0.1);
+}
+
+.CodeIcon {
+    bottom: 0;
+    right: 0;
+}
+
+.SideIcon {
+    top: 20px;
+    left: 245px;
+    display: none;
+}
+
+@media (max-width: 600px) {
+    .Side {
+        z-index: 1;
+    }
+    .Iframe {
+        left: 0;
+        width: 100%;
+    }
+    .SideIcon {
+        display: block;
+    }
+    [data-hideSidebar] .Side {
+        transform: translateX(-100%);
+    }
+
+    [data-hideSidebar] .SideIcon {
+        left: 0;
+        transform: rotate(180deg);
+    }
+}
+
+/***** Frame *****/
+
+.Info {
+    font-size: 16px;
+    padding: 2px;
+    padding-top: 20px;
+    padding-left: 20px;
+    position: relative;
+    z-index: 1;
+    color: #00aacc;
+}
+
+.Credits {
+    font-size: 12px;
+    padding: 2px;
+    padding-left: 20px;
+    position: relative;
+    z-index: 1;
+    color: #a05100;
+}
+
+.Credits a {
+    font-size: 12px;
+    color: #75b300;
+}
+
+details {
+    font-size: 12px;
+    color: #00c7e6;
+    margin-left: 3.5em;
+}
+
+summary {
+    font-size: 14px;
+    color: #ff7100;
+    margin-left: -2em;
+}

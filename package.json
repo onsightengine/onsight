@@ -1,7 +1,7 @@
 {
   "name": "@salinity/engine",
-  "version": "0.0.6",
-  "description": "Easy to use JavaScript game engine.",
+  "version": "0.0.7",
+  "description": "Interactive, easy to use JavaScript app & game framework.",
   "module": "src/Salinity.js",
   "main": "dist/salinity.module.js",
   "type": "module",
@@ -20,7 +20,9 @@
     "engine",
     "webgl",
     "javascript",
-    "graphics"
+    "graphics",
+    "framework",
+    "canvas"
   ],
   "repository": {
     "type": "git",

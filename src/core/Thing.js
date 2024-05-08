@@ -2,7 +2,7 @@ import {
     VERSION,
 } from '../constants.js';
 import { MathUtils } from '../utils/MathUtils.js';
-import { SysUtils } from '../Salinity.js';
+import { SysUtils } from '../utils/SysUtils.js';
 
 class Thing {
 

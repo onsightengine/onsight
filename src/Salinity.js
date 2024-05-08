@@ -1,9 +1,9 @@
 /**
  * @description Salinity
- * @about       Easy to use JavaScript game engine.
+ * @about       Interactive, easy to use JavaScript app & game framework.
  * @author      Written by Stephens Nunnally <@stevinz>
  * @license     MIT - Copyright (c) 2024 Stephens Nunnally
- * @source      https://github.com/stevinz/salinity
+ * @source      https://github.com/salinityengine
  */
 
 /******************** CONSTANTS ********************/
@@ -47,15 +47,15 @@ export { ColorChange } from './assets/scripts/ColorChange.js';
 export { FollowCamera } from './assets/scripts/FollowCamera.js';
 export { RotateEntity } from './assets/scripts/RotateEntity.js';
 
-/******************** COMPONENTS ********************/
-
-export { ComponentManager } from './app/ComponentManager.js';
-
 /******************** CORE ********************/
 
 export { Clock } from './core/Clock.js';
 export { Project } from './core/Project.js';
 export { Thing } from './core/Thing.js';
+
+/******************** CORE ********************/
+
+export * as Scene from './scene/Scene.js';
 
 /******************** UTILS  ********************/
 

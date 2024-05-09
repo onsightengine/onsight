@@ -2,7 +2,7 @@ import {
     STAGE_TYPES,
 } from '../constants.js';
 import { Entity } from './Entity.js';
-import { Vec3 } from '../math/Vec3.js';
+import { Vector3 } from '../math/Vector3.js';
 
 class Stage extends Entity {
 
@@ -23,8 +23,8 @@ class Stage extends Entity {
         this.enabled = true;
         this.start = 0;
         this.finish = -1;
-        this.beginPosition = new Vec3();
-        this.endPosition = new Vec3();
+        this.beginPosition = new Vector3();
+        this.endPosition = new Vector3();
     }
 
     componentFamily() {

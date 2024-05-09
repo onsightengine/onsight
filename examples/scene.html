@@ -16,54 +16,52 @@
 
     <script type='module'>
 
-        import {
-            Scene,
-        } from 'salt';
+        import * as SALT from 'salt';
         import * as SUEY from 'suey';
 
-        const scene = new Scene.Object2D();
+        const scene = new SALT.Object2D();
 
         // Objects
-        const box = new Scene.Box().setPosition(-100, 0);
+        const box = new SALT.Box().setPosition(-100, 0);
         box.fillStyle.color = '#ff0000';
         box.draggable = true;
         scene.add(box);
-        new Scene.ResizeTool(box, scene);
+        new SALT.ResizeTool(box, scene);
 
-        const rainbowBox = new Scene.Box().setPosition(-100, 200);
+        const rainbowBox = new SALT.Box().setPosition(-100, 200);
         rainbowBox.draggable = true;
-        rainbowBox.fillStyle = new Scene.LinearGradientStyle();
+        rainbowBox.fillStyle = new SALT.LinearGradientStyle();
         rainbowBox.fillStyle.start.set(-50, -50);
         rainbowBox.fillStyle.end.set(50, 50);
         rainbowBox.fillStyle.addColorStop(0, '#ff0000');
         rainbowBox.fillStyle.addColorStop(0.5, '#00ff00');
         rainbowBox.fillStyle.addColorStop(1, '#0000ff');
         scene.add(rainbowBox);
-        new Scene.ResizeTool(rainbowBox, scene);
+        new SALT.ResizeTool(rainbowBox, scene);
 
-        const circle = new Scene.Circle().setPosition(100, 0);
+        const circle = new SALT.Circle().setPosition(100, 0);
         circle.radius = 50;
         circle.draggable = true;
         scene.add(circle);
-        new Scene.ResizeTool(circle, scene);
+        new SALT.ResizeTool(circle, scene);
 
-        const rainbowCircle = new Scene.Circle().setPosition(100, 200);
+        const rainbowCircle = new SALT.Circle().setPosition(100, 200);
         rainbowCircle.radius = 50;
         rainbowCircle.draggable = true;
-        rainbowCircle.fillStyle = new Scene.RadialGradientStyle();
+        rainbowCircle.fillStyle = new SALT.RadialGradientStyle();
         rainbowCircle.fillStyle.addColorStop(0, '#000000');
         rainbowCircle.fillStyle.addColorStop(1, '#ffffff');
         scene.add(rainbowCircle);
-        new Scene.ResizeTool(rainbowCircle, scene);
+        new SALT.ResizeTool(rainbowCircle, scene);
 
-        const text = new Scene.Text().setPosition(0, -100);
+        const text = new SALT.Text().setPosition(0, -100);
         text.fillStyle.color = 'var(--icon)';
         text.text = 'Hello World!';
         text.draggable = true;
         scene.add(text);
-        new Scene.ResizeTool(text, scene);
+        new SALT.ResizeTool(text, scene);
 
-        const line = new Scene.Line();
+        const line = new SALT.Line();
         line.strokeStyle.color = '#ff0000';
         line.lineWidth = 10;
         line.draggable = true;
@@ -73,7 +71,7 @@
         scene.add(line);
 
         for (let i = 0; i < 50; i++) {
-            const box = new Scene.Box().setPosition((Math.random() * 1000) - 500, (Math.random() * 1000) - 500);
+            const box = new SALT.Box().setPosition((Math.random() * 1000) - 500, (Math.random() * 1000) - 500);
             box.draggable = true;
             // box.focusable = false;
             // box.selectable = false;
@@ -81,16 +79,16 @@
         }
 
         // Renderer
-        const renderer = new Scene.Renderer({ width: window.innerWidth, height: window.innerHeight });
+        const renderer = new SALT.Renderer({ width: window.innerWidth, height: window.innerHeight });
         const container = document.getElementById('container');
         container.appendChild(renderer.dom);
 
         // Camera
-        const camera = new Scene.Camera2D();
-        camera.position.copy(new Scene.Vector2(renderer.width / 2.0, renderer.height / 2.0));
+        const camera = new SALT.Camera2D();
+        camera.position.copy(new SALT.Vector2(renderer.width / 2.0, renderer.height / 2.0));
 
         // Camera Controls
-        const cameraControls = new Scene.CameraControls(renderer, camera);
+        const cameraControls = new SALT.CameraControls(renderer, camera);
         renderer.onUpdate(cameraControls);
 
         // Start

@@ -2,7 +2,7 @@ import {
     WORLD_TYPES,
 } from '../constants.js';
 import { Entity } from './Entity.js';
-import { Vec3 } from '../math/Vec3.js';
+import { Vector3 } from '../math/Vector3.js';
 
 class World extends Entity {
 
@@ -20,13 +20,13 @@ class World extends Entity {
         this.type = type;
 
         // Properties, Nodes
-        this.position = new Vec3();
+        this.position = new Vector3();
 
         // Properties, Stage
         this.activeStageUUID = null;
 
         // Properties, Gameplay
-        this.loadPosition = new Vec3();
+        this.loadPosition = new Vector3();
         this.loadDistance = 0;
     }
 

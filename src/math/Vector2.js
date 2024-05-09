@@ -1,5 +1,8 @@
 class Vector2 {
 
+    x = 0;
+    y = 0;
+
     constructor(x, y) {
         if (typeof x === 'object') {
             this.x = x.x;

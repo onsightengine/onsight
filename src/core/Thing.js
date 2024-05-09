@@ -4,6 +4,9 @@ import {
 import { MathUtils } from '../utils/MathUtils.js';
 import { SysUtils } from '../utils/SysUtils.js';
 
+/**
+ * Base class for a serializable object with unique identifier
+ */
 class Thing {
 
     constructor(name = 'Thing') {

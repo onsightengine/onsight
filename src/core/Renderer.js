@@ -1,11 +1,9 @@
-import { Box2 } from '../math/Box2.js';
-import { Element } from './Element.js';
 import { Keyboard } from '../input/Keyboard.js';
 import { Pointer } from '../input/Pointer.js';
 import { Vector2 } from '../math/Vector2.js';
 import { Viewport } from './Viewport.js';
 
-class Renderer extends Element {
+class Renderer {
 
     constructor({
         alpha = true,
@@ -24,8 +22,8 @@ class Renderer extends Element {
         canvas.style.height = '100%';
         canvas.style.outline = 'none';
 
-        // Base
-        super(canvas);
+        // Dom
+        this.dom = canvas;
 
         // Rendering Context (2D)
         this.context = this.dom.getContext('2d', { alpha });
@@ -68,7 +66,30 @@ class Renderer extends Element {
         this.beingDragged = null;       // object being dragged
     }
 
-    /******************** SIZING */
+    /******************** ELEMENT */
+
+    destroy() {
+        dom.dispatchEvent(new Event('destroy'));
+    }
+
+    on(event, callback, options = {}) {
+        if (typeof options !== 'object') options = {};
+        if (typeof callback !== 'function') {
+            console.warn(`Renderer.on(): No callback function provided for '${event}'`);
+            callback = () => { return; };
+        }
+        const eventName = event.toLowerCase();
+        const eventHandler = callback.bind(this);
+        const dom = this.dom;
+        if (options.once || eventName === 'destroy') {
+            options.once = true;
+            dom.addEventListener(eventName, eventHandler, options);
+        } else {
+            dom.addEventListener(eventName, eventHandler, options);
+            dom.addEventListener('destroy', () => dom.removeEventListener(eventName, eventHandler, options), { once: true });
+        }
+        return this;
+    }
 
     get width() { return this.dom.width; }
     set width(x) { this.dom.width = x; }

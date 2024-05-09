@@ -14,8 +14,8 @@ class Pointer {
     #lockID = 1;
 
     constructor(element, disableContextMenu = true) {
-        if (!element || !element.isElement) {
-            console.error(`Pointer: No Suey Element was provided`);
+        if (!element || !element.dom) {
+            console.error(`Pointer: No element was provided`);
             return;
         }
         const self = this;
@@ -166,7 +166,7 @@ class Pointer {
         if (this._positionUpdated) {
             this.delta.copy(this._delta);
             this.position.copy(this._position);
-            this._delta.set(0,0);
+            this._delta.set(0, 0);
             this._positionUpdated = false;
         } else {
             this.delta.x = 0;

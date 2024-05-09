@@ -9,16 +9,26 @@ import { Vector2 } from '../../math/Vector2.js';
 // svg to base64, 'cursors/rotate.svg'
 const CURSOR_ROTATE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWw6c3BhY2U9InByZXNlcnZlIiBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlLWxpbmVqb2luOnJvdW5kO3N0cm9rZS1taXRlcmxpbWl0OjI7Ij48cGF0aCBkPSJNMjEuMjQ3LDUuODY3YzAuNDE3LC0wLjQ1MiAxLjAzNiwtMC42NjYgMS42NDcsLTAuNTYzYzAuNjQ0LDAuMTA5IDEuMTgsMC41NTMgMS40MDcsMS4xNjRsMS44MjQsNC45MDFjMC4yMjcsMC42MTEgMC4xMTEsMS4yOTggLTAuMzA1LDEuODAxYy0wLjQxNiwwLjUwMyAtMS4wNjksMC43NDUgLTEuNzEzLDAuNjM2bC01LjE1NCwtMC44NzRjLTAuNjQ0LC0wLjEwOSAtMS4xOCwtMC41NTMgLTEuNDA3LC0xLjE2NWMtMC4xNzksLTAuNDgxIC0wLjE0NSwtMS4wMDggMC4wOCwtMS40NTVjLTAuNTIxLC0wLjE0OCAtMS4wNjQsLTAuMjI1IC0xLjYxNSwtMC4yMjVjLTMuMjY0LDAgLTUuOTEzLDIuNjUgLTUuOTEzLDUuOTEzYy0wLDMuMjYzIDIuNjQ5LDUuOTEzIDUuOTEzLDUuOTEzYzEuNjQsMCAzLjIwNiwtMC42ODEgNC4zMjQsLTEuODhjMC42ODgsLTAuNzM4IDEuODQ0LC0wLjc3OCAyLjU4MiwtMC4wOWwxLjM0NiwxLjI1NWMwLjczNywwLjY4OCAwLjc3OCwxLjg0MyAwLjA5LDIuNTgxYy0yLjE1OCwyLjMxNCAtNS4xNzksMy42MjcgLTguMzQyLDMuNjI3Yy02LjI5NSwwIC0xMS40MDYsLTUuMTExIC0xMS40MDYsLTExLjQwNmMtMCwtNi4yOTUgNS4xMTEsLTExLjQwNiAxMS40MDYsLTExLjQwNmMxLjgzOCwtMCAzLjYzMSwwLjQ0MyA1LjIzNiwxLjI3M1oiIHN0eWxlPSJmaWxsOiNmZmY7Ii8+PHBhdGggZD0iTTE5LjgzNSw5Ljc2N2wtMC45MDUsMS4wOTNjLTAuMDk3LDAuMTE3IC0wLjEyNCwwLjI3NyAtMC4wNzEsMC40MTljMC4wNTMsMC4xNDMgMC4xNzgsMC4yNDYgMC4zMjgsMC4yNzJsNS4xNTQsMC44NzRjMC4xNTEsMC4wMjYgMC4zMDMsLTAuMDMxIDAuNCwtMC4xNDhjMC4wOTcsLTAuMTE3IDAuMTI0LC0wLjI3NyAwLjA3MSwtMC40MmwtMS44MjMsLTQuOWMtMC4wNTMsLTAuMTQzIC0wLjE3OCwtMC4yNDYgLTAuMzI4LC0wLjI3MWMtMC4xNSwtMC4wMjYgLTAuMzAyLDAuMDMxIC0wLjM5OSwwLjE0OGwtMC42OTksMC44NDRjLTEuNjMyLC0xLjA5MSAtMy41NjIsLTEuNjgzIC01LjU1MiwtMS42ODNjLTUuNTIyLC0wIC0xMC4wMDYsNC40ODMgLTEwLjAwNiwxMC4wMDVjMCw1LjUyMiA0LjQ4NCwxMC4wMDUgMTAuMDA2LDEwLjAwNWMyLjc3NSwwIDUuNDI1LC0xLjE1MiA3LjMxNywtMy4xODFjMC4xNjEsLTAuMTcyIDAuMTUxLC0wLjQ0MiAtMC4wMjEsLTAuNjAybC0xLjM0NSwtMS4yNTVjLTAuMTcyLC0wLjE2IC0wLjQ0MiwtMC4xNTEgLTAuNjAyLDAuMDIxYy0xLjM4MywxLjQ4MyAtMy4zMjEsMi4zMjYgLTUuMzQ5LDIuMzI2Yy00LjAzNywtMCAtNy4zMTQsLTMuMjc3IC03LjMxNCwtNy4zMTRjMCwtNC4wMzcgMy4yNzcsLTcuMzE0IDcuMzE0LC03LjMxNGMxLjM2LDAgMi42ODIsMC4zNzkgMy44MjQsMS4wODFaIi8+PC9zdmc+';
 
-class ResizeTool {
+class ResizeTool extends Object2D {
 
     static ALL = 0;
     static RESIZE = 1;
     static ROTATE = 2;
 
-    constructor(object, scene, tools = ResizeTool.ALL, radius = 5) {
-        if (!object || !scene) return console.warn(`ResizeTool(): Object or scene missing from argument list`);
-        if (!object.boundingBox) return console.warn(`ResizeTool(): Object missing 'boundingBox' property`);
+    constructor(object, radius = 5, tools = ResizeTool.ALL) {
+        if (!object) return console.error(`ResizeTool(): Missing 'object' argument`);
+        if (!object.boundingBox) return console.error(`ResizeTool(): Object missing 'boundingBox' property`);
 
+        super();
+        this.isHelper = true;
+
+        this.draggable = false;
+        this.focusable = false;
+        this.selectable = false;
+        this.pointerEvents = false;
+        this.layer = object.layer + 1;
+
+        // Transform Delta
         function localDelta(pointer, camera) {
             const pointerStart = pointer.position.clone();
             const pointerEnd = pointer.position.clone().sub(pointer.delta);
@@ -30,19 +40,12 @@ class ResizeTool {
             return delta;
         }
 
-        const resizerContainer = new Object2D();
-        resizerContainer.draggable = false;
-        resizerContainer.focusable = false;
-        resizerContainer.selectable = false;
-        resizerContainer.pointerEvents = false;
-        resizerContainer.layer = object.layer + 1;
-        scene.add(resizerContainer);
-
+        // Resizers
         let topLeft, topRight, bottomLeft, bottomRight;
         let topResizer, rightResizer, bottomResizer, leftResizer;
         let rotater, rotateLine;
 
-        // Add Resizers
+        // Corners / Sides
         if (tools === ResizeTool.ALL || tools === ResizeTool.RESIZE) {
             function createResizer(x, y, type = 'box', addRotation, alpha) {
                 let resizer;
@@ -129,7 +132,6 @@ class ResizeTool {
                     object.scale.sub(delta.multiply(x, y).multiply(scale));
                     object.matrixNeedsUpdate = true;
                 };
-                resizerContainer.add(resizer);
                 return resizer;
             }
             bottomRight = createResizer(-1, -1, 'box', 45, 1);
@@ -140,9 +142,11 @@ class ResizeTool {
             bottomResizer = createResizer(0, -1, 'line', 90, 1);
             leftResizer = createResizer(1, 0, 'line', 180, 1);
             topResizer = createResizer(0, 1, 'line', 270, 1);
+            this.add(bottomRight, bottomLeft, topLeft, topRight);
+            this.add(rightResizer, bottomResizer, leftResizer, topResizer);
         }
 
-        // Add Rotate Tool
+        // Rotate Tool
         if (tools === ResizeTool.ALL || tools === ResizeTool.ROTATE) {
             // Circle
             rotater = new Circle();
@@ -184,11 +188,11 @@ class ResizeTool {
             rotateLine.layer = object.layer + 1;
             rotateLine.constantWidth = true;
             rotateLine.strokeStyle.color = '--highlight';
-            resizerContainer.add(rotater, rotateLine);
+            this.add(rotater, rotateLine);
         }
 
-        // Update Tools
-        resizerContainer.onUpdate = function(context, camera) {
+        // Update
+        this.onUpdate = function(context, camera) {
             const box = object.boundingBox;
             const center = box.getCenter();
 
@@ -213,15 +217,16 @@ class ResizeTool {
             const bottomLeftWorld = object.globalMatrix.transformPoint(new Vector2(box.min.x, box.max.y));
             const bottomRightWorld = object.globalMatrix.transformPoint(box.max);
             function updateCornerResizer(resizer, point) {
+                if (!resizer) return;
                 resizer.position.copy(point);
                 resizer.scale.set(1 / camera.scale, 1 / camera.scale);
                 resizer.rotation = object.rotation;
                 resizer.updateMatrix();
             }
-            if (topLeft) updateCornerResizer(topLeft, topLeftWorld);
-            if (topRight) updateCornerResizer(topRight, topRightWorld);
-            if (bottomLeft) updateCornerResizer(bottomLeft, bottomLeftWorld);
-            if (bottomRight) updateCornerResizer(bottomRight, bottomRightWorld);
+            updateCornerResizer(topLeft, topLeftWorld);
+            updateCornerResizer(topRight, topRightWorld);
+            updateCornerResizer(bottomLeft, bottomLeftWorld);
+            updateCornerResizer(bottomRight, bottomRightWorld);
 
             // Side Resizers
             const leftMiddleWorld = object.globalMatrix.transformPoint(new Vector2(box.min.x, center.y));
@@ -230,62 +235,35 @@ class ResizeTool {
             const bottomMiddleWorld = object.globalMatrix.transformPoint(new Vector2(center.x, box.max.y));
             const halfWidth = object.boundingBox.getSize().x / 2 * Math.abs(object.scale.x);
             const halfHeight = object.boundingBox.getSize().y / 2 * Math.abs(object.scale.y);
-            if (leftResizer) {
-                leftResizer.position.copy(leftMiddleWorld);
-                leftResizer.rotation = object.rotation;
-                if (leftResizer.type === 'Box') {
-                    leftResizer.scale.set(1 / camera.scale, 1);
-                    leftResizer.box.set(new Vector2(-radius, -halfHeight), new Vector2(radius, halfHeight));
+            function updateSideResizer(resizer, point, type = 'v') {
+                if (!resizer) return;
+                resizer.position.copy(point);
+                resizer.rotation = object.rotation;
+                if (resizer.type === 'Box') {
+                    if (type === 'v') {
+                        resizer.scale.set(1 / camera.scale, 1);
+                        resizer.box.set(new Vector2(-radius, -halfHeight), new Vector2(radius, halfHeight));
+                    } else {
+                        resizer.scale.set(1, 1 / camera.scale);
+                        resizer.box.set(new Vector2(-halfWidth, -radius), new Vector2(halfWidth, radius));
+                    }
                 }
-                if (leftResizer.type === 'Line') {
-                    leftResizer.mouseBuffer = radius / camera.scale;
-                    leftResizer.from.set(0, -halfHeight);
-                    leftResizer.to.set(0, +halfHeight);
+                if (resizer.type === 'Line') {
+                    resizer.mouseBuffer = radius / camera.scale;
+                    if (type === 'v') {
+                        resizer.from.set(0, -halfHeight);
+                        resizer.to.set(0, +halfHeight);
+                    } else {
+                        resizer.from.set(-halfWidth, 0);
+                        resizer.to.set(+halfWidth, 0);
+                    }
                 }
-                leftResizer.updateMatrix();
+                resizer.updateMatrix();
             }
-            if (rightResizer) {
-                rightResizer.position.copy(rightMiddleWorld);
-                rightResizer.rotation = object.rotation;
-                if (rightResizer.type === 'Box') {
-                    rightResizer.scale.set(1 / camera.scale, 1);
-                    rightResizer.box.set(new Vector2(-radius, -halfHeight), new Vector2(radius, halfHeight));
-                }
-                if (rightResizer.type === 'Line') {
-                    rightResizer.mouseBuffer = radius / camera.scale;
-                    rightResizer.from.set(0, -halfHeight);
-                    rightResizer.to.set(0, +halfHeight);
-                }
-                rightResizer.updateMatrix();
-            }
-            if (topResizer) {
-                topResizer.position.copy(topMiddleWorld);
-                topResizer.rotation = object.rotation;
-                if (topResizer.type === 'Box') {
-                    topResizer.scale.set(1, 1 / camera.scale);
-                    topResizer.box.set(new Vector2(-halfWidth, -radius), new Vector2(halfWidth, radius));
-                }
-                if (topResizer.type === 'Line') {
-                    topResizer.mouseBuffer = radius / camera.scale;
-                    topResizer.from.set(-halfWidth, 0);
-                    topResizer.to.set(+halfWidth, 0);
-                }
-                topResizer.updateMatrix();
-            }
-            if (bottomResizer) {
-                bottomResizer.position.copy(bottomMiddleWorld);
-                bottomResizer.rotation = object.rotation;
-                if (bottomResizer.type === 'Box') {
-                    bottomResizer.scale.set(1, 1 / camera.scale);
-                    bottomResizer.box.set(new Vector2(-halfWidth, -radius), new Vector2(halfWidth, radius));
-                }
-                if (bottomResizer.type === 'Line') {
-                    bottomResizer.mouseBuffer = radius / camera.scale;
-                    bottomResizer.from.set(-halfWidth, 0);
-                    bottomResizer.to.set(+halfWidth, 0);
-                }
-                bottomResizer.updateMatrix();
-            }
+            updateSideResizer(leftResizer, leftMiddleWorld, 'v');
+            updateSideResizer(rightResizer, rightMiddleWorld, 'v');
+            updateSideResizer(topResizer, topMiddleWorld, 'h');
+            updateSideResizer(bottomResizer, bottomMiddleWorld, 'h');
         }
     }
 

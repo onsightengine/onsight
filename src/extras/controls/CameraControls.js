@@ -28,7 +28,7 @@ class CameraControls {
 
         /***** EVENTS */
 
-        // Focus on Double Click
+        // Focus Camera on Double Click
         renderer.on('dblclick', (event) => {
             if (!renderer.scene || !renderer.camera) return;
             const point = new Vector2(event.clientX, event.clientY);

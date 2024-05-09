@@ -2565,8 +2565,8 @@ class Pointer {
     #locked = false;
     #lockID = 1;
     constructor(element, disableContextMenu = true) {
-        if (!element || !element.isElement) {
-            console.error(`Pointer: No Suey Element was provided`);
+        if (!element || !element.dom) {
+            console.error(`Pointer: No element was provided`);
             return;
         }
         const self = this;
@@ -2678,7 +2678,7 @@ class Pointer {
         if (this._positionUpdated) {
             this.delta.copy(this._delta);
             this.position.copy(this._position);
-            this._delta.set(0,0);
+            this._delta.set(0, 0);
             this._positionUpdated = false;
         } else {
             this.delta.x = 0;
@@ -2838,350 +2838,10 @@ class Object2D {
     }
 }
 
-class Element {
-    constructor(domElement) {
-        if (domElement == null) {
-            console.trace('Element.constructor: No HTMLElement provided!');
-            domElement = document.createElement('div');
-        }
-        this.isElement = true;
-        let dom = domElement;
-        let suey = this;
-        this.parent = undefined;
-        this.children = [];
-        this.contents = function() { return suey; };
-        Object.defineProperties(this, {
-            dom: {
-                get: function() { return dom; },
-                set: function(value) { dom = value; },
-            },
-            id: {
-                configurable: true,
-                get: function() { return dom.id; },
-                set: function(value) { dom.id = value; },
-            },
-            name: {
-                get: function() { return dom.name ?? '???'; },
-                set: function(value) { dom.name = String(value); } ,
-            },
-        });
-        Object.defineProperties(dom, {
-            suey: {
-                get: function() { return suey; },
-            },
-        });
-    }
-    setID(id) {
-        this.id = id;
-        return this;
-    }
-    add(...elements) {
-        for (const element of elements) {
-            addToParent(this.contents(), element);
-        }
-        return this;
-    }
-    addToSelf(...elements) {
-        for (const element of elements) {
-            addToParent(this, element);
-        }
-        return this;
-    }
-    clearContents() {
-        destroyChildren(this.contents(), false );
-        return this;
-    }
-    destroy() {
-        destroyChildren(this, true );
-        return this;
-    }
-    detach(...elements) {
-        const removedElements = [];
-        for (const element of elements) {
-            let removed = removeFromParent(this.contents(), element, false );
-            if (!removed) removed = removeFromParent(this, element, false );
-            if (!removed) {  }
-            removedElements.push(removed);
-        }
-        if (removedElements.length === 0) return undefined;
-        if (removedElements.length === 1) return removedElements[0];
-        return removedElements;
-    }
-    remove(...elements) {
-        const removedElements = [];
-        for (const element of elements) {
-            let removed = removeFromParent(this.contents(), element, true );
-            if (!removed) removed = removeFromParent(this, element, true );
-            if (!removed) {  }
-            removedElements.push(removed);
-        }
-        if (removedElements.length === 0) return undefined;
-        if (removedElements.length === 1) return removedElements[0];
-        return removedElements;
-    }
-    removeSelf() {
-        this.destroy();
-        const parent = this.parent ?? this.dom?.parentElement;
-        removeFromParent(parent, this, false );
-        return this;
-    }
-    setClass(...classNames) {
-        this.dom.className = '';
-        return this.addClass(...classNames);
-    }
-    addClass(...classNames) {
-        for (const className of classNames) {
-            if (className && typeof className === 'string' && className != '') {
-                this.dom.classList.add(className);
-            }
-        }
-        return this;
-    }
-    hasClass(className) {
-        return this.dom.classList.contains(className);
-    }
-    hasClassWithString(substring) {
-        substring = String(substring).toLowerCase();
-        const classArray = [ ...this.dom.classList ];
-        for (let i = 0; i < classArray.length; i++) {
-            const className = classArray[i];
-            if (className.toLowerCase().includes(substring)) return true;
-        }
-        return false;
-    }
-    removeClass(...classNames) {
-        for (const className of classNames) {
-            this.dom.classList.remove(className);
-        }
-        return this;
-    }
-    toggleClass(className) {
-        if (className != null && typeof className === 'string' && className !== '') {
-            if (this.hasClass(className)) this.removeClass(className);
-            else this.addClass(className);
-        }
-        return this;
-    }
-    wantsClass(className, wants = true) {
-        if (className && className != '') {
-            if (wants) this.addClass(className);
-            else this.removeClass(className);
-        }
-        return this;
-    }
-    setAttribute(attrib, value) {
-        this.dom.setAttribute(attrib, value);
-    }
-    setDisabled(value = true) {
-        if (value) this.addClass('suey-disabled');
-        else this.removeClass('suey-disabled');
-        this.dom.disabled = value;
-        return this;
-    }
-    selectable(allowSelection) {
-        if (allowSelection) this.removeClass('suey-unselectable');
-        else this.addClass('suey-unselectable');
-        return this;
-    }
-    hide(dispatchEvent = true) {
-        if (this.isHidden()) return;
-        if (dispatchEvent) this.dom.dispatchEvent(new Event('hidden'));
-        this.addClass('suey-hidden');
-        this.setStyle('display', 'none');
-    }
-    display(dispatchEvent = true) {
-        if (this.isDisplayed() && this.hasClass('suey-hidden') === false) return;
-        this.removeClass('suey-hidden');
-        this.setStyle('display', '');
-        if (dispatchEvent) this.dom.dispatchEvent(new Event('displayed'));
-    }
-    isDisplayed() {
-        return getComputedStyle(this.dom).display != 'none';
-    }
-    isHidden() {
-        return getComputedStyle(this.dom).display == 'none';
-    }
-    allowFocus() {
-        this.dom.tabIndex = 0;
-    }
-    allowMouseFocus() {
-        this.dom.tabIndex = -1;
-    }
-    focus() {
-        this.dom.focus();
-    }
-    blur() {
-        this.dom.blur();
-    }
-    setTextContent(value) {
-        if (value != undefined) this.contents().dom.textContent = value;
-        return this;
-    }
-    getTextContent() {
-        return this.contents().dom.textContent;
-    }
-    setInnerText(value) {
-        if (value != undefined) this.contents().dom.innerText = value;
-        return this;
-    }
-    getInnerText() {
-        return this.contents().dom.innerText;
-    }
-    setInnerHtml(value) {
-        if (value === undefined || value === null) value = '';
-        if (typeof this.contents().dom.setHTML === 'function') {
-            this.contents().dom.setHTML(value);
-        } else {
-            this.contents().dom.innerHTML = value;
-        }
-        return this;
-    }
-    getInnerHtml() {
-        return this.contents().dom.innerHTML;
-    }
-    setStyle() {
-        for (let i = 0, l = arguments.length; i < l; i += 2) {
-            const style = arguments[i];
-            const value = arguments[i + 1];
-            this.dom.style[style] = value;
-        }
-        return this;
-    }
-    setContentsStyle() {
-        for (let i = 0, l = arguments.length; i < l; i += 2) {
-            const style = arguments[i];
-            const value = arguments[i + 1];
-            this.contents().dom.style[style] = value;
-        }
-        return this;
-    }
-    setColor() {
-        console.error(`${this.constructor.name}.setColor(): Method must be reimplemented from Element`);
-        return this;
-    }
-    getLeft() {
-        return this.dom.getBoundingClientRect().left;
-    }
-    getTop() {
-        return this.dom.getBoundingClientRect().top;
-    }
-    getWidth() {
-        return this.dom.getBoundingClientRect().width;
-    }
-    getHeight() {
-        return this.dom.getBoundingClientRect().height;
-    }
-    getRelativePosition() {
-        const rect = this.dom.getBoundingClientRect();
-        let offsetParent = this.dom.offsetParent;
-        while (offsetParent && getComputedStyle(offsetParent).position === 'static') {
-            offsetParent = offsetParent.offsetParent;
-        }
-        if (!offsetParent) {
-            return { left: rect.left, top: rect.top };
-        }
-        const parentRect = offsetParent.getBoundingClientRect();
-        const relativeLeft = rect.left - parentRect.left;
-        const relativeTop = rect.top - parentRect.top;
-        return { left: relativeLeft, top: relativeTop };
-    }
-    traverse(callback, applyToSelf = true) {
-        if (applyToSelf) callback(this);
-        if (this.children) {
-            for (const child of this.children) {
-                child.traverse(callback, true);
-            }
-        }
-    }
-    traverseAncestors(callback, applyToSelf = true) {
-        if (applyToSelf) callback(this);
-        if (this.parent) this.parent.traverseAncestors(callback, true);
-    }
-    on(event, callback, options = {}) {
-        if (typeof options !== 'object') options = {};
-        if (typeof callback !== 'function') {
-            console.warn(`Element.on(): No callback function provided for '${event}'`);
-        } else {
-            const eventName = event.toLowerCase();
-            const eventHandler = callback.bind(this);
-            const dom = this.dom;
-            if (options.once || eventName === 'destroy') {
-                options.once = true;
-                dom.addEventListener(eventName, eventHandler, options);
-            } else {
-                dom.addEventListener(eventName, eventHandler, options);
-                dom.addEventListener('destroy', () => dom.removeEventListener(eventName, eventHandler, options), { once: true });
-            }
-        }
-        return this;
-    }
-}
-function addToParent(parent, element) {
-    if (!parent || !element) return;
-    if (element.isElement) {
-        if (parent.isElement && element.parent === parent) return;
-        if (element.parent && element.parent.isElement) {
-            removeFromParent(element.parent, element, false);
-        }
-    }
-    const parentDom = parent.isElement ? parent.dom : parent;
-    const elementDom = element.isElement ? element.dom : element;
-    try { if (parentDom) parentDom.appendChild(elementDom); }
-    catch (error) {  }
-    if (element.isElement) {
-        let hasIt = false;
-        for (const child of parent.children) {
-            if (child.dom.isSameNode(element.dom)) { hasIt = true; break; }
-        }
-        if (!hasIt) parent.children.push(element);
-        element.parent = parent;
-    }
-    if (elementDom instanceof HTMLElement) {
-        elementDom.dispatchEvent(new Event('parent-changed'));
-    }
-}
-function destroyChildren(element, destroySelf = true) {
-    if (!element) return;
-    const dom = element.isElement ? element.dom : element;
-    if (!(dom instanceof HTMLElement)) return;
-    if (destroySelf) {
-        if (!dom.wasDestroyed) {
-            dom.dispatchEvent(new Event('destroy'));
-            dom.wasDestroyed = true;
-        }
-    }
-    for (let i = dom.children.length - 1; i >= 0; i--) {
-        const child = dom.children[i];
-        destroyChildren(child, true );
-        try { dom.removeChild(child); } catch (error) {  }
-    }
-    if (dom.suey && dom.suey.isElement) dom.suey.children.length = 0;
-}
-function removeFromParent(parent, element, destroy = true) {
-    if (!parent || !element) return undefined;
-    if (destroy) destroyChildren(element, true );
-    if (element.isElement && parent.isElement) {
-        for (let i = 0; i < parent.children.length; i++) {
-            const child = parent.children[i];
-            if (child.dom.isSameNode(element.dom)) {
-                parent.children.splice(i, 1);
-                element.parent = undefined;
-            }
-        }
-    }
-    try {
-        if (parent.isElement) parent = parent.dom;
-        if (parent instanceof HTMLElement) {
-            const removed = parent.removeChild(element.isElement ? element.dom : element);
-            return (removed && removed.suey) ? removed.suey : removed;
-        }
-    } catch (error) {  }
-}
-
 class Keyboard {
     constructor(element) {
-        if (!element || !element.isElement) {
-            console.error(`Keyboard: No Suey Element was provided`);
+        if (!element || !element.dom) {
+            console.error(`Keyboard: No element was provided`);
             return;
         }
         const self = this;
@@ -3240,7 +2900,7 @@ class Viewport {
     }
 }
 
-class Renderer extends Element {
+class Renderer {
     constructor({
         alpha = true,
         disableContextMenu = true,
@@ -3257,7 +2917,7 @@ class Renderer extends Element {
         canvas.style.width = '100%';
         canvas.style.height = '100%';
         canvas.style.outline = 'none';
-        super(canvas);
+        this.dom = canvas;
         this.context = this.dom.getContext('2d', { alpha });
         this.context.imageSmoothingEnabled = imageSmoothingEnabled;
         this.context.imageSmoothingQuality = imageSmoothingQuality;
@@ -3284,6 +2944,27 @@ class Renderer extends Element {
         this.scene = null;
         this.camera = null;
         this.beingDragged = null;
+    }
+    destroy() {
+        dom.dispatchEvent(new Event('destroy'));
+    }
+    on(event, callback, options = {}) {
+        if (typeof options !== 'object') options = {};
+        if (typeof callback !== 'function') {
+            console.warn(`Renderer.on(): No callback function provided for '${event}'`);
+            callback = () => { return; };
+        }
+        const eventName = event.toLowerCase();
+        const eventHandler = callback.bind(this);
+        const dom = this.dom;
+        if (options.once || eventName === 'destroy') {
+            options.once = true;
+            dom.addEventListener(eventName, eventHandler, options);
+        } else {
+            dom.addEventListener(eventName, eventHandler, options);
+            dom.addEventListener('destroy', () => dom.removeEventListener(eventName, eventHandler, options), { once: true });
+        }
+        return this;
     }
     get width() { return this.dom.width; }
     set width(x) { this.dom.width = x; }
@@ -3909,13 +3590,20 @@ class DragControls {
 }
 
 const CURSOR_ROTATE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWw6c3BhY2U9InByZXNlcnZlIiBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlLWxpbmVqb2luOnJvdW5kO3N0cm9rZS1taXRlcmxpbWl0OjI7Ij48cGF0aCBkPSJNMjEuMjQ3LDUuODY3YzAuNDE3LC0wLjQ1MiAxLjAzNiwtMC42NjYgMS42NDcsLTAuNTYzYzAuNjQ0LDAuMTA5IDEuMTgsMC41NTMgMS40MDcsMS4xNjRsMS44MjQsNC45MDFjMC4yMjcsMC42MTEgMC4xMTEsMS4yOTggLTAuMzA1LDEuODAxYy0wLjQxNiwwLjUwMyAtMS4wNjksMC43NDUgLTEuNzEzLDAuNjM2bC01LjE1NCwtMC44NzRjLTAuNjQ0LC0wLjEwOSAtMS4xOCwtMC41NTMgLTEuNDA3LC0xLjE2NWMtMC4xNzksLTAuNDgxIC0wLjE0NSwtMS4wMDggMC4wOCwtMS40NTVjLTAuNTIxLC0wLjE0OCAtMS4wNjQsLTAuMjI1IC0xLjYxNSwtMC4yMjVjLTMuMjY0LDAgLTUuOTEzLDIuNjUgLTUuOTEzLDUuOTEzYy0wLDMuMjYzIDIuNjQ5LDUuOTEzIDUuOTEzLDUuOTEzYzEuNjQsMCAzLjIwNiwtMC42ODEgNC4zMjQsLTEuODhjMC42ODgsLTAuNzM4IDEuODQ0LC0wLjc3OCAyLjU4MiwtMC4wOWwxLjM0NiwxLjI1NWMwLjczNywwLjY4OCAwLjc3OCwxLjg0MyAwLjA5LDIuNTgxYy0yLjE1OCwyLjMxNCAtNS4xNzksMy42MjcgLTguMzQyLDMuNjI3Yy02LjI5NSwwIC0xMS40MDYsLTUuMTExIC0xMS40MDYsLTExLjQwNmMtMCwtNi4yOTUgNS4xMTEsLTExLjQwNiAxMS40MDYsLTExLjQwNmMxLjgzOCwtMCAzLjYzMSwwLjQ0MyA1LjIzNiwxLjI3M1oiIHN0eWxlPSJmaWxsOiNmZmY7Ii8+PHBhdGggZD0iTTE5LjgzNSw5Ljc2N2wtMC45MDUsMS4wOTNjLTAuMDk3LDAuMTE3IC0wLjEyNCwwLjI3NyAtMC4wNzEsMC40MTljMC4wNTMsMC4xNDMgMC4xNzgsMC4yNDYgMC4zMjgsMC4yNzJsNS4xNTQsMC44NzRjMC4xNTEsMC4wMjYgMC4zMDMsLTAuMDMxIDAuNCwtMC4xNDhjMC4wOTcsLTAuMTE3IDAuMTI0LC0wLjI3NyAwLjA3MSwtMC40MmwtMS44MjMsLTQuOWMtMC4wNTMsLTAuMTQzIC0wLjE3OCwtMC4yNDYgLTAuMzI4LC0wLjI3MWMtMC4xNSwtMC4wMjYgLTAuMzAyLDAuMDMxIC0wLjM5OSwwLjE0OGwtMC42OTksMC44NDRjLTEuNjMyLC0xLjA5MSAtMy41NjIsLTEuNjgzIC01LjU1MiwtMS42ODNjLTUuNTIyLC0wIC0xMC4wMDYsNC40ODMgLTEwLjAwNiwxMC4wMDVjMCw1LjUyMiA0LjQ4NCwxMC4wMDUgMTAuMDA2LDEwLjAwNWMyLjc3NSwwIDUuNDI1LC0xLjE1MiA3LjMxNywtMy4xODFjMC4xNjEsLTAuMTcyIDAuMTUxLC0wLjQ0MiAtMC4wMjEsLTAuNjAybC0xLjM0NSwtMS4yNTVjLTAuMTcyLC0wLjE2IC0wLjQ0MiwtMC4xNTEgLTAuNjAyLDAuMDIxYy0xLjM4MywxLjQ4MyAtMy4zMjEsMi4zMjYgLTUuMzQ5LDIuMzI2Yy00LjAzNywtMCAtNy4zMTQsLTMuMjc3IC03LjMxNCwtNy4zMTRjMCwtNC4wMzcgMy4yNzcsLTcuMzE0IDcuMzE0LC03LjMxNGMxLjM2LDAgMi42ODIsMC4zNzkgMy44MjQsMS4wODFaIi8+PC9zdmc+';
-class ResizeTool {
+class ResizeTool extends Object2D {
     static ALL = 0;
     static RESIZE = 1;
     static ROTATE = 2;
-    constructor(object, scene, tools = ResizeTool.ALL, radius = 5) {
-        if (!object || !scene) return console.warn(`ResizeTool(): Object or scene missing from argument list`);
-        if (!object.boundingBox) return console.warn(`ResizeTool(): Object missing 'boundingBox' property`);
+    constructor(object, radius = 5, tools = ResizeTool.ALL) {
+        if (!object) return console.error(`ResizeTool(): Missing 'object' argument`);
+        if (!object.boundingBox) return console.error(`ResizeTool(): Object missing 'boundingBox' property`);
+        super();
+        this.isHelper = true;
+        this.draggable = false;
+        this.focusable = false;
+        this.selectable = false;
+        this.pointerEvents = false;
+        this.layer = object.layer + 1;
         function localDelta(pointer, camera) {
             const pointerStart = pointer.position.clone();
             const pointerEnd = pointer.position.clone().sub(pointer.delta);
@@ -3926,13 +3614,6 @@ class ResizeTool {
             const delta = localPositionStart.clone().sub(localPositionEnd).multiply(object.scale);
             return delta;
         }
-        const resizerContainer = new Object2D();
-        resizerContainer.draggable = false;
-        resizerContainer.focusable = false;
-        resizerContainer.selectable = false;
-        resizerContainer.pointerEvents = false;
-        resizerContainer.layer = object.layer + 1;
-        scene.add(resizerContainer);
         let topLeft, topRight, bottomLeft, bottomRight;
         let topResizer, rightResizer, bottomResizer, leftResizer;
         let rotater, rotateLine;
@@ -4022,7 +3703,6 @@ class ResizeTool {
                     object.scale.sub(delta.multiply(x, y).multiply(scale));
                     object.matrixNeedsUpdate = true;
                 };
-                resizerContainer.add(resizer);
                 return resizer;
             }
             bottomRight = createResizer(-1, -1, 'box', 45, 1);
@@ -4033,6 +3713,8 @@ class ResizeTool {
             bottomResizer = createResizer(0, -1, 'line', 90, 1);
             leftResizer = createResizer(1, 0, 'line', 180, 1);
             topResizer = createResizer(0, 1, 'line', 270, 1);
+            this.add(bottomRight, bottomLeft, topLeft, topRight);
+            this.add(rightResizer, bottomResizer, leftResizer, topResizer);
         }
         if (tools === ResizeTool.ALL || tools === ResizeTool.ROTATE) {
             rotater = new Circle();
@@ -4073,9 +3755,9 @@ class ResizeTool {
             rotateLine.layer = object.layer + 1;
             rotateLine.constantWidth = true;
             rotateLine.strokeStyle.color = '--highlight';
-            resizerContainer.add(rotater, rotateLine);
+            this.add(rotater, rotateLine);
         }
-        resizerContainer.onUpdate = function(context, camera) {
+        this.onUpdate = function(context, camera) {
             const box = object.boundingBox;
             const center = box.getCenter();
             const handleOffset = ((radius * 4) / Math.abs(object.scale.y)) / camera.scale;
@@ -4096,77 +3778,51 @@ class ResizeTool {
             const bottomLeftWorld = object.globalMatrix.transformPoint(new Vector2(box.min.x, box.max.y));
             const bottomRightWorld = object.globalMatrix.transformPoint(box.max);
             function updateCornerResizer(resizer, point) {
+                if (!resizer) return;
                 resizer.position.copy(point);
                 resizer.scale.set(1 / camera.scale, 1 / camera.scale);
                 resizer.rotation = object.rotation;
                 resizer.updateMatrix();
             }
-            if (topLeft) updateCornerResizer(topLeft, topLeftWorld);
-            if (topRight) updateCornerResizer(topRight, topRightWorld);
-            if (bottomLeft) updateCornerResizer(bottomLeft, bottomLeftWorld);
-            if (bottomRight) updateCornerResizer(bottomRight, bottomRightWorld);
+            updateCornerResizer(topLeft, topLeftWorld);
+            updateCornerResizer(topRight, topRightWorld);
+            updateCornerResizer(bottomLeft, bottomLeftWorld);
+            updateCornerResizer(bottomRight, bottomRightWorld);
             const leftMiddleWorld = object.globalMatrix.transformPoint(new Vector2(box.min.x, center.y));
             const rightMiddleWorld = object.globalMatrix.transformPoint(new Vector2(box.max.x, center.y));
             const topMiddleWorld = object.globalMatrix.transformPoint(new Vector2(center.x, box.min.y));
             const bottomMiddleWorld = object.globalMatrix.transformPoint(new Vector2(center.x, box.max.y));
             const halfWidth = object.boundingBox.getSize().x / 2 * Math.abs(object.scale.x);
             const halfHeight = object.boundingBox.getSize().y / 2 * Math.abs(object.scale.y);
-            if (leftResizer) {
-                leftResizer.position.copy(leftMiddleWorld);
-                leftResizer.rotation = object.rotation;
-                if (leftResizer.type === 'Box') {
-                    leftResizer.scale.set(1 / camera.scale, 1);
-                    leftResizer.box.set(new Vector2(-radius, -halfHeight), new Vector2(radius, halfHeight));
+            function updateSideResizer(resizer, point, type = 'v') {
+                if (!resizer) return;
+                resizer.position.copy(point);
+                resizer.rotation = object.rotation;
+                if (resizer.type === 'Box') {
+                    if (type === 'v') {
+                        resizer.scale.set(1 / camera.scale, 1);
+                        resizer.box.set(new Vector2(-radius, -halfHeight), new Vector2(radius, halfHeight));
+                    } else {
+                        resizer.scale.set(1, 1 / camera.scale);
+                        resizer.box.set(new Vector2(-halfWidth, -radius), new Vector2(halfWidth, radius));
+                    }
                 }
-                if (leftResizer.type === 'Line') {
-                    leftResizer.mouseBuffer = radius / camera.scale;
-                    leftResizer.from.set(0, -halfHeight);
-                    leftResizer.to.set(0, +halfHeight);
+                if (resizer.type === 'Line') {
+                    resizer.mouseBuffer = radius / camera.scale;
+                    if (type === 'v') {
+                        resizer.from.set(0, -halfHeight);
+                        resizer.to.set(0, +halfHeight);
+                    } else {
+                        resizer.from.set(-halfWidth, 0);
+                        resizer.to.set(+halfWidth, 0);
+                    }
                 }
-                leftResizer.updateMatrix();
+                resizer.updateMatrix();
             }
-            if (rightResizer) {
-                rightResizer.position.copy(rightMiddleWorld);
-                rightResizer.rotation = object.rotation;
-                if (rightResizer.type === 'Box') {
-                    rightResizer.scale.set(1 / camera.scale, 1);
-                    rightResizer.box.set(new Vector2(-radius, -halfHeight), new Vector2(radius, halfHeight));
-                }
-                if (rightResizer.type === 'Line') {
-                    rightResizer.mouseBuffer = radius / camera.scale;
-                    rightResizer.from.set(0, -halfHeight);
-                    rightResizer.to.set(0, +halfHeight);
-                }
-                rightResizer.updateMatrix();
-            }
-            if (topResizer) {
-                topResizer.position.copy(topMiddleWorld);
-                topResizer.rotation = object.rotation;
-                if (topResizer.type === 'Box') {
-                    topResizer.scale.set(1, 1 / camera.scale);
-                    topResizer.box.set(new Vector2(-halfWidth, -radius), new Vector2(halfWidth, radius));
-                }
-                if (topResizer.type === 'Line') {
-                    topResizer.mouseBuffer = radius / camera.scale;
-                    topResizer.from.set(-halfWidth, 0);
-                    topResizer.to.set(+halfWidth, 0);
-                }
-                topResizer.updateMatrix();
-            }
-            if (bottomResizer) {
-                bottomResizer.position.copy(bottomMiddleWorld);
-                bottomResizer.rotation = object.rotation;
-                if (bottomResizer.type === 'Box') {
-                    bottomResizer.scale.set(1, 1 / camera.scale);
-                    bottomResizer.box.set(new Vector2(-halfWidth, -radius), new Vector2(halfWidth, radius));
-                }
-                if (bottomResizer.type === 'Line') {
-                    bottomResizer.mouseBuffer = radius / camera.scale;
-                    bottomResizer.from.set(-halfWidth, 0);
-                    bottomResizer.to.set(+halfWidth, 0);
-                }
-                bottomResizer.updateMatrix();
-            }
+            updateSideResizer(leftResizer, leftMiddleWorld, 'v');
+            updateSideResizer(rightResizer, rightMiddleWorld, 'v');
+            updateSideResizer(topResizer, topMiddleWorld, 'h');
+            updateSideResizer(bottomResizer, bottomMiddleWorld, 'h');
         };
     }
 }
@@ -4176,4 +3832,4 @@ if (typeof window !== 'undefined') {
     else window.__SALINITY__ = VERSION;
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, DragControls, Entity, GradientColorStop, GradientStyle, Key, Keyboard, Line, LinearGradientStyle, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Viewport, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, DragControls, Entity, GradientColorStop, GradientStyle, Key, Keyboard, Line, LinearGradientStyle, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, Viewport, WORLD_TYPES, World };

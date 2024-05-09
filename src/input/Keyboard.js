@@ -3,8 +3,8 @@ import { Key } from './Key.js';
 class Keyboard {
 
     constructor(element) {
-        if (!element || !element.isElement) {
-            console.error(`Keyboard: No Suey Element was provided`);
+        if (!element || !element.dom) {
+            console.error(`Keyboard: No element was provided`);
             return;
         }
         const self = this;

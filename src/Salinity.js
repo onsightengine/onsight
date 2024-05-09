@@ -28,11 +28,12 @@ export { Script } from './app/assets/Script.js';
 
 /******************** CORE ********************/
 
-export { Camera2D } from './core/Camera2D.js';
 export { Clock } from './core/Clock.js';
+export { Thing } from './core/Thing.js';
+
+export { Camera2D } from './core/Camera2D.js';
 export { Object2D } from './core/Object2D.js';
 export { Renderer } from './core/Renderer.js';
-export { Thing } from './core/Thing.js';
 export { Viewport } from './core/Viewport.js';
 
 // Objects
@@ -82,6 +83,7 @@ export { Pointer } from './input/Pointer.js';
 export { Box2 } from './math/Box2.js';
 export { Matrix2 } from './math/Matrix2.js';
 export { Vector2 } from './math/Vector2.js';
+export { Vector3 } from './math/Vector3.js';
 
 /******************** UTILS ********************/
 

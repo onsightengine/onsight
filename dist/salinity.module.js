@@ -304,86 +304,86 @@ class Clock {
     }
 }
 
-const EPSILON$1 = 0.000001;
-function length$1(a) {
+const EPSILON = 0.000001;
+function length(a) {
     let x = a[0];
     let y = a[1];
     let z = a[2];
     return Math.sqrt(x * x + y * y + z * z);
 }
-function copy$1(out, a) {
+function copy(out, a) {
     out[0] = a[0];
     out[1] = a[1];
     out[2] = a[2];
     return out;
 }
-function set$1(out, x, y, z) {
+function set(out, x, y, z) {
     out[0] = x;
     out[1] = y;
     out[2] = z;
     return out;
 }
-function add$1(out, a, b) {
+function add(out, a, b) {
     out[0] = a[0] + b[0];
     out[1] = a[1] + b[1];
     out[2] = a[2] + b[2];
     return out;
 }
-function subtract$1(out, a, b) {
+function subtract(out, a, b) {
     out[0] = a[0] - b[0];
     out[1] = a[1] - b[1];
     out[2] = a[2] - b[2];
     return out;
 }
-function multiply$1(out, a, b) {
+function multiply(out, a, b) {
     out[0] = a[0] * b[0];
     out[1] = a[1] * b[1];
     out[2] = a[2] * b[2];
     return out;
 }
-function divide$1(out, a, b) {
+function divide(out, a, b) {
     out[0] = a[0] / b[0];
     out[1] = a[1] / b[1];
     out[2] = a[2] / b[2];
     return out;
 }
-function scale$1(out, a, b) {
+function scale(out, a, b) {
     out[0] = a[0] * b;
     out[1] = a[1] * b;
     out[2] = a[2] * b;
     return out;
 }
-function distance$1(a, b) {
+function distance(a, b) {
     let x = b[0] - a[0];
     let y = b[1] - a[1];
     let z = b[2] - a[2];
     return Math.sqrt(x * x + y * y + z * z);
 }
-function squaredDistance$1(a, b) {
+function squaredDistance(a, b) {
     let x = b[0] - a[0];
     let y = b[1] - a[1];
     let z = b[2] - a[2];
     return x * x + y * y + z * z;
 }
-function squaredLength$1(a) {
+function squaredLength(a) {
     let x = a[0];
     let y = a[1];
     let z = a[2];
     return x * x + y * y + z * z;
 }
-function negate$1(out, a) {
+function negate(out, a) {
     out[0] = -a[0];
     out[1] = -a[1];
     out[2] = -a[2];
     return out;
 }
-function inverse$1(out, a) {
+function inverse(out, a) {
     out[0] = 1.0 / a[0];
     out[1] = 1.0 / a[1];
     out[2] = 1.0 / a[2];
     return out;
 }
-function normalize$1(out, a) {
+function normalize(out, a) {
     let x = a[0];
     let y = a[1];
     let z = a[2];
@@ -396,10 +396,10 @@ function normalize$1(out, a) {
     out[2] = a[2] * len;
     return out;
 }
-function dot$1(a, b) {
+function dot(a, b) {
     return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
-function cross$1(out, a, b) {
+function cross(out, a, b) {
     let ax = a[0], ay = a[1], az = a[2];
     let bx = b[0], by = b[1], bz = b[2];
     out[0] = ay * bz - az * by;
@@ -407,7 +407,7 @@ function cross$1(out, a, b) {
     out[2] = ax * by - ay * bx;
     return out;
 }
-function lerp$1(out, a, b, t) {
+function lerp(out, a, b, t) {
     let ax = a[0];
     let ay = a[1];
     let az = a[2];
@@ -416,7 +416,7 @@ function lerp$1(out, a, b, t) {
     out[2] = az + t * (b[2] - az);
     return out;
 }
-function transformMat4$1(out, a, m) {
+function transformMat4(out, a, m) {
     let x = a[0],
         y = a[1],
         z = a[2];
@@ -438,7 +438,7 @@ function scaleRotateMat4(out, a, m) {
     out[2] = (m[2] * x + m[6] * y + m[10] * z) / w;
     return out;
 }
-function transformMat3$1(out, a, m) {
+function transformMat3(out, a, m) {
     let x = a[0],
         y = a[1],
         z = a[2];
@@ -477,11 +477,11 @@ const angle = (function() {
     const tempA = [ 0, 0, 0 ];
     const tempB = [ 0, 0, 0 ];
     return function(a, b) {
-        copy$1(tempA, a);
-        copy$1(tempB, b);
-        normalize$1(tempA, tempA);
-        normalize$1(tempB, tempB);
-        let cosine = dot$1(tempA, tempB);
+        copy(tempA, a);
+        copy(tempB, b);
+        normalize(tempA, tempA);
+        normalize(tempB, tempB);
+        let cosine = dot(tempA, tempB);
         if (cosine > 1.0) {
             return 0;
         } else if (cosine < -1.0) {
@@ -491,7 +491,7 @@ const angle = (function() {
         }
     };
 })();
-function exactEquals$1(a, b) {
+function exactEquals(a, b) {
     return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
 }
 function fuzzyEquals(a, b, tolerance = 0.001) {
@@ -503,10 +503,10 @@ function fuzzyEquals(a, b, tolerance = 0.001) {
 const calculateNormal = (function() {
     const temp = [ 0, 0, 0 ];
     return function(out, a, b, c) {
-        subtract$1(temp, a, b);
-        subtract$1(out, b, c);
-        cross$1(out, temp, out);
-        normalize$1(out, out);
+        subtract(temp, a, b);
+        subtract(out, b, c);
+        cross(out, temp, out);
+        normalize(out, out);
     };
 })();
 function fuzzyFloat(a, b, tolerance = 0.001) {
@@ -596,10 +596,10 @@ class MathUtils {
         return (rectLeft || rectRight || rectTop || rectDown);
     }
     static triangleArea(a, b, c) {
-        subtract$1(v0, c, b);
-        subtract$1(v1, a, b);
-        cross$1(vc, v0, v1);
-        return (length$1(vc) * 0.5);
+        subtract(v0, c, b);
+        subtract(v1, a, b);
+        cross(vc, v0, v1);
+        return (length(vc) * 0.5);
     }
     static randomFloat(min, max) {
         return min + Math.random() * (max - min);
@@ -1065,117 +1065,9 @@ class Entity extends Thing {
 const _types$1 = new Map();
 Entity.register('Entity', Entity);
 
-const EPSILON = 0.000001;
-function copy(out, a) {
-    out[0] = a[0];
-    out[1] = a[1];
-    return out;
-}
-function set(out, x, y) {
-    out[0] = x;
-    out[1] = y;
-    return out;
-}
-function add(out, a, b) {
-    out[0] = a[0] + b[0];
-    out[1] = a[1] + b[1];
-    return out;
-}
-function subtract(out, a, b) {
-    out[0] = a[0] - b[0];
-    out[1] = a[1] - b[1];
-    return out;
-}
-function multiply(out, a, b) {
-    out[0] = a[0] * b[0];
-    out[1] = a[1] * b[1];
-    return out;
-}
-function divide(out, a, b) {
-    out[0] = a[0] / b[0];
-    out[1] = a[1] / b[1];
-    return out;
-}
-function scale(out, a, b) {
-    out[0] = a[0] * b;
-    out[1] = a[1] * b;
-    return out;
-}
-function distance(a, b) {
-    var x = b[0] - a[0],
-        y = b[1] - a[1];
-    return Math.sqrt(x * x + y * y);
-}
-function squaredDistance(a, b) {
-    var x = b[0] - a[0],
-        y = b[1] - a[1];
-    return x * x + y * y;
-}
-function length(a) {
-    var x = a[0],
-        y = a[1];
-    return Math.sqrt(x * x + y * y);
-}
-function squaredLength(a) {
-    var x = a[0],
-        y = a[1];
-    return x * x + y * y;
-}
-function negate(out, a) {
-    out[0] = -a[0];
-    out[1] = -a[1];
-    return out;
-}
-function inverse(out, a) {
-    out[0] = 1.0 / a[0];
-    out[1] = 1.0 / a[1];
-    return out;
-}
-function normalize(out, a) {
-    var x = a[0],
-        y = a[1];
-    var len = x * x + y * y;
-    if (len > 0) {
-        len = 1 / Math.sqrt(len);
-    }
-    out[0] = a[0] * len;
-    out[1] = a[1] * len;
-    return out;
-}
-function dot(a, b) {
-    return a[0] * b[0] + a[1] * b[1];
-}
-function cross(a, b) {
-    return a[0] * b[1] - a[1] * b[0];
-}
-function lerp(out, a, b, t) {
-    var ax = a[0],
-        ay = a[1];
-    out[0] = ax + t * (b[0] - ax);
-    out[1] = ay + t * (b[1] - ay);
-    return out;
-}
-function transformMat3(out, a, m) {
-    var x = a[0],
-        y = a[1];
-    out[0] = m[0] * x + m[3] * y + m[6];
-    out[1] = m[1] * x + m[4] * y + m[7];
-    return out;
-}
-function transformMat4(out, a, m) {
-    let x = a[0];
-    let y = a[1];
-    out[0] = m[0] * x + m[4] * y + m[12];
-    out[1] = m[1] * x + m[5] * y + m[13];
-    return out;
-}
-function exactEquals(a, b) {
-    return a[0] === b[0] && a[1] === b[1];
-}
-
-class Vec2 extends Array {
-    constructor(x = 0, y = x) {
-        super(x, y);
+class Vec3 extends Array {
+    constructor(x = 0, y = x, z = x) {
+        super(x, y, z);
         return this;
     }
     get x() {
@@ -1184,15 +1076,21 @@ class Vec2 extends Array {
     get y() {
         return this[1];
     }
+    get z() {
+        return this[2];
+    }
     set x(v) {
         this[0] = v;
     }
     set y(v) {
         this[1] = v;
     }
-    set(x, y = x) {
+    set z(v) {
+        this[2] = v;
+    }
+    set(x, y = x, z = x) {
         if (x.length) return this.copy(x);
-        set(this, x, y);
+        set(this, x, y, z);
         return this;
     }
     copy(v) {
@@ -1231,7 +1129,7 @@ class Vec2 extends Array {
         else return length(this);
     }
     squaredLen() {
-        return this.squaredDistance();
+        return squaredLength(this);
     }
     squaredDistance(v) {
         if (v) return squaredDistance(this, v);
@@ -1242,11 +1140,12 @@ class Vec2 extends Array {
         return this;
     }
     cross(va, vb) {
-        if (vb) return cross(va, vb);
-        return cross(this, va);
+        if (vb) cross(this, va, vb);
+        else cross(this, this, va);
+        return this;
     }
-    scale(v) {
-        scale(this, this, v);
+    scale(multiplier) {
+        scale(this, this, multiplier);
         return this;
     }
     normalize() {
@@ -1259,139 +1158,15 @@ class Vec2 extends Array {
     equals(v) {
         return exactEquals(this, v);
     }
+    fuzzyEquals(v, tolerance) {
+        return fuzzyEquals(this, v, tolerance);
+    }
     applyMatrix3(mat3) {
         transformMat3(this, this, mat3);
         return this;
     }
     applyMatrix4(mat4) {
         transformMat4(this, this, mat4);
-        return this;
-    }
-    lerp(v, a) {
-        lerp(this, this, v, a);
-        return this;
-    }
-    clone() {
-        return new Vec2(this[0], this[1]);
-    }
-    fromArray(a, o = 0) {
-        this[0] = a[o];
-        this[1] = a[o + 1];
-        return this;
-    }
-    toArray(a = [], o = 0) {
-        a[o] = this[0];
-        a[o + 1] = this[1];
-        return a;
-    }
-    log(description = '') {
-        if (description !== '') description += ' - ';
-        console.log(`${description}X: ${this.x}, Y: ${this.y}`);
-    }
-}
-
-class Vec3 extends Array {
-    constructor(x = 0, y = x, z = x) {
-        super(x, y, z);
-        return this;
-    }
-    get x() {
-        return this[0];
-    }
-    get y() {
-        return this[1];
-    }
-    get z() {
-        return this[2];
-    }
-    set x(v) {
-        this[0] = v;
-    }
-    set y(v) {
-        this[1] = v;
-    }
-    set z(v) {
-        this[2] = v;
-    }
-    set(x, y = x, z = x) {
-        if (x.length) return this.copy(x);
-        set$1(this, x, y, z);
-        return this;
-    }
-    copy(v) {
-        copy$1(this, v);
-        return this;
-    }
-    add(va, vb) {
-        if (vb) add$1(this, va, vb);
-        else add$1(this, this, va);
-        return this;
-    }
-    sub(va, vb) {
-        if (vb) subtract$1(this, va, vb);
-        else subtract$1(this, this, va);
-        return this;
-    }
-    multiply(v) {
-        if (v.length) multiply$1(this, this, v);
-        else scale$1(this, this, v);
-        return this;
-    }
-    divide(v) {
-        if (v.length) divide$1(this, this, v);
-        else scale$1(this, this, 1 / v);
-        return this;
-    }
-    inverse(v = this) {
-        inverse$1(this, v);
-        return this;
-    }
-    len() {
-        return length$1(this);
-    }
-    distance(v) {
-        if (v) return distance$1(this, v);
-        else return length$1(this);
-    }
-    squaredLen() {
-        return squaredLength$1(this);
-    }
-    squaredDistance(v) {
-        if (v) return squaredDistance$1(this, v);
-        else return squaredLength$1(this);
-    }
-    negate(v = this) {
-        negate$1(this, v);
-        return this;
-    }
-    cross(va, vb) {
-        if (vb) cross$1(this, va, vb);
-        else cross$1(this, this, va);
-        return this;
-    }
-    scale(multiplier) {
-        scale$1(this, this, multiplier);
-        return this;
-    }
-    normalize() {
-        normalize$1(this, this);
-        return this;
-    }
-    dot(v) {
-        return dot$1(this, v);
-    }
-    equals(v) {
-        return exactEquals$1(this, v);
-    }
-    fuzzyEquals(v, tolerance) {
-        return fuzzyEquals(this, v, tolerance);
-    }
-    applyMatrix3(mat3) {
-        transformMat3$1(this, this, mat3);
-        return this;
-    }
-    applyMatrix4(mat4) {
-        transformMat4$1(this, this, mat4);
         return this;
     }
     scaleRotateMatrix4(mat4) {
@@ -1406,7 +1181,7 @@ class Vec3 extends Array {
         return angle(this, v);
     }
     lerp(v, t) {
-        lerp$1(this, this, v, t);
+        lerp(this, this, v, t);
         return this;
     }
     clone() {
@@ -1448,7 +1223,7 @@ class World extends Entity {
         }
         this.isWorld = true;
         this.type = type;
-        this.position = new Vec2();
+        this.position = new Vec3();
         this.activeStageUUID = null;
         this.loadPosition = new Vec3();
         this.loadDistance = 0;
@@ -2056,326 +1831,6 @@ function appPointerMove(event) {
     }
 }
 
-class Cache {
-    constructor() {
-        this.items = {};
-    }
-    add(key, item) {
-        this.items[key] = item;
-    }
-    get(key) {
-        return this.items[key];
-    }
-    getByProperty(property, value) {
-        for (const key in this.items) {
-            if (this.items[key][property] === value) {
-                return this.items[key];
-            }
-        }
-    }
-    remove(key) {
-        delete this.items[key];
-    }
-    removeByProperty(property, value) {
-        for (const key in this.items) {
-            if (this.items[key][property] === value) {
-                delete this.items[key];
-            }
-        }
-    }
-    clear() {
-        this.items = {};
-    }
-}
-
-class LoadingManager {
-    constructor(onLoad, onProgress, onError) {
-        const self = this;
-        let isLoading = false;
-        let itemsLoaded = 0;
-        let itemsTotal = 0;
-        let urlModifier = undefined;
-        const handlers = [];
-        this.onStart = undefined;
-        this.onLoad = onLoad;
-        this.onProgress = onProgress;
-        this.onError = onError;
-        this.itemStart = function (url) {
-            itemsTotal++;
-            if (!isLoading && typeof self.onStart === 'function') {
-                self.onStart(url, itemsLoaded, itemsTotal);
-            }
-            isLoading = true;
-        };
-        this.itemEnd = function (url) {
-            itemsLoaded++;
-            if (typeof self.onProgress === 'function') {
-                self.onProgress(url, itemsLoaded, itemsTotal);
-            }
-            if (itemsLoaded === itemsTotal) {
-                isLoading = false;
-                if (typeof self.onLoad === 'function') self.onLoad();
-            }
-        };
-        this.itemError = function (url) {
-            if (typeof self.onError === 'function') self.onError(url);
-        };
-        this.resolveURL = function (url) {
-            if (urlModifier) return urlModifier(url);
-            return url;
-        };
-        this.setURLModifier = function (transform) {
-            urlModifier = transform;
-            return this;
-        };
-        this.addHandler = function (regex, loader) {
-            handlers.push(regex, loader);
-            return this;
-        };
-        this.removeHandler = function (regex) {
-            const index = handlers.indexOf(regex);
-            if (index !== -1) handlers.splice(index, 2);
-            return this;
-        };
-        this.getHandler = function (file) {
-            for (let i = 0, l = handlers.length; i < l; i += 2) {
-                const regex = handlers[i];
-                const loader = handlers[i + 1];
-                if (regex.global) regex.lastIndex = 0;
-                if (regex.test(file)) return loader;
-            }
-            return null;
-        };
-    }
-}
-const DefaultLoadingManager = new LoadingManager();
-
-class Loader {
-    constructor(manager) {
-        this.manager = (manager !== undefined) ? manager : DefaultLoadingManager;
-        this.crossOrigin = 'anonymous';
-        this.withCredentials = false;
-        this.path = '';
-        this.resourcePath = '';
-        this.requestHeader = {};
-    }
-    load() {}
-    loadAsync(url, onProgress) {
-        const scope = this;
-        return new Promise(function (resolve, reject) {
-            scope.load(url, resolve, onProgress, reject);
-        });
-    }
-    parse() {}
-    setCrossOrigin(crossOrigin) {
-        this.crossOrigin = crossOrigin;
-        return this;
-    }
-    setWithCredentials(value) {
-        this.withCredentials = value;
-        return this;
-    }
-    setPath(path) {
-        this.path = path;
-        return this;
-    }
-    setResourcePath(resourcePath) {
-        this.resourcePath = resourcePath;
-        return this;
-    }
-    setRequestHeader(requestHeader) {
-        this.requestHeader = requestHeader;
-        return this;
-    }
-}
-
-const loading = {};
-class FileLoader extends Loader {
-    constructor(manager) {
-        super(manager);
-    }
-    load(url, onLoad, onProgress, onError) {
-        if (url === undefined) url = '';
-        if (this.path !== undefined) url = this.path + url;
-        url = this.manager.resolveURL(url);
-        const cached = Cache.get(url);
-        if (cached !== undefined) {
-            this.manager.itemStart(url);
-            setTimeout(() => {
-                if (onLoad) onLoad(cached);
-                this.manager.itemEnd(url);
-            }, 0);
-            return cached;
-        }
-        if (loading[url] !== undefined) {
-            loading[url].push({
-                onLoad: onLoad,
-                onProgress: onProgress,
-                onError: onError
-            });
-            return;
-        }
-        loading[url] = [];
-        loading[url].push({
-            onLoad: onLoad,
-            onProgress: onProgress,
-            onError: onError,
-        });
-        const req = new Request(url, {
-            headers: new Headers(this.requestHeader),
-            credentials: this.withCredentials ? 'include' : 'same-origin',
-        });
-        const mimeType = this.mimeType;
-        const responseType = this.responseType;
-        fetch(req)
-            .then(response => {
-                if (response.status === 200 || response.status === 0) {
-                    if (response.status === 0) {
-                        console.warn('FileLoader.load(): HTTP Status 0 received');
-                    }
-                    if (typeof ReadableStream === 'undefined' || response.body === undefined || response.body.getReader === undefined) {
-                        return response;
-                    }
-                    const callbacks = loading[url];
-                    const reader = response.body.getReader();
-                    const contentLength = response.headers.get('X-File-Size') || response.headers.get('Content-Length');
-                    const total = contentLength ? parseInt(contentLength) : 0;
-                    const lengthComputable = total !== 0;
-                    let loaded = 0;
-                    const stream = new ReadableStream({
-                        start(controller) {
-                            readData();
-                            function readData() {
-                                reader.read().then(({ done, value }) => {
-                                    if (done) {
-                                        controller.close();
-                                    } else {
-                                        loaded += value.byteLength;
-                                        const event = new ProgressEvent('progress', { lengthComputable, loaded, total });
-                                        for (let i = 0, il = callbacks.length; i < il; i ++) {
-                                            const callback = callbacks[ i ];
-                                            if (callback.onProgress) callback.onProgress(event);
-                                        }
-                                        controller.enqueue(value);
-                                        readData();
-                                    }
-                                });
-                            }
-                        }
-                    });
-                    return new Response(stream);
-                } else {
-                    console.error(`Fetch for "${response.url}" responded with ${response.status}: ${response.statusText}`, response);
-                }
-            })
-            .then(response => {
-                switch (responseType) {
-                    case 'arraybuffer':
-                        return response.arrayBuffer();
-                    case 'blob':
-                        return response.blob();
-                    case 'document':
-                        return response.text()
-                            .then(text => {
-                                const parser = new DOMParser();
-                                return parser.parseFromString(text, mimeType);
-                            });
-                    case 'json':
-                        return response.json();
-                    default:
-                        if (mimeType === undefined) {
-                            return response.text();
-                        } else {
-                            const re = /charset="?([^;"\s]*)"?/i;
-                            const exec = re.exec(mimeType);
-                            const label = exec && exec[1] ? exec[1].toLowerCase() : undefined;
-                            const decoder = new TextDecoder(label);
-                            return response.arrayBuffer().then(ab => decoder.decode(ab));
-                        }
-                }
-            })
-            .then(data => {
-                Cache.add(url, data);
-                const callbacks = loading[url];
-                delete loading[url];
-                for (let i = 0, il = callbacks.length; i < il; i++) {
-                    const callback = callbacks[i];
-                    if (callback.onLoad) callback.onLoad(data);
-                }
-            })
-            .catch(err => {
-                const callbacks = loading[url];
-                if (callbacks === undefined) {
-                    this.manager.itemError(url);
-                    throw err;
-                }
-                delete loading[url];
-                for (let i = 0, il = callbacks.length; i < il; i ++) {
-                    const callback = callbacks[i];
-                    if (callback.onError) callback.onError(err);
-                }
-                this.manager.itemError(url);
-            })
-            .finally(() => {
-                this.manager.itemEnd(url);
-            });
-        this.manager.itemStart(url);
-    }
-    setResponseType(value) {
-        this.responseType = value;
-        return this;
-    }
-    setMimeType(value) {
-        this.mimeType = value;
-        return this;
-    }
-}
-
-class ImageLoader extends Loader {
-    constructor(manager) {
-        super(manager);
-    }
-    load(url, onLoad, onProgress, onError) {
-        if (this.path !== undefined) url = this.path + url;
-        url = this.manager.resolveURL(url);
-        const scope = this;
-        const cached = Cache.get(url);
-        if (cached !== undefined) {
-            scope.manager.itemStart(url);
-            setTimeout(function () {
-                if (onLoad) onLoad(cached);
-                scope.manager.itemEnd(url);
-            }, 0);
-            return cached;
-        }
-        const image = document.createElement('img');
-        function onImageLoad() {
-            removeEventListeners();
-            Cache.add(url, this);
-            if (onLoad) onLoad(this);
-            scope.manager.itemEnd(url);
-        }
-        function onImageError(event) {
-            removeEventListeners();
-            if (onError) onError(event);
-            scope.manager.itemError(url);
-            scope.manager.itemEnd(url);
-        }
-        function removeEventListeners() {
-            image.removeEventListener('load', onImageLoad, false);
-            image.removeEventListener('error', onImageError, false);
-        }
-        image.addEventListener('load', onImageLoad, false);
-        image.addEventListener('error', onImageError, false);
-        if (url.slice(0, 5) !== 'data:') {
-            if (this.crossOrigin !== undefined) image.crossOrigin = this.crossOrigin;
-        }
-        scope.manager.itemStart(url);
-        image.src = url;
-        return image;
-    }
-}
-
 class Asset extends Thing {
     constructor(name = '') {
         super(name);
@@ -2592,407 +2047,6 @@ let variables = {
     vector4: { type: 'vector', size: 4, tint: true, info: 'Vector 4' },
 };
 `);
-    }
-}
-
-class MoveCamera extends Script {
-    constructor() {
-        super();
-        this.name = 'Move Camera';
-        this.category = 'camera';
-        this.source =
-`
-// Properties
-let variables = {
-    // Rotation in degress per second
-    moveX: { type: 'number', default: 0 },
-    moveY: { type: 'number', default: 2 },
-    moveZ: { type: 'number', default: 0 },
-};
-
-function update(event) {
-    app.camera.position.x += moveX * event.delta;
-    app.camera.position.y += moveY * event.delta;
-    app.camera.position.z += moveZ * event.delta;
-}
-`;
-    }
-}
-
-class OrbitEntity extends Script {
-    constructor() {
-        super();
-        this.name = 'Orbit Entity';
-        this.category = 'camera';
-        this.source =
-`
-// Properties
-let variables = {
-    distance: { type: 'number', default: 10 },
-    orbit: { type: 'boolean', default: true },
-    pan: { type: 'boolean', default: false },
-    rotate: { type: 'boolean', default: false },
-    smooth: { type: 'boolean', default: true },
-};
-
-// Locals
-let controls;
-let direction;
-let quaternion;
-let up;
-let rotation;
-
-function init() {
-    // Init Orbit Controls
-    app.camera.position.x = this.position.x;
-    app.camera.position.y = this.position.y;
-    app.camera.position.z = this.position.z + distance;
-    controls = new SALT.OrbitControls(app.camera, app.renderer.domElement, this);
-    controls.enablePan = pan;
-    controls.enableRotate = rotate;
-    controls.smoothAnimate = smooth;
-
-    // Initialize Temp Variables
-    direction = new THREE.Vector3();
-    quaternion = new THREE.Quaternion();
-    up = new THREE.Vector3(0, 1, 0);
-    rotation = new THREE.Vector3().copy(this.rotation)
-}
-
-function update(event) {
-    if (orbit) {
-        // Maintain World Up
-        this.getWorldQuaternion(quaternion);
-        direction.copy(up).applyQuaternion(quaternion);
-        app.camera.up.lerp(direction, event.delta * 10);
-
-        // Rotate to Match Entity
-        const angleDiff = (rotation.y - this.rotation.y);
-        controls.applyRotation(angleDiff);
-        rotation.copy(this.rotation);
-    }
-
-    // Update Orbit Controls
-    controls.centerOnTarget(this);
-    controls.update(event.delta);
-}
-`;
-    }
-}
-
-let DragControls$1 = class DragControls extends Script {
-    constructor() {
-        super();
-        this.name = 'Drag Controls';
-        this.category = 'control';
-        this.source =
-`
-// Properties
-let variables = {
-    updateSpeed: { type: 'slider', default: 10, min: 0, max: 50 },
-};
-
-// Locals
-let downOnEntity = false;
-let position;
-let pointer;
-let camera;
-
-function init() {
-    position = new THREE.Vector3();
-    pointer = new THREE.Vector3();
-    camera = new THREE.Vector3();
-
-    // Starting Position
-    position.copy(this.position);
-}
-
-function pointerdown(event) {
-    if (event.entity === this && event.button !== 2) {
-        const coords = app.gameCoordinates(event);
-        pointer.copy(coords ? coords : this.position);
-        camera.copy(app.camera.position);
-        downOnEntity = true;
-    }
-}
-
-function pointermove(event) {
-    if (downOnEntity) {
-        const coords = app.gameCoordinates(event);
-        if (coords) pointer.copy(coords);
-    }
-}
-
-function pointerup(event) {
-    downOnEntity = false;
-}
-
-function update(event) {
-    if (downOnEntity) {
-        // Update Pointer
-        if (downOnEntity) position.lerp(pointer, event.delta * updateSpeed);
-
-        // Camera Moved?
-        pointer.x += app.camera.position.x - camera.x;
-        pointer.y += app.camera.position.y - camera.y;
-        pointer.z += app.camera.position.z - camera.z;
-        camera.copy(app.camera.position);
-    } else {
-        // Dissipate Target
-        position.lerp(this.position, event.delta * updateSpeed);
-    }
-
-    // Update Position
-    this.position.lerp(position, event.delta * updateSpeed);
-}
-
-`;
-    }
-};
-
-class DrivingControls extends Script {
-    constructor() {
-        super();
-        this.name = 'Driving Controls';
-        this.category = 'control';
-        this.source =
-`
-// Properties
-let variables = {
-    axis: { type: 'select', default: 'XY (2D)', select: [ 'XY (2D)', 'XZ (3D)' ] },
-    moveSpeed: { type: 'number', default: 5 },
-    turnSpeed: { type: 'number', default: 5 },
-    keyLeft: { type: 'key', default: 'ArrowLeft' },
-    keyRight: { type: 'key', default: 'ArrowRight' },
-    keyUp: { type: 'key', default: 'ArrowUp' },
-    keyDown: { type: 'key', default: 'ArrowDown' },
-};
-
-// Locals
-let position, rotation;
-let direction;
-let quaternion;
-let up;
-let spin;
-
-function init() {
-    // Prep Variables
-    moveSpeed /= 100;
-    turnSpeed /= 100;
-
-    // Initialize Temp Variables
-    position = new THREE.Vector3();
-    rotation = new THREE.Vector3();
-    direction = new THREE.Vector3();
-    quaternion = new THREE.Quaternion();
-    up = new THREE.Vector3();
-    spin = new THREE.Vector3();
-
-    // Movement Type
-    if (axis === 'XY (2D)') {
-        spin.z = turnSpeed;
-        up.y = 1;
-    }
-    if (axis === 'XZ (3D)') {
-        spin.y = turnSpeed;
-        moveSpeed *= -1;
-        up.z = 1;
-    }
-
-    // Starting Position
-    position.copy(this.position);
-}
-
-function update(event) {
-    // Rotate
-    if (app.keys[keyLeft] || app.keys[keyRight]) {
-        rotation.setFromEuler(this.rotation);
-        if (app.keys[keyLeft]) rotation.add(spin);
-        if (app.keys[keyRight]) rotation.sub(spin);
-        this.rotation.setFromVector3(rotation);
-    }
-
-    // Movement
-    if (app.keys[keyUp] || app.keys[keyDown]) {
-        this.getWorldQuaternion(quaternion);
-        direction.copy(up).applyQuaternion(quaternion);
-        direction.multiplyScalar(moveSpeed);
-        if (app.keys[keyUp]) position.add(direction);
-        if (app.keys[keyDown]) position.sub(direction);
-    } else {
-        // Dissipate Movement
-        position.lerp(this.position, event.delta * 10);
-    }
-
-    // Update Position
-    this.position.lerp(position, event.delta * 10);
-}
-`;
-    }
-}
-
-class KeyControls extends Script {
-    constructor() {
-        super();
-        this.name = 'Key Controls';
-        this.category = 'control';
-        this.source =
-`
-// Properties
-let variables = {
-    moveSpeed: { type: 'number', default: 5 },
-    pixels: { type: 'number', default: 1 },
-    keyLeft: { type: 'key', default: 'ArrowLeft' },
-    keyRight: { type: 'key', default: 'ArrowRight' },
-    keyUp: { type: 'key', default: 'ArrowUp' },
-    keyDown: { type: 'key', default: 'ArrowDown' },
-};
-
-// Locals
-let position;
-
-function init() {
-    // Starting Position
-    position = new THREE.Vector3().copy(this.position);
-
-    // "Target" Position (for smooth scrolling OrbitControls)
-    this.target = new THREE.Vector3().copy(position);
-}
-
-function update(event) {
-    // Movement
-    if (app.keys[keyLeft] || app.keys[keyRight] || app.keys[keyUp] || app.keys[keyDown]) {
-        if (app.keys[keyLeft]) position.x -= moveSpeed / 100;
-        if (app.keys[keyRight]) position.x += moveSpeed / 100;
-        if (app.keys[keyUp]) position.y += moveSpeed / 100;
-        if (app.keys[keyDown]) position.y -= moveSpeed / 100;
-    } else {
-        // Dissipate Movement
-        position.lerp(this.target, event.delta * moveSpeed);
-    }
-
-    this.target.lerp(position, event.delta * moveSpeed);
-
-    // Update Position
-    this.position.x = ((this.target.x * 100) - (this.target.x * 100) % pixels) / 100;
-    this.position.y = ((this.target.y * 100) - (this.target.y * 100) % pixels) / 100;
-    this.position.z = ((this.target.z * 100) - (this.target.z * 100) % pixels) / 100;
-}
-`;
-    }
-}
-
-class ZigZagControls extends Script {
-    constructor() {
-        super();
-        this.name = 'Zig Zag Controls';
-        this.category = 'control';
-        this.source =
-`
-// Properties
-let variables = {
-    forward: { type: 'number', default: 2 },
-    sideways: { type: 'number', default: 4 },
-    keySwitch: { type: 'key', default: ' ' },
-};
-
-function update(event) {
-    this.position.x += sideways * event.delta;
-    this.position.y += forward * event.delta;
-}
-
-function keydown(event) {
-    if (event.key === keySwitch) sideways *= -1;
-}
-`;
-    }
-}
-
-class ColorChange extends Script {
-    constructor() {
-        super();
-        this.name = 'Color Change';
-        this.category = 'entity';
-        this.source =
-`
-// Properties
-let variables = {
-    color: { type: 'color', default: 0xff0000 },
-};
-
-function init() {
-    this.updateComponent('material', { color: Number(color) });
-}
-
-function pointerdown(event) {
-    if (event.entity === this) {
-        const clr = new THREE.Color(Math.random(), Math.random(), Math.random());
-        this.replaceComponent('material', { color: clr });
-    }
-}
-`;
-    }
-}
-
-class FollowCamera extends Script {
-    constructor() {
-        super();
-        this.name = 'Follow Camera';
-        this.category = 'entity';
-        this.source =
-`
-// Properties
-let variables = {
-    offsetX: { type: 'number', default: 0 },
-    offsetY: { type: 'number', default: 0 },
-    offsetZ: { type: 'number', default: 0 },
-};
-
-let offset;
-
-function init() {
-    offset = new THREE.Vector3();
-    if (this.target) {
-        offset.copy(this.position).sub(this.target.position);
-    }
-}
-
-function update(event) {
-    if (app.camera && app.camera.target) {
-        this.position.x = app.camera.target.x + offsetX;
-        this.position.y = app.camera.target.y + offsetY;
-        this.position.z = app.camera.target.z + offsetZ;
-
-        if (this.target) {
-            this.target.position.copy(this.position).sub(offset);
-        }
-    }
-}
-`;
-    }
-}
-
-class RotateEntity extends Script {
-    constructor() {
-        super();
-        this.name = 'Rotate Entity';
-        this.category = 'entity';
-        this.source =
-`
-// Properties
-let variables = {
-    // Rotation in degress per second
-    rotateX: { type: 'number', default: 0 },
-    rotateY: { type: 'number', default: 0 },
-    rotateZ: { type: 'number', default: 180 },
-};
-
-function update(event) {
-    this.rotation.x += (rotateX * (Math.PI / 180) * event.delta);
-    this.rotation.y += (rotateY * (Math.PI / 180) * event.delta);
-    this.rotation.z += (rotateZ * (Math.PI / 180) * event.delta);
-}
-`;
     }
 }
 
@@ -4357,98 +3411,6 @@ class Renderer extends Element {
     }
 }
 
-class CameraControls {
-    constructor(renderer, camera) {
-        const self = this;
-        this.renderer = renderer;
-        this.camera = camera;
-        this.allowDrag = true;
-        this.allowScale = true;
-        this.allowRotation = true;
-        this.dragButton = Pointer.RIGHT;
-        this.rotateButton = Pointer.MIDDLE;
-        this.rotationPoint = new Vector2(0, 0);
-        this.rotationInitial = 0;
-        renderer.on('dblclick', (event) => {
-            if (!renderer.scene || !renderer.camera) return;
-            const point = new Vector2(event.clientX, event.clientY);
-            const worldPoint = renderer.camera.inverseMatrix.transformPoint(point);
-            const objects = renderer.scene.getWorldPointIntersections(worldPoint);
-            for (const object of objects) if (object.focusable) return self.focusCamera(object, false );
-            return self.focusCamera(renderer.scene, true );
-        });
-    }
-    update() {
-        const camera = this.camera;
-        const pointer = this.renderer.pointer;
-        if (this.allowScale && pointer.wheel !== 0) {
-            const scaleFactor = pointer.wheel * 0.001 * camera.scale;
-            const pointerPos = camera.inverseMatrix.transformPoint(pointer.position);
-            camera.scale -= scaleFactor;
-            camera.position.add(pointerPos.multiplyScalar(scaleFactor));
-            camera.matrixNeedsUpdate = true;
-        }
-        if (this.allowRotation) {
-            if (pointer.buttonJustPressed(this.rotateButton)) {
-                this.rotationPoint.copy(pointer.position);
-                this.rotationInitial = camera.rotation;
-            } else if (pointer.buttonPressed(this.rotateButton)) {
-                const point = pointer.position.clone().sub(this.rotationPoint);
-                camera.rotation = this.rotationInitial + (point.x * 0.01);
-                camera.matrixNeedsUpdate = true;
-            }
-        }
-        if (this.allowDrag && pointer.buttonPressed(this.dragButton)) {
-            const currentPointerPos = camera.inverseMatrix.transformPoint(pointer.position.clone());
-            const lastPointerPos = camera.inverseMatrix.transformPoint(pointer.position.clone().sub(pointer.delta));
-            const delta = currentPointerPos.clone().sub(lastPointerPos).multiplyScalar(camera.scale);
-            camera.position.add(delta);
-            camera.matrixNeedsUpdate = true;
-        }
-    }
-    focusCamera(object, isScene = false, animationDuration = 200 ) {
-        const renderer = this.renderer;
-        let targetScale, targetPosition;
-        if (isScene) {
-            const sceneBounds = new Box2();
-            object.traverse((child) => { sceneBounds.union(child.getWorldBoundingBox()); });
-            targetScale = 0.5 * Math.min(renderer.width / sceneBounds.getSize().x, renderer.height / sceneBounds.getSize().y);
-            targetPosition = sceneBounds.getCenter();
-            targetPosition.multiplyScalar(-targetScale);
-            targetPosition.add(new Vector2(renderer.width / 2.0, renderer.height / 2.0));
-        } else {
-            const worldBox = object.getWorldBoundingBox();
-            const worldSize = worldBox.getSize();
-            const worldCenter = worldBox.getCenter();
-            targetScale = 0.1 * Math.min(renderer.width / worldSize.x, renderer.height / worldSize.y);
-            targetPosition = worldCenter;
-            targetPosition.multiplyScalar(-targetScale);
-            targetPosition.add(new Vector2(renderer.width / 2.0, renderer.height / 2.0));
-        }
-        targetScale = Math.abs(targetScale);
-        const camera = renderer.camera;
-        const startTime = performance.now();
-        const startPosition = camera.position.clone();
-        const startScale = camera.scale;
-        const animate = () => {
-            const elapsedTime = performance.now() - startTime;
-            const t = Math.min(elapsedTime / animationDuration, 1);
-            camera.lerpPosition(startPosition, targetPosition, t);
-            camera.scale = startScale + (targetScale - startScale) * t;
-            if (t < 1) requestAnimationFrame(animate);
-        };
-        animate();
-    }
-}
-
-class DragControls {
-    constructor(renderer) {
-        this.renderer = renderer;
-    }
-    update() {
-    }
-}
-
 class Style {
     static extractColor(color, context) {
         function extractCSSVariableName(str) {
@@ -4656,6 +3618,93 @@ class Line extends Object2D {
     }
 }
 
+class Text extends Object2D {
+    constructor(text = '', font = '16px Arial') {
+        super();
+        this.type = 'Text';
+        this.text = text;
+        this.font = font;
+        this.strokeStyle = null;
+        this.lineWidth = 1;
+        this.fillStyle = new ColorStyle('#000000');
+        this.textAlign = 'center';
+        this.textBaseline = 'middle';
+        this._font = font;
+        this._text = text;
+    }
+    computeBoundingBox(context) {
+        if (!context) return false;
+        context.font = this.font;
+        context.textAlign = this.textAlign;
+        context.textBaseline = this.textBaseline;
+        const textMetrics = context.measureText(this.text);
+        const textWidth = textMetrics.width;
+        const textHeight = Math.max(textMetrics.actualBoundingBoxAscent, textMetrics.actualBoundingBoxDescent) * 2.0;
+        this.boundingBox.set(new Vector2(textWidth / -2, textHeight / -2), new Vector2(textWidth / 2, textHeight / 2));
+        return true;
+    }
+    isInside(point) {
+        return this.boundingBox.containsPoint(point);
+    }
+    draw(context, camera, canvas) {
+        context.font = this.font;
+        context.textAlign = this.textAlign;
+        context.textBaseline = this.textBaseline;
+        if (this.fillStyle) {
+            context.fillStyle = this.fillStyle.get(context);
+            context.fillText(this.text, 0, 0);
+        }
+        if (this.strokeStyle) {
+            context.strokeStyle = this.strokeStyle.get(context);
+            context.strokeText(this.text, 0, 0);
+        }
+    }
+    onUpdate(context, camera) {
+        if (this._font !== this.font || this._text !== this.text) {
+            if (this.computeBoundingBox(context)) {
+                this._font = this.font;
+                this._text = this.text;
+            }
+        }
+    }
+}
+
+class Mask extends Object2D {
+    constructor() {
+        super();
+        this.isMask = true;
+        this.type = 'Mask';
+    }
+    clip(context, camera, canvas) {
+    }
+}
+
+class BoxMask extends Mask {
+    constructor() {
+        super();
+        this.type = 'BoxMask';
+        this.box = new Box2(new Vector2(-50, -35), new Vector2(50, 35));
+        this.invert = false;
+    }
+    isInside(point) {
+        return this.box.containsPoint(point);
+    }
+    clip(context, camera, canvas) {
+        context.beginPath();
+        const width = this.box.max.x - this.box.min.x;
+        if (this.invert) {
+            context.rect(this.box.min.x - 1e4, -5e3, 1e4, 1e4);
+            context.rect(this.box.max.x, -5e3, 1e4, 1e4);
+            context.rect(this.box.min.x, this.box.min.y - 1e4, width, 1e4);
+            context.rect(this.box.min.x, this.box.max.y, width, 1e4);
+        } else {
+            const height = this.box.max.y - this.box.min.y;
+            context.fillRect(this.box.min.x, this.box.min.y, width, height);
+        }
+        context.clip();
+    }
+}
+
 class GradientColorStop {
     constructor(offset, color) {
         this.offset = offset;
@@ -4690,6 +3739,119 @@ class LinearGradientStyle extends GradientStyle {
             this.needsUpdate = false;
         }
         return this.cache;
+    }
+}
+
+class RadialGradientStyle extends GradientStyle {
+    constructor() {
+        super();
+        this.start = new Vector2(0, 0);
+        this.startRadius = 10;
+        this.end = new Vector2(0, 0);
+        this.endRadius = 50;
+    }
+    get(context) {
+        if (this.needsUpdate || this.cache == null) {
+            const style = context.createRadialGradient(this.start.x, this.start.y, this.startRadius, this.end.x, this.end.y, this.endRadius);
+            for (const colorStop of this.colors) {
+                style.addColorStop(colorStop.offset, colorStop.color);
+            }
+            this.cache = style;
+            this.needsUpdate = false;
+        }
+        return this.cache;
+    }
+}
+
+class CameraControls {
+    constructor(renderer, camera) {
+        const self = this;
+        this.renderer = renderer;
+        this.camera = camera;
+        this.allowDrag = true;
+        this.allowScale = true;
+        this.allowRotation = true;
+        this.dragButton = Pointer.RIGHT;
+        this.rotateButton = Pointer.MIDDLE;
+        this.rotationPoint = new Vector2(0, 0);
+        this.rotationInitial = 0;
+        renderer.on('dblclick', (event) => {
+            if (!renderer.scene || !renderer.camera) return;
+            const point = new Vector2(event.clientX, event.clientY);
+            const worldPoint = renderer.camera.inverseMatrix.transformPoint(point);
+            const objects = renderer.scene.getWorldPointIntersections(worldPoint);
+            for (const object of objects) if (object.focusable) return self.focusCamera(object, false );
+            return self.focusCamera(renderer.scene, true );
+        });
+    }
+    update() {
+        const camera = this.camera;
+        const pointer = this.renderer.pointer;
+        if (this.allowScale && pointer.wheel !== 0) {
+            const scaleFactor = pointer.wheel * 0.001 * camera.scale;
+            const pointerPos = camera.inverseMatrix.transformPoint(pointer.position);
+            camera.scale -= scaleFactor;
+            camera.position.add(pointerPos.multiplyScalar(scaleFactor));
+            camera.matrixNeedsUpdate = true;
+        }
+        if (this.allowRotation) {
+            if (pointer.buttonJustPressed(this.rotateButton)) {
+                this.rotationPoint.copy(pointer.position);
+                this.rotationInitial = camera.rotation;
+            } else if (pointer.buttonPressed(this.rotateButton)) {
+                const point = pointer.position.clone().sub(this.rotationPoint);
+                camera.rotation = this.rotationInitial + (point.x * 0.01);
+                camera.matrixNeedsUpdate = true;
+            }
+        }
+        if (this.allowDrag && pointer.buttonPressed(this.dragButton)) {
+            const currentPointerPos = camera.inverseMatrix.transformPoint(pointer.position.clone());
+            const lastPointerPos = camera.inverseMatrix.transformPoint(pointer.position.clone().sub(pointer.delta));
+            const delta = currentPointerPos.clone().sub(lastPointerPos).multiplyScalar(camera.scale);
+            camera.position.add(delta);
+            camera.matrixNeedsUpdate = true;
+        }
+    }
+    focusCamera(object, isScene = false, animationDuration = 200 ) {
+        const renderer = this.renderer;
+        let targetScale, targetPosition;
+        if (isScene) {
+            const sceneBounds = new Box2();
+            object.traverse((child) => { sceneBounds.union(child.getWorldBoundingBox()); });
+            targetScale = 0.5 * Math.min(renderer.width / sceneBounds.getSize().x, renderer.height / sceneBounds.getSize().y);
+            targetPosition = sceneBounds.getCenter();
+            targetPosition.multiplyScalar(-targetScale);
+            targetPosition.add(new Vector2(renderer.width / 2.0, renderer.height / 2.0));
+        } else {
+            const worldBox = object.getWorldBoundingBox();
+            const worldSize = worldBox.getSize();
+            const worldCenter = worldBox.getCenter();
+            targetScale = 0.1 * Math.min(renderer.width / worldSize.x, renderer.height / worldSize.y);
+            targetPosition = worldCenter;
+            targetPosition.multiplyScalar(-targetScale);
+            targetPosition.add(new Vector2(renderer.width / 2.0, renderer.height / 2.0));
+        }
+        targetScale = Math.abs(targetScale);
+        const camera = renderer.camera;
+        const startTime = performance.now();
+        const startPosition = camera.position.clone();
+        const startScale = camera.scale;
+        const animate = () => {
+            const elapsedTime = performance.now() - startTime;
+            const t = Math.min(elapsedTime / animationDuration, 1);
+            camera.lerpPosition(startPosition, targetPosition, t);
+            camera.scale = startScale + (targetScale - startScale) * t;
+            if (t < 1) requestAnimationFrame(animate);
+        };
+        animate();
+    }
+}
+
+class DragControls {
+    constructor(renderer) {
+        this.renderer = renderer;
+    }
+    update() {
     }
 }
 
@@ -4956,377 +4118,9 @@ class ResizeTool {
     }
 }
 
-class Text extends Object2D {
-    constructor(text = '', font = '16px Arial') {
-        super();
-        this.type = 'Text';
-        this.text = text;
-        this.font = font;
-        this.strokeStyle = null;
-        this.lineWidth = 1;
-        this.fillStyle = new ColorStyle('#000000');
-        this.textAlign = 'center';
-        this.textBaseline = 'middle';
-        this._font = font;
-        this._text = text;
-    }
-    computeBoundingBox(context) {
-        if (!context) return false;
-        context.font = this.font;
-        context.textAlign = this.textAlign;
-        context.textBaseline = this.textBaseline;
-        const textMetrics = context.measureText(this.text);
-        const textWidth = textMetrics.width;
-        const textHeight = Math.max(textMetrics.actualBoundingBoxAscent, textMetrics.actualBoundingBoxDescent) * 2.0;
-        this.boundingBox.set(new Vector2(textWidth / -2, textHeight / -2), new Vector2(textWidth / 2, textHeight / 2));
-        return true;
-    }
-    isInside(point) {
-        return this.boundingBox.containsPoint(point);
-    }
-    draw(context, camera, canvas) {
-        context.font = this.font;
-        context.textAlign = this.textAlign;
-        context.textBaseline = this.textBaseline;
-        if (this.fillStyle) {
-            context.fillStyle = this.fillStyle.get(context);
-            context.fillText(this.text, 0, 0);
-        }
-        if (this.strokeStyle) {
-            context.strokeStyle = this.strokeStyle.get(context);
-            context.strokeText(this.text, 0, 0);
-        }
-    }
-    onUpdate(context, camera) {
-        if (this._font !== this.font || this._text !== this.text) {
-            if (this.computeBoundingBox(context)) {
-                this._font = this.font;
-                this._text = this.text;
-            }
-        }
-    }
-}
-
-class Mask extends Object2D {
-    constructor() {
-        super();
-        this.isMask = true;
-        this.type = 'Mask';
-    }
-    clip(context, camera, canvas) {
-    }
-}
-
-class BoxMask extends Mask {
-    constructor() {
-        super();
-        this.type = 'BoxMask';
-        this.box = new Box2(new Vector2(-50, -35), new Vector2(50, 35));
-        this.invert = false;
-    }
-    isInside(point) {
-        return this.box.containsPoint(point);
-    }
-    clip(context, camera, canvas) {
-        context.beginPath();
-        const width = this.box.max.x - this.box.min.x;
-        if (this.invert) {
-            context.rect(this.box.min.x - 1e4, -5e3, 1e4, 1e4);
-            context.rect(this.box.max.x, -5e3, 1e4, 1e4);
-            context.rect(this.box.min.x, this.box.min.y - 1e4, width, 1e4);
-            context.rect(this.box.min.x, this.box.max.y, width, 1e4);
-        } else {
-            const height = this.box.max.y - this.box.min.y;
-            context.fillRect(this.box.min.x, this.box.min.y, width, height);
-        }
-        context.clip();
-    }
-}
-
-class RadialGradientStyle extends GradientStyle {
-    constructor() {
-        super();
-        this.start = new Vector2(0, 0);
-        this.startRadius = 10;
-        this.end = new Vector2(0, 0);
-        this.endRadius = 50;
-    }
-    get(context) {
-        if (this.needsUpdate || this.cache == null) {
-            const style = context.createRadialGradient(this.start.x, this.start.y, this.startRadius, this.end.x, this.end.y, this.endRadius);
-            for (const colorStop of this.colors) {
-                style.addColorStop(colorStop.offset, colorStop.color);
-            }
-            this.cache = style;
-            this.needsUpdate = false;
-        }
-        return this.cache;
-    }
-}
-
-var Scene$1 = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  Box: Box,
-  Box2: Box2,
-  BoxMask: BoxMask,
-  Camera2D: Camera2D,
-  CameraControls: CameraControls,
-  Circle: Circle,
-  ColorStyle: ColorStyle,
-  DragControls: DragControls,
-  GradientColorStop: GradientColorStop,
-  GradientStyle: GradientStyle,
-  Key: Key,
-  Keyboard: Keyboard,
-  Line: Line,
-  LinearGradientStyle: LinearGradientStyle,
-  Mask: Mask,
-  Matrix2: Matrix2,
-  Object2D: Object2D,
-  Pointer: Pointer,
-  RadialGradientStyle: RadialGradientStyle,
-  Renderer: Renderer,
-  ResizeTool: ResizeTool,
-  Style: Style,
-  Text: Text,
-  Vector2: Vector2,
-  Viewport: Viewport
-});
-
-class Entity3D extends Entity {
-    constructor(name = 'Entity') {
-        super(name);
-        this.isEntity3D = true;
-        this.type = 'Entity3D';
-        this.lookAtCamera = false;
-        this.lookAtYOnly = false;
-        this.bloom = false;
-    }
-    componentFamily() {
-        return [ 'Entity3D' ];
-    }
-    copy(source, recursive = true) {
-        super.copy(source, recursive);
-        this.lookAtCamera = source.lookAtCamera;
-        this.lookAtYOnly = source.lookAtYOnly;
-        this.bloom = source.bloom;
-        return this;
-    }
-    dispose() {
-        super.dispose();
-    }
-    toJSON(recursive = true) {
-        const data = super.toJSON(recursive);
-        data.lookAtCamera = this.lookAtCamera;
-        data.lookAtYOnly = this.lookAtYOnly;
-        data.bloom = this.bloom;
-        return data;
-    }
-    fromJSON(data) {
-        super.fromJSON(data);
-        if (data.lookAtCamera !== undefined) this.lookAtCamera = data.lookAtCamera;
-        if (data.lookAtYOnly !== undefined) this.lookAtYOnly = data.lookAtYOnly;
-        if (data.bloom !== undefined) this.bloom = data.bloom;
-        return this;
-    }
-}
-Entity.register('Entity3D', Entity3D);
-
-class Camera3D extends Entity3D {
-    constructor({
-        name,
-        type = 'PerspectiveCamera',
-        width = APP_SIZE,
-        height = APP_SIZE,
-        fit,
-        near,
-        far,
-        fieldOfView,
-    } = {}) {
-        super(name ?? 'Camera');
-        if (type !== 'OrthographicCamera' && type !== 'PerspectiveCamera') {
-            type = 'PerspectiveCamera';
-        }
-        this.isCamera = true;
-        this.isCamera3D = true;
-        this.type = type;
-        if (fit !== 'width' && fit !== 'height') fit = 'none';
-        this.fit = fit;
-        this.near = near ?? ((type === 'PerspectiveCamera') ? 0.01 : - 1000);
-        this.far = far ?? ((type === 'OrthographicCamera') ? 1000 : 1000);
-        this.fieldOfView = fieldOfView ?? 58.10;
-        this.isPerspectiveCamera = (type === 'PerspectiveCamera');
-        this.isOrthographicCamera = (type === 'OrthographicCamera');
-        this.aspect = 1;
-        this.rotateLock = false;
-        this.view = null;
-        this.zoom = 1;
-        this.fov = 58.10;
-        this.setSize(width, height);
-    }
-    updateMatrix() {
-        this.matrix.compose(this.position, this.quaternion, this.scale);
-    }
-    getWorldDirection(target) {
-    }
-    updateMatrixWorld(force) {
-    }
-    updateWorldMatrix(updateParents, updateChildren) {
-    }
-    changeType(type) {
-        if (!type || typeof type !== 'string') return this;
-        type = type.toLowerCase().replace('camera', '');
-        if (type === 'orthographic') this.type = 'OrthographicCamera';
-        else if (type === 'perspective') this.type = 'PerspectiveCamera';
-        else return this;
-        this.isPerspectiveCamera = (this.type === 'PerspectiveCamera');
-        this.isOrthographicCamera = (this.type === 'OrthographicCamera');
-        if (this.isPerspectiveCamera) this.near = (10 / this.far);
-        if (this.isOrthographicCamera) this.near = (this.far * -1);
-        this.updateProjectionMatrix();
-        return this;
-    }
-    changeFit(fit) {
-        if (fit === 'landscape') fit = 'width';
-        if (fit === 'portrait') fit = 'height';
-        if (fit !== 'width' && fit !== 'height') fit = 'none';
-        this.fit = fit;
-        return this;
-    }
-    setSize(width = APP_SIZE, height = APP_SIZE) {
-        this.lastWidth = width;
-        this.lastHeight = height;
-        this.aspect = width / height;
-         {
-            if (this.fit === 'height') {
-                this.fov = this.fieldOfView;
-            } else {
-                const tanFOV = Math.tan(((Math.PI / 180) * this.fieldOfView) / 2);
-                if (this.fit === 'width') {
-                    this.fov = (360 / Math.PI) * Math.atan(tanFOV / this.aspect);
-                } else {
-                    this.fov = (360 / Math.PI) * Math.atan(tanFOV * (height / APP_SIZE));
-                }
-            }
-        }
-         {
-            if (this.fit === 'width') {
-                width = APP_SIZE;
-                height = width / this.aspect;
-            } else if (this.fit === 'height') {
-                height = APP_SIZE;
-                width = height * this.aspect;
-            }
-            this.left =    - width / 2;
-            this.right =     width / 2;
-            this.top =       height / 2;
-            this.bottom =  - height / 2;
-        }
-        this.updateProjectionMatrix();
-        return this;
-    }
-    updateProjectionMatrix(target ) {
-        if (target) {
-            if (target.isObject3D) target = target.position;
-            this.target.copy(target);
-        }
-        const distance = this.position.distanceTo(this.target);
-        const zoom = MathUtils.noZero(1000 / distance);
-        this.zoom = zoom;
-        if (this.isPerspectiveCamera) {
-            let top = this.near * Math.tan((Math.PI / 180) * 0.5 * this.fov);
-            let height = 2 * top;
-            let width = this.aspect * height;
-            let left = - 0.5 * width;
-            const view = this.view;
-            if (view && view.enabled) {
-                const fullWidth = view.fullWidth;
-                const fullHeight = view.fullHeight;
-                left += view.offsetX * width / fullWidth;
-                top -= view.offsetY * height / fullHeight;
-                width *= view.width / fullWidth;
-                height *= view.height / fullHeight;
-            }
-            this.projectionMatrix.makePerspective(left, left + width, top, top - height, this.near, this.far, this.coordinateSystem);
-            this.projectionMatrixInverse.copy(this.projectionMatrix).invert();
-        }
-        if (this.isOrthographicCamera) {
-            const dx = (this.right - this.left) / (2 * zoom);
-            const dy = (this.top - this.bottom) / (2 * zoom);
-            const cx = (this.right + this.left) / 2;
-            const cy = (this.top + this.bottom) / 2;
-            let left = cx - dx;
-            let right = cx + dx;
-            let top = cy + dy;
-            let bottom = cy - dy;
-            const view = this.view;
-            if (view && view.enabled) {
-                const scaleW = (this.right - this.left) / view.fullWidth / zoom;
-                const scaleH = (this.top - this.bottom) / view.fullHeight / zoom;
-                left += scaleW * view.offsetX;
-                right = left + scaleW * view.width;
-                top -= scaleH * view.offsetY;
-                bottom = top - scaleH * view.height;
-            }
-            this.projectionMatrix.makeOrthographic(left, right, top, bottom, this.near, this.far, this.coordinateSystem);
-            this.projectionMatrixInverse.copy(this.projectionMatrix).invert();
-        }
-    }
-    setViewOffset(fullWidth, fullHeight, x, y, width, height) {
-        if (!this.view) this.view = {};
-        this.view.enabled = true;
-        this.view.fullWidth = fullWidth;
-        this.view.fullHeight = fullHeight;
-        this.view.offsetX = x;
-        this.view.offsetY = y;
-        this.view.width = width;
-        this.view.height = height;
-        this.setSize(fullWidth, fullHeight);
-    }
-    clearViewOffset() {
-        if (this.view && this.view.enabled) {
-            this.view.enabled = false;
-            this.setSize(this.view.fullWidth, this.view.fullHeight);
-        }
-    }
-    copy(source, recursive = true) {
-        super.copy(source, recursive);
-        this.changeType(source.type);
-        this.fit = source.fit;
-        this.near = source.near;
-        this.far = source.far;
-        this.fieldOfView = source.fieldOfView;
-        this.setSize(source.lastWidth, source.lastHeight);
-        return this;
-    }
-    toJSON(recursive = true) {
-        const data = super.toJSON(recursive);
-        data.cameraType = this.type;
-        data.type = 'Camera3D';
-        data.fit = this.fit;
-        data.near = this.near;
-        data.far = this.far;
-        data.fieldOfView = this.fieldOfView;
-        return data;
-    }
-    fromJSON(data) {
-        super.fromJSON(data);
-        if (data.cameraType !== undefined) {
-            this.type = data.cameraType;
-            this.changeType(this.type);
-        }
-        if (data.fit !== undefined) this.fit = data.fit;
-        if (data.near !== undefined) this.near = data.near;
-        if (data.far !== undefined) this.far = data.far;
-        if (data.fieldOfView !== undefined) this.fieldOfView = data.fieldOfView;
-        return this;
-    }
-}
-Entity.register('Camera3D', Camera3D);
-
 if (typeof window !== 'undefined') {
     if (window.__SALINITY__) console.warn(`Salinity v${window.__SALINITY__} already imported, now importing v${VERSION}!`);
     else window.__SALINITY__ = VERSION;
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Cache, Camera3D, Clock, ColorChange, DragControls$1 as DragControls, DrivingControls, Entity, Entity3D, FileLoader, FollowCamera, ImageLoader, KeyControls, Loader, LoadingManager, MathUtils, MoveCamera, OrbitEntity, Palette, Project, RotateEntity, SCRIPT_FORMAT, STAGE_TYPES, Scene$1 as Scene, SceneManager, Script, Stage, SysUtils, Thing, VERSION, WORLD_TYPES, World, ZigZagControls };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, DragControls, Entity, GradientColorStop, GradientStyle, Key, Keyboard, Line, LinearGradientStyle, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Viewport, WORLD_TYPES, World };

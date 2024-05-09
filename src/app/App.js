@@ -6,10 +6,10 @@ import {
 import { ArrayUtils } from '../utils/ArrayUtils.js';
 import { AssetManager } from './AssetManager.js';
 import { Clock } from '../core/Clock.js';
-import { Project } from '../core/Project.js';
+import { Project } from './Project.js';
 import { SceneManager } from './SceneManager.js';
-import { Stage } from '../objects/Stage.js';
-import { World } from '../objects/World.js';
+import { Stage } from './Stage.js';
+import { World } from './World.js';
 
 let _animationID = null;
 

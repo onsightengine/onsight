@@ -46,48 +46,25 @@ const builds = [
         }],
     },
 
-    { // Scene Only
-        input: './src/scene/Scene.js',
+    { // Minified
+        input: './src/Salinity.js',
         treeshake: false,
 
         plugins: [
             json(),
-            cleanup({
-                comments: "none",
-                extensions: [ "js", "ts" ],
-                sourcemap: false,
-            }),
+            visualizer(),
         ],
 
         output: [{
             format: 'esm',
-            file: './dist/scene.module.js',
+            file: './dist/salinity.min.js',
             sourcemap: false,
             plugins: [
+                terser({ format: { comments: false } }),
                 header(),
             ],
         }],
     },
-
-    // { // Minified
-    //     input: './src/Salinity.js',
-    //     treeshake: false,
-
-    //     plugins: [
-    //         json(),
-    //         visualizer(),
-    //     ],
-
-    //     output: [{
-    //         format: 'esm',
-    //         file: './dist/salinity.min.js',
-    //         sourcemap: false,
-    //         plugins: [
-    //             terser({ format: { comments: false } }),
-    //             header(),
-    //         ],
-    //     }],
-    // },
 
 ];
 

@@ -11,67 +11,85 @@
 import { VERSION } from './constants.js';
 export * from './constants.js';
 
-/******************** APPLICATION ********************/
+/******************** APP ********************/
 
-// App
 export { App } from './app/App.js';
 export { AssetManager } from './app/AssetManager.js';
+export { Entity } from './app/Entity.js';
+export { Project } from './app/Project.js';
 export { SceneManager } from './app/SceneManager.js'
-
-// App, Loading
-export { Cache } from './app/loading/Cache.js';
-export { FileLoader } from './app/loading/FileLoader.js';
-export { ImageLoader } from './app/loading/ImageLoader.js';
-export { Loader } from './app/loading/Loader.js';
-export { LoadingManager } from './app/loading/LoadingManager.js';
-
-/******************** ASSETS  ********************/
+export { Stage } from './app/Stage.js';
+export { World } from './app/World.js';
 
 // Assets
-export { Asset } from './assets/Asset.js';
-export { Palette } from './assets/Palette.js';
-export { Script } from './assets/Script.js';
-
-// Assets, Scripts, Camera
-export { MoveCamera } from './assets/scripts/MoveCamera.js';
-export { OrbitEntity } from './assets/scripts/OrbitEntity.js';
-
-// Assets, Scripts, Controls
-export { DragControls } from './assets/scripts/DragControls.js';
-export { DrivingControls } from './assets/scripts/DrivingControls.js';
-export { KeyControls } from './assets/scripts/KeyControls.js';
-export { ZigZagControls } from './assets/scripts/ZigZagControls.js';
-
-// Assets, Scripts, Entity
-export { ColorChange } from './assets/scripts/ColorChange.js';
-export { FollowCamera } from './assets/scripts/FollowCamera.js';
-export { RotateEntity } from './assets/scripts/RotateEntity.js';
+export { Asset } from './app/assets/Asset.js';
+export { Palette } from './app/assets/Palette.js';
+export { Script } from './app/assets/Script.js';
 
 /******************** CORE ********************/
 
+export { Camera2D } from './core/Camera2D.js';
 export { Clock } from './core/Clock.js';
-export { Project } from './core/Project.js';
+export { Object2D } from './core/Object2D.js';
+export { Renderer } from './core/Renderer.js';
 export { Thing } from './core/Thing.js';
+export { Viewport } from './core/Viewport.js';
 
-/******************** CORE ********************/
+// Objects
+export { Box } from './core/objects/Box.js';
+export { Circle } from './core/objects/Circle.js';
+export { Line } from './core/objects/Line.js';
+export { Text } from './core/objects/Text.js';
+// export { DOM } from './objects/DOM.js';
+// export { Image } from './objects/Image.js';
+// export { MultiLineText } from './objects/MultiLineText.js';
+// export { Pattern } from './objects/Pattern.js';
+// export { RoundedBox } from './objects/RoundedBox.js';
+// export { BezierCurve } from './objects/BezierCurve.js';
+// export { QuadraticCurve } from './objects/QuadraticCurve.js';
+// export { Path } from './objects/Path.js';
 
-export * as Scene from './scene/Scene.js';
+// Objects, Mask
+export { Mask } from './core/objects/mask/Mask.js';
+export { BoxMask } from './core/objects/mask/BoxMask.js';
 
-/******************** UTILS  ********************/
+// Objects, Style
+export { Style } from './core/objects/style/Style.js';
+export { ColorStyle } from './core/objects/style/ColorStyle.js';
+export { GradientStyle } from './core/objects/style/GradientStyle.js';
+export { GradientColorStop } from './core/objects/style/GradientColorStop.js';
+export { LinearGradientStyle } from './core/objects/style/LinearGradientStyle.js';
+export { RadialGradientStyle } from './core/objects/style/RadialGradientStyle.js';
+// export { PatternStyle } from './objects/style/PatternStyle.js';
+
+/******************** EXTRAS ********************/
+
+// Controls
+export { CameraControls } from './extras/controls/CameraControls.js';
+export { DragControls } from './extras/controls/DragControls.js';
+
+// Helpers
+export { ResizeTool } from './extras/helpers/ResizeTool.js';
+
+/******************** INPUT ********************/
+
+export { Key } from './input/Key.js';
+export { Keyboard } from './input/Keyboard.js';
+export { Pointer } from './input/Pointer.js';
+
+/******************** MATH ********************/
+
+export { Box2 } from './math/Box2.js';
+export { Matrix2 } from './math/Matrix2.js';
+export { Vector2 } from './math/Vector2.js';
+
+/******************** UTILS ********************/
 
 export { ArrayUtils } from './utils/ArrayUtils.js';
 export { MathUtils } from './utils/MathUtils.js';
 export { SysUtils } from './utils/SysUtils.js';
 
-/******************** OBJECTS ********************/
-
-export { Camera3D } from './objects/Camera3D.js';
-export { Entity3D } from './objects/Entity3D.js';
-export { Entity } from './core/Entity.js';
-export { Stage } from './objects/Stage.js';
-export { World } from './objects/World.js';
-
-/******************** ENSURE SINGLE IMPORT ********************/
+/******************** SINGLE IMPORT ********************/
 
 if (typeof window !== 'undefined') {
     if (window.__SALINITY__) console.warn(`Salinity v${window.__SALINITY__} already imported, now importing v${VERSION}!`);

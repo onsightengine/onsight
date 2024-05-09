@@ -17,9 +17,12 @@ class CameraControls {
         this.allowRotation = true;                  // allowed to be rotated?
 
         this.dragButton = Pointer.RIGHT;            // button used to drag
+        this.dragButton2 = Pointer.LEFT;            // button used to drag with spacebar
         this.rotateButton = Pointer.MIDDLE;         // button used to rotate
 
         // INTERNAL
+        this.dragID = -1;
+        this.dragging = false;
         this.rotationPoint = new Vector2(0, 0);     // pointer position when the rotation starts
         this.rotationInitial = 0;                   // initial rotation when the rotation starts
 
@@ -40,6 +43,7 @@ class CameraControls {
     update() {
         const camera = this.camera;
         const pointer = this.renderer.pointer;
+        const keyboard = this.renderer.keyboard;
 
         // Scale
         if (this.allowScale && pointer.wheel !== 0) {
@@ -63,12 +67,37 @@ class CameraControls {
         }
 
         // Drag
-        if (this.allowDrag && pointer.buttonPressed(this.dragButton)) {
-            const currentPointerPos = camera.inverseMatrix.transformPoint(pointer.position.clone());
-            const lastPointerPos = camera.inverseMatrix.transformPoint(pointer.position.clone().sub(pointer.delta));
-            const delta = currentPointerPos.clone().sub(lastPointerPos).multiplyScalar(camera.scale);
-            camera.position.add(delta);
-            camera.matrixNeedsUpdate = true;
+        if (this.allowDrag) {
+            // Check for Main Drag Button
+            let wantsToDrag = pointer.buttonPressed(this.dragButton, this.dragID);
+            this.renderer.dom.style.cursor = wantsToDrag ? 'grabbing' : '';
+            // Check for Alternate Drag Button
+            if (!wantsToDrag) {
+                if (keyboard.keyPressed('Space')) {
+                    if (pointer.buttonPressed(this.dragButton2, this.dragID)) {
+                        this.renderer.dom.style.cursor = 'grabbing';
+                        wantsToDrag = true;
+                    } else {
+                        this.renderer.dom.style.cursor = 'grab';
+                    }
+                } else {
+                    this.renderer.dom.style.cursor = '';
+                }
+            }
+            if (wantsToDrag) {
+                if (!this.dragging) {
+                    this.dragID = pointer.lock();
+                    this.dragging = true;
+                }
+                const currentPointerPos = camera.inverseMatrix.transformPoint(pointer.position.clone());
+                const lastPointerPos = camera.inverseMatrix.transformPoint(pointer.position.clone().sub(pointer.delta));
+                const delta = currentPointerPos.clone().sub(lastPointerPos).multiplyScalar(camera.scale);
+                camera.position.add(delta);
+                camera.matrixNeedsUpdate = true;
+            } else {
+                pointer.unlock();
+                this.dragging = false;
+            }
         }
     }
 

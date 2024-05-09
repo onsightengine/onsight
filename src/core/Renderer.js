@@ -17,10 +17,12 @@ class Renderer extends Element {
         height = 1000,
     } = {}) {
         const canvas = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
+        canvas.setAttribute('tabindex', '0');
         canvas.width = width;
         canvas.height = height;
         canvas.style.width = '100%';
         canvas.style.height = '100%';
+        canvas.style.outline = 'none';
 
         // Base
         super(canvas);

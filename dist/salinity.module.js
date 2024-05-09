@@ -2562,6 +2562,8 @@ class Pointer {
     static RIGHT = 2;
     static BACK = 3;
     static FORWARD = 4;
+    #locked = false;
+    #lockID = 1;
     constructor(element, disableContextMenu = true) {
         if (!element || !element.isElement) {
             console.error(`Pointer: No Suey Element was provided`);
@@ -2610,9 +2612,7 @@ class Pointer {
         element.on('pointermove', (event) => {
             updatePosition(event.clientX, event.clientY, event.movementX, event.movementY);
         });
-        element.on('pointerdown',  (event) => {
-            event.preventDefault();
-            event.stopPropagation();
+        element.on('pointerdown', (event) => {
             element.dom.setPointerCapture(event.pointerId);
             updateKey(event.button, Key.DOWN);
         });
@@ -2630,12 +2630,32 @@ class Pointer {
         element.on('dragstart', (event) => { updateKey(event.button, Key.UP); });
         element.on('dblclick', (event) => { self._doubleClicked[event.button] = true; });
     }
-    buttonPressed(button)       { return this.keys[button].pressed; }
-    buttonDoubleClicked(button) { return this.doubleClicked[button] }
-    buttonJustPressed(button)   { return this.keys[button].justPressed; }
-    buttonJustReleased(button)  { return this.keys[button].justReleased; }
+    buttonPressed(button, id = -1) {
+        if (this.#locked && this.#locked !== id) return false;
+        return this.keys[button].pressed;
+    }
+    buttonDoubleClicked(button, id = -1) {
+        if (this.#locked && this.#locked !== id) return false;
+        return this.doubleClicked[button]
+    }
+    buttonJustPressed(button, id = -1) {
+        if (this.#locked && this.#locked !== id) return false;
+        return this.keys[button].justPressed;
+    }
+    buttonJustReleased(button, id = -1) {
+        if (this.#locked && this.#locked !== id) return false;
+        return this.keys[button].justReleased;
+    }
     insideDom() {
         return this.pointerInside;
+    }
+    lock() {
+        this.#locked = this.#lockID;
+        this.#lockID++;
+        return this.#locked;
+    }
+    unlock() {
+        this.#locked = false;
     }
     update() {
         for (let i = 0; i < 5; i++) {
@@ -3167,37 +3187,37 @@ class Keyboard {
         const self = this;
         this._keys = {};
         this.keys = {};
-        function updateKey(keyCode, action) {
-            if (!(keyCode in self._keys)) {
-            self._keys[keyCode] = new Key();
-            self.keys[keyCode] = new Key();
+        function updateKey(code, action) {
+            if (!(code in self._keys)) {
+                self._keys[code] = new Key();
+                self.keys[code] = new Key();
             }
-            self._keys[keyCode].update(action);
+            self._keys[code].update(action);
         }
-        element.on('keydown', (event) => { updateKey(event.keyCode, Key.DOWN); });
-        element.on('keyup', (event) => { updateKey(event.keyCode, Key.UP); });
+        element.on('keydown', (event) => { updateKey(event.code, Key.DOWN); });
+        element.on('keyup', (event) => { updateKey(event.code, Key.UP); });
     }
-    keyPressed(keyCode) {
-        return keyCode in this.keys && this.keys[keyCode].pressed;
+    keyPressed(code) {
+        return code in this.keys && this.keys[code].pressed;
     }
-    keyJustPressed(keyCode) {
-        return keyCode in this.keys && this.keys[keyCode].justPressed;
+    keyJustPressed(code) {
+        return code in this.keys && this.keys[code].justPressed;
     }
-    keyJustReleased(keyCode) {
-        return keyCode in this.keys && this.keys[keyCode].justReleased;
+    keyJustReleased(code) {
+        return code in this.keys && this.keys[code].justReleased;
     }
     update() {
-        for (const keyCode in this._keys) {
-            if (this._keys[keyCode].justPressed && this.keys[keyCode].justPressed) {
-                this._keys[keyCode].justPressed = false;
+        for (const code in this._keys) {
+            if (this._keys[code].justPressed && this.keys[code].justPressed) {
+                this._keys[code].justPressed = false;
             }
-            if (this._keys[keyCode].justReleased && this.keys[keyCode].justReleased) {
-                this._keys[keyCode].justReleased = false;
+            if (this._keys[code].justReleased && this.keys[code].justReleased) {
+                this._keys[code].justReleased = false;
             }
-            this.keys[keyCode].set(
-                this._keys[keyCode].justPressed,
-                this._keys[keyCode].pressed,
-                this._keys[keyCode].justReleased
+            this.keys[code].set(
+                this._keys[code].justPressed,
+                this._keys[code].pressed,
+                this._keys[code].justReleased
             );
         }
     }
@@ -3231,10 +3251,12 @@ class Renderer extends Element {
         height = 1000,
     } = {}) {
         const canvas = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
+        canvas.setAttribute('tabindex', '0');
         canvas.width = width;
         canvas.height = height;
         canvas.style.width = '100%';
         canvas.style.height = '100%';
+        canvas.style.outline = 'none';
         super(canvas);
         this.context = this.dom.getContext('2d', { alpha });
         this.context.imageSmoothingEnabled = imageSmoothingEnabled;
@@ -3772,7 +3794,10 @@ class CameraControls {
         this.allowScale = true;
         this.allowRotation = true;
         this.dragButton = Pointer.RIGHT;
+        this.dragButton2 = Pointer.LEFT;
         this.rotateButton = Pointer.MIDDLE;
+        this.dragID = -1;
+        this.dragging = false;
         this.rotationPoint = new Vector2(0, 0);
         this.rotationInitial = 0;
         renderer.on('dblclick', (event) => {
@@ -3787,6 +3812,7 @@ class CameraControls {
     update() {
         const camera = this.camera;
         const pointer = this.renderer.pointer;
+        const keyboard = this.renderer.keyboard;
         if (this.allowScale && pointer.wheel !== 0) {
             const scaleFactor = pointer.wheel * 0.001 * camera.scale;
             const pointerPos = camera.inverseMatrix.transformPoint(pointer.position);
@@ -3804,12 +3830,35 @@ class CameraControls {
                 camera.matrixNeedsUpdate = true;
             }
         }
-        if (this.allowDrag && pointer.buttonPressed(this.dragButton)) {
-            const currentPointerPos = camera.inverseMatrix.transformPoint(pointer.position.clone());
-            const lastPointerPos = camera.inverseMatrix.transformPoint(pointer.position.clone().sub(pointer.delta));
-            const delta = currentPointerPos.clone().sub(lastPointerPos).multiplyScalar(camera.scale);
-            camera.position.add(delta);
-            camera.matrixNeedsUpdate = true;
+        if (this.allowDrag) {
+            let wantsToDrag = pointer.buttonPressed(this.dragButton, this.dragID);
+            this.renderer.dom.style.cursor = wantsToDrag ? 'grabbing' : '';
+            if (!wantsToDrag) {
+                if (keyboard.keyPressed('Space')) {
+                    if (pointer.buttonPressed(this.dragButton2, this.dragID)) {
+                        this.renderer.dom.style.cursor = 'grabbing';
+                        wantsToDrag = true;
+                    } else {
+                        this.renderer.dom.style.cursor = 'grab';
+                    }
+                } else {
+                    this.renderer.dom.style.cursor = '';
+                }
+            }
+            if (wantsToDrag) {
+                if (!this.dragging) {
+                    this.dragID = pointer.lock();
+                    this.dragging = true;
+                }
+                const currentPointerPos = camera.inverseMatrix.transformPoint(pointer.position.clone());
+                const lastPointerPos = camera.inverseMatrix.transformPoint(pointer.position.clone().sub(pointer.delta));
+                const delta = currentPointerPos.clone().sub(lastPointerPos).multiplyScalar(camera.scale);
+                camera.position.add(delta);
+                camera.matrixNeedsUpdate = true;
+            } else {
+                pointer.unlock();
+                this.dragging = false;
+            }
         }
     }
     focusCamera(object, includeChildren = false, animationDuration = 200 ) {

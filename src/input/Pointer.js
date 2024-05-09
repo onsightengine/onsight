@@ -10,6 +10,9 @@ class Pointer {
     static BACK = 3;
     static FORWARD = 4;
 
+    #locked = false; // 0
+    #lockID = 1;
+
     constructor(element, disableContextMenu = true) {
         if (!element || !element.isElement) {
             console.error(`Pointer: No Suey Element was provided`);
@@ -69,9 +72,7 @@ class Pointer {
         element.on('pointermove', (event) => {
             updatePosition(event.clientX, event.clientY, event.movementX, event.movementY);
         });
-        element.on('pointerdown', /* async */ (event) => {
-            event.preventDefault();
-            event.stopPropagation();
+        element.on('pointerdown', (event) => {
             // // OPTION
             element.dom.setPointerCapture(event.pointerId);
             // // OPTION
@@ -102,13 +103,38 @@ class Pointer {
         element.on('dblclick', (event) => { self._doubleClicked[event.button] = true; });
     }
 
-    buttonPressed(button)       { return this.keys[button].pressed; }
-    buttonDoubleClicked(button) { return this.doubleClicked[button] }
-    buttonJustPressed(button)   { return this.keys[button].justPressed; }
-    buttonJustReleased(button)  { return this.keys[button].justReleased; }
+    buttonPressed(button, id = -1) {
+        if (this.#locked && this.#locked !== id) return false;
+        return this.keys[button].pressed;
+    }
+
+    buttonDoubleClicked(button, id = -1) {
+        if (this.#locked && this.#locked !== id) return false;
+        return this.doubleClicked[button]
+    }
+
+    buttonJustPressed(button, id = -1) {
+        if (this.#locked && this.#locked !== id) return false;
+        return this.keys[button].justPressed;
+    }
+
+    buttonJustReleased(button, id = -1) {
+        if (this.#locked && this.#locked !== id) return false;
+        return this.keys[button].justReleased;
+    }
 
     insideDom() {
         return this.pointerInside;
+    }
+
+    lock() {
+        this.#locked = this.#lockID;
+        this.#lockID++;
+        return this.#locked;
+    }
+
+    unlock() {
+        this.#locked = false;
     }
 
     update() {

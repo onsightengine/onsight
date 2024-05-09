@@ -103,8 +103,9 @@ class CameraControls {
         const animate = () => {
             const elapsedTime = performance.now() - startTime;
             const t = Math.min(elapsedTime / animationDuration, 1);
-            camera.lerpPosition(startPosition, targetPosition, t);
+            camera.position.lerpVectors(startPosition, targetPosition, t);
             camera.scale = startScale + (targetScale - startScale) * t;
+            camera.matrixNeedsUpdate = true;
             if (t < 1) requestAnimationFrame(animate);
         };
         animate();

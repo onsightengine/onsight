@@ -1,19 +1,15 @@
 class Vector2 {
 
-    x = 0;
-    y = 0;
-
-    constructor(x, y) {
+    constructor(x = 0, y = 0) {
         if (typeof x === 'object') {
             this.x = x.x;
             this.y = x.y;
         } else {
-            this.x = x || 0;
-            this.y = y || 0;
+            this.x = x;
+            this.y = y;
         }
     }
 
-    /** Set vector x and y values */
     set(x, y) {
         if (typeof x === 'object') return this.copy(x);
         this.x = x;
@@ -21,7 +17,6 @@ class Vector2 {
         return this;
     }
 
-    /** Set a scalar value into the x and y values */
     setScalar(scalar) {
         this.x = scalar;
         this.y = scalar;
@@ -32,18 +27,17 @@ class Vector2 {
         return new Vector2(this.x, this.y);
     }
 
-    copy(vec, y) {
-        if (typeof vec === 'object') {
-            this.x = vec.x;
-            this.y = vec.y;
+    copy(x, y) {
+        if (typeof x === 'object') {
+            this.x = x.x;
+            this.y = x.y;
         } else {
-            this.x = vec;
+            this.x = x;
             this.y = y;
         }
         return this;
     }
 
-    /** Add the content of another vector to this one */
     add(x, y) {
         if (typeof x === 'object') {
             this.x += x.x;
@@ -55,7 +49,6 @@ class Vector2 {
         return this;
     }
 
-    /** Add a scalar value to both vector components */
     addScalar(scalar) {
         this.x += scalar;
         this.y += scalar;
@@ -76,7 +69,6 @@ class Vector2 {
         return this;
     }
 
-    /** Subtract the content of another vector to this one */
     sub(x, y) {
         if (typeof x === 'object') {
             this.x -= x.x;
@@ -88,7 +80,6 @@ class Vector2 {
         return this;
     }
 
-    /** Subtract a scalar value to both vector components */
     subScalar(scalar) {
         this.x -= scalar;
         this.y -= scalar;
@@ -102,7 +93,6 @@ class Vector2 {
         return this;
     }
 
-    /** Multiply the content of another vector to this one */
     multiply(x, y) {
         if (typeof x === 'object') {
             this.x *= x.x;
@@ -114,14 +104,12 @@ class Vector2 {
         return this;
     }
 
-    /** Multiply a scalar value by both vector components */
     multiplyScalar(scalar) {
         this.x *= scalar;
         this.y *= scalar;
         return this;
     }
 
-    /** Divide the content of another vector from this one */
     divide(x, y) {
         if (typeof x === 'object') {
             this.x /= x.x;
@@ -133,30 +121,30 @@ class Vector2 {
         return this;
     }
 
-    /** Divide a scalar value by both vector components */
     divideScalar(scalar) {
         return this.multiplyScalar(1 / scalar);
     }
 
-    /** Set x and y as the minimum values found between two vectors */
-    min(v) {
-        this.x = Math.min(this.x, v.x);
-        this.y = Math.min(this.y, v.y);
+    /** Set components as the minimum values found between two vectors */
+    min(vec) {
+        this.x = Math.min(this.x, vec.x);
+        this.y = Math.min(this.y, vec.y);
         return this;
     }
 
-    /** Set x and y as the maximum values found between two vectors */
-    max(v) {
-        this.x = Math.max(this.x, v.x);
-        this.y = Math.max(this.y, v.y);
+    /** Set components as the maximum values found between two vectors */
+    max(vec) {
+        this.x = Math.max(this.x, vec.x);
+        this.y = Math.max(this.y, vec.y);
         return this;
     }
 
     /** Clamp the vector coordinates to the range defined by two vectors */
     clamp(minv, maxv) {
-        // assumes min < max
-        this.x = Math.max(minv.x, Math.min(maxv.x, this.x));
-        this.y = Math.max(minv.y, Math.min(maxv.y, this.y));
+        if (minv.x < maxv.x) this.x = Math.max(minv.x, Math.min(maxv.x, this.x));
+        else this.x = Math.max(maxv.x, Math.min(minv.x, this.x));
+        if (minv.y < maxv.y) this.y = Math.max(minv.y, Math.min(maxv.y, this.y));
+        else this.y = Math.max(maxv.y, Math.min(minv.y, this.y));
         return this;
     }
 
@@ -196,17 +184,12 @@ class Vector2 {
         return this;
     }
 
-    dot(v) {
-        return this.x * v.x + this.y * v.y;
+    dot(vec) {
+        return this.x * vec.x + this.y * vec.y;
     }
 
-    cross(v) {
-        return this.x * v.y - this.y * v.x;
-    }
-
-    /** Squared length of the vector (faster for comparions) */
-    lengthSq() {
-        return this.x * this.x + this.y * this.y;
+    cross(vec) {
+        return this.x * vec.y - this.y * vec.x;
     }
 
     /** Length of the vector */
@@ -214,7 +197,11 @@ class Vector2 {
         return Math.sqrt(this.x * this.x + this.y * this.y);
     }
 
-    /** Manhattan length of the vector */
+    /** Squared length of the vector (faster for comparions) */
+    lengthSq() {
+        return this.x * this.x + this.y * this.y;
+    }
+
     manhattanLength() {
         return Math.abs(this.x) + Math.abs(this.y);
     }
@@ -223,7 +210,7 @@ class Vector2 {
         return this.divideScalar(this.length() || 1);
     }
 
-    /** Computes the angle in radians with respect to the positive x-axis */
+    /** Computes the angle (in radians) with respect to the positive x-axis */
     angle(forcePositive) {
         let angle = Math.atan2(this.y, this.x);
         if (forcePositive && angle < 0) angle += 2 * Math.PI;
@@ -231,11 +218,11 @@ class Vector2 {
     }
 
     /** Compute the angle between two Vector2 objects that share a common point */
-    angleBetween(v) {
-        const dot = this.dot(v);
-        const magnitudes = this.length() * v.length();
-        // Clamp the dot product to the range [-1, 1] to avoid NaN results
-        const clampedDot = Math.min(Math.max(dot / magnitudes, -1), 1);
+    angleBetween(vec) {
+        const magnitudes = this.length() * vec.length();
+        const dot = this.dot(vec);
+        const theta = dot / magnitudes;
+        const clampedDot = Math.min(Math.max(theta, -1), 1); /* clamp to avoid NaN results */
         return Math.acos(clampedDot);
     }
 
@@ -250,20 +237,19 @@ class Vector2 {
     }
 
     /** Distance between two vector positions */
-    distanceTo(v) {
-        return Math.sqrt(this.distanceToSquared(v));
+    distanceTo(vec) {
+        return Math.sqrt(this.distanceToSquared(vec));
     }
 
     /** Distance between two vector positions squared, faster for comparisons */
-    distanceToSquared(v) {
-        const dx = this.x - v.x;
-        const dy = this.y - v.y;
+    distanceToSquared(vec) {
+        const dx = this.x - vec.x;
+        const dy = this.y - vec.y;
         return dx * dx + dy * dy;
     }
 
-    /** Manhattan distance between two vector positions */
-    manhattanDistanceTo(v) {
-        return Math.abs(this.x - v.x) + Math.abs(this.y - v.y);
+    manhattanDistanceTo(vec) {
+        return Math.abs(this.x - vec.x) + Math.abs(this.y - vec.y);
     }
 
     /** Scale the vector to have a defined length value */
@@ -271,27 +257,53 @@ class Vector2 {
         return this.normalize().multiplyScalar(length);
     }
 
-    /** Lerp this vector to another vector */
-    lerp(v, alpha) {
-        this.x += (v.x - this.x) * alpha;
-        this.y += (v.y - this.y) * alpha;
+    lerp(vec, t) {
+        return this.lerpVectors(this, vec, t);
+    }
+
+    lerpVectors(a, b, t) {
+        this.x = a.x + ((b.x - a.x) * t);
+        this.y = a.y + ((b.y - a.y) * t);
         return this;
     }
 
-    /** Check if two vectors are equal */
-    equals(v) {
-        return ((v.x === this.x) && (v.y === this.y));
+    equals(vec) {
+        return ((vec.x === this.x) && (vec.y === this.y));
+    }
+
+    fuzzyEquals(vec, tolerance = 0.001) {
+        if (fuzzyFloat(this.x, vec.x, tolerance) === false) return false;
+        if (fuzzyFloat(this.y, vec.y, tolerance) === false) return false;
+        return true;
+    }
+
+    random() {
+        this.x = Math.random();
+        this.y = Math.random();
+    }
+
+    log(description = '') {
+        if (description !== '') description += ' - '
+        console.log(`${description}X: ${this.x}, Y: ${this.y}`);
+        return this;
     }
 
     toArray() {
         return [ this.x, this.y ];
     }
 
-    fromArray(array) {
-        this.set(array[0], array[1]);
+    fromArray(array, offset = 0) {
+        this.set(array[offset + 0], array[offset + 1]);
         return this;
     }
 
 }
 
 export { Vector2 };
+
+/******************** INTERNAL ********************/
+
+/** Compares two decimal numbers to see if they're almost the same */
+function fuzzyFloat(a, b, tolerance = 0.001) {
+    return ((a < (b + tolerance)) && (a > (b - tolerance)));
+}

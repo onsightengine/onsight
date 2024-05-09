@@ -305,218 +305,347 @@ class Clock {
 }
 
 const EPSILON = 0.000001;
-function length(a) {
-    let x = a[0];
-    let y = a[1];
-    let z = a[2];
-    return Math.sqrt(x * x + y * y + z * z);
-}
-function copy(out, a) {
-    out[0] = a[0];
-    out[1] = a[1];
-    out[2] = a[2];
-    return out;
-}
-function set(out, x, y, z) {
-    out[0] = x;
-    out[1] = y;
-    out[2] = z;
-    return out;
-}
-function add(out, a, b) {
-    out[0] = a[0] + b[0];
-    out[1] = a[1] + b[1];
-    out[2] = a[2] + b[2];
-    return out;
-}
-function subtract(out, a, b) {
-    out[0] = a[0] - b[0];
-    out[1] = a[1] - b[1];
-    out[2] = a[2] - b[2];
-    return out;
-}
-function multiply(out, a, b) {
-    out[0] = a[0] * b[0];
-    out[1] = a[1] * b[1];
-    out[2] = a[2] * b[2];
-    return out;
-}
-function divide(out, a, b) {
-    out[0] = a[0] / b[0];
-    out[1] = a[1] / b[1];
-    out[2] = a[2] / b[2];
-    return out;
-}
-function scale(out, a, b) {
-    out[0] = a[0] * b;
-    out[1] = a[1] * b;
-    out[2] = a[2] * b;
-    return out;
-}
-function distance(a, b) {
-    let x = b[0] - a[0];
-    let y = b[1] - a[1];
-    let z = b[2] - a[2];
-    return Math.sqrt(x * x + y * y + z * z);
-}
-function squaredDistance(a, b) {
-    let x = b[0] - a[0];
-    let y = b[1] - a[1];
-    let z = b[2] - a[2];
-    return x * x + y * y + z * z;
-}
-function squaredLength(a) {
-    let x = a[0];
-    let y = a[1];
-    let z = a[2];
-    return x * x + y * y + z * z;
-}
-function negate(out, a) {
-    out[0] = -a[0];
-    out[1] = -a[1];
-    out[2] = -a[2];
-    return out;
-}
-function inverse(out, a) {
-    out[0] = 1.0 / a[0];
-    out[1] = 1.0 / a[1];
-    out[2] = 1.0 / a[2];
-    return out;
-}
-function normalize(out, a) {
-    let x = a[0];
-    let y = a[1];
-    let z = a[2];
-    let len = x * x + y * y + z * z;
-    if (len > 0) {
-        len = 1 / Math.sqrt(len);
-    }
-    out[0] = a[0] * len;
-    out[1] = a[1] * len;
-    out[2] = a[2] * len;
-    return out;
-}
-function dot(a, b) {
-    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-}
-function cross(out, a, b) {
-    let ax = a[0], ay = a[1], az = a[2];
-    let bx = b[0], by = b[1], bz = b[2];
-    out[0] = ay * bz - az * by;
-    out[1] = az * bx - ax * bz;
-    out[2] = ax * by - ay * bx;
-    return out;
-}
-function lerp(out, a, b, t) {
-    let ax = a[0];
-    let ay = a[1];
-    let az = a[2];
-    out[0] = ax + t * (b[0] - ax);
-    out[1] = ay + t * (b[1] - ay);
-    out[2] = az + t * (b[2] - az);
-    return out;
-}
-function transformMat4(out, a, m) {
-    let x = a[0],
-        y = a[1],
-        z = a[2];
-    let w = m[3] * x + m[7] * y + m[11] * z + m[15];
-    w = w || 1.0;
-    out[0] = (m[0] * x + m[4] * y + m[8] * z + m[12]) / w;
-    out[1] = (m[1] * x + m[5] * y + m[9] * z + m[13]) / w;
-    out[2] = (m[2] * x + m[6] * y + m[10] * z + m[14]) / w;
-    return out;
-}
-function scaleRotateMat4(out, a, m) {
-    let x = a[0],
-        y = a[1],
-        z = a[2];
-    let w = m[3] * x + m[7] * y + m[11] * z + m[15];
-    w = w || 1.0;
-    out[0] = (m[0] * x + m[4] * y + m[8] * z) / w;
-    out[1] = (m[1] * x + m[5] * y + m[9] * z) / w;
-    out[2] = (m[2] * x + m[6] * y + m[10] * z) / w;
-    return out;
-}
-function transformMat3(out, a, m) {
-    let x = a[0],
-        y = a[1],
-        z = a[2];
-    out[0] = x * m[0] + y * m[3] + z * m[6];
-    out[1] = x * m[1] + y * m[4] + z * m[7];
-    out[2] = x * m[2] + y * m[5] + z * m[8];
-    return out;
-}
-function transformQuat(out, a, q) {
-    let x = a[0],
-        y = a[1],
-        z = a[2];
-    let qx = q[0],
-        qy = q[1],
-        qz = q[2],
-        qw = q[3];
-    let uvx = qy * z - qz * y;
-    let uvy = qz * x - qx * z;
-    let uvz = qx * y - qy * x;
-    let uuvx = qy * uvz - qz * uvy;
-    let uuvy = qz * uvx - qx * uvz;
-    let uuvz = qx * uvy - qy * uvx;
-    let w2 = qw * 2;
-    uvx *= w2;
-    uvy *= w2;
-    uvz *= w2;
-    uuvx *= 2;
-    uuvy *= 2;
-    uuvz *= 2;
-    out[0] = x + uvx + uuvx;
-    out[1] = y + uvy + uuvy;
-    out[2] = z + uvz + uuvz;
-    return out;
-}
-const angle = (function() {
-    const tempA = [ 0, 0, 0 ];
-    const tempB = [ 0, 0, 0 ];
-    return function(a, b) {
-        copy(tempA, a);
-        copy(tempB, b);
-        normalize(tempA, tempA);
-        normalize(tempB, tempB);
-        let cosine = dot(tempA, tempB);
-        if (cosine > 1.0) {
-            return 0;
-        } else if (cosine < -1.0) {
-            return Math.PI;
+class Vector3 {
+    constructor(x = 0, y = 0, z = 0) {
+        if (typeof x === 'object') {
+            this.x = x.x;
+            this.y = x.y;
+            this.z = x.z;
         } else {
-            return Math.acos(cosine);
+            this.x = x;
+            this.y = y;
+            this.z = z;
         }
-    };
-})();
-function exactEquals(a, b) {
-    return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
+    }
+    set(x, y, z) {
+        if (typeof x === 'object') return this.copy(x);
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        return this;
+    }
+    setScalar(scalar) {
+        this.x = scalar;
+        this.y = scalar;
+        this.z = scalar;
+        return this;
+    }
+    clone() {
+        return new Vector3(this.x, this.y, this.z);
+    }
+    copy(x, y, z) {
+        if (typeof x === 'object') {
+            this.x = x.x;
+            this.y = x.y;
+            this.z = x.z;
+        } else {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+        return this;
+    }
+    add(x, y, z) {
+        if (typeof x === 'object') {
+            this.x += x.x;
+            this.y += x.y;
+            this.z += x.z;
+        } else {
+            this.x += x;
+            this.y += y;
+            this.z += z;
+        }
+        return this;
+    }
+    addScalar(scalar) {
+        this.x += scalar;
+        this.y += scalar;
+        this.z += scalar;
+        return this;
+    }
+    addVectors(a, b) {
+        this.x = a.x + b.x;
+        this.y = a.y + b.y;
+        this.z = a.z + b.z;
+        return this;
+    }
+    addScaledVector(vec, scale) {
+        this.x += vec.x * scale;
+        this.y += vec.y * scale;
+        this.z += vec.z * scale;
+        return this;
+    }
+    sub(x, y, z) {
+        if (typeof x === 'object') {
+            this.x -= x.x;
+            this.y -= x.y;
+            this.z -= x.z;
+        } else {
+            this.x -= x;
+            this.y -= y;
+            this.z -= z;
+        }
+        return this;
+    }
+    subScalar(scalar) {
+        this.x -= scalar;
+        this.y -= scalar;
+        this.z -= scalar;
+        return this;
+    }
+    subVectors(a, b) {
+        this.x = a.x - b.x;
+        this.y = a.y - b.y;
+        this.z = a.z - b.z;
+        return this;
+    }
+    multiply(x, y, z) {
+        if (typeof x === 'object') {
+            this.x *= x.x;
+            this.y *= x.y;
+            this.z *= x.z;
+        } else {
+            this.x *= x;
+            this.y *= y;
+            this.z *= z;
+        }
+        return this;
+    }
+    multiplyScalar(scalar) {
+        this.x *= scalar;
+        this.y *= scalar;
+        this.z *= scalar;
+        return this;
+    }
+    divide(x, y) {
+        if (typeof x === 'object') {
+            this.x /= x.x;
+            this.y /= x.y;
+            this.z /= x.z;
+        } else {
+            this.x /= x;
+            this.y /= y;
+            this.z /= z;
+        }
+        return this;
+    }
+    divideScalar(scalar) {
+        return this.multiplyScalar(1 / scalar);
+    }
+    min(vec) {
+        this.x = Math.min(this.x, vec.x);
+        this.y = Math.min(this.y, vec.y);
+        this.z = Math.min(this.z, vec.z);
+        return this;
+    }
+    max(vec) {
+        this.x = Math.max(this.x, vec.x);
+        this.y = Math.max(this.y, vec.y);
+        this.z = Math.max(this.z, vec.z);
+        return this;
+    }
+    clamp(minv, maxv) {
+        if (minv.x < maxv.x) this.x = Math.max(minv.x, Math.min(maxv.x, this.x));
+        else this.x = Math.max(maxv.x, Math.min(minv.x, this.x));
+        if (minv.y < maxv.y) this.y = Math.max(minv.y, Math.min(maxv.y, this.y));
+        else this.y = Math.max(maxv.y, Math.min(minv.y, this.y));
+        if (minv.z < maxv.z) this.z = Math.max(minv.z, Math.min(maxv.z, this.z));
+        else this.z = Math.max(maxv.z, Math.min(minv.z, this.z));
+        return this;
+    }
+    clampScalar(minVal, maxVal) {
+        this.x = Math.max(minVal, Math.min(maxVal, this.x));
+        this.y = Math.max(minVal, Math.min(maxVal, this.y));
+        this.z = Math.max(minVal, Math.min(maxVal, this.z));
+        return this;
+    }
+    clampLength(min, max) {
+        const length = this.length();
+        return this.divideScalar(length || 1).multiplyScalar(Math.max(min, Math.min(max, length)));
+    }
+    floor() {
+        this.x = Math.floor(this.x);
+        this.y = Math.floor(this.y);
+        this.z = Math.floor(this.z);
+        return this;
+    }
+    ceil() {
+        this.x = Math.ceil(this.x);
+        this.y = Math.ceil(this.y);
+        this.z = Math.ceil(this.z);
+        return this;
+    }
+    round() {
+        this.x = Math.round(this.x);
+        this.y = Math.round(this.y);
+        this.z = Math.round(this.z);
+        return this;
+    }
+    negate() {
+        this.x = -this.x;
+        this.y = -this.y;
+        this.z = -this.z;
+        return this;
+    }
+    dot(vec) {
+        return this.x * vec.x + this.y * vec.y + this.z * vec.z;
+    }
+	cross(vec) {
+		return this.crossVectors(this, vec);
+	}
+	crossVectors(a, b) {
+		const ax = a.x, ay = a.y, az = a.z;
+		const bx = b.x, by = b.y, bz = b.z;
+		this.x = ay * bz - az * by;
+		this.y = az * bx - ax * bz;
+		this.z = ax * by - ay * bx;
+		return this;
+	}
+    length() {
+        return Math.sqrt(this.lengthSq());
+    }
+    lengthSq() {
+        return this.x * this.x + this.y * this.y + this.z * this.z;
+    }
+    manhattanLength() {
+        return Math.abs(this.x) + Math.abs(this.y) + Math.abs(this.z);
+    }
+    normalize() {
+        return this.divideScalar(this.length() || 1);
+    }
+    angle(vec) {
+        temp1.copy(this).normalize();
+        temp2.copy(vec).normalize();
+        const cosine = temp1.dot(temp2);
+        if (cosine > 1.0) return 0;
+        if (cosine < -1.0) return Math.PI;
+        return Math.acos(cosine);
+    }
+    distanceTo(vec) {
+        return Math.sqrt(this.distanceToSquared(vec));
+    }
+    distanceToSquared(vec) {
+        const dx = this.x - vec.x;
+        const dy = this.y - vec.y;
+        const dz = this.z - vec.z;
+        return dx * dx + dy * dy + dz * dz;
+    }
+    manhattanDistanceTo(vec) {
+        return Math.abs(this.x - vec.x) + Math.abs(this.y - vec.y) + Math.abs(this.z - vec.z);
+    }
+    lerp(vec, t) {
+        return this.lerpVectors(this, vec, t);
+    }
+    lerpVectors(a, b, t) {
+        this.x = a.x + ((b.x - a.x) * t);
+        this.y = a.y + ((b.y - a.y) * t);
+        this.z = a.z + ((b.z - a.z) * t);
+        return this;
+    }
+    applyMatrix3(mat3) {
+        this.x = this.x * mat3[0] + this.y * mat3[3] + this.z * mat3[6];
+        this.y = this.x * mat3[1] + this.y * mat3[4] + this.z * mat3[7];
+        this.z = this.x * mat3[2] + this.y * mat3[5] + this.z * mat3[8];
+        return this;
+    }
+    applyMatrix4(mat4) {
+        let x = this.x;
+        let y = this.y;
+        let z = this.z;
+        let w =  (m[3] * x + m[7] * y + m[11] * z + m[15]) || 1.0;
+        this.x = (m[0] * x + m[4] * y + m[ 8] * z + m[12]) / w;
+        this.y = (m[1] * x + m[5] * y + m[ 9] * z + m[13]) / w;
+        this.z = (m[2] * x + m[6] * y + m[10] * z + m[14]) / w;
+        return this;
+    }
+    scaleRotateMatrix4(mat4) {
+        let x = this.x;
+        let y = this.y;
+        let z = this.z;
+        let w =  (m[3] * x + m[7] * y + m[11] * z + m[15]) || 1.0;
+        this.x = (m[0] * x + m[4] * y + m[ 8] * z) / w;
+        this.y = (m[1] * x + m[5] * y + m[ 9] * z) / w;
+        this.z = (m[2] * x + m[6] * y + m[10] * z) / w;
+        return this;
+    }
+    applyQuaternion(q) {
+        let x = this.x;
+        let y = this.y;
+        let z = this.z;
+        let qx = q[0];
+        let qy = q[1];
+        let qz = q[2];
+        let qw = q[3];
+        let uvx = qy * z - qz * y;
+        let uvy = qz * x - qx * z;
+        let uvz = qx * y - qy * x;
+        let uuvx = qy * uvz - qz * uvy;
+        let uuvy = qz * uvx - qx * uvz;
+        let uuvz = qx * uvy - qy * uvx;
+        let w2 = qw * 2;
+        uvx *= w2;
+        uvy *= w2;
+        uvz *= w2;
+        uuvx *= 2;
+        uuvy *= 2;
+        uuvz *= 2;
+        this.x = x + uvx + uuvx;
+        this.y = y + uvy + uuvy;
+        this.z = z + uvz + uuvz;
+        return this;
+    }
+    transformDirection(mat4) {
+        const x = this.x;
+        const y = this.y;
+        const z = this.z;
+        this.x = mat4[0] * x + mat4[4] * y + mat4[ 8] * z;
+        this.y = mat4[1] * x + mat4[5] * y + mat4[ 9] * z;
+        this.z = mat4[2] * x + mat4[6] * y + mat4[10] * z;
+        return this.normalize();
+    }
+    calculateNormal(target = new Vector3(), a, b, c) {
+        temp1.subVectors(a, b);
+        target.subVectors(b, c);
+        target.cross(temp1);
+        return target.normalize();
+    }
+    equals(vec) {
+        return ((vec.x === this.x) && (vec.y === this.y) && (vec.z === this.z));
+    }
+    fuzzyEquals(vec, tolerance = 0.001) {
+        if (fuzzyFloat$1(this.x, vec.x, tolerance) === false) return false;
+        if (fuzzyFloat$1(this.y, vec.y, tolerance) === false) return false;
+        if (fuzzyFloat$1(this.z, vec.z, tolerance) === false) return false;
+        return true;
+    }
+    random() {
+        this.x = Math.random();
+        this.y = Math.random();
+        this.z = Math.random();
+    }
+    log(description = '') {
+        if (description !== '') description += ' - ';
+        console.log(`${description}X: ${this.x}, Y: ${this.y}, Z: ${this.z}`);
+        return this;
+    }
+    toArray() {
+        return [ this.x, this.y, this.z ];
+    }
+    fromArray(array, offset = 0) {
+        this.set(array[offset + 0], array[offset + 1], array[offset + 2]);
+        return this;
+    }
 }
-function fuzzyEquals(a, b, tolerance = 0.001) {
-    if (fuzzyFloat(a[0], b[0], tolerance) === false) return false;
-    if (fuzzyFloat(a[1], b[1], tolerance) === false) return false;
-    if (fuzzyFloat(a[2], b[2], tolerance) === false) return false;
-    return true;
-}
-const calculateNormal = (function() {
-    const temp = [ 0, 0, 0 ];
-    return function(out, a, b, c) {
-        subtract(temp, a, b);
-        subtract(out, b, c);
-        cross(out, temp, out);
-        normalize(out, out);
-    };
-})();
-function fuzzyFloat(a, b, tolerance = 0.001) {
+const temp1 = new Vector3();
+const temp2 = new Vector3();
+function fuzzyFloat$1(a, b, tolerance = 0.001) {
     return ((a < (b + tolerance)) && (a > (b - tolerance)));
 }
 
 const _lut = [ '00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '0a', '0b', '0c', '0d', '0e', '0f', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '1a', '1b', '1c', '1d', '1e', '1f', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '2a', '2b', '2c', '2d', '2e', '2f', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '3a', '3b', '3c', '3d', '3e', '3f', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49', '4a', '4b', '4c', '4d', '4e', '4f', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59', '5a', '5b', '5c', '5d', '5e', '5f', '60', '61', '62', '63', '64', '65', '66', '67', '68', '69', '6a', '6b', '6c', '6d', '6e', '6f', '70', '71', '72', '73', '74', '75', '76', '77', '78', '79', '7a', '7b', '7c', '7d', '7e', '7f', '80', '81', '82', '83', '84', '85', '86', '87', '88', '89', '8a', '8b', '8c', '8d', '8e', '8f', '90', '91', '92', '93', '94', '95', '96', '97', '98', '99', '9a', '9b', '9c', '9d', '9e', '9f', 'a0', 'a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7', 'a8', 'a9', 'aa', 'ab', 'ac', 'ad', 'ae', 'af', 'b0', 'b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'b8', 'b9', 'ba', 'bb', 'bc', 'bd', 'be', 'bf', 'c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9', 'ca', 'cb', 'cc', 'cd', 'ce', 'cf', 'd0', 'd1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8', 'd9', 'da', 'db', 'dc', 'dd', 'de', 'df', 'e0', 'e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7', 'e8', 'e9', 'ea', 'eb', 'ec', 'ed', 'ee', 'ef', 'f0', 'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'fa', 'fb', 'fc', 'fd', 'fe', 'ff' ];
-const v0 = [ 0, 0, 0 ];
-const v1 = [ 0, 0, 0 ];
-const vc = [ 0, 0, 0 ];
+const v0 = new Vector3();
+const v1 = new Vector3();
+const vc = new Vector3();
 class MathUtils {
     static radiansToDegrees(radians) {
         return radians * (180 / Math.PI);
@@ -596,10 +725,10 @@ class MathUtils {
         return (rectLeft || rectRight || rectTop || rectDown);
     }
     static triangleArea(a, b, c) {
-        subtract(v0, c, b);
-        subtract(v1, a, b);
-        cross(vc, v0, v1);
-        return (length(vc) * 0.5);
+        v0.subVectors(c, b);
+        v1.subVectors(a, b);
+        vc.crossVectors(v0, v1);
+        return (vc.length() * 0.5);
     }
     static randomFloat(min, max) {
         return min + Math.random() * (max - min);
@@ -1065,155 +1194,6 @@ class Entity extends Thing {
 const _types$1 = new Map();
 Entity.register('Entity', Entity);
 
-class Vec3 extends Array {
-    constructor(x = 0, y = x, z = x) {
-        super(x, y, z);
-        return this;
-    }
-    get x() {
-        return this[0];
-    }
-    get y() {
-        return this[1];
-    }
-    get z() {
-        return this[2];
-    }
-    set x(v) {
-        this[0] = v;
-    }
-    set y(v) {
-        this[1] = v;
-    }
-    set z(v) {
-        this[2] = v;
-    }
-    set(x, y = x, z = x) {
-        if (x.length) return this.copy(x);
-        set(this, x, y, z);
-        return this;
-    }
-    copy(v) {
-        copy(this, v);
-        return this;
-    }
-    add(va, vb) {
-        if (vb) add(this, va, vb);
-        else add(this, this, va);
-        return this;
-    }
-    sub(va, vb) {
-        if (vb) subtract(this, va, vb);
-        else subtract(this, this, va);
-        return this;
-    }
-    multiply(v) {
-        if (v.length) multiply(this, this, v);
-        else scale(this, this, v);
-        return this;
-    }
-    divide(v) {
-        if (v.length) divide(this, this, v);
-        else scale(this, this, 1 / v);
-        return this;
-    }
-    inverse(v = this) {
-        inverse(this, v);
-        return this;
-    }
-    len() {
-        return length(this);
-    }
-    distance(v) {
-        if (v) return distance(this, v);
-        else return length(this);
-    }
-    squaredLen() {
-        return squaredLength(this);
-    }
-    squaredDistance(v) {
-        if (v) return squaredDistance(this, v);
-        else return squaredLength(this);
-    }
-    negate(v = this) {
-        negate(this, v);
-        return this;
-    }
-    cross(va, vb) {
-        if (vb) cross(this, va, vb);
-        else cross(this, this, va);
-        return this;
-    }
-    scale(multiplier) {
-        scale(this, this, multiplier);
-        return this;
-    }
-    normalize() {
-        normalize(this, this);
-        return this;
-    }
-    dot(v) {
-        return dot(this, v);
-    }
-    equals(v) {
-        return exactEquals(this, v);
-    }
-    fuzzyEquals(v, tolerance) {
-        return fuzzyEquals(this, v, tolerance);
-    }
-    applyMatrix3(mat3) {
-        transformMat3(this, this, mat3);
-        return this;
-    }
-    applyMatrix4(mat4) {
-        transformMat4(this, this, mat4);
-        return this;
-    }
-    scaleRotateMatrix4(mat4) {
-        scaleRotateMat4(this, this, mat4);
-        return this;
-    }
-    applyQuaternion(q) {
-        transformQuat(this, this, q);
-        return this;
-    }
-    angle(v) {
-        return angle(this, v);
-    }
-    lerp(v, t) {
-        lerp(this, this, v, t);
-        return this;
-    }
-    clone() {
-        return new Vec3(this[0], this[1], this[2]);
-    }
-    fromArray(a, o = 0) {
-        this[0] = a[o];
-        this[1] = a[o + 1];
-        this[2] = a[o + 2];
-        return this;
-    }
-    toArray(a = [], o = 0) {
-        a[o] = this[0];
-        a[o + 1] = this[1];
-        a[o + 2] = this[2];
-        return a;
-    }
-    transformDirection(mat4) {
-        const x = this[0];
-        const y = this[1];
-        const z = this[2];
-        this[0] = mat4[0] * x + mat4[4] * y + mat4[8] * z;
-        this[1] = mat4[1] * x + mat4[5] * y + mat4[9] * z;
-        this[2] = mat4[2] * x + mat4[6] * y + mat4[10] * z;
-        return this.normalize();
-    }
-    log(description = '') {
-        if (description !== '') description += ' - ';
-        console.log(`${description}X: ${this.x}, Y: ${this.y}, Z: ${this.z}`);
-    }
-}
-
 class World extends Entity {
     constructor(type = WORLD_TYPES.WORLD_2D, name = 'World 1') {
         super(name);
@@ -1223,9 +1203,9 @@ class World extends Entity {
         }
         this.isWorld = true;
         this.type = type;
-        this.position = new Vec3();
+        this.position = new Vector3();
         this.activeStageUUID = null;
-        this.loadPosition = new Vec3();
+        this.loadPosition = new Vector3();
         this.loadDistance = 0;
     }
     componentFamily() {
@@ -1620,8 +1600,8 @@ class Stage extends Entity {
         this.enabled = true;
         this.start = 0;
         this.finish = -1;
-        this.beginPosition = new Vec3();
-        this.endPosition = new Vec3();
+        this.beginPosition = new Vector3();
+        this.endPosition = new Vector3();
     }
     componentFamily() {
         return [ 'Stage', this.type ];
@@ -2051,13 +2031,13 @@ let variables = {
 }
 
 class Vector2 {
-    constructor(x, y) {
+    constructor(x = 0, y = 0) {
         if (typeof x === 'object') {
             this.x = x.x;
             this.y = x.y;
         } else {
-            this.x = x || 0;
-            this.y = y || 0;
+            this.x = x;
+            this.y = y;
         }
     }
     set(x, y) {
@@ -2074,12 +2054,12 @@ class Vector2 {
     clone() {
         return new Vector2(this.x, this.y);
     }
-    copy(vec, y) {
-        if (typeof vec === 'object') {
-            this.x = vec.x;
-            this.y = vec.y;
+    copy(x, y) {
+        if (typeof x === 'object') {
+            this.x = x.x;
+            this.y = x.y;
         } else {
-            this.x = vec;
+            this.x = x;
             this.y = y;
         }
         return this;
@@ -2157,19 +2137,21 @@ class Vector2 {
     divideScalar(scalar) {
         return this.multiplyScalar(1 / scalar);
     }
-    min(v) {
-        this.x = Math.min(this.x, v.x);
-        this.y = Math.min(this.y, v.y);
+    min(vec) {
+        this.x = Math.min(this.x, vec.x);
+        this.y = Math.min(this.y, vec.y);
         return this;
     }
-    max(v) {
-        this.x = Math.max(this.x, v.x);
-        this.y = Math.max(this.y, v.y);
+    max(vec) {
+        this.x = Math.max(this.x, vec.x);
+        this.y = Math.max(this.y, vec.y);
         return this;
     }
     clamp(minv, maxv) {
-        this.x = Math.max(minv.x, Math.min(maxv.x, this.x));
-        this.y = Math.max(minv.y, Math.min(maxv.y, this.y));
+        if (minv.x < maxv.x) this.x = Math.max(minv.x, Math.min(maxv.x, this.x));
+        else this.x = Math.max(maxv.x, Math.min(minv.x, this.x));
+        if (minv.y < maxv.y) this.y = Math.max(minv.y, Math.min(maxv.y, this.y));
+        else this.y = Math.max(maxv.y, Math.min(minv.y, this.y));
         return this;
     }
     clampScalar(minVal, maxVal) {
@@ -2201,17 +2183,17 @@ class Vector2 {
         this.y = -this.y;
         return this;
     }
-    dot(v) {
-        return this.x * v.x + this.y * v.y;
+    dot(vec) {
+        return this.x * vec.x + this.y * vec.y;
     }
-    cross(v) {
-        return this.x * v.y - this.y * v.x;
-    }
-    lengthSq() {
-        return this.x * this.x + this.y * this.y;
+    cross(vec) {
+        return this.x * vec.y - this.y * vec.x;
     }
     length() {
         return Math.sqrt(this.x * this.x + this.y * this.y);
+    }
+    lengthSq() {
+        return this.x * this.x + this.y * this.y;
     }
     manhattanLength() {
         return Math.abs(this.x) + Math.abs(this.y);
@@ -2224,10 +2206,11 @@ class Vector2 {
         if (forcePositive && angle < 0) angle += 2 * Math.PI;
         return angle;
     }
-    angleBetween(v) {
-        const dot = this.dot(v);
-        const magnitudes = this.length() * v.length();
-        const clampedDot = Math.min(Math.max(dot / magnitudes, -1), 1);
+    angleBetween(vec) {
+        const magnitudes = this.length() * vec.length();
+        const dot = this.dot(vec);
+        const theta = dot / magnitudes;
+        const clampedDot = Math.min(Math.max(theta, -1), 1);
         return Math.acos(clampedDot);
     }
     rotateAround(center, angle) {
@@ -2238,35 +2221,55 @@ class Vector2 {
         this.x = x * c - y * s + center.x;
         this.y = x * s + y * c + center.y;
     }
-    distanceTo(v) {
-        return Math.sqrt(this.distanceToSquared(v));
+    distanceTo(vec) {
+        return Math.sqrt(this.distanceToSquared(vec));
     }
-    distanceToSquared(v) {
-        const dx = this.x - v.x;
-        const dy = this.y - v.y;
+    distanceToSquared(vec) {
+        const dx = this.x - vec.x;
+        const dy = this.y - vec.y;
         return dx * dx + dy * dy;
     }
-    manhattanDistanceTo(v) {
-        return Math.abs(this.x - v.x) + Math.abs(this.y - v.y);
+    manhattanDistanceTo(vec) {
+        return Math.abs(this.x - vec.x) + Math.abs(this.y - vec.y);
     }
     setLength(length) {
         return this.normalize().multiplyScalar(length);
     }
-    lerp(v, alpha) {
-        this.x += (v.x - this.x) * alpha;
-        this.y += (v.y - this.y) * alpha;
+    lerp(vec, t) {
+        return this.lerpVectors(this, vec, t);
+    }
+    lerpVectors(a, b, t) {
+        this.x = a.x + ((b.x - a.x) * t);
+        this.y = a.y + ((b.y - a.y) * t);
         return this;
     }
-    equals(v) {
-        return ((v.x === this.x) && (v.y === this.y));
+    equals(vec) {
+        return ((vec.x === this.x) && (vec.y === this.y));
+    }
+    fuzzyEquals(vec, tolerance = 0.001) {
+        if (fuzzyFloat(this.x, vec.x, tolerance) === false) return false;
+        if (fuzzyFloat(this.y, vec.y, tolerance) === false) return false;
+        return true;
+    }
+    random() {
+        this.x = Math.random();
+        this.y = Math.random();
+    }
+    log(description = '') {
+        if (description !== '') description += ' - ';
+        console.log(`${description}X: ${this.x}, Y: ${this.y}`);
+        return this;
     }
     toArray() {
         return [ this.x, this.y ];
     }
-    fromArray(array) {
-        this.set(array[0], array[1]);
+    fromArray(array, offset = 0) {
+        this.set(array[offset + 0], array[offset + 1]);
         return this;
     }
+}
+function fuzzyFloat(a, b, tolerance = 0.001) {
+    return ((a < (b + tolerance)) && (a > (b - tolerance)));
 }
 
 class Matrix2 {
@@ -2410,11 +2413,6 @@ class Camera2D {
         this.matrix.multiply(new Matrix2([ this.scale, 0, 0, this.scale, 0, 0 ]));
         this.inverseMatrix = this.matrix.getInverse();
         this.matrixNeedsUpdate = false;
-    }
-    lerpPosition(v1, v2, t) {
-        this.position.x = (v1.x * (1 - t)) + (v2.x * t);
-        this.position.y = (v1.y * (1 - t)) + (v2.y * t);
-        this.matrixNeedsUpdate = true;
     }
 }
 
@@ -3839,8 +3837,9 @@ class CameraControls {
         const animate = () => {
             const elapsedTime = performance.now() - startTime;
             const t = Math.min(elapsedTime / animationDuration, 1);
-            camera.lerpPosition(startPosition, targetPosition, t);
+            camera.position.lerpVectors(startPosition, targetPosition, t);
             camera.scale = startScale + (targetScale - startScale) * t;
+            camera.matrixNeedsUpdate = true;
             if (t < 1) requestAnimationFrame(animate);
         };
         animate();

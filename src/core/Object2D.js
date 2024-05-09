@@ -164,6 +164,8 @@ class Object2D {
 
     getWorldBoundingBox() {
         const box = this.boundingBox;
+        if (Number.isFinite(box.min.x) === false || Number.isFinite(box.min.y) === false) return box;
+        if (Number.isFinite(box.max.x) === false || Number.isFinite(box.max.y) === false) return box;
         const topLeftWorld = this.globalMatrix.transformPoint(box.min);
         const topRightWorld = this.globalMatrix.transformPoint(new Vector2(box.max.x, box.min.y));
         const bottomLeftWorld = this.globalMatrix.transformPoint(new Vector2(box.min.x, box.max.y));

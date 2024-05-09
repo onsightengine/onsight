@@ -31,8 +31,8 @@ class CameraControls {
             const point = new Vector2(event.clientX, event.clientY);
             const worldPoint = renderer.camera.inverseMatrix.transformPoint(point);
             const objects = renderer.scene.getWorldPointIntersections(worldPoint);
-            for (const object of objects) if (object.focusable) return self.focusCamera(object, false /* isScene? */);
-            return self.focusCamera(renderer.scene, true /* isScene? */);
+            for (const object of objects) if (object.focusable) return self.focusCamera(object, false /* includeChildren? */);
+            return self.focusCamera(renderer.scene, true /* includeChildren? */);
         });
     }
 
@@ -72,16 +72,19 @@ class CameraControls {
         }
     }
 
-    focusCamera(object, isScene = false, animationDuration = 200 /* milliseconds */) {
+    focusCamera(object, includeChildren = false, animationDuration = 200 /* milliseconds */) {
         const renderer = this.renderer;
 
         // Focus Scene
         let targetScale, targetPosition;
-        if (isScene) {
-            const sceneBounds = new Box2();
-            object.traverse((child) => { sceneBounds.union(child.getWorldBoundingBox()); });
-            targetScale = 0.5 * Math.min(renderer.width / sceneBounds.getSize().x, renderer.height / sceneBounds.getSize().y);
-            targetPosition = sceneBounds.getCenter();
+        if (includeChildren) {
+            const bounds = new Box2();
+            object.traverse((child) => {
+                const childBounds = child.getWorldBoundingBox();
+                bounds.union(childBounds);
+            });
+            targetScale = 0.5 * Math.min(renderer.width / bounds.getSize().x, renderer.height / bounds.getSize().y);
+            targetPosition = bounds.getCenter();
             targetPosition.multiplyScalar(-targetScale);
             targetPosition.add(new Vector2(renderer.width / 2.0, renderer.height / 2.0));
         // Focus Object

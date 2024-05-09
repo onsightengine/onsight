@@ -2770,6 +2770,8 @@ class Object2D {
     }
     getWorldBoundingBox() {
         const box = this.boundingBox;
+        if (Number.isFinite(box.min.x) === false || Number.isFinite(box.min.y) === false) return box;
+        if (Number.isFinite(box.max.x) === false || Number.isFinite(box.max.y) === false) return box;
         const topLeftWorld = this.globalMatrix.transformPoint(box.min);
         const topRightWorld = this.globalMatrix.transformPoint(new Vector2(box.max.x, box.min.y));
         const bottomLeftWorld = this.globalMatrix.transformPoint(new Vector2(box.min.x, box.max.y));
@@ -3810,14 +3812,17 @@ class CameraControls {
             camera.matrixNeedsUpdate = true;
         }
     }
-    focusCamera(object, isScene = false, animationDuration = 200 ) {
+    focusCamera(object, includeChildren = false, animationDuration = 200 ) {
         const renderer = this.renderer;
         let targetScale, targetPosition;
-        if (isScene) {
-            const sceneBounds = new Box2();
-            object.traverse((child) => { sceneBounds.union(child.getWorldBoundingBox()); });
-            targetScale = 0.5 * Math.min(renderer.width / sceneBounds.getSize().x, renderer.height / sceneBounds.getSize().y);
-            targetPosition = sceneBounds.getCenter();
+        if (includeChildren) {
+            const bounds = new Box2();
+            object.traverse((child) => {
+                const childBounds = child.getWorldBoundingBox();
+                bounds.union(childBounds);
+            });
+            targetScale = 0.5 * Math.min(renderer.width / bounds.getSize().x, renderer.height / bounds.getSize().y);
+            targetPosition = bounds.getCenter();
             targetPosition.multiplyScalar(-targetScale);
             targetPosition.add(new Vector2(renderer.width / 2.0, renderer.height / 2.0));
         } else {

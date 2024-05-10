@@ -2975,7 +2975,7 @@ class Renderer {
         const rect = this.dom.getBoundingClientRect();
         return ((this.width / this.height) / (rect.width / rect.height));
     }
-    onUpdate(object) {
+    addUpdate(object) {
         if (this.updatable.includes(object) === false) {
             this.updatable.push(object);
         }
@@ -3013,9 +3013,8 @@ class Renderer {
             return b.layer - a.layer;
         });
         const viewport = new Viewport(context, camera);
-        const isVisible = {};
         for (const object of objects) {
-            isVisible[object.uuid] = viewport.intersectsBox(camera, object.getWorldBoundingBox());
+            object.inViewport = viewport.intersectsBox(camera, object.getWorldBoundingBox());
         }
         const cameraPoint = camera.inverseMatrix.transformPoint(pointer.position);
         if (pointer.buttonJustPressed(Pointer.LEFT)) {
@@ -3033,7 +3032,7 @@ class Renderer {
         }
         let currentCursor = null;
         for (const object of objects) {
-            if (object.pointerEvents && isVisible[object.uuid]) {
+            if (object.pointerEvents && object.inViewport) {
                 const localPoint = object.inverseGlobalMatrix.transformPoint(cameraPoint);
                 const isInside = object.isInside(localPoint);
                 if (!currentCursor && (isInside || this.beingDragged === object) && object.cursor) {
@@ -3082,7 +3081,7 @@ class Renderer {
         for (let i = objects.length - 1; i >= 0; i--) {
             const object = objects[i];
             if (object.isMask) continue;
-            if (isVisible[object.uuid] !== true) {
+            if (object.inViewport !== true) {
                 continue;
             }
             for (const mask of object.masks) {
@@ -3586,14 +3585,6 @@ class CameraControls {
             if (t < 1) requestAnimationFrame(animate);
         };
         animate();
-    }
-}
-
-class DragControls {
-    constructor(renderer) {
-        this.renderer = renderer;
-    }
-    update() {
     }
 }
 
@@ -4192,4 +4183,4 @@ function getVariable(variable) {
     return ((value === '') ? undefined : value);
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, DragControls, Entity, GradientColorStop, GradientStyle, Key, Keyboard, Line, LinearGradientStyle, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, Viewport, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, Entity, GradientColorStop, GradientStyle, Key, Keyboard, Line, LinearGradientStyle, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, Viewport, WORLD_TYPES, World };

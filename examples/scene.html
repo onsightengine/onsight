@@ -89,7 +89,7 @@
 
         // Camera Controls
         const cameraControls = new SALT.CameraControls(renderer, camera);
-        renderer.onUpdate(cameraControls);
+        renderer.addUpdate(cameraControls);
 
         // Start
         const debug = new SALT.Debug();

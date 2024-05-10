@@ -1,7 +1,7 @@
 import { Keyboard } from '../../input/Keyboard.js';
 import { Pointer } from '../../input/Pointer.js';
 
-class DragControls {
+class SelectControls {
 
     constructor(renderer) {
         // Renderer
@@ -17,4 +17,4 @@ class DragControls {
 
 }
 
-export { DragControls };
+export { SelectControls };

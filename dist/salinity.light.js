@@ -2975,7 +2975,7 @@ class Renderer {
         const rect = this.dom.getBoundingClientRect();
         return ((this.width / this.height) / (rect.width / rect.height));
     }
-    onUpdate(object) {
+    addUpdate(object) {
         if (this.updatable.includes(object) === false) {
             this.updatable.push(object);
         }
@@ -3013,9 +3013,8 @@ class Renderer {
             return b.layer - a.layer;
         });
         const viewport = new Viewport(context, camera);
-        const isVisible = {};
         for (const object of objects) {
-            isVisible[object.uuid] = viewport.intersectsBox(camera, object.getWorldBoundingBox());
+            object.inViewport = viewport.intersectsBox(camera, object.getWorldBoundingBox());
         }
         const cameraPoint = camera.inverseMatrix.transformPoint(pointer.position);
         if (pointer.buttonJustPressed(Pointer.LEFT)) {
@@ -3033,7 +3032,7 @@ class Renderer {
         }
         let currentCursor = null;
         for (const object of objects) {
-            if (object.pointerEvents && isVisible[object.uuid]) {
+            if (object.pointerEvents && object.inViewport) {
                 const localPoint = object.inverseGlobalMatrix.transformPoint(cameraPoint);
                 const isInside = object.isInside(localPoint);
                 if (!currentCursor && (isInside || this.beingDragged === object) && object.cursor) {
@@ -3082,7 +3081,7 @@ class Renderer {
         for (let i = objects.length - 1; i >= 0; i--) {
             const object = objects[i];
             if (object.isMask) continue;
-            if (isVisible[object.uuid] !== true) {
+            if (object.inViewport !== true) {
                 continue;
             }
             for (const mask of object.masks) {

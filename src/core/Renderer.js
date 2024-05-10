@@ -104,8 +104,8 @@ class Renderer {
 
     /******************** LOOP */
 
-    /** Adds updatable object (has update() function) to list of objects to be updated */
-    onUpdate(object) {
+    /** Adds updatable object (i.e. has 'update()' function) to list of objects to be updated */
+    addUpdate(object) {
         if (this.updatable.includes(object) === false) {
             this.updatable.push(object);
         }
@@ -161,9 +161,8 @@ class Renderer {
 
         // Viewport Frustum Culling
         const viewport = new Viewport(context, camera);
-        const isVisible = {};
         for (const object of objects) {
-            isVisible[object.uuid] = viewport.intersectsBox(camera, object.getWorldBoundingBox());
+            object.inViewport = viewport.intersectsBox(camera, object.getWorldBoundingBox());
         }
 
         // Pointer in Camera Coordinates
@@ -191,7 +190,7 @@ class Renderer {
         let currentCursor = null;
         for (const object of objects) {
             // Process?
-            if (object.pointerEvents && isVisible[object.uuid]) {
+            if (object.pointerEvents && object.inViewport) {
                 // Local Pointer Position
                 const localPoint = object.inverseGlobalMatrix.transformPoint(cameraPoint);
                 const isInside = object.isInside(localPoint);
@@ -255,7 +254,7 @@ class Renderer {
         for (let i = objects.length - 1; i >= 0; i--) {
             const object = objects[i];
             if (object.isMask) continue;
-            if (isVisible[object.uuid] !== true) {
+            if (object.inViewport !== true) {
                 // // DEBUG
                 // console.log(`Object culled: ${object.constructor.name}`);
                 continue;

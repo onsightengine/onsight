@@ -121,20 +121,21 @@ class ArrayUtils {
     static compareThingArrays(arrayOne, arrayTwo) {
         arrayOne = Array.isArray(arrayOne) ? arrayOne : [ arrayOne ];
         arrayTwo = Array.isArray(arrayTwo) ? arrayTwo : [ arrayTwo ];
+        if (arrayOne.length === 0 && arrayTwo.length === 0) return true;
         for (const thing of arrayOne) if (ArrayUtils.includesThing(thing, arrayTwo) === false) return false;
         for (const thing of arrayTwo) if (ArrayUtils.includesThing(thing, arrayOne) === false) return false;
         return true;
     }
     static includesThing(findThing, ...things) {
-        if (!findThing || !findThing.isThing) return false;
+        if (!findThing || !findThing.uuid) return false;
         if (things.length === 0) return false;
         if (things.length > 0 && Array.isArray(things[0])) things = things[0];
-        for (const thing of things) if (thing.isThing && thing.uuid === findThing.uuid) return true;
+        for (const thing of things) if (thing.uuid && thing.uuid === findThing.uuid) return true;
         return false;
     }
     static removeThingFromArray(removeThing, ...things) {
         if (things.length > 0 && Array.isArray(things[0])) things = things[0];
-        if (!removeThing || !removeThing.isThing) return [ ...things ];
+        if (!removeThing || !removeThing.uuid) return [ ...things ];
         const newArray = [];
         for (const thing of things) if (thing.uuid !== removeThing.uuid) newArray.push(thing);
         return newArray;
@@ -2782,12 +2783,18 @@ class Object2D {
         }
         return false;
     }
-    getWorldPointIntersections(worldPoint, list = []) {
-        list = Array.isArray(list) ? list : [];
-        const localPoint = this.inverseGlobalMatrix.transformPoint(worldPoint);
-        if (this.isInside(localPoint)) list.push(this);
-        for (const child of this.children) child.getWorldPointIntersections(worldPoint, list);
-        return list;
+    getWorldPointIntersections(worldPoint) {
+        const objects = [];
+        this.traverse((child) => {
+            if (!child.visible) return;
+            const localPoint = child.inverseGlobalMatrix.transformPoint(worldPoint);
+            if (child.isInside(localPoint)) objects.push(child);
+        });
+        objects.sort((a, b) => {
+            if (b.layer === a.layer) return b.level - a.level;
+            return b.layer - a.layer;
+        });
+        return objects;
     }
     getWorldBoundingBox() {
         const box = this.boundingBox;

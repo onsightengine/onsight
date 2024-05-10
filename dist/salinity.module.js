@@ -121,20 +121,21 @@ class ArrayUtils {
     static compareThingArrays(arrayOne, arrayTwo) {
         arrayOne = Array.isArray(arrayOne) ? arrayOne : [ arrayOne ];
         arrayTwo = Array.isArray(arrayTwo) ? arrayTwo : [ arrayTwo ];
+        if (arrayOne.length === 0 && arrayTwo.length === 0) return true;
         for (const thing of arrayOne) if (ArrayUtils.includesThing(thing, arrayTwo) === false) return false;
         for (const thing of arrayTwo) if (ArrayUtils.includesThing(thing, arrayOne) === false) return false;
         return true;
     }
     static includesThing(findThing, ...things) {
-        if (!findThing || !findThing.isThing) return false;
+        if (!findThing || !findThing.uuid) return false;
         if (things.length === 0) return false;
         if (things.length > 0 && Array.isArray(things[0])) things = things[0];
-        for (const thing of things) if (thing.isThing && thing.uuid === findThing.uuid) return true;
+        for (const thing of things) if (thing.uuid && thing.uuid === findThing.uuid) return true;
         return false;
     }
     static removeThingFromArray(removeThing, ...things) {
         if (things.length > 0 && Array.isArray(things[0])) things = things[0];
-        if (!removeThing || !removeThing.isThing) return [ ...things ];
+        if (!removeThing || !removeThing.uuid) return [ ...things ];
         const newArray = [];
         for (const thing of things) if (thing.uuid !== removeThing.uuid) newArray.push(thing);
         return newArray;
@@ -2782,12 +2783,18 @@ class Object2D {
         }
         return false;
     }
-    getWorldPointIntersections(worldPoint, list = []) {
-        list = Array.isArray(list) ? list : [];
-        const localPoint = this.inverseGlobalMatrix.transformPoint(worldPoint);
-        if (this.isInside(localPoint)) list.push(this);
-        for (const child of this.children) child.getWorldPointIntersections(worldPoint, list);
-        return list;
+    getWorldPointIntersections(worldPoint) {
+        const objects = [];
+        this.traverse((child) => {
+            if (!child.visible) return;
+            const localPoint = child.inverseGlobalMatrix.transformPoint(worldPoint);
+            if (child.isInside(localPoint)) objects.push(child);
+        });
+        objects.sort((a, b) => {
+            if (b.layer === a.layer) return b.level - a.level;
+            return b.layer - a.layer;
+        });
+        return objects;
     }
     getWorldBoundingBox() {
         const box = this.boundingBox;
@@ -3579,33 +3586,6 @@ class CameraControls {
     }
 }
 
-class SelectControls {
-    constructor() {
-        this.selection = [];
-    }
-    update(renderer) {
-        const camera = renderer.camera;
-        const scene = renderer.scene;
-        const pointer = renderer.pointer;
-        const keyboard = renderer.keyboard;
-        if (!camera || !scene || !pointer || !keyboard) return;
-        const cameraPoint = camera.inverseMatrix.transformPoint(pointer.position);
-        if (pointer.buttonJustPressed(Pointer.LEFT)) {
-            for (const object of this.selection) object.isSelected = false;
-            this.selection = [];
-            const selectedObjects = scene.getWorldPointIntersections(cameraPoint);
-            if (selectedObjects.length > 0) {
-                for (const object of selectedObjects) {
-                    if (object.selectable) {
-                        object.isSelected = true;
-                        this.selection.push(object);
-                    }
-                }
-            }
-        }
-    }
-}
-
 const CURSOR_ROTATE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWw6c3BhY2U9InByZXNlcnZlIiBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlLWxpbmVqb2luOnJvdW5kO3N0cm9rZS1taXRlcmxpbWl0OjI7Ij48cGF0aCBkPSJNMjEuMjQ3LDUuODY3YzAuNDE3LC0wLjQ1MiAxLjAzNiwtMC42NjYgMS42NDcsLTAuNTYzYzAuNjQ0LDAuMTA5IDEuMTgsMC41NTMgMS40MDcsMS4xNjRsMS44MjQsNC45MDFjMC4yMjcsMC42MTEgMC4xMTEsMS4yOTggLTAuMzA1LDEuODAxYy0wLjQxNiwwLjUwMyAtMS4wNjksMC43NDUgLTEuNzEzLDAuNjM2bC01LjE1NCwtMC44NzRjLTAuNjQ0LC0wLjEwOSAtMS4xOCwtMC41NTMgLTEuNDA3LC0xLjE2NWMtMC4xNzksLTAuNDgxIC0wLjE0NSwtMS4wMDggMC4wOCwtMS40NTVjLTAuNTIxLC0wLjE0OCAtMS4wNjQsLTAuMjI1IC0xLjYxNSwtMC4yMjVjLTMuMjY0LDAgLTUuOTEzLDIuNjUgLTUuOTEzLDUuOTEzYy0wLDMuMjYzIDIuNjQ5LDUuOTEzIDUuOTEzLDUuOTEzYzEuNjQsMCAzLjIwNiwtMC42ODEgNC4zMjQsLTEuODhjMC42ODgsLTAuNzM4IDEuODQ0LC0wLjc3OCAyLjU4MiwtMC4wOWwxLjM0NiwxLjI1NWMwLjczNywwLjY4OCAwLjc3OCwxLjg0MyAwLjA5LDIuNTgxYy0yLjE1OCwyLjMxNCAtNS4xNzksMy42MjcgLTguMzQyLDMuNjI3Yy02LjI5NSwwIC0xMS40MDYsLTUuMTExIC0xMS40MDYsLTExLjQwNmMtMCwtNi4yOTUgNS4xMTEsLTExLjQwNiAxMS40MDYsLTExLjQwNmMxLjgzOCwtMCAzLjYzMSwwLjQ0MyA1LjIzNiwxLjI3M1oiIHN0eWxlPSJmaWxsOiNmZmY7Ii8+PHBhdGggZD0iTTE5LjgzNSw5Ljc2N2wtMC45MDUsMS4wOTNjLTAuMDk3LDAuMTE3IC0wLjEyNCwwLjI3NyAtMC4wNzEsMC40MTljMC4wNTMsMC4xNDMgMC4xNzgsMC4yNDYgMC4zMjgsMC4yNzJsNS4xNTQsMC44NzRjMC4xNTEsMC4wMjYgMC4zMDMsLTAuMDMxIDAuNCwtMC4xNDhjMC4wOTcsLTAuMTE3IDAuMTI0LC0wLjI3NyAwLjA3MSwtMC40MmwtMS44MjMsLTQuOWMtMC4wNTMsLTAuMTQzIC0wLjE3OCwtMC4yNDYgLTAuMzI4LC0wLjI3MWMtMC4xNSwtMC4wMjYgLTAuMzAyLDAuMDMxIC0wLjM5OSwwLjE0OGwtMC42OTksMC44NDRjLTEuNjMyLC0xLjA5MSAtMy41NjIsLTEuNjgzIC01LjU1MiwtMS42ODNjLTUuNTIyLC0wIC0xMC4wMDYsNC40ODMgLTEwLjAwNiwxMC4wMDVjMCw1LjUyMiA0LjQ4NCwxMC4wMDUgMTAuMDA2LDEwLjAwNWMyLjc3NSwwIDUuNDI1LC0xLjE1MiA3LjMxNywtMy4xODFjMC4xNjEsLTAuMTcyIDAuMTUxLC0wLjQ0MiAtMC4wMjEsLTAuNjAybC0xLjM0NSwtMS4yNTVjLTAuMTcyLC0wLjE2IC0wLjQ0MiwtMC4xNTEgLTAuNjAyLDAuMDIxYy0xLjM4MywxLjQ4MyAtMy4zMjEsMi4zMjYgLTUuMzQ5LDIuMzI2Yy00LjAzNywtMCAtNy4zMTQsLTMuMjc3IC03LjMxNCwtNy4zMTRjMCwtNC4wMzcgMy4yNzcsLTcuMzE0IDcuMzE0LC03LjMxNGMxLjM2LDAgMi42ODIsMC4zNzkgMy44MjQsMS4wODFaIi8+PC9zdmc+';
 class ResizeTool extends Object2D {
     static ALL = 0;
@@ -3841,6 +3821,44 @@ class ResizeTool extends Object2D {
             updateSideResizer(topResizer, topMiddleWorld, 'h');
             updateSideResizer(bottomResizer, bottomMiddleWorld, 'h');
         };
+    }
+}
+
+class SelectControls {
+    constructor() {
+        this.selection = [];
+        this.resizeTool = null;
+    }
+    update(renderer) {
+        const camera = renderer.camera;
+        const scene = renderer.scene;
+        const pointer = renderer.pointer;
+        const keyboard = renderer.keyboard;
+        if (!camera || !scene || !pointer || !keyboard) return;
+        const startSelection = [ ...this.selection ];
+        const cameraPoint = camera.inverseMatrix.transformPoint(pointer.position);
+        if (pointer.buttonJustPressed(Pointer.LEFT)) {
+            const underMouse = scene.getWorldPointIntersections(cameraPoint);
+            if (underMouse.length === 0) {
+                scene.traverse((child) => { child.isSelected = false; });
+                this.selection = [];
+            } else if (underMouse.length > 0) {
+                const object = underMouse[0];
+                if (object.selectable) {
+                    scene.traverse((child) => { child.isSelected = false; });
+                    object.isSelected = true;
+                    this.selection = [ object ];
+                }
+            }
+        }
+        if (ArrayUtils.compareThingArrays(startSelection, this.selection) === false) {
+            if (this.resizeTool) this.resizeTool.destroy();
+            if (this.selection.length > 0) {
+                this.resizeTool = new ResizeTool(this.selection[0]);
+                scene.add(this.resizeTool);
+                console.log(this.resizeTool);
+            }
+        }
     }
 }
 

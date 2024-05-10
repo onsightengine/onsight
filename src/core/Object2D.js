@@ -152,14 +152,18 @@ class Object2D {
     }
 
     /** Returns list of the objects (object and it's children) intersected by a point in world coordinates */
-    getWorldPointIntersections(worldPoint, list = []) {
-        // Pointer Position in local object coordinates
-        list = Array.isArray(list) ? list : [];
-        const localPoint = this.inverseGlobalMatrix.transformPoint(worldPoint);
-        if (this.isInside(localPoint)) list.push(this);
-        // Recurse
-        for (const child of this.children) child.getWorldPointIntersections(worldPoint, list);
-        return list;
+    getWorldPointIntersections(worldPoint) {
+        const objects = [];
+        this.traverse((child) => {
+            if (!child.visible) return;
+            const localPoint = child.inverseGlobalMatrix.transformPoint(worldPoint);
+            if (child.isInside(localPoint)) objects.push(child);
+        });
+        objects.sort((a, b) => {
+            if (b.layer === a.layer) return b.level - a.level;
+            return b.layer - a.layer;
+        });
+        return objects;
     }
 
     getWorldBoundingBox() {

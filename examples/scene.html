@@ -26,7 +26,7 @@
         box.fillStyle.color = '#ff0000';
         box.draggable = true;
         scene.add(box);
-        scene.add(new SALT.ResizeTool(box));
+        // scene.add(new SALT.ResizeTool(box));
 
         const rainbowBox = new SALT.Box().setPosition(-100, 200);
         rainbowBox.draggable = true;
@@ -37,13 +37,11 @@
         rainbowBox.fillStyle.addColorStop(0.5, '#00ff00');
         rainbowBox.fillStyle.addColorStop(1, '#0000ff');
         scene.add(rainbowBox);
-        // scene.add(new SALT.ResizeTool(rainbowBox));
 
         const circle = new SALT.Circle().setPosition(100, 0);
         circle.radius = 50;
         circle.draggable = true;
         scene.add(circle);
-        // scene.add(new SALT.ResizeTool(circle));
 
         const rainbowCircle = new SALT.Circle().setPosition(100, 200);
         rainbowCircle.radius = 50;
@@ -52,14 +50,12 @@
         rainbowCircle.fillStyle.addColorStop(0, '#000000');
         rainbowCircle.fillStyle.addColorStop(1, '#ffffff');
         scene.add(rainbowCircle);
-        // scene.add(new SALT.ResizeTool(rainbowCircle));
 
         const text = new SALT.Text().setPosition(0, -100);
         text.fillStyle.color = 'var(--icon)';
         text.text = 'Hello World!';
         text.draggable = true;
         scene.add(text);
-        // scene.add(new SALT.ResizeTool(text));
 
         const line = new SALT.Line();
         line.strokeStyle.color = '#ff0000';

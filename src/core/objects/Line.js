@@ -83,14 +83,14 @@ class Line extends Object2D {
         context.setLineDash(this.dashPattern);
     }
 
-    draw(context, camera, canvas) {
+    draw(context, camera, canvas, renderer) {
         context.beginPath();
         context.moveTo(this.from.x, this.from.y);
         context.lineTo(this.to.x, this.to.y);
         context.stroke();
     }
 
-    onUpdate(context, camera) {
+    onUpdate(renderer) {
         if ((this.from.equals(this._from) === false) || (this.to.equals(this._to) === false)) {
             this.computeBoundingBox();
             this._from.copy(this.from);

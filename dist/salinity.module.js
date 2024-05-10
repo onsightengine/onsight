@@ -648,7 +648,7 @@ const _lut = [ '00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '0a',
 const v0 = new Vector3();
 const v1 = new Vector3();
 const vc = new Vector3();
-let MathUtils$1 = class MathUtils {
+class MathUtils {
     static radiansToDegrees(radians) {
         return radians * (180 / Math.PI);
     }
@@ -760,7 +760,7 @@ let MathUtils$1 = class MathUtils {
         }
         return uuids;
     }
-};
+}
 
 class SysUtils {
     static isObject(variable) {
@@ -874,7 +874,7 @@ class Thing {
         this.isThing = true;
         this.type = 'Thing';
         this.name = name;
-        this.uuid = MathUtils$1.randomUUID();
+        this.uuid = MathUtils.randomUUID();
     }
     clone(recursive = false) {
         return new this.constructor().copy(this, recursive);
@@ -1405,7 +1405,7 @@ class Project extends Thing {
             if (typeof world.dispose === 'function') world.dispose();
         }
         this.name = 'My Project';
-        this.uuid = MathUtils$1.randomUUID();
+        this.uuid = MathUtils.randomUUID();
         this.activeWorldUUID = null;
     }
     toJSON() {
@@ -2312,12 +2312,13 @@ class Matrix2 {
     compose(px, py, sx, sy, ox, oy, rot) {
         this.m = [ 1, 0, 0, 1, px, py ];
         if (rot !== 0) {
+            this.multiply(new Matrix2([ 1, 0, 0, 1, +ox, +oy ]));
             const c = Math.cos(rot);
             const s = Math.sin(rot);
             this.multiply(new Matrix2([ c, s, -s, c, 0, 0 ]));
+            this.multiply(new Matrix2([ 1, 0, 0, 1, -ox, -oy ]));
         }
         if (sx !== 1 || sy !== 1) this.scale(sx, sy);
-        if (ox !== 0 || oy !== 0) this.multiply(new Matrix2([ 1, 0, 0, 1, -ox, -oy ]));
         return this;
     }
     translate(x, y) {
@@ -2395,7 +2396,7 @@ class Matrix2 {
 
 class Camera2D {
     constructor() {
-        this.uuid = MathUtils$1.randomUUID();
+        this.uuid = MathUtils.randomUUID();
         this.position = new Vector2(0, 0);
         this.scale = 1.0;
         this.rotation = 0.0;
@@ -2692,7 +2693,7 @@ class Pointer {
 class Object2D {
     constructor() {
         this.type = 'Object2D';
-        this.uuid = MathUtils$1.randomUUID();
+        this.uuid = MathUtils.randomUUID();
         this.children = [];
         this.parent = null;
         this.visible = true;
@@ -2814,6 +2815,8 @@ class Object2D {
     updateMatrix(force = false) {
         if (force || this.matrixAutoUpdate || this.matrixNeedsUpdate) {
             this.globalOpacity = this.opacity * ((this.parent) ? this.parent.globalOpacity : 1);
+            this.scale.x = MathUtils.noZero(MathUtils.sanity(this.scale.x));
+            this.scale.y = MathUtils.noZero(MathUtils.sanity(this.scale.y));
             this.matrix.compose(this.position.x, this.position.y, this.scale.x, this.scale.y, this.origin.x, this.origin.y, this.rotation);
             this.globalMatrix.copy(this.matrix);
             if (this.parent) this.globalMatrix.premultiply(this.parent.globalMatrix);
@@ -3012,6 +3015,7 @@ class Renderer {
         if (scene) this.scene = scene; else scene = this.scene;
         if (camera) this.camera = camera; else camera = this.camera;
         if (!scene || !camera) return;
+        const renderer = this;
         const pointer = this.pointer;
         const context = this.context;
         const objects = [];
@@ -3069,7 +3073,7 @@ class Renderer {
         document.body.style.cursor = currentCursor ?? 'default';
         scene.traverse(function(child) {
             child.updateMatrix();
-            if (typeof child.onUpdate === 'function') child.onUpdate(context, camera);
+            if (typeof child.onUpdate === 'function') child.onUpdate(renderer);
         });
         context.setTransform(1, 0, 0, 1, 0, 0);
         if (this.autoClear) context.clearRect(0, 0, this.width, this.height);
@@ -3174,7 +3178,7 @@ class Box extends Object2D {
     isInside(point) {
         return this.box.containsPoint(point);
     }
-    draw(context, camera, canvas) {
+    draw(context, camera, canvas, renderer) {
         const width = this.box.max.x - this.box.min.x;
         const height = this.box.max.y - this.box.min.y;
         if (this.fillStyle) {
@@ -3194,7 +3198,7 @@ class Box extends Object2D {
             context.strokeRect(this.box.min.x, this.box.min.y, width, height);
         }
     }
-    onUpdate(context, camera) {
+    onUpdate(renderer) {
         if (this.box.equals(this._box) === false) {
             this.computeBoundingBox();
             this._box.copy(this.box);
@@ -3224,7 +3228,7 @@ class Circle extends Object2D {
     isInside(point) {
         return point.length() <= this._radius;
     }
-    draw(context, camera, canvas) {
+    draw(context, camera, canvas, renderer) {
         context.beginPath();
         context.arc(0, 0, this._radius, 0, 2 * Math.PI);
         if (this.fillStyle) {
@@ -3308,13 +3312,13 @@ class Line extends Object2D {
         context.strokeStyle = this.strokeStyle.get(context);
         context.setLineDash(this.dashPattern);
     }
-    draw(context, camera, canvas) {
+    draw(context, camera, canvas, renderer) {
         context.beginPath();
         context.moveTo(this.from.x, this.from.y);
         context.lineTo(this.to.x, this.to.y);
         context.stroke();
     }
-    onUpdate(context, camera) {
+    onUpdate(renderer) {
         if ((this.from.equals(this._from) === false) || (this.to.equals(this._to) === false)) {
             this.computeBoundingBox();
             this._from.copy(this.from);
@@ -3351,7 +3355,7 @@ class Text extends Object2D {
     isInside(point) {
         return this.boundingBox.containsPoint(point);
     }
-    draw(context, camera, canvas) {
+    draw(context, camera, canvas, renderer) {
         context.font = this.font;
         context.textAlign = this.textAlign;
         context.textBaseline = this.textBaseline;
@@ -3364,9 +3368,9 @@ class Text extends Object2D {
             context.strokeText(this.text, 0, 0);
         }
     }
-    onUpdate(context, camera) {
+    onUpdate(renderer) {
         if (this._font !== this.font || this._text !== this.text) {
-            if (this.computeBoundingBox(context)) {
+            if (this.computeBoundingBox(renderer.context)) {
                 this._font = this.font;
                 this._text = this.text;
             }
@@ -3704,6 +3708,8 @@ class ResizeTool extends Object2D {
                     const rotatedDelta = rotationMatrix.transformPoint(delta);
                     object.position.add(rotatedDelta);
                     object.scale.sub(delta.multiply(x, y).multiply(scale));
+                    object.scale.x = MathUtils.noZero(MathUtils.sanity(object.scale.x));
+                    object.scale.y = MathUtils.noZero(MathUtils.sanity(object.scale.y));
                     object.matrixNeedsUpdate = true;
                 };
                 return resizer;
@@ -3760,7 +3766,8 @@ class ResizeTool extends Object2D {
             rotateLine.strokeStyle.color = '--highlight';
             this.add(rotater, rotateLine);
         }
-        this.onUpdate = function(context, camera) {
+        this.onUpdate = function(renderer) {
+            const camera = renderer.camera;
             const box = object.boundingBox;
             const center = box.getCenter();
             const handleOffset = ((radius * 4) / Math.abs(object.scale.y)) / camera.scale;
@@ -3795,8 +3802,8 @@ class ResizeTool extends Object2D {
             const rightMiddleWorld = object.globalMatrix.transformPoint(new Vector2(box.max.x, center.y));
             const topMiddleWorld = object.globalMatrix.transformPoint(new Vector2(center.x, box.min.y));
             const bottomMiddleWorld = object.globalMatrix.transformPoint(new Vector2(center.x, box.max.y));
-            const halfWidth = (object.boundingBox.getSize().x / 2) * Math.abs(object.scale.x);
-            const halfHeight = (object.boundingBox.getSize().y / 2) * Math.abs(object.scale.y);
+            const halfWidth = MathUtils.sanity(object.boundingBox.getSize().x / 2 * Math.abs(object.scale.x));
+            const halfHeight = MathUtils.sanity(object.boundingBox.getSize().y / 2 * Math.abs(object.scale.y));
             function updateSideResizer(resizer, point, type = 'v') {
                 if (!resizer) return;
                 resizer.position.copy(point);
@@ -3862,6 +3869,7 @@ class SelectControls {
             if (newSelection.length > 0) {
                 this.resizeTool = new ResizeTool(newSelection[0]);
                 scene.add(this.resizeTool);
+                this.resizeTool.onUpdate(renderer);
             }
             this.selection = [ ...newSelection ];
         }
@@ -4226,4 +4234,4 @@ function getVariable(variable) {
     return ((value === '') ? undefined : value);
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, Entity, GradientColorStop, GradientStyle, Key, Keyboard, Line, LinearGradientStyle, Mask, MathUtils$1 as MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, Viewport, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, Entity, GradientColorStop, GradientStyle, Key, Keyboard, Line, LinearGradientStyle, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, Viewport, WORLD_TYPES, World };

@@ -2312,12 +2312,13 @@ class Matrix2 {
     compose(px, py, sx, sy, ox, oy, rot) {
         this.m = [ 1, 0, 0, 1, px, py ];
         if (rot !== 0) {
+            this.multiply(new Matrix2([ 1, 0, 0, 1, +ox, +oy ]));
             const c = Math.cos(rot);
             const s = Math.sin(rot);
             this.multiply(new Matrix2([ c, s, -s, c, 0, 0 ]));
+            this.multiply(new Matrix2([ 1, 0, 0, 1, -ox, -oy ]));
         }
         if (sx !== 1 || sy !== 1) this.scale(sx, sy);
-        if (ox !== 0 || oy !== 0) this.multiply(new Matrix2([ 1, 0, 0, 1, -ox, -oy ]));
         return this;
     }
     translate(x, y) {
@@ -2814,6 +2815,8 @@ class Object2D {
     updateMatrix(force = false) {
         if (force || this.matrixAutoUpdate || this.matrixNeedsUpdate) {
             this.globalOpacity = this.opacity * ((this.parent) ? this.parent.globalOpacity : 1);
+            this.scale.x = MathUtils.noZero(MathUtils.sanity(this.scale.x));
+            this.scale.y = MathUtils.noZero(MathUtils.sanity(this.scale.y));
             this.matrix.compose(this.position.x, this.position.y, this.scale.x, this.scale.y, this.origin.x, this.origin.y, this.rotation);
             this.globalMatrix.copy(this.matrix);
             if (this.parent) this.globalMatrix.premultiply(this.parent.globalMatrix);
@@ -3012,6 +3015,7 @@ class Renderer {
         if (scene) this.scene = scene; else scene = this.scene;
         if (camera) this.camera = camera; else camera = this.camera;
         if (!scene || !camera) return;
+        const renderer = this;
         const pointer = this.pointer;
         const context = this.context;
         const objects = [];
@@ -3069,7 +3073,7 @@ class Renderer {
         document.body.style.cursor = currentCursor ?? 'default';
         scene.traverse(function(child) {
             child.updateMatrix();
-            if (typeof child.onUpdate === 'function') child.onUpdate(context, camera);
+            if (typeof child.onUpdate === 'function') child.onUpdate(renderer);
         });
         context.setTransform(1, 0, 0, 1, 0, 0);
         if (this.autoClear) context.clearRect(0, 0, this.width, this.height);
@@ -3174,7 +3178,7 @@ class Box extends Object2D {
     isInside(point) {
         return this.box.containsPoint(point);
     }
-    draw(context, camera, canvas) {
+    draw(context, camera, canvas, renderer) {
         const width = this.box.max.x - this.box.min.x;
         const height = this.box.max.y - this.box.min.y;
         if (this.fillStyle) {
@@ -3194,7 +3198,7 @@ class Box extends Object2D {
             context.strokeRect(this.box.min.x, this.box.min.y, width, height);
         }
     }
-    onUpdate(context, camera) {
+    onUpdate(renderer) {
         if (this.box.equals(this._box) === false) {
             this.computeBoundingBox();
             this._box.copy(this.box);
@@ -3224,7 +3228,7 @@ class Circle extends Object2D {
     isInside(point) {
         return point.length() <= this._radius;
     }
-    draw(context, camera, canvas) {
+    draw(context, camera, canvas, renderer) {
         context.beginPath();
         context.arc(0, 0, this._radius, 0, 2 * Math.PI);
         if (this.fillStyle) {
@@ -3308,13 +3312,13 @@ class Line extends Object2D {
         context.strokeStyle = this.strokeStyle.get(context);
         context.setLineDash(this.dashPattern);
     }
-    draw(context, camera, canvas) {
+    draw(context, camera, canvas, renderer) {
         context.beginPath();
         context.moveTo(this.from.x, this.from.y);
         context.lineTo(this.to.x, this.to.y);
         context.stroke();
     }
-    onUpdate(context, camera) {
+    onUpdate(renderer) {
         if ((this.from.equals(this._from) === false) || (this.to.equals(this._to) === false)) {
             this.computeBoundingBox();
             this._from.copy(this.from);
@@ -3351,7 +3355,7 @@ class Text extends Object2D {
     isInside(point) {
         return this.boundingBox.containsPoint(point);
     }
-    draw(context, camera, canvas) {
+    draw(context, camera, canvas, renderer) {
         context.font = this.font;
         context.textAlign = this.textAlign;
         context.textBaseline = this.textBaseline;
@@ -3364,9 +3368,9 @@ class Text extends Object2D {
             context.strokeText(this.text, 0, 0);
         }
     }
-    onUpdate(context, camera) {
+    onUpdate(renderer) {
         if (this._font !== this.font || this._text !== this.text) {
-            if (this.computeBoundingBox(context)) {
+            if (this.computeBoundingBox(renderer.context)) {
                 this._font = this.font;
                 this._text = this.text;
             }

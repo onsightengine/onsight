@@ -189,6 +189,8 @@ class Object2D {
     updateMatrix(force = false) {
         if (force || this.matrixAutoUpdate || this.matrixNeedsUpdate) {
             this.globalOpacity = this.opacity * ((this.parent) ? this.parent.globalOpacity : 1);
+            this.scale.x = MathUtils.noZero(MathUtils.sanity(this.scale.x));
+            this.scale.y = MathUtils.noZero(MathUtils.sanity(this.scale.y));
             this.matrix.compose(this.position.x, this.position.y, this.scale.x, this.scale.y, this.origin.x, this.origin.y, this.rotation);
             this.globalMatrix.copy(this.matrix);
             if (this.parent) this.globalMatrix.premultiply(this.parent.globalMatrix);
@@ -235,10 +237,9 @@ class Object2D {
      *
      * Overloadable Update Event
      *
-     *      onUpdate(context, camera) {}
+     *      onUpdate(renderer) {}
      *
-     * @param {CanvasRenderingContext2D} context Canvas 2d drawing context.
-     * @param {Camera} camera Camera applied to the canvas.
+     * @param {Renderer} renderer Renderer curretly active.
      *
      */
 

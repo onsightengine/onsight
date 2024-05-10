@@ -2,6 +2,7 @@ import { Box } from '../../core/objects/Box.js';
 import { Circle } from '../../core/objects/Circle.js';
 import { Line } from '../../core/objects/Line.js';
 import { LinearGradientStyle } from '../../core/objects/style/LinearGradientStyle.js';
+import { MathUtils } from '../../utils/MathUtils.js';
 import { Matrix2 } from '../../math/Matrix2.js';
 import { Object2D } from '../../core/Object2D.js';
 import { Vector2 } from '../../math/Vector2.js';
@@ -130,6 +131,8 @@ class ResizeTool extends Object2D {
                     const rotatedDelta = rotationMatrix.transformPoint(delta);
                     object.position.add(rotatedDelta);
                     object.scale.sub(delta.multiply(x, y).multiply(scale));
+                    object.scale.x = MathUtils.noZero(MathUtils.sanity(object.scale.x));
+                    object.scale.y = MathUtils.noZero(MathUtils.sanity(object.scale.y));
                     object.matrixNeedsUpdate = true;
                 };
                 return resizer;
@@ -192,7 +195,8 @@ class ResizeTool extends Object2D {
         }
 
         // Update
-        this.onUpdate = function(context, camera) {
+        this.onUpdate = function(renderer) {
+            const camera = renderer.camera;
             const box = object.boundingBox;
             const center = box.getCenter();
 
@@ -233,8 +237,8 @@ class ResizeTool extends Object2D {
             const rightMiddleWorld = object.globalMatrix.transformPoint(new Vector2(box.max.x, center.y));
             const topMiddleWorld = object.globalMatrix.transformPoint(new Vector2(center.x, box.min.y));
             const bottomMiddleWorld = object.globalMatrix.transformPoint(new Vector2(center.x, box.max.y));
-            const halfWidth = (object.boundingBox.getSize().x / 2) * Math.abs(object.scale.x);
-            const halfHeight = (object.boundingBox.getSize().y / 2) * Math.abs(object.scale.y);
+            const halfWidth = MathUtils.sanity(object.boundingBox.getSize().x / 2 * Math.abs(object.scale.x));
+            const halfHeight = MathUtils.sanity(object.boundingBox.getSize().y / 2 * Math.abs(object.scale.y));
             function updateSideResizer(resizer, point, type = 'v') {
                 if (!resizer) return;
                 resizer.position.copy(point);

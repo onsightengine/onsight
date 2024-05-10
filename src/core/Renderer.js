@@ -149,6 +149,7 @@ class Renderer {
         if (scene) this.scene = scene; else scene = this.scene;
         if (camera) this.camera = camera; else camera = this.camera;
         if (!scene || !camera) return;
+        const renderer = this;
         const pointer = this.pointer;
         const context = this.context;
 
@@ -226,7 +227,7 @@ class Renderer {
         // Update Object / Matrix
         scene.traverse(function(child) {
             child.updateMatrix();
-            if (typeof child.onUpdate === 'function') child.onUpdate(context, camera);
+            if (typeof child.onUpdate === 'function') child.onUpdate(renderer);
         });
 
         // Reset Transform, Clear Canvas

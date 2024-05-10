@@ -40,7 +40,7 @@ class Text extends Object2D {
         return this.boundingBox.containsPoint(point);
     }
 
-    draw(context, camera, canvas) {
+    draw(context, camera, canvas, renderer) {
         context.font = this.font;
         context.textAlign = this.textAlign;
         context.textBaseline = this.textBaseline;
@@ -55,9 +55,9 @@ class Text extends Object2D {
         }
     }
 
-    onUpdate(context, camera) {
+    onUpdate(renderer) {
         if (this._font !== this.font || this._text !== this.text) {
-            if (this.computeBoundingBox(context)) {
+            if (this.computeBoundingBox(renderer.context)) {
                 this._font = this.font;
                 this._text = this.text;
             }

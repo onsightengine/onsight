@@ -45,6 +45,7 @@ class SelectControls {
             if (newSelection.length > 0) {
                 this.resizeTool = new ResizeTool(newSelection[0]);
                 scene.add(this.resizeTool);
+                this.resizeTool.onUpdate(renderer);
             }
 
             // Save Selection

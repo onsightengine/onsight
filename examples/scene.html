@@ -25,6 +25,7 @@
         const box = new SALT.Box().setPosition(-100, 0);
         box.fillStyle.color = '#ff0000';
         box.draggable = true;
+        box.origin.set(25, 25);
         scene.add(box);
         // scene.add(new SALT.ResizeTool(box));
 
@@ -65,6 +66,25 @@
         line.from.set(-200, -200);
         line.to.set(0, 0);
         scene.add(line);
+
+        const line2 = new SALT.Line();
+        line2.strokeStyle.color = '#00ff00';
+        line2.lineWidth = 10;
+        line2.draggable = true;
+        line2.mouseBuffer = 0;
+        line2.from.set(-200, -200);
+        line2.to.set(0, 0);
+        line2.origin.set(-100, -100);
+        scene.add(line2);
+
+        const line3 = new SALT.Line();
+        line3.strokeStyle.color = '#0000ff';
+        line3.lineWidth = 10;
+        line3.draggable = true;
+        line3.mouseBuffer = 0;
+        line3.from.set(-100, -100);
+        line3.to.set(100, 100);
+        scene.add(line3);
 
         for (let i = 0; i < 50; i++) {
             const box = new SALT.Box().setPosition((Math.random() * 1000) - 500, (Math.random() * 1000) - 500);

@@ -31,7 +31,7 @@ class Circle extends Object2D {
         return point.length() <= this._radius;
     }
 
-    draw(context, camera, canvas) {
+    draw(context, camera, canvas, renderer) {
         context.beginPath();
         context.arc(0, 0, this._radius, 0, 2 * Math.PI);
         if (this.fillStyle) {

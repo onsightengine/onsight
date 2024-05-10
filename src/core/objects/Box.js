@@ -29,7 +29,7 @@ class Box extends Object2D {
         return this.box.containsPoint(point);
     }
 
-    draw(context, camera, canvas) {
+    draw(context, camera, canvas, renderer) {
         const width = this.box.max.x - this.box.min.x;
         const height = this.box.max.y - this.box.min.y;
         if (this.fillStyle) {
@@ -50,7 +50,7 @@ class Box extends Object2D {
         }
     }
 
-    onUpdate(context, camera) {
+    onUpdate(renderer) {
         if (this.box.equals(this._box) === false) {
             this.computeBoundingBox();
             this._box.copy(this.box);

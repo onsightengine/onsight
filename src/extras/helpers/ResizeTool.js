@@ -119,7 +119,7 @@ class ResizeTool extends Object2D {
                 };
                 resizer.onPointerDrag = function(pointer, camera) {
                     Object2D.prototype.onPointerDrag.call(this, pointer, camera);
-                    const delta = localDelta(pointer, camera)
+                    const delta = localDelta(pointer, camera);
                     if (x === 0) delta.x = 0;
                     if (y === 0) delta.y = 0;
                     delta.multiplyScalar(0.5);
@@ -127,9 +127,21 @@ class ResizeTool extends Object2D {
                     const scaleX = MathUtils.sanity((x === 0) ? 0 : 2 / size.x);
                     const scaleY = MathUtils.sanity((y === 0) ? 0 : 2 / size.y);
                     const scale = new Vector2(scaleX, scaleY);
+
+                    // Calculate offset between object's true center and the center of the bounding box
+                    const boundingBoxCenter = object.boundingBox.getCenter();
+                    const positionOffset = boundingBoxCenter.clone();
+                    positionOffset.multiply(delta).multiply(scale).multiply(x, y);
+
+                    // Apply the rotation to the delta & position offset
                     const rotationMatrix = new Matrix2().rotate(object.rotation);
                     const rotatedDelta = rotationMatrix.transformPoint(delta);
-                    object.position.add(rotatedDelta);
+                    const rotatedPositionOffset = rotationMatrix.transformPoint(positionOffset);
+
+                    // Update the object's position
+                    object.position.add(rotatedDelta).add(rotatedPositionOffset);
+
+                    // Update the object's scale
                     object.scale.sub(delta.multiply(x, y).multiply(scale));
                     object.scale.x = MathUtils.noZero(MathUtils.sanity(object.scale.x));
                     object.scale.y = MathUtils.noZero(MathUtils.sanity(object.scale.y));

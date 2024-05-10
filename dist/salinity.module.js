@@ -3704,9 +3704,13 @@ class ResizeTool extends Object2D {
                     const scaleX = MathUtils.sanity((x === 0) ? 0 : 2 / size.x);
                     const scaleY = MathUtils.sanity((y === 0) ? 0 : 2 / size.y);
                     const scale = new Vector2(scaleX, scaleY);
+                    const boundingBoxCenter = object.boundingBox.getCenter();
+                    const positionOffset = boundingBoxCenter.clone();
+                    positionOffset.multiply(delta).multiply(scale).multiply(x, y);
                     const rotationMatrix = new Matrix2().rotate(object.rotation);
                     const rotatedDelta = rotationMatrix.transformPoint(delta);
-                    object.position.add(rotatedDelta);
+                    const rotatedPositionOffset = rotationMatrix.transformPoint(positionOffset);
+                    object.position.add(rotatedDelta).add(rotatedPositionOffset);
                     object.scale.sub(delta.multiply(x, y).multiply(scale));
                     object.scale.x = MathUtils.noZero(MathUtils.sanity(object.scale.x));
                     object.scale.y = MathUtils.noZero(MathUtils.sanity(object.scale.y));

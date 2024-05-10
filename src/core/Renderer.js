@@ -123,7 +123,7 @@ class Renderer {
             for (const object of renderer.updatable) {
                 // DEFAULT: renderer.pointer.update();
                 // DEFAULT: renderer.keyboard.update();
-                if (typeof object.update === 'function') object.update();
+                if (typeof object.update === 'function') object.update(renderer);
             }
             camera.updateMatrix(renderer.width / 2.0, renderer.height / 2.0);
 
@@ -167,24 +167,6 @@ class Renderer {
 
         // Pointer in Camera Coordinates
         const cameraPoint = camera.inverseMatrix.transformPoint(pointer.position);
-
-        // Selection
-        if (pointer.buttonJustPressed(Pointer.LEFT)) {
-            // Clear previous selection
-            for (const object of this.selection) object.isSelected = false;
-            this.selection = [];
-
-            // New selected objects
-            const selectedObjects = scene.getWorldPointIntersections(cameraPoint);
-            if (selectedObjects.length > 0) {
-                for (const object of selectedObjects) {
-                    if (object.selectable) {
-                        object.isSelected = true;
-                        this.selection.push(object);
-                    }
-                }
-            }
-        }
 
         // Pointer Events
         let currentCursor = null;

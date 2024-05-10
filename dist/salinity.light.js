@@ -2987,7 +2987,7 @@ class Renderer {
         function loop() {
             if (typeof onBeforeRender === 'function') onBeforeRender();
             for (const object of renderer.updatable) {
-                if (typeof object.update === 'function') object.update();
+                if (typeof object.update === 'function') object.update(renderer);
             }
             camera.updateMatrix(renderer.width / 2.0, renderer.height / 2.0);
             renderer.render(scene, camera);
@@ -3017,19 +3017,6 @@ class Renderer {
             object.inViewport = viewport.intersectsBox(camera, object.getWorldBoundingBox());
         }
         const cameraPoint = camera.inverseMatrix.transformPoint(pointer.position);
-        if (pointer.buttonJustPressed(Pointer.LEFT)) {
-            for (const object of this.selection) object.isSelected = false;
-            this.selection = [];
-            const selectedObjects = scene.getWorldPointIntersections(cameraPoint);
-            if (selectedObjects.length > 0) {
-                for (const object of selectedObjects) {
-                    if (object.selectable) {
-                        object.isSelected = true;
-                        this.selection.push(object);
-                    }
-                }
-            }
-        }
         let currentCursor = null;
         for (const object of objects) {
             if (object.pointerEvents && object.inViewport) {

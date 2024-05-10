@@ -2987,7 +2987,7 @@ class Renderer {
         function loop() {
             if (typeof onBeforeRender === 'function') onBeforeRender();
             for (const object of renderer.updatable) {
-                if (typeof object.update === 'function') object.update();
+                if (typeof object.update === 'function') object.update(renderer);
             }
             camera.updateMatrix(renderer.width / 2.0, renderer.height / 2.0);
             renderer.render(scene, camera);
@@ -3017,19 +3017,6 @@ class Renderer {
             object.inViewport = viewport.intersectsBox(camera, object.getWorldBoundingBox());
         }
         const cameraPoint = camera.inverseMatrix.transformPoint(pointer.position);
-        if (pointer.buttonJustPressed(Pointer.LEFT)) {
-            for (const object of this.selection) object.isSelected = false;
-            this.selection = [];
-            const selectedObjects = scene.getWorldPointIntersections(cameraPoint);
-            if (selectedObjects.length > 0) {
-                for (const object of selectedObjects) {
-                    if (object.selectable) {
-                        object.isSelected = true;
-                        this.selection.push(object);
-                    }
-                }
-            }
-        }
         let currentCursor = null;
         for (const object of objects) {
             if (object.pointerEvents && object.inViewport) {
@@ -3474,9 +3461,7 @@ if (typeof window !== 'undefined') {
 }
 
 class CameraControls {
-    constructor(renderer, camera) {
-        const self = this;
-        this.renderer = renderer;
+    constructor(camera) {
         this.camera = camera;
         this.allowDrag = true;
         this.allowScale = true;
@@ -3488,19 +3473,26 @@ class CameraControls {
         this.dragging = false;
         this.rotationPoint = new Vector2(0, 0);
         this.rotationInitial = 0;
-        renderer.on('dblclick', (event) => {
-            if (!renderer.scene || !renderer.camera) return;
-            const point = new Vector2(event.clientX, event.clientY);
-            const worldPoint = renderer.camera.inverseMatrix.transformPoint(point);
-            const objects = renderer.scene.getWorldPointIntersections(worldPoint);
-            for (const object of objects) if (object.focusable) return self.focusCamera(object, false );
-            return self.focusCamera(renderer.scene, true );
-        });
     }
-    update() {
+    update(renderer) {
         const camera = this.camera;
-        const pointer = this.renderer.pointer;
-        const keyboard = this.renderer.keyboard;
+        const scene = renderer.scene;
+        const pointer = renderer.pointer;
+        const keyboard = renderer.keyboard;
+        if (!camera || !scene || !pointer || !keyboard) return;
+        if (pointer.buttonDoubleClicked(Pointer.LEFT) && camera && renderer.scene) {
+            const worldPoint = camera.inverseMatrix.transformPoint(pointer.position);
+            const objects = renderer.scene.getWorldPointIntersections(worldPoint);
+            let focused = false;
+            for (const object of objects) {
+                if (object.focusable) {
+                    this.focusCamera(renderer, object, false );
+                    focused = true;
+                    break;
+                }
+            }
+            if (!focused) this.focusCamera(renderer, renderer.scene, true );
+        }
         if (this.allowScale && pointer.wheel !== 0) {
             const scaleFactor = pointer.wheel * 0.001 * camera.scale;
             const pointerPos = camera.inverseMatrix.transformPoint(pointer.position);
@@ -3520,17 +3512,17 @@ class CameraControls {
         }
         if (this.allowDrag) {
             let wantsToDrag = pointer.buttonPressed(this.dragButton, this.dragID);
-            this.renderer.dom.style.cursor = wantsToDrag ? 'grabbing' : '';
+            renderer.dom.style.cursor = wantsToDrag ? 'grabbing' : '';
             if (!wantsToDrag) {
                 if (keyboard.keyPressed('Space')) {
                     if (pointer.buttonPressed(this.dragButton2, this.dragID)) {
-                        this.renderer.dom.style.cursor = 'grabbing';
+                        renderer.dom.style.cursor = 'grabbing';
                         wantsToDrag = true;
                     } else {
-                        this.renderer.dom.style.cursor = 'grab';
+                        renderer.dom.style.cursor = 'grab';
                     }
                 } else {
-                    this.renderer.dom.style.cursor = '';
+                    renderer.dom.style.cursor = '';
                 }
             }
             if (wantsToDrag) {
@@ -3549,8 +3541,7 @@ class CameraControls {
             }
         }
     }
-    focusCamera(object, includeChildren = false, animationDuration = 200 ) {
-        const renderer = this.renderer;
+    focusCamera(renderer, object, includeChildren = false, animationDuration = 200 ) {
         let targetScale, targetPosition;
         if (includeChildren) {
             const bounds = new Box2();
@@ -3572,7 +3563,7 @@ class CameraControls {
             targetPosition.add(new Vector2(renderer.width / 2.0, renderer.height / 2.0));
         }
         targetScale = Math.abs(targetScale);
-        const camera = renderer.camera;
+        const camera = this.camera;
         const startTime = performance.now();
         const startPosition = camera.position.clone();
         const startScale = camera.scale;
@@ -3585,6 +3576,33 @@ class CameraControls {
             if (t < 1) requestAnimationFrame(animate);
         };
         animate();
+    }
+}
+
+class SelectControls {
+    constructor() {
+        this.selection = [];
+    }
+    update(renderer) {
+        const camera = renderer.camera;
+        const scene = renderer.scene;
+        const pointer = renderer.pointer;
+        const keyboard = renderer.keyboard;
+        if (!camera || !scene || !pointer || !keyboard) return;
+        const cameraPoint = camera.inverseMatrix.transformPoint(pointer.position);
+        if (pointer.buttonJustPressed(Pointer.LEFT)) {
+            for (const object of this.selection) object.isSelected = false;
+            this.selection = [];
+            const selectedObjects = scene.getWorldPointIntersections(cameraPoint);
+            if (selectedObjects.length > 0) {
+                for (const object of selectedObjects) {
+                    if (object.selectable) {
+                        object.isSelected = true;
+                        this.selection.push(object);
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -4183,4 +4201,4 @@ function getVariable(variable) {
     return ((value === '') ? undefined : value);
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, Entity, GradientColorStop, GradientStyle, Key, Keyboard, Line, LinearGradientStyle, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, Viewport, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, Entity, GradientColorStop, GradientStyle, Key, Keyboard, Line, LinearGradientStyle, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, Viewport, WORLD_TYPES, World };

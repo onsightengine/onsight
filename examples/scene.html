@@ -88,8 +88,12 @@
         camera.position.copy(new SALT.Vector2(renderer.width / 2.0, renderer.height / 2.0));
 
         // Camera Controls
-        const cameraControls = new SALT.CameraControls(renderer, camera);
+        const cameraControls = new SALT.CameraControls(camera);
         renderer.addUpdate(cameraControls);
+
+        // Select Controls
+        const selectControls = new SALT.SelectControls();
+        renderer.addUpdate(selectControls);
 
         // Start
         const debug = new SALT.Debug();

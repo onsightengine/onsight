@@ -4,11 +4,8 @@ import { Vector2 } from '../../math/Vector2.js';
 
 class CameraControls {
 
-    constructor(renderer, camera) {
-        const self = this;
-
-        // Renderer / Camera
-        this.renderer = renderer;
+    constructor(camera) {
+        // Camera
         this.camera = camera;
 
         // Options
@@ -25,25 +22,30 @@ class CameraControls {
         this.dragging = false;
         this.rotationPoint = new Vector2(0, 0);     // pointer position when the rotation starts
         this.rotationInitial = 0;                   // initial rotation when the rotation starts
-
-        /***** EVENTS */
-
-        // Focus Camera on Double Click
-        renderer.on('dblclick', (event) => {
-            if (!renderer.scene || !renderer.camera) return;
-            const point = new Vector2(event.clientX, event.clientY);
-            const worldPoint = renderer.camera.inverseMatrix.transformPoint(point);
-            const objects = renderer.scene.getWorldPointIntersections(worldPoint);
-            for (const object of objects) if (object.focusable) return self.focusCamera(object, false /* includeChildren? */);
-            return self.focusCamera(renderer.scene, true /* includeChildren? */);
-        });
     }
 
     /** Update the camera (should be called every frame before rendering) */
-    update() {
+    update(renderer) {
         const camera = this.camera;
-        const pointer = this.renderer.pointer;
-        const keyboard = this.renderer.keyboard;
+        const scene = renderer.scene;
+        const pointer = renderer.pointer;
+        const keyboard = renderer.keyboard;
+        if (!camera || !scene || !pointer || !keyboard) return;
+
+        // Double Click?
+        if (pointer.buttonDoubleClicked(Pointer.LEFT) && camera && renderer.scene) {
+            const worldPoint = camera.inverseMatrix.transformPoint(pointer.position);
+            const objects = renderer.scene.getWorldPointIntersections(worldPoint);
+            let focused = false;
+            for (const object of objects) {
+                if (object.focusable) {
+                    this.focusCamera(renderer, object, false /* includeChildren? */);
+                    focused = true;
+                    break;
+                }
+            }
+            if (!focused) this.focusCamera(renderer, renderer.scene, true /* includeChildren? */);
+        }
 
         // Scale
         if (this.allowScale && pointer.wheel !== 0) {
@@ -70,18 +72,18 @@ class CameraControls {
         if (this.allowDrag) {
             // Check for Main Drag Button
             let wantsToDrag = pointer.buttonPressed(this.dragButton, this.dragID);
-            this.renderer.dom.style.cursor = wantsToDrag ? 'grabbing' : '';
+            renderer.dom.style.cursor = wantsToDrag ? 'grabbing' : '';
             // Check for Alternate Drag Button
             if (!wantsToDrag) {
                 if (keyboard.keyPressed('Space')) {
                     if (pointer.buttonPressed(this.dragButton2, this.dragID)) {
-                        this.renderer.dom.style.cursor = 'grabbing';
+                        renderer.dom.style.cursor = 'grabbing';
                         wantsToDrag = true;
                     } else {
-                        this.renderer.dom.style.cursor = 'grab';
+                        renderer.dom.style.cursor = 'grab';
                     }
                 } else {
-                    this.renderer.dom.style.cursor = '';
+                    renderer.dom.style.cursor = '';
                 }
             }
             if (wantsToDrag) {
@@ -101,9 +103,7 @@ class CameraControls {
         }
     }
 
-    focusCamera(object, includeChildren = false, animationDuration = 200 /* milliseconds */) {
-        const renderer = this.renderer;
-
+    focusCamera(renderer, object, includeChildren = false, animationDuration = 200 /* milliseconds */) {
         // Focus Scene
         let targetScale, targetPosition;
         if (includeChildren) {
@@ -128,7 +128,7 @@ class CameraControls {
         }
         targetScale = Math.abs(targetScale);
 
-        const camera = renderer.camera;
+        const camera = this.camera;
         const startTime = performance.now();
         const startPosition = camera.position.clone();
         const startScale = camera.scale;

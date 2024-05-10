@@ -3414,21 +3414,15 @@ class BoxMask extends Mask {
     }
 }
 
-class GradientStyle extends Style {
+class LinearGradientStyle extends Style {
     constructor() {
         super();
         this.colors = [];
+        this.start = new Vector2(-100, 0);
+        this.end = new Vector2(100, 0);
     }
     addColorStop(offset, color) {
         this.colors.push({ offset, color });
-    }
-}
-
-class LinearGradientStyle extends GradientStyle {
-    constructor() {
-        super();
-        this.start = new Vector2(-100, 0);
-        this.end = new Vector2(100, 0);
     }
     get(context) {
         if (this.needsUpdate || this.cache == null) {
@@ -3444,13 +3438,17 @@ class LinearGradientStyle extends GradientStyle {
     }
 }
 
-class RadialGradientStyle extends GradientStyle {
+class RadialGradientStyle extends Style {
     constructor() {
         super();
+        this.colors = [];
         this.start = new Vector2(0, 0);
         this.startRadius = 10;
         this.end = new Vector2(0, 0);
         this.endRadius = 50;
+    }
+    addColorStop(offset, color) {
+        this.colors.push({ offset, color });
     }
     get(context) {
         if (this.needsUpdate || this.cache == null) {
@@ -3470,4 +3468,4 @@ if (typeof window !== 'undefined') {
     else window.__SALINITY__ = VERSION;
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, Circle, Clock, ColorStyle, Entity, GradientStyle, Key, Keyboard, Line, LinearGradientStyle, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, Viewport, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, Circle, Clock, ColorStyle, Entity, Key, Keyboard, Line, LinearGradientStyle, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, Viewport, WORLD_TYPES, World };

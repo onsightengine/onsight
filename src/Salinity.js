@@ -59,7 +59,6 @@ export { BoxMask } from './core/objects/mask/BoxMask.js';
 // Objects, Style
 export { Style } from './core/objects/style/Style.js';
 export { ColorStyle } from './core/objects/style/ColorStyle.js';
-export { GradientStyle } from './core/objects/style/GradientStyle.js';
 export { LinearGradientStyle } from './core/objects/style/LinearGradientStyle.js';
 export { RadialGradientStyle } from './core/objects/style/RadialGradientStyle.js';
 // export { PatternStyle } from './objects/style/PatternStyle.js';

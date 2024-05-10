@@ -34,17 +34,19 @@ class CameraControls {
 
         // Double Click?
         if (pointer.buttonDoubleClicked(Pointer.LEFT) && camera && renderer.scene) {
-            const worldPoint = camera.inverseMatrix.transformPoint(pointer.position);
-            const objects = renderer.scene.getWorldPointIntersections(worldPoint);
-            let focused = false;
-            for (const object of objects) {
-                if (object.focusable) {
-                    this.focusCamera(renderer, object, false /* includeChildren? */);
-                    focused = true;
-                    break;
+            if (!keyboard.modifierPressed()) {
+                const worldPoint = camera.inverseMatrix.transformPoint(pointer.position);
+                const objects = renderer.scene.getWorldPointIntersections(worldPoint);
+                let focused = false;
+                for (const object of objects) {
+                    if (object.focusable) {
+                        this.focusCamera(renderer, object, false /* includeChildren? */);
+                        focused = true;
+                        break;
+                    }
                 }
+                if (!focused) this.focusCamera(renderer, renderer.scene, true /* includeChildren? */);
             }
-            if (!focused) this.focusCamera(renderer, renderer.scene, true /* includeChildren? */);
         }
 
         // Scale
@@ -75,7 +77,7 @@ class CameraControls {
             renderer.dom.style.cursor = wantsToDrag ? 'grabbing' : '';
             // Check for Alternate Drag Button
             if (!wantsToDrag) {
-                if (keyboard.keyPressed('Space')) {
+                if (keyboard.spacePressed()) {
                     if (pointer.buttonPressed(this.dragButton2, this.dragID)) {
                         renderer.dom.style.cursor = 'grabbing';
                         wantsToDrag = true;

@@ -2658,6 +2658,14 @@ class Keyboard {
     keyJustReleased(code) {
         return code in this.keys && this.keys[code].justReleased;
     }
+    altPressed() { return this.keyPressed('AltLeft') || this.keyPressed('AltRight'); }
+    ctrlPressed() { return this.keyPressed('ControlLeft') || this.keyPressed('ControlRight'); }
+    metaPressed() { return this.keyPressed('MetaLeft') || this.keyPressed('MetaRight'); }
+    shiftPressed() { return this.keyPressed('ShiftLeft') || this.keyPressed('ShiftRight'); }
+    spacePressed() { return this.keyPressed('Space'); }
+    modifierPressed() {
+        return this.altPressed() || this.ctrlPressed() || this.metaPressed() || this.shiftPressed() || this.spacePressed();
+    }
     update() {
         for (const code in this._keys) {
             if (this._keys[code].justPressed && this.keys[code].justPressed) {

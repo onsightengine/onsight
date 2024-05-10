@@ -2,11 +2,11 @@ import {
     APP_ORIENTATION,
     VERSION,
     WORLD_TYPES,
-} from '../constants.js';
-import { AssetManager } from './AssetManager.js';
-import { MathUtils } from '../utils/MathUtils.js';
-import { SysUtils } from '../utils/SysUtils.js';
-import { Thing } from '../core/Thing.js';
+} from '../../constants.js';
+import { AssetManager } from '../../app/AssetManager.js';
+import { MathUtils } from '../../utils/MathUtils.js';
+import { SysUtils } from '../../utils/SysUtils.js';
+import { Thing } from '../Thing.js';
 import { World } from './World.js';
 
 class Project extends Thing {

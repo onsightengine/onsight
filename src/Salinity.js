@@ -15,16 +15,7 @@ export * from './constants.js';
 
 export { App } from './app/App.js';
 export { AssetManager } from './app/AssetManager.js';
-export { Entity } from './app/Entity.js';
-export { Project } from './app/Project.js';
 export { SceneManager } from './app/SceneManager.js'
-export { Stage } from './app/Stage.js';
-export { World } from './app/World.js';
-
-// Assets
-export { Asset } from './app/assets/Asset.js';
-export { Palette } from './app/assets/Palette.js';
-export { Script } from './app/assets/Script.js';
 
 /******************** CORE ********************/
 
@@ -35,6 +26,17 @@ export { Camera2D } from './core/Camera2D.js';
 export { Object2D } from './core/Object2D.js';
 export { Renderer } from './core/Renderer.js';
 export { Viewport } from './core/Viewport.js';
+
+// Assets
+export { Asset } from './core/assets/Asset.js';
+export { Palette } from './core/assets/Palette.js';
+export { Script } from './core/assets/Script.js';
+
+// Project
+export { Entity } from './core/project/Entity.js';
+export { Project } from './core/project/Project.js';
+export { Stage } from './core/project/Stage.js';
+export { World } from './core/project/World.js';
 
 // Objects
 export { Box } from './core/objects/Box.js';

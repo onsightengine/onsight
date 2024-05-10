@@ -1,8 +1,8 @@
 import {
     STAGE_TYPES,
-} from '../constants.js';
+} from '../../constants.js';
 import { Entity } from './Entity.js';
-import { Vector3 } from '../math/Vector3.js';
+import { Vector3 } from '../../math/Vector3.js';
 
 class Stage extends Entity {
 

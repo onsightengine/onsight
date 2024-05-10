@@ -92,7 +92,10 @@
         renderer.onUpdate(cameraControls);
 
         // Start
-        renderer.start(scene, camera);
+        const debug = new SALT.Debug();
+        const onBeforeRender = () => { debug.startFrame(renderer); };
+        const onAfterRender = () => { debug.endFrame(renderer); };
+        renderer.start(scene, camera, onBeforeRender, onAfterRender);
 
     </script>
 

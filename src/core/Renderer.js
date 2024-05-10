@@ -111,19 +111,26 @@ class Renderer {
         }
     }
 
-    start(scene, camera) {
+    start(scene, camera, onBeforeRender, onAfterRender) {
         if (this.running) return;
         this.running = true;
 
         const renderer = this;
         function loop() {
+            if (typeof onBeforeRender === 'function') onBeforeRender();
+
+            // Updates
             for (const object of renderer.updatable) {
                 // DEFAULT: renderer.pointer.update();
                 // DEFAULT: renderer.keyboard.update();
                 if (typeof object.update === 'function') object.update();
             }
             camera.updateMatrix(renderer.width / 2.0, renderer.height / 2.0);
+
+            // Render
             renderer.render(scene, camera);
+
+            if (typeof onAfterRender === 'function') onAfterRender();
             if (renderer.running) renderer.frame = requestAnimationFrame(loop);
         }
         loop();

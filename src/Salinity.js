@@ -63,15 +63,6 @@ export { LinearGradientStyle } from './core/objects/style/LinearGradientStyle.js
 export { RadialGradientStyle } from './core/objects/style/RadialGradientStyle.js';
 // export { PatternStyle } from './objects/style/PatternStyle.js';
 
-/******************** EXTRAS ********************/
-
-// Controls
-export { CameraControls } from './extras/controls/CameraControls.js';
-export { DragControls } from './extras/controls/DragControls.js';
-
-// Helpers
-export { ResizeTool } from './extras/helpers/ResizeTool.js';
-
 /******************** INPUT ********************/
 
 export { Key } from './input/Key.js';

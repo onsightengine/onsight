@@ -145,6 +145,7 @@ class Renderer {
 
     /** Renders a scene (Object2D) using a Camera2D */
     render(scene, camera) {
+        this.drawCallCount = 0;
         if (scene) this.scene = scene; else scene = this.scene;
         if (camera) this.camera = camera; else camera = this.camera;
         if (!scene || !camera) return;
@@ -255,8 +256,13 @@ class Renderer {
             context.globalAlpha = object.globalOpacity;
 
             // Style and Draw Object
-            if (typeof object.style === 'function') object.style(context, camera, this.dom, this);
-            if (typeof object.draw === 'function') object.draw(context, camera, this.dom, this);
+            if (typeof object.style === 'function') {
+                object.style(context, camera, this.dom, this);
+            }
+            if (typeof object.draw === 'function') {
+                object.draw(context, camera, this.dom, this);
+                this.drawCallCount++;
+            }
 
             // Selected?
             if (object.isSelected) {

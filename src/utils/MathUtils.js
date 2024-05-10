@@ -118,9 +118,9 @@ class MathUtils {
         return number.toString().split('.')[1].length || 0;
     }
 
-    /** Checks if 'number' is a valid number */
+    /** Checks if 'number' is a valid, finite number */
     static isNumber(number) {
-        return (number != null && typeof number === 'number' && !Number.isNaN(number) && Number.isFinite(number));
+        return (number != null && typeof number === 'number' && Number.isFinite(number));
     }
 
     /** Ensures number is not equal to zero */
@@ -134,8 +134,8 @@ class MathUtils {
 
     /** Ensures number is a Number */
     static sanity(number) {
-        if (isNaN(number)) number = 0;
-        return number;
+        if (MathUtils.isNumber(number)) return number;
+        return 0;
     }
 
     /******************** POLYGON ********************/

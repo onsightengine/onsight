@@ -123,8 +123,8 @@ class ResizeTool extends Object2D {
                     if (y === 0) delta.y = 0;
                     delta.multiplyScalar(0.5);
                     const size = object.boundingBox.getSize();
-                    const scaleX = (x === 0) ? 0 : 2 / size.x;
-                    const scaleY = (y === 0) ? 0 : 2 / size.y;
+                    const scaleX = MathUtils.sanity((x === 0) ? 0 : 2 / size.x);
+                    const scaleY = MathUtils.sanity((y === 0) ? 0 : 2 / size.y);
                     const scale = new Vector2(scaleX, scaleY);
                     const rotationMatrix = new Matrix2().rotate(object.rotation);
                     const rotatedDelta = rotationMatrix.transformPoint(delta);
@@ -233,8 +233,8 @@ class ResizeTool extends Object2D {
             const rightMiddleWorld = object.globalMatrix.transformPoint(new Vector2(box.max.x, center.y));
             const topMiddleWorld = object.globalMatrix.transformPoint(new Vector2(center.x, box.min.y));
             const bottomMiddleWorld = object.globalMatrix.transformPoint(new Vector2(center.x, box.max.y));
-            const halfWidth = object.boundingBox.getSize().x / 2 * Math.abs(object.scale.x);
-            const halfHeight = object.boundingBox.getSize().y / 2 * Math.abs(object.scale.y);
+            const halfWidth = (object.boundingBox.getSize().x / 2) * Math.abs(object.scale.x);
+            const halfHeight = (object.boundingBox.getSize().y / 2) * Math.abs(object.scale.y);
             function updateSideResizer(resizer, point, type = 'v') {
                 if (!resizer) return;
                 resizer.position.copy(point);

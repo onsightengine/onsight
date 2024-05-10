@@ -16,40 +16,40 @@ class SelectControls {
         const pointer = renderer.pointer;
         const keyboard = renderer.keyboard;
         if (!camera || !scene || !pointer || !keyboard) return;
-        const startSelection = [ ...this.selection ];
+        let newSelection = [ ...this.selection ];
 
         // Pointer in Camera Coordinates
         const cameraPoint = camera.inverseMatrix.transformPoint(pointer.position);
 
-        // Selection
+        // Button Press
         if (pointer.buttonJustPressed(Pointer.LEFT)) {
             const underMouse = scene.getWorldPointIntersections(cameraPoint);
-            // Clear previous selection
+            // Clear Previous Selection
             if (underMouse.length === 0) {
                 scene.traverse((child) => { child.isSelected = false; });
-                this.selection = [];
-            // New selected objects
+                newSelection = [];
+            // New Selected Objects
             } else if (underMouse.length > 0) {
                 const object = underMouse[0];
                 if (object.selectable) {
                     scene.traverse((child) => { child.isSelected = false; });
                     object.isSelected = true;
-                    this.selection = [ object ];
+                    newSelection = [ object ];
                 }
             }
         }
 
-        if (ArrayUtils.compareThingArrays(startSelection, this.selection) === false) {
+        // Selection Changed? Add Resize Tool
+        if (ArrayUtils.compareThingArrays(this.selection, newSelection) === false) {
             if (this.resizeTool) this.resizeTool.destroy();
-            if (this.selection.length > 0) {
-                this.resizeTool = new ResizeTool(this.selection[0]);
+            if (newSelection.length > 0) {
+                this.resizeTool = new ResizeTool(newSelection[0]);
                 scene.add(this.resizeTool);
-
-                console.log(this.resizeTool);
-
             }
-        }
 
+            // Save Selection
+            this.selection = [ ...newSelection ];
+        }
     }
 
 }

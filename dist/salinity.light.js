@@ -696,7 +696,7 @@ class MathUtils {
         return number.toString().split('.')[1].length || 0;
     }
     static isNumber(number) {
-        return (number != null && typeof number === 'number' && !Number.isNaN(number) && Number.isFinite(number));
+        return (number != null && typeof number === 'number' && Number.isFinite(number));
     }
     static noZero(number, min = 0.00001) {
         min = Math.abs(min);
@@ -706,8 +706,8 @@ class MathUtils {
         return number;
     }
     static sanity(number) {
-        if (isNaN(number)) number = 0;
-        return number;
+        if (MathUtils.isNumber(number)) return number;
+        return 0;
     }
     static lineCollision(x1, y1, x2, y2, x3, y3, x4, y4) {
         let denom = ((y4 - y3) * (x2 - x1)) - ((x4 - x3) * (y2 - y1));
@@ -3008,6 +3008,7 @@ class Renderer {
         cancelAnimationFrame(this.frame);
     }
     render(scene, camera) {
+        this.drawCallCount = 0;
         if (scene) this.scene = scene; else scene = this.scene;
         if (camera) this.camera = camera; else camera = this.camera;
         if (!scene || !camera) return;
@@ -3086,8 +3087,13 @@ class Renderer {
             camera.matrix.setContextTransform(context);
             object.transform(context, camera, this.dom, this);
             context.globalAlpha = object.globalOpacity;
-            if (typeof object.style === 'function') object.style(context, camera, this.dom, this);
-            if (typeof object.draw === 'function') object.draw(context, camera, this.dom, this);
+            if (typeof object.style === 'function') {
+                object.style(context, camera, this.dom, this);
+            }
+            if (typeof object.draw === 'function') {
+                object.draw(context, camera, this.dom, this);
+                this.drawCallCount++;
+            }
             if (object.isSelected) {
                 camera.matrix.setContextTransform(context);
                 context.globalAlpha = 1;

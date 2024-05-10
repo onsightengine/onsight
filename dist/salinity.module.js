@@ -648,7 +648,7 @@ const _lut = [ '00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '0a',
 const v0 = new Vector3();
 const v1 = new Vector3();
 const vc = new Vector3();
-class MathUtils {
+let MathUtils$1 = class MathUtils {
     static radiansToDegrees(radians) {
         return radians * (180 / Math.PI);
     }
@@ -696,7 +696,7 @@ class MathUtils {
         return number.toString().split('.')[1].length || 0;
     }
     static isNumber(number) {
-        return (number != null && typeof number === 'number' && !Number.isNaN(number) && Number.isFinite(number));
+        return (number != null && typeof number === 'number' && Number.isFinite(number));
     }
     static noZero(number, min = 0.00001) {
         min = Math.abs(min);
@@ -706,8 +706,8 @@ class MathUtils {
         return number;
     }
     static sanity(number) {
-        if (isNaN(number)) number = 0;
-        return number;
+        if (MathUtils.isNumber(number)) return number;
+        return 0;
     }
     static lineCollision(x1, y1, x2, y2, x3, y3, x4, y4) {
         let denom = ((y4 - y3) * (x2 - x1)) - ((x4 - x3) * (y2 - y1));
@@ -760,7 +760,7 @@ class MathUtils {
         }
         return uuids;
     }
-}
+};
 
 class SysUtils {
     static isObject(variable) {
@@ -874,7 +874,7 @@ class Thing {
         this.isThing = true;
         this.type = 'Thing';
         this.name = name;
-        this.uuid = MathUtils.randomUUID();
+        this.uuid = MathUtils$1.randomUUID();
     }
     clone(recursive = false) {
         return new this.constructor().copy(this, recursive);
@@ -1405,7 +1405,7 @@ class Project extends Thing {
             if (typeof world.dispose === 'function') world.dispose();
         }
         this.name = 'My Project';
-        this.uuid = MathUtils.randomUUID();
+        this.uuid = MathUtils$1.randomUUID();
         this.activeWorldUUID = null;
     }
     toJSON() {
@@ -2395,7 +2395,7 @@ class Matrix2 {
 
 class Camera2D {
     constructor() {
-        this.uuid = MathUtils.randomUUID();
+        this.uuid = MathUtils$1.randomUUID();
         this.position = new Vector2(0, 0);
         this.scale = 1.0;
         this.rotation = 0.0;
@@ -2692,7 +2692,7 @@ class Pointer {
 class Object2D {
     constructor() {
         this.type = 'Object2D';
-        this.uuid = MathUtils.randomUUID();
+        this.uuid = MathUtils$1.randomUUID();
         this.children = [];
         this.parent = null;
         this.visible = true;
@@ -3008,6 +3008,7 @@ class Renderer {
         cancelAnimationFrame(this.frame);
     }
     render(scene, camera) {
+        this.drawCallCount = 0;
         if (scene) this.scene = scene; else scene = this.scene;
         if (camera) this.camera = camera; else camera = this.camera;
         if (!scene || !camera) return;
@@ -3086,8 +3087,13 @@ class Renderer {
             camera.matrix.setContextTransform(context);
             object.transform(context, camera, this.dom, this);
             context.globalAlpha = object.globalOpacity;
-            if (typeof object.style === 'function') object.style(context, camera, this.dom, this);
-            if (typeof object.draw === 'function') object.draw(context, camera, this.dom, this);
+            if (typeof object.style === 'function') {
+                object.style(context, camera, this.dom, this);
+            }
+            if (typeof object.draw === 'function') {
+                object.draw(context, camera, this.dom, this);
+                this.drawCallCount++;
+            }
             if (object.isSelected) {
                 camera.matrix.setContextTransform(context);
                 context.globalAlpha = 1;
@@ -3691,8 +3697,8 @@ class ResizeTool extends Object2D {
                     if (y === 0) delta.y = 0;
                     delta.multiplyScalar(0.5);
                     const size = object.boundingBox.getSize();
-                    const scaleX = (x === 0) ? 0 : 2 / size.x;
-                    const scaleY = (y === 0) ? 0 : 2 / size.y;
+                    const scaleX = MathUtils.sanity((x === 0) ? 0 : 2 / size.x);
+                    const scaleY = MathUtils.sanity((y === 0) ? 0 : 2 / size.y);
                     const scale = new Vector2(scaleX, scaleY);
                     const rotationMatrix = new Matrix2().rotate(object.rotation);
                     const rotatedDelta = rotationMatrix.transformPoint(delta);
@@ -3789,8 +3795,8 @@ class ResizeTool extends Object2D {
             const rightMiddleWorld = object.globalMatrix.transformPoint(new Vector2(box.max.x, center.y));
             const topMiddleWorld = object.globalMatrix.transformPoint(new Vector2(center.x, box.min.y));
             const bottomMiddleWorld = object.globalMatrix.transformPoint(new Vector2(center.x, box.max.y));
-            const halfWidth = object.boundingBox.getSize().x / 2 * Math.abs(object.scale.x);
-            const halfHeight = object.boundingBox.getSize().y / 2 * Math.abs(object.scale.y);
+            const halfWidth = (object.boundingBox.getSize().x / 2) * Math.abs(object.scale.x);
+            const halfHeight = (object.boundingBox.getSize().y / 2) * Math.abs(object.scale.y);
             function updateSideResizer(resizer, point, type = 'v') {
                 if (!resizer) return;
                 resizer.position.copy(point);
@@ -3835,29 +3841,29 @@ class SelectControls {
         const pointer = renderer.pointer;
         const keyboard = renderer.keyboard;
         if (!camera || !scene || !pointer || !keyboard) return;
-        const startSelection = [ ...this.selection ];
+        let newSelection = [ ...this.selection ];
         const cameraPoint = camera.inverseMatrix.transformPoint(pointer.position);
         if (pointer.buttonJustPressed(Pointer.LEFT)) {
             const underMouse = scene.getWorldPointIntersections(cameraPoint);
             if (underMouse.length === 0) {
                 scene.traverse((child) => { child.isSelected = false; });
-                this.selection = [];
+                newSelection = [];
             } else if (underMouse.length > 0) {
                 const object = underMouse[0];
                 if (object.selectable) {
                     scene.traverse((child) => { child.isSelected = false; });
                     object.isSelected = true;
-                    this.selection = [ object ];
+                    newSelection = [ object ];
                 }
             }
         }
-        if (ArrayUtils.compareThingArrays(startSelection, this.selection) === false) {
+        if (ArrayUtils.compareThingArrays(this.selection, newSelection) === false) {
             if (this.resizeTool) this.resizeTool.destroy();
-            if (this.selection.length > 0) {
-                this.resizeTool = new ResizeTool(this.selection[0]);
+            if (newSelection.length > 0) {
+                this.resizeTool = new ResizeTool(newSelection[0]);
                 scene.add(this.resizeTool);
-                console.log(this.resizeTool);
             }
+            this.selection = [ ...newSelection ];
         }
     }
 }
@@ -4180,9 +4186,10 @@ class Debug {
                 }
                 let objects = 0, vertices = 0, triangles = 0, lights = 0;
                 const scene = renderer.scene;
-                if (scene && scene.isTransform) {
-                    scene.traverseVisible((object) => {
-                        objects++;
+                if (scene) {
+                    objects = -1;
+                    scene.traverse((object) => {
+                        if (object.visible) objects++;
                         if (object.isLight) lights++;
                         if (object.isMesh && object.geometry) {
                             const geometry = object.geometry;
@@ -4197,9 +4204,9 @@ class Debug {
                 domLights.firstChild.textContent = `${lights}`;
                 domVertices.firstChild.textContent = `${vertices}`;
                 domTriangles.firstChild.textContent = `${triangles.toFixed(0)}`;
-                domPrograms.firstChild.textContent = `${renderer.info?.programs}`;
-                domGeometries.firstChild.textContent = `${renderer.info?.geometries}`;
-                domTextures.firstChild.textContent = `${renderer.info?.textures}`;
+                domPrograms.firstChild.textContent = `${renderer.info?.programs ?? 0}`;
+                domGeometries.firstChild.textContent = `${renderer.info?.geometries ?? 0}`;
+                domTextures.firstChild.textContent = `${renderer.info?.textures ?? 0}`;
             }
         };
         _singleton = this;
@@ -4219,4 +4226,4 @@ function getVariable(variable) {
     return ((value === '') ? undefined : value);
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, Entity, GradientColorStop, GradientStyle, Key, Keyboard, Line, LinearGradientStyle, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, Viewport, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, Entity, GradientColorStop, GradientStyle, Key, Keyboard, Line, LinearGradientStyle, Mask, MathUtils$1 as MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, Viewport, WORLD_TYPES, World };

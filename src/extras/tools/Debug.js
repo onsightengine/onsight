@@ -357,9 +357,10 @@ class Debug {
                 // Scene Info
                 let objects = 0, vertices = 0, triangles = 0, lights = 0;
                 const scene = renderer.scene;
-                if (scene && scene.isTransform) {
-                    scene.traverseVisible((object) => {
-                        objects++;
+                if (scene) {
+                    objects = -1; // don't count scene
+                    scene.traverse((object) => {
+                        if (object.visible) objects++;
                         if (object.isLight) lights++;
                         if (object.isMesh && object.geometry) {
                             const geometry = object.geometry;
@@ -376,9 +377,9 @@ class Debug {
                 domVertices.firstChild.textContent = `${vertices}`;
                 domTriangles.firstChild.textContent = `${triangles.toFixed(0)}`;
 
-                domPrograms.firstChild.textContent = `${renderer.info?.programs}`;
-                domGeometries.firstChild.textContent = `${renderer.info?.geometries}`;
-                domTextures.firstChild.textContent = `${renderer.info?.textures}`;
+                domPrograms.firstChild.textContent = `${renderer.info?.programs ?? 0}`;
+                domGeometries.firstChild.textContent = `${renderer.info?.geometries ?? 0}`;
+                domTextures.firstChild.textContent = `${renderer.info?.textures ?? 0}`;
             }
         };
 

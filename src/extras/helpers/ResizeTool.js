@@ -179,15 +179,14 @@ class ResizeTool extends Object2D {
             rotater.strokeStyle.color = '--highlight';
             rotater.cursor = `url('${CURSOR_ROTATE}') 16 16, auto`;
             rotater.onPointerDrag = function(pointer, camera) {
-                const objectCenter = object.boundingBox.getCenter();
                 const pointerStart = pointer.position.clone();
                 const pointerEnd = pointer.position.clone().sub(pointer.delta);
                 const worldPositionStart = camera.inverseMatrix.transformPoint(pointerStart);
                 const localPositionStart = object.inverseGlobalMatrix.transformPoint(worldPositionStart);
                 const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
                 const localPositionEnd = object.inverseGlobalMatrix.transformPoint(worldPositionEnd);
-                localPositionStart.sub(objectCenter).multiply(object.scale);
-                localPositionEnd.sub(objectCenter).multiply(object.scale);
+                localPositionStart.sub(object.origin).multiply(object.scale);
+                localPositionEnd.sub(object.origin).multiply(object.scale);
                 const angle = localPositionEnd.angleBetween(localPositionStart);
                 const cross = localPositionEnd.cross(localPositionStart);
                 const sign = Math.sign(cross);

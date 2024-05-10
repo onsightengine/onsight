@@ -3414,20 +3414,13 @@ class BoxMask extends Mask {
     }
 }
 
-class GradientColorStop {
-    constructor(offset, color) {
-        this.offset = offset;
-        this.color = color;
-    }
-}
-
 class GradientStyle extends Style {
     constructor() {
         super();
         this.colors = [];
     }
     addColorStop(offset, color) {
-        this.colors.push(new GradientColorStop(offset, color));
+        this.colors.push({ offset, color });
     }
 }
 
@@ -3477,4 +3470,4 @@ if (typeof window !== 'undefined') {
     else window.__SALINITY__ = VERSION;
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, Circle, Clock, ColorStyle, Entity, GradientColorStop, GradientStyle, Key, Keyboard, Line, LinearGradientStyle, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, Viewport, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, Circle, Clock, ColorStyle, Entity, GradientStyle, Key, Keyboard, Line, LinearGradientStyle, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, Viewport, WORLD_TYPES, World };

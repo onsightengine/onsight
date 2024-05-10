@@ -1,5 +1,4 @@
 import { Style } from './Style.js';
-import { GradientColorStop } from './GradientColorStop.js';
 
 class GradientStyle extends Style {
 
@@ -15,7 +14,7 @@ class GradientStyle extends Style {
      * @param {string} color CSS color value.
      */
     addColorStop(offset, color) {
-        this.colors.push(new GradientColorStop(offset, color));
+        this.colors.push({ offset, color });
     }
 
 }

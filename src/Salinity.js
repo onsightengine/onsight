@@ -60,7 +60,6 @@ export { BoxMask } from './core/objects/mask/BoxMask.js';
 export { Style } from './core/objects/style/Style.js';
 export { ColorStyle } from './core/objects/style/ColorStyle.js';
 export { GradientStyle } from './core/objects/style/GradientStyle.js';
-export { GradientColorStop } from './core/objects/style/GradientColorStop.js';
 export { LinearGradientStyle } from './core/objects/style/LinearGradientStyle.js';
 export { RadialGradientStyle } from './core/objects/style/RadialGradientStyle.js';
 // export { PatternStyle } from './objects/style/PatternStyle.js';

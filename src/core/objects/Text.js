@@ -44,14 +44,21 @@ class Text extends Object2D {
         context.font = this.font;
         context.textAlign = this.textAlign;
         context.textBaseline = this.textBaseline;
-
         if (this.fillStyle) {
             context.fillStyle = this.fillStyle.get(context);
             context.fillText(this.text, 0, 0);
         }
         if (this.strokeStyle) {
+            context.lineWidth = this.lineWidth;;
             context.strokeStyle = this.strokeStyle.get(context);
-            context.strokeText(this.text, 0, 0);
+            if (this.constantWidth) {
+                context.save();
+                context.setTransform(1, 0, 0, 1, 0, 0);
+                context.strokeText(this.text, 0, 0);
+                context.restore();
+            } else {
+                context.strokeText(this.text, 0, 0);
+            }
         }
     }
 

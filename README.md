@@ -17,7 +17,7 @@ Under development, expect frequent breaking changes...
 ## Credits
 
 Thanks to inspiration and code from these wonderful projects:
-- [escher.js](https://github.com/tentone/escher.js) - Interactive 2D canvas graphics framework.
+- [escher.js](https://github.com/tentone/escher.js) - Interactive 2D canvas framework.
 - [ogl](https://github.com/oframe/ogl) - Minimal WebGL library.
 - [three.js](https://github.com/mrdoob/three.js/) - JavaScript 3D library.
 

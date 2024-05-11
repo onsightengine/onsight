@@ -1,11 +1,12 @@
 import { Matrix2 } from '../math/Matrix2.js';
-import { MathUtils } from '../utils/MathUtils.js';
+import { Thing } from './Thing.js';
 import { Vector2 } from '../math/Vector2.js';
 
-class Camera2D {
+class Camera2D extends Thing {
 
     constructor() {
-        this.uuid = MathUtils.randomUUID();
+        super('Camera2D');
+        this.type = 'Camera2D';
 
         // Transform
         this.position = new Vector2(0, 0);

@@ -2,6 +2,9 @@ import { Vector2 } from './Vector2.js';
 
 /**
  * 2D 3x2 transformation matrix, values of the matrix are stored as numeric array.
+ *  [ 0 Xx  1 Xy ]
+ *  [ 2 Yx  3 Yy ]
+ *  [ 4 Ox  5 Oy ]
  * The matrix can be applied to the canvas or DOM elements using CSS transforms.
  */
 class Matrix2 {
@@ -118,7 +121,10 @@ class Matrix2 {
 
     /** Extract the scale from the transformation matrix */
     getScale() {
-        return new Vector2(this.m[0], this.m[3]);
+        // https://stackoverflow.com/questions/45159314/decompose-2d-transformation-matrix
+        const scaleX = Math.sqrt(this.m[0] * this.m[0] + this.m[1] * this.m[1]);
+        const scaleY = Math.sqrt(this.m[2] * this.m[2] + this.m[3] * this.m[3]);
+        return new Vector2(scaleX, scaleY);
     }
 
     /** Extract the position from the transformation matrix */

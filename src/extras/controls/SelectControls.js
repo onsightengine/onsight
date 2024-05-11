@@ -28,8 +28,9 @@ class SelectControls {
 
             // Holding Shift (Add to Selection)
             if (keyboard.shiftPressed()) {
-                if (underMouse.length > 0) {
-                    const object = underMouse[0];
+                const selectOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
+                if (selectOnly.length > 0) {
+                    const object = selectOnly[0];
                     if (object.selectable) {
                         object.isSelected = true;
                         newSelection = ArrayUtils.combineThingArrays(newSelection, [ object ]);
@@ -38,8 +39,9 @@ class SelectControls {
 
             // Holding Ctrl/Meta (Toggle Selection)
             } else if (keyboard.ctrlPressed() || keyboard.metaPressed()) {
-                if (underMouse.length > 0) {
-                    const object = underMouse[0];
+                const selectOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
+                if (selectOnly.length > 0) {
+                    const object = selectOnly[0];
                     if (object.selectable) {
                         if (object.isSelected) {
                             object.isSelected = false;
@@ -74,9 +76,11 @@ class SelectControls {
         if (ArrayUtils.compareThingArrays(this.selection, newSelection) === false) {
             if (this.resizeTool) this.resizeTool.destroy();
             if (newSelection.length > 0) {
-                this.resizeTool = new ResizeTool(newSelection[0]);
 
-                // this.resizeTool = new ResizeTool(newSelection);
+                /////
+                // this.resizeTool = new ResizeTool(newSelection[0]);
+                this.resizeTool = new ResizeTool2(newSelection);
+                /////
 
                 scene.add(this.resizeTool);
                 this.resizeTool.onUpdate(renderer);

@@ -5,7 +5,7 @@ import { MathUtils } from '../utils/MathUtils.js';
 import { SysUtils } from '../utils/SysUtils.js';
 
 /**
- * Base class for a serializable object with unique identifier
+ * Base class for a serializable object with a unique identifier
  */
 class Thing {
 

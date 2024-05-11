@@ -126,6 +126,12 @@ class ArrayUtils {
         for (const thing of arrayTwo) if (ArrayUtils.includesThing(thing, arrayOne) === false) return false;
         return true;
     }
+    static filterThings(things, properties = {}) {
+        const filtered = things.filter((object) => {
+            return Object.keys(properties).every((key) => { return object[key] === properties[key]; });
+        });
+        return filtered;
+    }
     static includesThing(findThing, ...things) {
         if (!findThing || !findThing.uuid) return false;
         if (things.length === 0) return false;
@@ -2133,7 +2139,9 @@ class Matrix2 {
         return this;
     }
     getScale() {
-        return new Vector2(this.m[0], this.m[3]);
+        const scaleX = Math.sqrt(this.m[0] * this.m[0] + this.m[1] * this.m[1]);
+        const scaleY = Math.sqrt(this.m[2] * this.m[2] + this.m[3] * this.m[3]);
+        return new Vector2(scaleX, scaleY);
     }
     getPosition() {
         return new Vector2(this.m[4], this.m[5]);
@@ -2175,9 +2183,10 @@ class Matrix2 {
     }
 }
 
-class Camera2D {
+class Camera2D extends Thing {
     constructor() {
-        this.uuid = MathUtils.randomUUID();
+        super('Camera2D');
+        this.type = 'Camera2D';
         this.position = new Vector2(0, 0);
         this.scale = 1.0;
         this.rotation = 0.0;
@@ -2471,10 +2480,10 @@ class Pointer {
     }
 }
 
-class Object2D {
-    constructor() {
+class Object2D extends Thing {
+    constructor(name = 'Object') {
+        super(name);
         this.type = 'Object2D';
-        this.uuid = MathUtils.randomUUID();
         this.children = [];
         this.parent = null;
         this.visible = true;
@@ -2502,8 +2511,10 @@ class Object2D {
         this.isSelected = false;
     }
     add(...objects) {
+        if (!objects) return this;
         if (objects.length > 0 && Array.isArray(objects[0])) objects = objects[0];
         for (const object of objects) {
+            if (!object || !object.uuid) continue;
             const index = this.children.indexOf(object);
             if (index === -1) {
                 object.parent = this;
@@ -3194,16 +3205,16 @@ class Box extends Object2D {
             context.fillRect(this.box.min.x, this.box.min.y, width, height);
         }
         if (this.strokeStyle) {
-            let scaleX = 1;
-            let scaleY = 1;
-            if (this.constantWidth) {
-                const matrix = context.getTransform();
-                scaleX = Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b);
-                scaleY = Math.sqrt(matrix.c * matrix.c + matrix.d * matrix.d);
-            }
-            context.lineWidth = this.lineWidth / Math.max(scaleX, scaleY);
+            context.lineWidth = this.lineWidth;;
             context.strokeStyle = this.strokeStyle.get(context);
-            context.strokeRect(this.box.min.x, this.box.min.y, width, height);
+            if (this.constantWidth) {
+                context.save();
+                context.setTransform(1, 0, 0, 1, 0, 0);
+                context.strokeRect(this.box.min.x, this.box.min.y, width, height);
+                context.restore();
+            } else {
+                context.strokeRect(this.box.min.x, this.box.min.y, width, height);
+            }
         }
     }
     onUpdate(renderer) {
@@ -3244,16 +3255,16 @@ class Circle extends Object2D {
             context.fill();
         }
         if (this.strokeStyle) {
-            let scaleX = 1;
-            let scaleY = 1;
-            if (this.constantWidth) {
-                const matrix = context.getTransform();
-                scaleX = Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b);
-                scaleY = Math.sqrt(matrix.c * matrix.c + matrix.d * matrix.d);
-            }
-            context.lineWidth = this.lineWidth / Math.max(scaleX, scaleY);
+            context.lineWidth = this.lineWidth;;
             context.strokeStyle = this.strokeStyle.get(context);
-            context.stroke();
+            if (this.constantWidth) {
+                context.save();
+                context.setTransform(1, 0, 0, 1, 0, 0);
+                context.stroke();
+                context.restore();
+            } else {
+                context.stroke();
+            }
         }
     }
 }
@@ -3269,7 +3280,7 @@ class Line extends Object2D {
         this.constantWidth = false;
         this.mouseBuffer = 5;
         this.dashPattern = [];
-        this.scaledLineWidth = this.lineWidth;
+        this._cameraScale = 1;
         this._from = new Vector2();
         this._to = new Vector2();
     }
@@ -3277,19 +3288,38 @@ class Line extends Object2D {
         this.boundingBox.setFromPoints(this.from, this.to);
     }
     isInside(point) {
-        const x = point.x;
-        const y = point.y;
-        const x1 = this.from.x;
-        const y1 = this.from.y;
-        const x2 = this.to.x;
-        const y2 = this.to.y;
-        const buffer = (this.scaledLineWidth / 2) + this.mouseBuffer;
+        const globalPoint = this.globalMatrix.transformPoint(point);
+        const globalFrom = this.globalMatrix.transformPoint(this.from);
+        const globalTo = this.globalMatrix.transformPoint(this.to);
+        const x = globalPoint.x;
+        const y = globalPoint.y;
+        const x1 = globalFrom.x;
+        const y1 = globalFrom.y;
+        const x2 = globalTo.x;
+        const y2 = globalTo.y;
+        let scaledLineWidth;
+        if (this.constantWidth) {
+            scaledLineWidth = this.lineWidth / this._cameraScale;
+        } else {
+            function getPercentageOfDistance(origin, destination) {
+                const dx = destination.x - origin.x;
+                const dy = destination.y - origin.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance === 0) { return { x: 0, y: 0 }; }
+                const percentX = dx / distance;
+                const percentY = dy / distance;
+                return { x: percentX, y: percentY };
+            }
+            const xyPercent = getPercentageOfDistance(this.from, this.to);
+            const scale = this.globalMatrix.getScale();
+            const scalePercent = (Math.abs(scale.x * xyPercent.y) + Math.abs(scale.y * xyPercent.x)) / (xyPercent.x + xyPercent.y);
+            scaledLineWidth = MathUtils.sanity(this.lineWidth * scalePercent);
+        }
+        const buffer = (scaledLineWidth / 2) + (this.mouseBuffer / this._cameraScale);
         const dx = x2 - x1;
         const dy = y2 - y1;
         const lengthSquared = dx * dx + dy * dy;
-        if (lengthSquared === 0) {
-            return Math.sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1)) <= buffer;
-        }
+        if (lengthSquared === 0) return Math.sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1)) <= buffer;
         const t = ((x - x1) * dx + (y - y1) * dy) / lengthSquared;
         let nearestX, nearestY;
         if (t < 0) {
@@ -3306,17 +3336,8 @@ class Line extends Object2D {
         return distanceSquared <= buffer * buffer;
     }
     style(context, camera, canvas) {
-        let scaleX = 1;
-        let scaleY = 1;
-        if (this.constantWidth) {
-            const matrix = context.getTransform();
-            scaleX = Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b);
-            scaleY = Math.sqrt(matrix.c * matrix.c + matrix.d * matrix.d);
-            this.scaledLineWidth = this.lineWidth / Math.max(scaleX, scaleY);
-        } else {
-            this.scaledLineWidth = this.lineWidth;
-        }
-        context.lineWidth = this.scaledLineWidth;
+        this._cameraScale = camera.scale;
+        context.lineWidth = this.lineWidth;
         context.strokeStyle = this.strokeStyle.get(context);
         context.setLineDash(this.dashPattern);
     }
@@ -3324,7 +3345,14 @@ class Line extends Object2D {
         context.beginPath();
         context.moveTo(this.from.x, this.from.y);
         context.lineTo(this.to.x, this.to.y);
-        context.stroke();
+        if (this.constantWidth) {
+            context.save();
+            context.setTransform(1, 0, 0, 1, 0, 0);
+            context.stroke();
+            context.restore();
+        } else {
+            context.stroke();
+        }
     }
     onUpdate(renderer) {
         if ((this.from.equals(this._from) === false) || (this.to.equals(this._to) === false)) {
@@ -3372,8 +3400,16 @@ class Text extends Object2D {
             context.fillText(this.text, 0, 0);
         }
         if (this.strokeStyle) {
+            context.lineWidth = this.lineWidth;;
             context.strokeStyle = this.strokeStyle.get(context);
-            context.strokeText(this.text, 0, 0);
+            if (this.constantWidth) {
+                context.save();
+                context.setTransform(1, 0, 0, 1, 0, 0);
+                context.strokeText(this.text, 0, 0);
+                context.restore();
+            } else {
+                context.strokeText(this.text, 0, 0);
+            }
         }
     }
     onUpdate(renderer) {

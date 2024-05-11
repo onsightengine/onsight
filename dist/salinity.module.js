@@ -126,6 +126,12 @@ class ArrayUtils {
         for (const thing of arrayTwo) if (ArrayUtils.includesThing(thing, arrayOne) === false) return false;
         return true;
     }
+    static filterThings(things, properties = {}) {
+        const filtered = things.filter((object) => {
+            return Object.keys(properties).every((key) => { return object[key] === properties[key]; });
+        });
+        return filtered;
+    }
     static includesThing(findThing, ...things) {
         if (!findThing || !findThing.uuid) return false;
         if (things.length === 0) return false;
@@ -2133,7 +2139,9 @@ class Matrix2 {
         return this;
     }
     getScale() {
-        return new Vector2(this.m[0], this.m[3]);
+        const scaleX = Math.sqrt(this.m[0] * this.m[0] + this.m[1] * this.m[1]);
+        const scaleY = Math.sqrt(this.m[2] * this.m[2] + this.m[3] * this.m[3]);
+        return new Vector2(scaleX, scaleY);
     }
     getPosition() {
         return new Vector2(this.m[4], this.m[5]);
@@ -2175,9 +2183,10 @@ class Matrix2 {
     }
 }
 
-class Camera2D {
+class Camera2D extends Thing {
     constructor() {
-        this.uuid = MathUtils.randomUUID();
+        super('Camera2D');
+        this.type = 'Camera2D';
         this.position = new Vector2(0, 0);
         this.scale = 1.0;
         this.rotation = 0.0;
@@ -2471,10 +2480,10 @@ class Pointer {
     }
 }
 
-class Object2D {
-    constructor() {
+class Object2D extends Thing {
+    constructor(name = 'Object') {
+        super(name);
         this.type = 'Object2D';
-        this.uuid = MathUtils.randomUUID();
         this.children = [];
         this.parent = null;
         this.visible = true;
@@ -2502,8 +2511,10 @@ class Object2D {
         this.isSelected = false;
     }
     add(...objects) {
+        if (!objects) return this;
         if (objects.length > 0 && Array.isArray(objects[0])) objects = objects[0];
         for (const object of objects) {
+            if (!object || !object.uuid) continue;
             const index = this.children.indexOf(object);
             if (index === -1) {
                 object.parent = this;
@@ -3194,16 +3205,16 @@ class Box extends Object2D {
             context.fillRect(this.box.min.x, this.box.min.y, width, height);
         }
         if (this.strokeStyle) {
-            let scaleX = 1;
-            let scaleY = 1;
-            if (this.constantWidth) {
-                const matrix = context.getTransform();
-                scaleX = Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b);
-                scaleY = Math.sqrt(matrix.c * matrix.c + matrix.d * matrix.d);
-            }
-            context.lineWidth = this.lineWidth / Math.max(scaleX, scaleY);
+            context.lineWidth = this.lineWidth;;
             context.strokeStyle = this.strokeStyle.get(context);
-            context.strokeRect(this.box.min.x, this.box.min.y, width, height);
+            if (this.constantWidth) {
+                context.save();
+                context.setTransform(1, 0, 0, 1, 0, 0);
+                context.strokeRect(this.box.min.x, this.box.min.y, width, height);
+                context.restore();
+            } else {
+                context.strokeRect(this.box.min.x, this.box.min.y, width, height);
+            }
         }
     }
     onUpdate(renderer) {
@@ -3244,16 +3255,16 @@ class Circle extends Object2D {
             context.fill();
         }
         if (this.strokeStyle) {
-            let scaleX = 1;
-            let scaleY = 1;
-            if (this.constantWidth) {
-                const matrix = context.getTransform();
-                scaleX = Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b);
-                scaleY = Math.sqrt(matrix.c * matrix.c + matrix.d * matrix.d);
-            }
-            context.lineWidth = this.lineWidth / Math.max(scaleX, scaleY);
+            context.lineWidth = this.lineWidth;;
             context.strokeStyle = this.strokeStyle.get(context);
-            context.stroke();
+            if (this.constantWidth) {
+                context.save();
+                context.setTransform(1, 0, 0, 1, 0, 0);
+                context.stroke();
+                context.restore();
+            } else {
+                context.stroke();
+            }
         }
     }
 }
@@ -3269,7 +3280,7 @@ class Line extends Object2D {
         this.constantWidth = false;
         this.mouseBuffer = 5;
         this.dashPattern = [];
-        this.scaledLineWidth = this.lineWidth;
+        this._cameraScale = 1;
         this._from = new Vector2();
         this._to = new Vector2();
     }
@@ -3277,19 +3288,38 @@ class Line extends Object2D {
         this.boundingBox.setFromPoints(this.from, this.to);
     }
     isInside(point) {
-        const x = point.x;
-        const y = point.y;
-        const x1 = this.from.x;
-        const y1 = this.from.y;
-        const x2 = this.to.x;
-        const y2 = this.to.y;
-        const buffer = (this.scaledLineWidth / 2) + this.mouseBuffer;
+        const globalPoint = this.globalMatrix.transformPoint(point);
+        const globalFrom = this.globalMatrix.transformPoint(this.from);
+        const globalTo = this.globalMatrix.transformPoint(this.to);
+        const x = globalPoint.x;
+        const y = globalPoint.y;
+        const x1 = globalFrom.x;
+        const y1 = globalFrom.y;
+        const x2 = globalTo.x;
+        const y2 = globalTo.y;
+        let scaledLineWidth;
+        if (this.constantWidth) {
+            scaledLineWidth = this.lineWidth / this._cameraScale;
+        } else {
+            function getPercentageOfDistance(origin, destination) {
+                const dx = destination.x - origin.x;
+                const dy = destination.y - origin.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance === 0) { return { x: 0, y: 0 }; }
+                const percentX = dx / distance;
+                const percentY = dy / distance;
+                return { x: percentX, y: percentY };
+            }
+            const xyPercent = getPercentageOfDistance(this.from, this.to);
+            const scale = this.globalMatrix.getScale();
+            const scalePercent = (Math.abs(scale.x * xyPercent.y) + Math.abs(scale.y * xyPercent.x)) / (xyPercent.x + xyPercent.y);
+            scaledLineWidth = MathUtils.sanity(this.lineWidth * scalePercent);
+        }
+        const buffer = (scaledLineWidth / 2) + (this.mouseBuffer / this._cameraScale);
         const dx = x2 - x1;
         const dy = y2 - y1;
         const lengthSquared = dx * dx + dy * dy;
-        if (lengthSquared === 0) {
-            return Math.sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1)) <= buffer;
-        }
+        if (lengthSquared === 0) return Math.sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1)) <= buffer;
         const t = ((x - x1) * dx + (y - y1) * dy) / lengthSquared;
         let nearestX, nearestY;
         if (t < 0) {
@@ -3306,17 +3336,8 @@ class Line extends Object2D {
         return distanceSquared <= buffer * buffer;
     }
     style(context, camera, canvas) {
-        let scaleX = 1;
-        let scaleY = 1;
-        if (this.constantWidth) {
-            const matrix = context.getTransform();
-            scaleX = Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b);
-            scaleY = Math.sqrt(matrix.c * matrix.c + matrix.d * matrix.d);
-            this.scaledLineWidth = this.lineWidth / Math.max(scaleX, scaleY);
-        } else {
-            this.scaledLineWidth = this.lineWidth;
-        }
-        context.lineWidth = this.scaledLineWidth;
+        this._cameraScale = camera.scale;
+        context.lineWidth = this.lineWidth;
         context.strokeStyle = this.strokeStyle.get(context);
         context.setLineDash(this.dashPattern);
     }
@@ -3324,7 +3345,14 @@ class Line extends Object2D {
         context.beginPath();
         context.moveTo(this.from.x, this.from.y);
         context.lineTo(this.to.x, this.to.y);
-        context.stroke();
+        if (this.constantWidth) {
+            context.save();
+            context.setTransform(1, 0, 0, 1, 0, 0);
+            context.stroke();
+            context.restore();
+        } else {
+            context.stroke();
+        }
     }
     onUpdate(renderer) {
         if ((this.from.equals(this._from) === false) || (this.to.equals(this._to) === false)) {
@@ -3372,8 +3400,16 @@ class Text extends Object2D {
             context.fillText(this.text, 0, 0);
         }
         if (this.strokeStyle) {
+            context.lineWidth = this.lineWidth;;
             context.strokeStyle = this.strokeStyle.get(context);
-            context.strokeText(this.text, 0, 0);
+            if (this.constantWidth) {
+                context.save();
+                context.setTransform(1, 0, 0, 1, 0, 0);
+                context.strokeText(this.text, 0, 0);
+                context.restore();
+            } else {
+                context.strokeText(this.text, 0, 0);
+            }
         }
     }
     onUpdate(renderer) {
@@ -3598,7 +3634,7 @@ class CameraControls {
 }
 
 const CURSOR_ROTATE$1 = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWw6c3BhY2U9InByZXNlcnZlIiBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlLWxpbmVqb2luOnJvdW5kO3N0cm9rZS1taXRlcmxpbWl0OjI7Ij48cGF0aCBkPSJNMjEuMjQ3LDUuODY3YzAuNDE3LC0wLjQ1MiAxLjAzNiwtMC42NjYgMS42NDcsLTAuNTYzYzAuNjQ0LDAuMTA5IDEuMTgsMC41NTMgMS40MDcsMS4xNjRsMS44MjQsNC45MDFjMC4yMjcsMC42MTEgMC4xMTEsMS4yOTggLTAuMzA1LDEuODAxYy0wLjQxNiwwLjUwMyAtMS4wNjksMC43NDUgLTEuNzEzLDAuNjM2bC01LjE1NCwtMC44NzRjLTAuNjQ0LC0wLjEwOSAtMS4xOCwtMC41NTMgLTEuNDA3LC0xLjE2NWMtMC4xNzksLTAuNDgxIC0wLjE0NSwtMS4wMDggMC4wOCwtMS40NTVjLTAuNTIxLC0wLjE0OCAtMS4wNjQsLTAuMjI1IC0xLjYxNSwtMC4yMjVjLTMuMjY0LDAgLTUuOTEzLDIuNjUgLTUuOTEzLDUuOTEzYy0wLDMuMjYzIDIuNjQ5LDUuOTEzIDUuOTEzLDUuOTEzYzEuNjQsMCAzLjIwNiwtMC42ODEgNC4zMjQsLTEuODhjMC42ODgsLTAuNzM4IDEuODQ0LC0wLjc3OCAyLjU4MiwtMC4wOWwxLjM0NiwxLjI1NWMwLjczNywwLjY4OCAwLjc3OCwxLjg0MyAwLjA5LDIuNTgxYy0yLjE1OCwyLjMxNCAtNS4xNzksMy42MjcgLTguMzQyLDMuNjI3Yy02LjI5NSwwIC0xMS40MDYsLTUuMTExIC0xMS40MDYsLTExLjQwNmMtMCwtNi4yOTUgNS4xMTEsLTExLjQwNiAxMS40MDYsLTExLjQwNmMxLjgzOCwtMCAzLjYzMSwwLjQ0MyA1LjIzNiwxLjI3M1oiIHN0eWxlPSJmaWxsOiNmZmY7Ii8+PHBhdGggZD0iTTE5LjgzNSw5Ljc2N2wtMC45MDUsMS4wOTNjLTAuMDk3LDAuMTE3IC0wLjEyNCwwLjI3NyAtMC4wNzEsMC40MTljMC4wNTMsMC4xNDMgMC4xNzgsMC4yNDYgMC4zMjgsMC4yNzJsNS4xNTQsMC44NzRjMC4xNTEsMC4wMjYgMC4zMDMsLTAuMDMxIDAuNCwtMC4xNDhjMC4wOTcsLTAuMTE3IDAuMTI0LC0wLjI3NyAwLjA3MSwtMC40MmwtMS44MjMsLTQuOWMtMC4wNTMsLTAuMTQzIC0wLjE3OCwtMC4yNDYgLTAuMzI4LC0wLjI3MWMtMC4xNSwtMC4wMjYgLTAuMzAyLDAuMDMxIC0wLjM5OSwwLjE0OGwtMC42OTksMC44NDRjLTEuNjMyLC0xLjA5MSAtMy41NjIsLTEuNjgzIC01LjU1MiwtMS42ODNjLTUuNTIyLC0wIC0xMC4wMDYsNC40ODMgLTEwLjAwNiwxMC4wMDVjMCw1LjUyMiA0LjQ4NCwxMC4wMDUgMTAuMDA2LDEwLjAwNWMyLjc3NSwwIDUuNDI1LC0xLjE1MiA3LjMxNywtMy4xODFjMC4xNjEsLTAuMTcyIDAuMTUxLC0wLjQ0MiAtMC4wMjEsLTAuNjAybC0xLjM0NSwtMS4yNTVjLTAuMTcyLC0wLjE2IC0wLjQ0MiwtMC4xNTEgLTAuNjAyLDAuMDIxYy0xLjM4MywxLjQ4MyAtMy4zMjEsMi4zMjYgLTUuMzQ5LDIuMzI2Yy00LjAzNywtMCAtNy4zMTQsLTMuMjc3IC03LjMxNCwtNy4zMTRjMCwtNC4wMzcgMy4yNzcsLTcuMzE0IDcuMzE0LC03LjMxNGMxLjM2LDAgMi42ODIsMC4zNzkgMy44MjQsMS4wODFaIi8+PC9zdmc+';
-let ResizeTool$1 = class ResizeTool extends Object2D {
+class ResizeTool extends Object2D {
     static ALL = 0;
     static RESIZE = 1;
     static ROTATE = 2;
@@ -3839,7 +3875,7 @@ let ResizeTool$1 = class ResizeTool extends Object2D {
             updateSideResizer(bottomResizer, bottomMiddleWorld, 'h');
         };
     }
-};
+}
 
 const CURSOR_ROTATE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWw6c3BhY2U9InByZXNlcnZlIiBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlLWxpbmVqb2luOnJvdW5kO3N0cm9rZS1taXRlcmxpbWl0OjI7Ij48cGF0aCBkPSJNMjEuMjQ3LDUuODY3YzAuNDE3LC0wLjQ1MiAxLjAzNiwtMC42NjYgMS42NDcsLTAuNTYzYzAuNjQ0LDAuMTA5IDEuMTgsMC41NTMgMS40MDcsMS4xNjRsMS44MjQsNC45MDFjMC4yMjcsMC42MTEgMC4xMTEsMS4yOTggLTAuMzA1LDEuODAxYy0wLjQxNiwwLjUwMyAtMS4wNjksMC43NDUgLTEuNzEzLDAuNjM2bC01LjE1NCwtMC44NzRjLTAuNjQ0LC0wLjEwOSAtMS4xOCwtMC41NTMgLTEuNDA3LC0xLjE2NWMtMC4xNzksLTAuNDgxIC0wLjE0NSwtMS4wMDggMC4wOCwtMS40NTVjLTAuNTIxLC0wLjE0OCAtMS4wNjQsLTAuMjI1IC0xLjYxNSwtMC4yMjVjLTMuMjY0LDAgLTUuOTEzLDIuNjUgLTUuOTEzLDUuOTEzYy0wLDMuMjYzIDIuNjQ5LDUuOTEzIDUuOTEzLDUuOTEzYzEuNjQsMCAzLjIwNiwtMC42ODEgNC4zMjQsLTEuODhjMC42ODgsLTAuNzM4IDEuODQ0LC0wLjc3OCAyLjU4MiwtMC4wOWwxLjM0NiwxLjI1NWMwLjczNywwLjY4OCAwLjc3OCwxLjg0MyAwLjA5LDIuNTgxYy0yLjE1OCwyLjMxNCAtNS4xNzksMy42MjcgLTguMzQyLDMuNjI3Yy02LjI5NSwwIC0xMS40MDYsLTUuMTExIC0xMS40MDYsLTExLjQwNmMtMCwtNi4yOTUgNS4xMTEsLTExLjQwNiAxMS40MDYsLTExLjQwNmMxLjgzOCwtMCAzLjYzMSwwLjQ0MyA1LjIzNiwxLjI3M1oiIHN0eWxlPSJmaWxsOiNmZmY7Ii8+PHBhdGggZD0iTTE5LjgzNSw5Ljc2N2wtMC45MDUsMS4wOTNjLTAuMDk3LDAuMTE3IC0wLjEyNCwwLjI3NyAtMC4wNzEsMC40MTljMC4wNTMsMC4xNDMgMC4xNzgsMC4yNDYgMC4zMjgsMC4yNzJsNS4xNTQsMC44NzRjMC4xNTEsMC4wMjYgMC4zMDMsLTAuMDMxIDAuNCwtMC4xNDhjMC4wOTcsLTAuMTE3IDAuMTI0LC0wLjI3NyAwLjA3MSwtMC40MmwtMS44MjMsLTQuOWMtMC4wNTMsLTAuMTQzIC0wLjE3OCwtMC4yNDYgLTAuMzI4LC0wLjI3MWMtMC4xNSwtMC4wMjYgLTAuMzAyLDAuMDMxIC0wLjM5OSwwLjE0OGwtMC42OTksMC44NDRjLTEuNjMyLC0xLjA5MSAtMy41NjIsLTEuNjgzIC01LjU1MiwtMS42ODNjLTUuNTIyLC0wIC0xMC4wMDYsNC40ODMgLTEwLjAwNiwxMC4wMDVjMCw1LjUyMiA0LjQ4NCwxMC4wMDUgMTAuMDA2LDEwLjAwNWMyLjc3NSwwIDUuNDI1LC0xLjE1MiA3LjMxNywtMy4xODFjMC4xNjEsLTAuMTcyIDAuMTUxLC0wLjQ0MiAtMC4wMjEsLTAuNjAybC0xLjM0NSwtMS4yNTVjLTAuMTcyLC0wLjE2IC0wLjQ0MiwtMC4xNTEgLTAuNjAyLDAuMDIxYy0xLjM4MywxLjQ4MyAtMy4zMjEsMi4zMjYgLTUuMzQ5LDIuMzI2Yy00LjAzNywtMCAtNy4zMTQsLTMuMjc3IC03LjMxNCwtNy4zMTRjMCwtNC4wMzcgMy4yNzcsLTcuMzE0IDcuMzE0LC03LjMxNGMxLjM2LDAgMi42ODIsMC4zNzkgMy44MjQsMS4wODFaIi8+PC9zdmc+';
 function calculateCombinedBoundingBox(objects) {
@@ -3850,40 +3886,38 @@ function calculateCombinedBoundingBox(objects) {
     }
     return combinedBox;
 }
-class ResizeTool extends Object2D {
+class ResizeTool2 extends Box {
     static ALL = 0;
     static RESIZE = 1;
     static ROTATE = 2;
-    constructor(objects, radius = 5, tools = ResizeTool.ALL) {
+    constructor(objects, radius = 5, tools = ResizeTool2.ALL) {
         if (!objects) return console.error(`ResizeTool(): Missing 'objects' argument`);
         objects = Array.isArray(objects) ? objects : [ objects ];
         if (objects.length === 0) return console.error(`ResizeTool(): Objects array is empty`);
         super();
+        this.name = 'Resize Tool';
         this.isHelper = true;
-        this.draggable = false;
-        this.focusable = false;
+        this.fillStyle = null;
+        this.strokeStyle = null;
+        this.pointerEvents = true;
+        this.draggable = true;
+        this.focusable = true;
         this.selectable = false;
-        this.pointerEvents = false;
-        layer = 0;
-        for (const object of objects) {
-            layer = Math.max(layer, object.layer + 1);
-        }
+        let layer = 0;
+        for (const object of objects) { layer = Math.max(layer, object.layer + 1); }
         this.layer = layer;
-        function localDelta(pointer, camera) {
-            const pointerStart = pointer.position.clone();
-            const pointerEnd = pointer.position.clone().sub(pointer.delta);
-            const worldPositionStart = camera.inverseMatrix.transformPoint(pointerStart);
-            const localPositionStart = object.inverseGlobalMatrix.transformPoint(worldPositionStart);
-            const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
-            const localPositionEnd = object.inverseGlobalMatrix.transformPoint(worldPositionEnd);
-            const delta = localPositionStart.clone().sub(localPositionEnd).multiply(object.scale);
-            return delta;
-        }
+        const combinedBox = calculateCombinedBoundingBox(objects);
+        const halfSize = combinedBox.getSize().multiplyScalar(0.5);
+        const center = combinedBox.getCenter();
+        this.position.copy(center);
+        this.box.set(new Vector2(-halfSize.x, -halfSize.y), new Vector2(+halfSize.x, +halfSize.y));
+        this.computeBoundingBox();
+        const object = this;
         let topLeft, topRight, bottomLeft, bottomRight;
         let topResizer, rightResizer, bottomResizer, leftResizer;
         let rotater, rotateLine;
-        if (tools === ResizeTool.ALL || tools === ResizeTool.RESIZE) {
-            function createResizer(x, y, type = 'box', addRotation, alpha) {
+        if (tools === ResizeTool2.ALL || tools === ResizeTool2.RESIZE) {
+            function createResizer(name, x, y, type = 'box', addRotation, alpha) {
                 let resizer;
                 switch (type) {
                     case 'circle':
@@ -3899,6 +3933,7 @@ class ResizeTool extends Object2D {
                         resizer = new Box();
                         resizer.box.set(new Vector2(-radius, -radius), new Vector2(radius, radius));
                 }
+                resizer.name = name;
                 resizer.draggable = true;
                 resizer.focusable = false;
                 resizer.selectable = false;
@@ -3914,6 +3949,7 @@ class ResizeTool extends Object2D {
                         resizer.fillStyle.addColorStop(0, '--icon-light');
                         resizer.fillStyle.addColorStop(1, '--icon-dark');
                         resizer.strokeStyle.color = '--highlight';
+                        resizer.lineWidth = 1;
                         break;
                     case 'line':
                         resizer.strokeStyle.color = '--highlight';
@@ -3954,7 +3990,13 @@ class ResizeTool extends Object2D {
                 };
                 resizer.onPointerDrag = function(pointer, camera) {
                     Object2D.prototype.onPointerDrag.call(this, pointer, camera);
-                    const delta = localDelta(pointer, camera);
+                    const pointerStart = pointer.position.clone();
+                    const pointerEnd = pointer.position.clone().sub(pointer.delta);
+                    const worldPositionStart = camera.inverseMatrix.transformPoint(pointerStart);
+                    const localPositionStart = object.inverseGlobalMatrix.transformPoint(worldPositionStart);
+                    const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
+                    const localPositionEnd = object.inverseGlobalMatrix.transformPoint(worldPositionEnd);
+                    const delta = localPositionStart.clone().sub(localPositionEnd).multiply(object.scale);
                     if (x === 0) delta.x = 0;
                     if (y === 0) delta.y = 0;
                     delta.multiplyScalar(0.5);
@@ -3976,60 +4018,109 @@ class ResizeTool extends Object2D {
                 };
                 return resizer;
             }
-            bottomRight = createResizer(-1, -1, 'box', 45, 1);
-            bottomLeft = createResizer(1, -1, 'box', 135, 1);
-            topLeft = createResizer(1, 1, 'box', 225, 1);
-            topRight = createResizer(-1, 1, 'box', 315, 1);
+            bottomRight = createResizer('Bottom Right', -1, -1, 'box', 45, 1);
+            bottomLeft = createResizer('Bottom Left', 1, -1, 'box', 135, 1);
+            topLeft = createResizer('Top Left', 1, 1, 'box', 225, 1);
+            topRight = createResizer('Top Right', -1, 1, 'box', 315, 1);
+            rightResizer = createResizer('Right', -1, 0, 'line', 0, 1);
+            bottomResizer = createResizer('Bottom', 0, -1, 'line', 90, 1);
+            leftResizer = createResizer('Left', 1, 0, 'line', 180, 1);
+            topResizer = createResizer('Top', 0, 1, 'line', 270, 1);
             this.add(bottomRight, bottomLeft, topLeft, topRight);
+            this.add(rightResizer, bottomResizer, leftResizer, topResizer);
         }
-        if (tools === ResizeTool.ALL || tools === ResizeTool.ROTATE) {
+        if (tools === ResizeTool2.ALL || tools === ResizeTool2.ROTATE) {
+            rotater = new Circle();
+            rotater.draggable = true;
+            rotater.focusable = false;
+            rotater.selectable = false;
+            rotater.radius = radius + 1;
+            rotater.layer = layer;
+            rotater.constantWidth = true;
+            rotater.fillStyle = new LinearGradientStyle();
+            rotater.fillStyle.start.set(-radius, -radius);
+            rotater.fillStyle.end.set(radius, radius);
+            rotater.fillStyle.addColorStop(0, '--icon-light');
+            rotater.fillStyle.addColorStop(1, '--icon-dark');
+            rotater.strokeStyle.color = '--highlight';
+            rotater.cursor = `url('${CURSOR_ROTATE}') 16 16, auto`;
+            rotater.onPointerDrag = function(pointer, camera) {
+                const pointerStart = pointer.position.clone();
+                const pointerEnd = pointer.position.clone().sub(pointer.delta);
+                const worldPositionStart = camera.inverseMatrix.transformPoint(pointerStart);
+                const localPositionStart = object.inverseGlobalMatrix.transformPoint(worldPositionStart);
+                const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
+                const localPositionEnd = object.inverseGlobalMatrix.transformPoint(worldPositionEnd);
+                localPositionStart.sub(object.origin).multiply(object.scale);
+                localPositionEnd.sub(object.origin).multiply(object.scale);
+                const angle = localPositionEnd.angleBetween(localPositionStart);
+                const cross = localPositionEnd.cross(localPositionStart);
+                const sign = Math.sign(cross);
+                object.rotation += (angle * sign);
+                object.updateMatrix(true);
+            };
+            rotateLine = new Line();
+            rotateLine.lineWidth = 1;
+            rotateLine.draggable = false;
+            rotateLine.focusable = false;
+            rotateLine.selectable = false;
+            rotateLine.layer = layer;
+            rotateLine.constantWidth = true;
+            rotateLine.strokeStyle.color = '--highlight';
+            this.add(rotater, rotateLine);
         }
         this.onUpdate = function(renderer) {
             const camera = renderer.camera;
-            const box = calculateCombinedBoundingBox(objects);
-            const center = combinedBox.getCenter();
-            const topLeftWorld = object.globalMatrix.transformPoint(box.min);
-            const topRightWorld = object.globalMatrix.transformPoint(new Vector2(box.max.x, box.min.y));
-            const bottomLeftWorld = object.globalMatrix.transformPoint(new Vector2(box.min.x, box.max.y));
-            const bottomRightWorld = object.globalMatrix.transformPoint(box.max);
+            const handleOffset = ((radius * 4) / Math.abs(object.scale.y)) / camera.scale;
+            const topCenterWorld = new Vector2(0, -halfSize.y);
+            const topCenterWorldOffset = new Vector2(0, -halfSize.y - handleOffset);
+            if (rotater) {
+                rotater.position.copy(topCenterWorldOffset);
+                rotater.scale.set((1 / object.scale.x) / camera.scale, (1 / object.scale.y) / camera.scale);
+                rotater.updateMatrix();
+            }
+            if (rotateLine) {
+                rotateLine.from.copy(topCenterWorldOffset);
+                rotateLine.to.copy(topCenterWorld);
+                rotateLine.updateMatrix();
+            }
+            const topLeftWorld = new Vector2(-halfSize.x, -halfSize.y);
+            const topRightWorld = new Vector2(+halfSize.x, -halfSize.y);
+            const bottomLeftWorld = new Vector2(-halfSize.x, +halfSize.y);
+            const bottomRightWorld = new Vector2(+halfSize.x, +halfSize.y);
             function updateCornerResizer(resizer, point) {
                 if (!resizer) return;
                 resizer.position.copy(point);
-                resizer.scale.set(1 / camera.scale, 1 / camera.scale);
-                resizer.rotation = object.rotation;
+                resizer.scale.set((1 / object.scale.x) / camera.scale, (1 / object.scale.y) / camera.scale);
                 resizer.updateMatrix();
             }
             updateCornerResizer(topLeft, topLeftWorld);
             updateCornerResizer(topRight, topRightWorld);
             updateCornerResizer(bottomLeft, bottomLeftWorld);
             updateCornerResizer(bottomRight, bottomRightWorld);
-            const leftMiddleWorld = object.globalMatrix.transformPoint(new Vector2(box.min.x, center.y));
-            const rightMiddleWorld = object.globalMatrix.transformPoint(new Vector2(box.max.x, center.y));
-            const topMiddleWorld = object.globalMatrix.transformPoint(new Vector2(center.x, box.min.y));
-            const bottomMiddleWorld = object.globalMatrix.transformPoint(new Vector2(center.x, box.max.y));
-            const halfWidth = MathUtils.sanity(object.boundingBox.getSize().x / 2 * Math.abs(object.scale.x));
-            const halfHeight = MathUtils.sanity(object.boundingBox.getSize().y / 2 * Math.abs(object.scale.y));
+            const leftMiddleWorld = new Vector2(-halfSize.x, 0);
+            const rightMiddleWorld = new Vector2(+halfSize.x, 0);
+            const topMiddleWorld = new Vector2(0, -halfSize.y);
+            const bottomMiddleWorld = new Vector2(0, +halfSize.y);
             function updateSideResizer(resizer, point, type = 'v') {
                 if (!resizer) return;
                 resizer.position.copy(point);
-                resizer.rotation = object.rotation;
                 if (resizer.type === 'Box') {
                     if (type === 'v') {
-                        resizer.scale.set(1 / camera.scale, 1);
-                        resizer.box.set(new Vector2(-radius, -halfHeight), new Vector2(radius, halfHeight));
+                        resizer.scale.set((1 / object.scale.x) / camera.scale, 1);
+                        resizer.box.set(new Vector2(-radius, -halfSize.y), new Vector2(radius, +halfSize.y));
                     } else {
-                        resizer.scale.set(1, 1 / camera.scale);
-                        resizer.box.set(new Vector2(-halfWidth, -radius), new Vector2(halfWidth, radius));
+                        resizer.scale.set(1, (1 / object.scale.y) / camera.scale);
+                        resizer.box.set(new Vector2(-halfSize.x, -radius), new Vector2(+halfSize.x, radius));
                     }
                 }
                 if (resizer.type === 'Line') {
-                    resizer.mouseBuffer = radius / camera.scale;
                     if (type === 'v') {
-                        resizer.from.set(0, -halfHeight);
-                        resizer.to.set(0, +halfHeight);
+                        resizer.from.set(0, -halfSize.y);
+                        resizer.to.set(0, +halfSize.y);
                     } else {
-                        resizer.from.set(-halfWidth, 0);
-                        resizer.to.set(+halfWidth, 0);
+                        resizer.from.set(-halfSize.x, 0);
+                        resizer.to.set(+halfSize.x, 0);
                     }
                 }
                 resizer.updateMatrix();
@@ -4058,16 +4149,18 @@ class SelectControls {
         if (pointer.buttonJustPressed(Pointer.LEFT)) {
             const underMouse = scene.getWorldPointIntersections(cameraPoint);
             if (keyboard.shiftPressed()) {
-                if (underMouse.length > 0) {
-                    const object = underMouse[0];
+                const selectOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
+                if (selectOnly.length > 0) {
+                    const object = selectOnly[0];
                     if (object.selectable) {
                         object.isSelected = true;
                         newSelection = ArrayUtils.combineThingArrays(newSelection, [ object ]);
                     }
                 }
             } else if (keyboard.ctrlPressed() || keyboard.metaPressed()) {
-                if (underMouse.length > 0) {
-                    const object = underMouse[0];
+                const selectOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
+                if (selectOnly.length > 0) {
+                    const object = selectOnly[0];
                     if (object.selectable) {
                         if (object.isSelected) {
                             object.isSelected = false;
@@ -4095,7 +4188,7 @@ class SelectControls {
         if (ArrayUtils.compareThingArrays(this.selection, newSelection) === false) {
             if (this.resizeTool) this.resizeTool.destroy();
             if (newSelection.length > 0) {
-                this.resizeTool = new ResizeTool$1(newSelection[0]);
+                this.resizeTool = new ResizeTool2(newSelection);
                 scene.add(this.resizeTool);
                 this.resizeTool.onUpdate(renderer);
             }
@@ -4462,4 +4555,4 @@ function getVariable(variable) {
     return ((value === '') ? undefined : value);
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, Entity, Key, Keyboard, Line, LinearGradientStyle, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool$1 as ResizeTool, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, Viewport, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, Entity, Key, Keyboard, Line, LinearGradientStyle, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, Viewport, WORLD_TYPES, World };

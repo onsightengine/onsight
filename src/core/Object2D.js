@@ -9,13 +9,14 @@ import { Box2 } from '../math/Box2.js';
 import { MathUtils } from '../utils/MathUtils.js';
 import { Matrix2 } from '../math/Matrix2.js';
 import { Pointer } from '../input/Pointer.js';
+import { Thing } from './Thing.js';
 import { Vector2 } from '../math/Vector2.js';
 
-class Object2D {
+class Object2D extends Thing {
 
-    constructor() {
+    constructor(name = 'Object') {
+        super(name);
         this.type = 'Object2D';
-        this.uuid = MathUtils.randomUUID();
 
         // Hierarchy
         this.children = [];
@@ -62,8 +63,10 @@ class Object2D {
     /******************** CHILDREN */
 
     add(...objects) {
+        if (!objects) return this;
         if (objects.length > 0 && Array.isArray(objects[0])) objects = objects[0];
         for (const object of objects) {
+            if (!object || !object.uuid) continue;
             const index = this.children.indexOf(object);
             if (index === -1) {
                 object.parent = this;

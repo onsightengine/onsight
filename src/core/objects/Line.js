@@ -1,6 +1,6 @@
 import { ColorStyle} from './style/ColorStyle.js';
+import { MathUtils } from '../../utils/MathUtils.js';
 import { Object2D} from '../Object2D.js';
-import { Style} from './style/Style.js';
 import { Vector2} from '../../math/Vector2.js';
 
 class Line extends Object2D {
@@ -27,7 +27,7 @@ class Line extends Object2D {
         this.dashPattern = [];
 
         // INTERNAL
-        this.scaledLineWidth = this.lineWidth;
+        this._cameraScale = 1;
         this._from = new Vector2();
         this._to = new Vector2();
     }
@@ -37,20 +37,42 @@ class Line extends Object2D {
     }
 
     isInside(point) {
-        const x = point.x;
-        const y = point.y;
-        const x1 = this.from.x;
-        const y1 = this.from.y;
-        const x2 = this.to.x;
-        const y2 = this.to.y;
-        const buffer = (this.scaledLineWidth / 2) + this.mouseBuffer;
+        // Transform Points
+        const globalPoint = this.globalMatrix.transformPoint(point);
+        const globalFrom = this.globalMatrix.transformPoint(this.from);
+        const globalTo = this.globalMatrix.transformPoint(this.to);
+        const x = globalPoint.x;
+        const y = globalPoint.y;
+        const x1 = globalFrom.x;
+        const y1 = globalFrom.y;
+        const x2 = globalTo.x;
+        const y2 = globalTo.y;
+        // Calculate Line Width
+        let scaledLineWidth;
+        if (this.constantWidth) {
+            scaledLineWidth = this.lineWidth / this._cameraScale;
+        } else {
+            function getPercentageOfDistance(origin, destination) {
+                const dx = destination.x - origin.x;
+                const dy = destination.y - origin.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance === 0) { return { x: 0, y: 0 }; }
+                const percentX = dx / distance;
+                const percentY = dy / distance;
+                return { x: percentX, y: percentY };
+            }
+            const xyPercent = getPercentageOfDistance(this.from, this.to);
+            const scale = this.globalMatrix.getScale();
+            const scalePercent = (Math.abs(scale.x * xyPercent.y) + Math.abs(scale.y * xyPercent.x)) / (xyPercent.x + xyPercent.y);
+            scaledLineWidth = MathUtils.sanity(this.lineWidth * scalePercent);
+        }
+        const buffer = (scaledLineWidth / 2) + (this.mouseBuffer / this._cameraScale);
         const dx = x2 - x1;
         const dy = y2 - y1;
         const lengthSquared = dx * dx + dy * dy;
-        // Line has zero length
-        if (lengthSquared === 0) {
-            return Math.sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1)) <= buffer;
-        }
+        // Line has zero length?
+        if (lengthSquared === 0) return Math.sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1)) <= buffer;
+        // Line okay...
         const t = ((x - x1) * dx + (y - y1) * dy) / lengthSquared;
         let nearestX, nearestY;
         if (t < 0) {
@@ -68,17 +90,8 @@ class Line extends Object2D {
     }
 
     style(context, camera, canvas) {
-        let scaleX = 1;
-        let scaleY = 1;
-        if (this.constantWidth) {
-            const matrix = context.getTransform();
-            scaleX = Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b);
-            scaleY = Math.sqrt(matrix.c * matrix.c + matrix.d * matrix.d);
-            this.scaledLineWidth = this.lineWidth / Math.max(scaleX, scaleY);
-        } else {
-            this.scaledLineWidth = this.lineWidth;
-        }
-        context.lineWidth = this.scaledLineWidth;
+        this._cameraScale = camera.scale;
+        context.lineWidth = this.lineWidth;
         context.strokeStyle = this.strokeStyle.get(context);
         context.setLineDash(this.dashPattern);
     }
@@ -87,7 +100,14 @@ class Line extends Object2D {
         context.beginPath();
         context.moveTo(this.from.x, this.from.y);
         context.lineTo(this.to.x, this.to.y);
-        context.stroke();
+        if (this.constantWidth) {
+            context.save();
+            context.setTransform(1, 0, 0, 1, 0, 0);
+            context.stroke();
+            context.restore();
+        } else {
+            context.stroke();
+        }
     }
 
     onUpdate(renderer) {

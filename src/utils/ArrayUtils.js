@@ -44,6 +44,13 @@ class ArrayUtils {
         return true;
     }
 
+    static filterThings(things, properties = {}) {
+        const filtered = things.filter((object) => {
+            return Object.keys(properties).every((key) => { return object[key] === properties[key]; });
+        });
+        return filtered;
+    }
+
     /** Checks an array to see if it includes an thing (by thing.uuid) */
     static includesThing(findThing, ...things) {
         if (!findThing || !findThing.uuid) return false;

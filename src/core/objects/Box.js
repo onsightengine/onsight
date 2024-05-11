@@ -37,16 +37,16 @@ class Box extends Object2D {
             context.fillRect(this.box.min.x, this.box.min.y, width, height);
         }
         if (this.strokeStyle) {
-            let scaleX = 1;
-            let scaleY = 1;
-            if (this.constantWidth) {
-                const matrix = context.getTransform();
-                scaleX = Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b);
-                scaleY = Math.sqrt(matrix.c * matrix.c + matrix.d * matrix.d);
-            }
-            context.lineWidth = this.lineWidth / Math.max(scaleX, scaleY);
+            context.lineWidth = this.lineWidth;;
             context.strokeStyle = this.strokeStyle.get(context);
-            context.strokeRect(this.box.min.x, this.box.min.y, width, height);
+            if (this.constantWidth) {
+                context.save();
+                context.setTransform(1, 0, 0, 1, 0, 0);
+                context.strokeRect(this.box.min.x, this.box.min.y, width, height);
+                context.restore();
+            } else {
+                context.strokeRect(this.box.min.x, this.box.min.y, width, height);
+            }
         }
     }
 

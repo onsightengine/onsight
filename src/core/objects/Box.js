@@ -30,21 +30,35 @@ class Box extends Object2D {
     }
 
     draw(context, camera, canvas, renderer) {
-        const width = this.box.max.x - this.box.min.x;
-        const height = this.box.max.y - this.box.min.y;
-        if (this.fillStyle) {
-            context.fillStyle = this.fillStyle.get(context);
-            context.fillRect(this.box.min.x, this.box.min.y, width, height);
-        }
-        if (this.strokeStyle) {
-            context.lineWidth = this.lineWidth;;
-            context.strokeStyle = this.strokeStyle.get(context);
-            if (this.constantWidth) {
+        if (this.constantWidth) {
+            context.beginPath();
+            context.moveTo(this.box.min.x, this.box.min.y);
+            context.lineTo(this.box.max.x, this.box.min.y);
+            context.lineTo(this.box.max.x, this.box.max.y);
+            context.lineTo(this.box.min.x, this.box.max.y);
+            context.closePath();
+            if (this.fillStyle) {
+                context.fillStyle = this.fillStyle.get(context);
+                context.fill();
+            }
+            if (this.strokeStyle) {
+                context.lineWidth = this.lineWidth;;
+                context.strokeStyle = this.strokeStyle.get(context);
                 context.save();
                 context.setTransform(1, 0, 0, 1, 0, 0);
-                context.strokeRect(this.box.min.x, this.box.min.y, width, height);
+                context.stroke();
                 context.restore();
-            } else {
+            }
+        } else {
+            const width = this.box.max.x - this.box.min.x;
+            const height = this.box.max.y - this.box.min.y;
+            if (this.fillStyle) {
+                context.fillStyle = this.fillStyle.get(context);
+                context.fillRect(this.box.min.x, this.box.min.y, width, height);
+            }
+            if (this.strokeStyle) {
+                context.lineWidth = this.lineWidth;;
+                context.strokeStyle = this.strokeStyle.get(context);
                 context.strokeRect(this.box.min.x, this.box.min.y, width, height);
             }
         }

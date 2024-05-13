@@ -34,7 +34,7 @@ class ResizeTool2 extends Box {
         super();
         this.name = 'Resize Tool';
         this.isHelper = true;
-        this.fillStyle = null;//'rgba(0, 0, 255, 0.25)';
+        this.fillStyle.color = 'rgba(0, 85, 102, 0.25)';
         this.strokeStyle = null;
 
         // Properties
@@ -90,7 +90,7 @@ class ResizeTool2 extends Box {
                 resizer.draggable = true;
                 resizer.focusable = false;
                 resizer.selectable = false;
-                resizer.layer = layer;
+                resizer.layer = layer + 1;
                 resizer.opacity = alpha;
                 resizer.constantWidth = true;
                 switch (type) {
@@ -202,7 +202,7 @@ class ResizeTool2 extends Box {
             rotater.focusable = false;
             rotater.selectable = false;
             rotater.radius = radius + 1;
-            rotater.layer = layer;
+            rotater.layer = layer + 1;
             rotater.constantWidth = true;
             rotater.fillStyle = new LinearGradientStyle();
             rotater.fillStyle.start.set(-radius, -radius);

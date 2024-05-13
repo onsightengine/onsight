@@ -3198,21 +3198,35 @@ class Box extends Object2D {
         return this.box.containsPoint(point);
     }
     draw(context, camera, canvas, renderer) {
-        const width = this.box.max.x - this.box.min.x;
-        const height = this.box.max.y - this.box.min.y;
-        if (this.fillStyle) {
-            context.fillStyle = this.fillStyle.get(context);
-            context.fillRect(this.box.min.x, this.box.min.y, width, height);
-        }
-        if (this.strokeStyle) {
-            context.lineWidth = this.lineWidth;;
-            context.strokeStyle = this.strokeStyle.get(context);
-            if (this.constantWidth) {
+        if (this.constantWidth) {
+            context.beginPath();
+            context.moveTo(this.box.min.x, this.box.min.y);
+            context.lineTo(this.box.max.x, this.box.min.y);
+            context.lineTo(this.box.max.x, this.box.max.y);
+            context.lineTo(this.box.min.x, this.box.max.y);
+            context.closePath();
+            if (this.fillStyle) {
+                context.fillStyle = this.fillStyle.get(context);
+                context.fill();
+            }
+            if (this.strokeStyle) {
+                context.lineWidth = this.lineWidth;;
+                context.strokeStyle = this.strokeStyle.get(context);
                 context.save();
                 context.setTransform(1, 0, 0, 1, 0, 0);
-                context.strokeRect(this.box.min.x, this.box.min.y, width, height);
+                context.stroke();
                 context.restore();
-            } else {
+            }
+        } else {
+            const width = this.box.max.x - this.box.min.x;
+            const height = this.box.max.y - this.box.min.y;
+            if (this.fillStyle) {
+                context.fillStyle = this.fillStyle.get(context);
+                context.fillRect(this.box.min.x, this.box.min.y, width, height);
+            }
+            if (this.strokeStyle) {
+                context.lineWidth = this.lineWidth;;
+                context.strokeStyle = this.strokeStyle.get(context);
                 context.strokeRect(this.box.min.x, this.box.min.y, width, height);
             }
         }
@@ -3402,14 +3416,7 @@ class Text extends Object2D {
         if (this.strokeStyle) {
             context.lineWidth = this.lineWidth;;
             context.strokeStyle = this.strokeStyle.get(context);
-            if (this.constantWidth) {
-                context.save();
-                context.setTransform(1, 0, 0, 1, 0, 0);
-                context.strokeText(this.text, 0, 0);
-                context.restore();
-            } else {
-                context.strokeText(this.text, 0, 0);
-            }
+            context.strokeText(this.text, 0, 0);
         }
     }
     onUpdate(renderer) {
@@ -3897,7 +3904,7 @@ class ResizeTool2 extends Box {
         super();
         this.name = 'Resize Tool';
         this.isHelper = true;
-        this.fillStyle = null;
+        this.fillStyle.color = 'rgba(0, 85, 102, 0.25)';
         this.strokeStyle = null;
         this.pointerEvents = true;
         this.draggable = true;
@@ -3937,7 +3944,7 @@ class ResizeTool2 extends Box {
                 resizer.draggable = true;
                 resizer.focusable = false;
                 resizer.selectable = false;
-                resizer.layer = layer;
+                resizer.layer = layer + 1;
                 resizer.opacity = alpha;
                 resizer.constantWidth = true;
                 switch (type) {
@@ -4035,7 +4042,7 @@ class ResizeTool2 extends Box {
             rotater.focusable = false;
             rotater.selectable = false;
             rotater.radius = radius + 1;
-            rotater.layer = layer;
+            rotater.layer = layer + 1;
             rotater.constantWidth = true;
             rotater.fillStyle = new LinearGradientStyle();
             rotater.fillStyle.start.set(-radius, -radius);

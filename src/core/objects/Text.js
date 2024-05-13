@@ -51,14 +51,7 @@ class Text extends Object2D {
         if (this.strokeStyle) {
             context.lineWidth = this.lineWidth;;
             context.strokeStyle = this.strokeStyle.get(context);
-            if (this.constantWidth) {
-                context.save();
-                context.setTransform(1, 0, 0, 1, 0, 0);
-                context.strokeText(this.text, 0, 0);
-                context.restore();
-            } else {
-                context.strokeText(this.text, 0, 0);
-            }
+            context.strokeText(this.text, 0, 0);
         }
     }
 

@@ -2,7 +2,7 @@ import { ArrayUtils } from '../../utils/ArrayUtils.js';
 import { Keyboard } from '../../input/Keyboard.js';
 import { Pointer } from '../../input/Pointer.js';
 import { ResizeTool } from '../helpers/ResizeTool.js';
-import { ResizeTool2 } from '../helpers/ResizeTool2.js';
+import { MultiResizeTool } from '../helpers/MultiResizeTool.js';
 
 class SelectControls {
 
@@ -76,14 +76,11 @@ class SelectControls {
         if (ArrayUtils.compareThingArrays(this.selection, newSelection) === false) {
             if (this.resizeTool) this.resizeTool.destroy();
             if (newSelection.length > 0) {
-
-                /////
                 // this.resizeTool = new ResizeTool(newSelection[0]);
-                this.resizeTool = new ResizeTool2(newSelection);
-                /////
-
+                this.resizeTool = new MultiResizeTool(newSelection);
                 scene.add(this.resizeTool);
                 this.resizeTool.onUpdate(renderer);
+                renderer.beingDragged = this.resizeTool;
             }
 
             // Save Selection

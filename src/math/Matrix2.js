@@ -105,10 +105,17 @@ class Matrix2 {
 
     /** Apply scale to this matrix */
     scale(sx, sy) {
-        this.m[0] *= sx;
-        this.m[1] *= sx;
-        this.m[2] *= sy;
-        this.m[3] *= sy;
+        if (typeof sx === 'object') {
+            this.m[0] *= sx.x;
+            this.m[1] *= sx.x;
+            this.m[2] *= sx.y;
+            this.m[3] *= sx.y;
+        } else {
+            this.m[0] *= sx;
+            this.m[1] *= sx;
+            this.m[2] *= sy;
+            this.m[3] *= sy;
+        }
         return this;
     }
 

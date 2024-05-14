@@ -117,6 +117,53 @@
         const onAfterRender = () => { debug.endFrame(renderer); };
         renderer.start(scene, camera, onBeforeRender, onAfterRender);
 
+        /////
+
+        const params = {
+            selectPosition: [ 0, 0 ],
+            selectRotation: 0,
+            selectScale: [ 0, 0 ],
+            objectPosition: [ 0, 0 ],
+            objectRotation: 0,
+            objectScale: [ 0, 0 ],
+        };
+
+        const gui = new SUEY.Gooey();
+
+        const folder1 = gui.addFolder('Selection');
+        const selectPosition = folder1.add(params, 'selectPosition');
+        const selectRotation = folder1.add(params, 'selectRotation');
+        const selectScale = folder1.add(params, 'selectScale');
+
+        const folder2 = gui.addFolder('Object');
+        const objectPosition = folder2.add(params, 'objectPosition');
+        const objectRotation = folder2.add(params, 'objectRotation');
+        const objectScale = folder2.add(params, 'objectScale');
+
+        const gooeyUpdater = {
+            update: function() {
+                if (selectControls.selection && selectControls.selection.length > 0) {
+                    const resizeTool = selectControls.resizeTool;
+                    params.selectPosition = [ resizeTool.position.x, resizeTool.position.y ];
+                    params.selectRotation = resizeTool.rotation * (180 / Math.PI);
+                    params.selectScale = [ resizeTool.scale.x, resizeTool.scale.y ];
+                    selectPosition.updateDisplay();
+                    selectRotation.updateDisplay();
+                    selectScale.updateDisplay();
+
+                    const first = selectControls.selection[0];
+                    params.objectPosition = [ first.position.x, first.position.y ];
+                    params.objectRotation = first.rotation * (180 / Math.PI);
+                    params.objectScale = [ first.scale.x, first.scale.y ];
+                    objectPosition.updateDisplay();
+                    objectRotation.updateDisplay();
+                    objectScale.updateDisplay();
+                }
+            },
+        }
+
+        renderer.addUpdate(gooeyUpdater);
+
     </script>
 
 </body>

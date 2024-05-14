@@ -11,13 +11,13 @@ import { Vector2 } from '../../math/Vector2.js';
 // svg to base64, 'cursors/rotate.svg'
 const CURSOR_ROTATE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWw6c3BhY2U9InByZXNlcnZlIiBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlLWxpbmVqb2luOnJvdW5kO3N0cm9rZS1taXRlcmxpbWl0OjI7Ij48cGF0aCBkPSJNMjEuMjQ3LDUuODY3YzAuNDE3LC0wLjQ1MiAxLjAzNiwtMC42NjYgMS42NDcsLTAuNTYzYzAuNjQ0LDAuMTA5IDEuMTgsMC41NTMgMS40MDcsMS4xNjRsMS44MjQsNC45MDFjMC4yMjcsMC42MTEgMC4xMTEsMS4yOTggLTAuMzA1LDEuODAxYy0wLjQxNiwwLjUwMyAtMS4wNjksMC43NDUgLTEuNzEzLDAuNjM2bC01LjE1NCwtMC44NzRjLTAuNjQ0LC0wLjEwOSAtMS4xOCwtMC41NTMgLTEuNDA3LC0xLjE2NWMtMC4xNzksLTAuNDgxIC0wLjE0NSwtMS4wMDggMC4wOCwtMS40NTVjLTAuNTIxLC0wLjE0OCAtMS4wNjQsLTAuMjI1IC0xLjYxNSwtMC4yMjVjLTMuMjY0LDAgLTUuOTEzLDIuNjUgLTUuOTEzLDUuOTEzYy0wLDMuMjYzIDIuNjQ5LDUuOTEzIDUuOTEzLDUuOTEzYzEuNjQsMCAzLjIwNiwtMC42ODEgNC4zMjQsLTEuODhjMC42ODgsLTAuNzM4IDEuODQ0LC0wLjc3OCAyLjU4MiwtMC4wOWwxLjM0NiwxLjI1NWMwLjczNywwLjY4OCAwLjc3OCwxLjg0MyAwLjA5LDIuNTgxYy0yLjE1OCwyLjMxNCAtNS4xNzksMy42MjcgLTguMzQyLDMuNjI3Yy02LjI5NSwwIC0xMS40MDYsLTUuMTExIC0xMS40MDYsLTExLjQwNmMtMCwtNi4yOTUgNS4xMTEsLTExLjQwNiAxMS40MDYsLTExLjQwNmMxLjgzOCwtMCAzLjYzMSwwLjQ0MyA1LjIzNiwxLjI3M1oiIHN0eWxlPSJmaWxsOiNmZmY7Ii8+PHBhdGggZD0iTTE5LjgzNSw5Ljc2N2wtMC45MDUsMS4wOTNjLTAuMDk3LDAuMTE3IC0wLjEyNCwwLjI3NyAtMC4wNzEsMC40MTljMC4wNTMsMC4xNDMgMC4xNzgsMC4yNDYgMC4zMjgsMC4yNzJsNS4xNTQsMC44NzRjMC4xNTEsMC4wMjYgMC4zMDMsLTAuMDMxIDAuNCwtMC4xNDhjMC4wOTcsLTAuMTE3IDAuMTI0LC0wLjI3NyAwLjA3MSwtMC40MmwtMS44MjMsLTQuOWMtMC4wNTMsLTAuMTQzIC0wLjE3OCwtMC4yNDYgLTAuMzI4LC0wLjI3MWMtMC4xNSwtMC4wMjYgLTAuMzAyLDAuMDMxIC0wLjM5OSwwLjE0OGwtMC42OTksMC44NDRjLTEuNjMyLC0xLjA5MSAtMy41NjIsLTEuNjgzIC01LjU1MiwtMS42ODNjLTUuNTIyLC0wIC0xMC4wMDYsNC40ODMgLTEwLjAwNiwxMC4wMDVjMCw1LjUyMiA0LjQ4NCwxMC4wMDUgMTAuMDA2LDEwLjAwNWMyLjc3NSwwIDUuNDI1LC0xLjE1MiA3LjMxNywtMy4xODFjMC4xNjEsLTAuMTcyIDAuMTUxLC0wLjQ0MiAtMC4wMjEsLTAuNjAybC0xLjM0NSwtMS4yNTVjLTAuMTcyLC0wLjE2IC0wLjQ0MiwtMC4xNTEgLTAuNjAyLDAuMDIxYy0xLjM4MywxLjQ4MyAtMy4zMjEsMi4zMjYgLTUuMzQ5LDIuMzI2Yy00LjAzNywtMCAtNy4zMTQsLTMuMjc3IC03LjMxNCwtNy4zMTRjMCwtNC4wMzcgMy4yNzcsLTcuMzE0IDcuMzE0LC03LjMxNGMxLjM2LDAgMi42ODIsMC4zNzkgMy44MjQsMS4wODFaIi8+PC9zdmc+';
 
-class MultiResizeTool extends Box {
+class MultiResizeTool2 extends Box {
 
     static ALL = 0;
     static RESIZE = 1;
     static ROTATE = 2;
 
-    constructor(objects, radius = 5, tools = MultiResizeTool.ALL) {
+    constructor(objects, radius = 5, tools = MultiResizeTool2.ALL) {
         if (!objects) return console.error(`ResizeTool(): Missing 'objects' argument`);
         objects = Array.isArray(objects) ? objects : [ objects ];
         if (objects.length === 0) return console.error(`ResizeTool(): Objects array is empty`);
@@ -34,11 +34,6 @@ class MultiResizeTool extends Box {
         this.focusable = true;
         this.selectable = false;
 
-        // Layer
-        let layer = 0
-        for (const object of objects) { layer = Math.max(layer, object.layer + 1); }
-        this.layer = layer;
-
         // Size, Position
         const combinedBox = new Box2();
         for (const object of objects) {
@@ -48,19 +43,19 @@ class MultiResizeTool extends Box {
         const halfSize = combinedBox.getSize().multiplyScalar(0.5);
         const center = combinedBox.getCenter();
         this.position.copy(center);
+        this.updateMatrix();
         this.box.set(new Vector2(-halfSize.x, -halfSize.y), new Vector2(+halfSize.x, +halfSize.y));
         this.computeBoundingBox();
 
-        // Initial Object Transforms
+        // Attach Objects
         const self = this;
-        const initialTransforms = {};
+        this.objects = objects;
+        let layer = 0
         for (const object of objects) {
-            initialTransforms[object.uuid] = {
-                position: object.position.clone(),
-                scale: object.scale.clone(),
-                rotation: object.rotation,
-            }
+            layer = Math.max(layer, object.layer + 1);
+            this.attach(object);
         }
+        this.layer = layer;
 
         // Resizers
         let topLeft, topRight, bottomLeft, bottomRight;
@@ -68,7 +63,7 @@ class MultiResizeTool extends Box {
         let rotater, rotateLine;
 
         // Corners / Sides
-        if (tools === MultiResizeTool.ALL || tools === MultiResizeTool.RESIZE) {
+        if (tools === MultiResizeTool2.ALL || tools === MultiResizeTool2.RESIZE) {
             function createResizer(name, x, y, type = 'box', addRotation, alpha) {
                 let resizer;
                 switch (type) {
@@ -179,24 +174,6 @@ class MultiResizeTool extends Box {
                     self.scale.x = MathUtils.noZero(MathUtils.sanity(self.scale.x));
                     self.scale.y = MathUtils.noZero(MathUtils.sanity(self.scale.y));
                     self.matrixNeedsUpdate = true;
-
-                    // Update individual objects
-                    for (const object of objects) {
-                        const initialTransform = initialTransforms[object.uuid];
-
-                        // Rotate Scale
-                        const cos = Math.cos(-initialTransform.rotation);
-                        const sin = Math.sin(-initialTransform.rotation);
-                        const rotatedScaleX = self.scale.x * cos * cos + self.scale.y * sin * sin;
-                        const rotatedScaleY = self.scale.x * sin * sin + self.scale.y * cos * cos;
-                        const rotatedScale = new Vector2(rotatedScaleX, rotatedScaleY);
-
-                        // Apply the rotated scale to the object's initial scale
-                        object.scale.copy(initialTransform.scale).multiply(rotatedScale);
-                        object.scale.x = MathUtils.noZero(MathUtils.sanity(object.scale.x));
-                        object.scale.y = MathUtils.noZero(MathUtils.sanity(object.scale.y));
-                        updateObject(object);
-                    }
                 };
                 return resizer;
             }
@@ -213,7 +190,7 @@ class MultiResizeTool extends Box {
         }
 
         // Rotate Tool
-        if (tools === MultiResizeTool.ALL || tools === MultiResizeTool.ROTATE) {
+        if (tools === MultiResizeTool2.ALL || tools === MultiResizeTool2.ROTATE) {
             // Circle
             rotater = new Circle();
             rotater.draggable = true;
@@ -243,12 +220,6 @@ class MultiResizeTool extends Box {
                 const sign = Math.sign(cross);
                 self.rotation += (angle * sign);
                 self.updateMatrix(true);
-
-                // Update individual objects
-                for (const object of objects) {
-                    object.rotation += (angle * sign);
-                    updateObject(object);
-                }
             };
             // Line
             rotateLine = new Line();
@@ -260,25 +231,6 @@ class MultiResizeTool extends Box {
             rotateLine.constantWidth = true;
             rotateLine.strokeStyle.color = '--highlight';
             this.add(rotater, rotateLine);
-        }
-
-        // Update positions on Drag
-        this.onPointerDrag = function(pointer, camera) {
-            Object2D.prototype.onPointerDrag.call(this, pointer, camera);
-            for (const object of objects) {
-                updateObject(object);
-            }
-        };
-
-        // Update the object's position based on the scaled relative position
-        function updateObject(object) {
-            const initialTransform = initialTransforms[object.uuid];
-            const relativePosition = initialTransform.position.clone().sub(center);
-            const scaledPosition = relativePosition.clone().multiply(self.scale);
-            const rotationMatrix = new Matrix2().rotate(object.rotation - initialTransform.rotation);
-            const rotatedPosition = rotationMatrix.transformPoint(scaledPosition);
-            object.position.copy(rotatedPosition).add(self.position);
-            object.matrixNeedsUpdate = true;
         }
 
         // Update
@@ -353,4 +305,4 @@ class MultiResizeTool extends Box {
 
 }
 
-export { MultiResizeTool };
+export { MultiResizeTool2 };

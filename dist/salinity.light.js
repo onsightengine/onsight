@@ -2127,10 +2127,17 @@ class Matrix2 {
         return this;
     }
     scale(sx, sy) {
-        this.m[0] *= sx;
-        this.m[1] *= sx;
-        this.m[2] *= sy;
-        this.m[3] *= sy;
+        if (typeof sx === 'object') {
+            this.m[0] *= sx.x;
+            this.m[1] *= sx.x;
+            this.m[2] *= sx.y;
+            this.m[3] *= sx.y;
+        } else {
+            this.m[0] *= sx;
+            this.m[1] *= sx;
+            this.m[2] *= sy;
+            this.m[3] *= sy;
+        }
         return this;
     }
     setPosition(x, y) {
@@ -2517,28 +2524,41 @@ class Object2D extends Thing {
             if (!object || !object.uuid) continue;
             const index = this.children.indexOf(object);
             if (index === -1) {
+                if (object.parent) object.parent.remove(object);
+                this.children.push(object);
                 object.parent = this;
                 object.level = this.level + 1;
+                object.matrixNeedsUpdate = true;
                 object.traverse(function(child) {
                     if (typeof child.onAdd === 'function') child.onAdd(this);
                 });
-                this.children.push(object);
             }
         }
         return this;
     }
-    remove(object) {
-        const index = this.children.indexOf(object);
-        if (index === -1) return undefined;
-        const child = this.children[index];
-        child.parent = null;
-        child.level = 0;
-        child.traverse(function(child) {
-            if (typeof child.onRemove === 'function') child.onRemove(this);
-        });
-        this.children.splice(index, 1);
-        return child;
+    remove(...objects) {
+        if (!objects) return this;
+        if (objects.length > 0 && Array.isArray(objects[0])) objects = objects[0];
+        for (const object of objects) {
+            if (!object || !object.uuid) continue;
+            const index = this.children.indexOf(object);
+            if (index !== -1) {
+                this.children.splice(index, 1);
+                object.parent = null;
+                object.level = 0;
+                object.matrixNeedsUpdate = true;
+                object.traverse(function(child) {
+                    if (typeof child.onRemove === 'function') child.onRemove(this);
+                });
+            }
+        }
+        return this;
     }
+    removeFromParent() {
+		const parent = this.parent;
+		if (parent) parent.remove(this);
+		return this;
+	}
     getChildByUUID(uuid) {
         return this.getEntityByProperty('uuid', uuid);
     }
@@ -2557,8 +2577,28 @@ class Object2D extends Thing {
         }
         return false;
     }
+    traverseVisible(callback) {
+        if (!this.visible) return false;
+        if (typeof callback === 'function' && callback(this)) return true;
+        for (const child of this.children) {
+            if (child.traverseVisible(callback)) return true;
+        }
+        return false;
+    }
+    traverseAncestors(callback) {
+		const parent = this.parent;
+        if (!parent) return false;
+		if (typeof callback === 'function' && callback(parent)) return true;
+		parent.traverseAncestors(callback);
+        return false;
+	}
+    clear() {
+        return this.remove(...this.children);
+    }
     destroy() {
-        if (this.parent) this.parent.remove(this);
+        this.clear();
+        this.removeFromParent();
+        return this;
     }
     computeBoundingBox() {
         return this.boundingBox;
@@ -2567,7 +2607,7 @@ class Object2D extends Thing {
         return false;
     }
     isWorldPointInside(worldPoint, recursive = false) {
-        const localPoint = this.inverseGlobalMatrix.transformPoint(worldPoint);
+        const localPoint = this.worldToLocal(worldPoint);
         if (this.isInside(localPoint)) return true;
         if (recursive) {
             for (const child of this.children) {
@@ -2580,7 +2620,7 @@ class Object2D extends Thing {
         const objects = [];
         this.traverse((child) => {
             if (!child.visible) return;
-            const localPoint = child.inverseGlobalMatrix.transformPoint(worldPoint);
+            const localPoint = child.worldToLocal(worldPoint);
             if (child.isInside(localPoint)) objects.push(child);
         });
         objects.sort((a, b) => {
@@ -2593,11 +2633,57 @@ class Object2D extends Thing {
         const box = this.boundingBox;
         if (Number.isFinite(box.min.x) === false || Number.isFinite(box.min.y) === false) return box;
         if (Number.isFinite(box.max.x) === false || Number.isFinite(box.max.y) === false) return box;
-        const topLeftWorld = this.globalMatrix.transformPoint(box.min);
-        const topRightWorld = this.globalMatrix.transformPoint(new Vector2(box.max.x, box.min.y));
-        const bottomLeftWorld = this.globalMatrix.transformPoint(new Vector2(box.min.x, box.max.y));
-        const bottomRightWorld = this.globalMatrix.transformPoint(box.max);
+        const topLeftWorld = this.localToWorld(box.min);
+        const topRightWorld = this.localToWorld(new Vector2(box.max.x, box.min.y));
+        const bottomLeftWorld = this.localToWorld(new Vector2(box.min.x, box.max.y));
+        const bottomRightWorld = this.localToWorld(box.max);
         return new Box2().setFromPoints(topLeftWorld, topRightWorld, bottomLeftWorld, bottomRightWorld);
+    }
+    localToWorld(vector) {
+        return this.globalMatrix.transformPoint(vector);
+    }
+    worldToLocal(vector) {
+        return this.inverseGlobalMatrix.transformPoint(vector);
+    }
+    applyMatrix(matrix) {
+        if (this.matrixAutoUpdate || this.matrixNeedsUpdate) this.updateMatrix();
+        this.matrix.premultiply(matrix);
+        this.position.copy(this.matrix.getPosition());
+        this.rotation = this.matrix.getRotation();
+        this.scale.copy(this.matrix.getScale());
+        return this;
+    }
+    attach(object) {
+        if (!object || !object.uuid) return this;
+        if (this.children.indexOf(object) !== -1) return this;
+        this.updateMatrix();
+        const m1 = new Matrix2().copy(this.inverseGlobalMatrix);
+        if (object.parent) {
+            object.parent.updateMatrix();
+            m1.multiply(object.parent.globalMatrix);
+        }
+        object.applyMatrix(m1);
+        object.removeFromParent();
+        this.children.push(object);
+        object.parent = this;
+        object.level = this.level + 1;
+        object.updateMatrix();
+        object.traverse(function(child) {
+            if (typeof child.onAdd === 'function') child.onAdd(this);
+        });
+        return this;
+    }
+    getWorldPosition() {
+        this.updateMatrix();
+        return this.globalMatrix.getPosition();
+    }
+    getWorldRotation() {
+        this.updateMatrix();
+        return this.globalMatrix.getRotation();
+    }
+    getWorldScale() {
+        this.updateMatrix();
+        return this.globalMatrix.getScale();
     }
     setPosition(x, y) {
         if (typeof x === 'object' && x.x && x.y) this.position.copy(x);

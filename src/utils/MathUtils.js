@@ -1,6 +1,7 @@
 // ANGLES
 //  radiansToDegrees()      Converts radians to degrees
 //  degreesToRadians()      Converts degrees to radians
+//  equalizeAngle0to360()   Clamps degrees in between 0 and 360
 // COMMON
 //  clamp()                 Clamps a number between min and max
 //  damp()                  Time based linear interpolation
@@ -47,6 +48,13 @@ class MathUtils {
 
     static degreesToRadians(degrees) {
         return (Math.PI / 180) * degrees;
+    }
+
+    static equalizeAngle0to360(angle, degrees = true) {
+        let equalized = (degrees) ? angle : radiansToDegrees(angle);
+        while (equalized <   0) { equalized += 360; }
+        while (equalized > 360) { equalized -= 360; }
+        return (degrees) ? equalized : degreesToRadians(equalized);
     }
 
     /******************** COMMON ********************/

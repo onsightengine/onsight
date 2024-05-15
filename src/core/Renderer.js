@@ -1,5 +1,5 @@
-import { Keyboard } from '../input/Keyboard.js';
-import { Pointer } from '../input/Pointer.js';
+import { Keyboard } from './input/Keyboard.js';
+import { Pointer } from './input/Pointer.js';
 import { Vector2 } from '../math/Vector2.js';
 import { Viewport } from './Viewport.js';
 

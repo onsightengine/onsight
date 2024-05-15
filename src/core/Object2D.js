@@ -8,7 +8,7 @@
 import { Box2 } from '../math/Box2.js';
 import { MathUtils } from '../utils/MathUtils.js';
 import { Matrix2 } from '../math/Matrix2.js';
-import { Pointer } from '../input/Pointer.js';
+import { Pointer } from './input/Pointer.js';
 import { Thing } from './Thing.js';
 import { Vector2 } from '../math/Vector2.js';
 
@@ -73,9 +73,9 @@ class Object2D extends Thing {
                 this.children.push(object);
                 object.parent = this;
                 object.level = this.level + 1;
-                object.matrixNeedsUpdate = true;
                 object.traverse(function(child) {
                     if (typeof child.onAdd === 'function') child.onAdd(this);
+                    child.matrixNeedsUpdate = true;
                 });
             }
         }
@@ -92,9 +92,9 @@ class Object2D extends Thing {
                 this.children.splice(index, 1);
                 object.parent = null;
                 object.level = 0;
-                object.matrixNeedsUpdate = true;
                 object.traverse(function(child) {
                     if (typeof child.onRemove === 'function') child.onRemove(this);
+                    child.matrixNeedsUpdate = true;
                 });
             }
         }
@@ -229,53 +229,53 @@ class Object2D extends Thing {
     /******************** POSITION */
 
     applyMatrix(matrix) {
-        if (this.matrixAutoUpdate || this.matrixNeedsUpdate) this.updateMatrix();
+        this.updateMatrix(true);
         this.matrix.premultiply(matrix);
         this.position.copy(this.matrix.getPosition());
         this.rotation = this.matrix.getRotation();
         this.scale.copy(this.matrix.getScale());
+        this.updateMatrix(true);
         return this;
     }
 
     attach(object) {
         if (!object || !object.uuid) return this;
         if (this.children.indexOf(object) !== -1) return this;
+        const oldParent = object.parent;
         // Current global matrix, remove from parent
-        this.updateMatrix();
+        this.updateMatrix(true);
         const m1 = new Matrix2().copy(this.inverseGlobalMatrix);
-        if (object.parent) {
-            object.parent.updateMatrix();
-            m1.multiply(object.parent.globalMatrix);
+        if (oldParent) {
+            oldParent.updateMatrix(true);
+            m1.multiply(oldParent.globalMatrix);
         }
+        // Apply the matrix transformation to the object
         object.applyMatrix(m1);
         object.removeFromParent();
-        // Add to Self
+        // Add to self
         this.children.push(object);
         object.parent = this;
         object.level = this.level + 1;
-        object.updateMatrix();
         object.traverse(function(child) {
             if (typeof child.onAdd === 'function') child.onAdd(this);
+            child.matrixNeedsUpdate = true;
         });
         return this;
     }
 
     getWorldPosition() {
-        this.updateMatrix();
+        this.updateMatrix(true);
         return this.globalMatrix.getPosition();
-
     }
 
     getWorldRotation() {
-        this.updateMatrix();
+        this.updateMatrix(true);
         return this.globalMatrix.getRotation();
-
     }
 
     getWorldScale() {
-        this.updateMatrix();
+        this.updateMatrix(true);
         return this.globalMatrix.getScale();
-
     }
 
     setPosition(x, y) {

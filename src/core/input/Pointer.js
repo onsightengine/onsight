@@ -1,5 +1,5 @@
 import { Key } from './Key.js';
-import { Vector2 } from '../math/Vector2.js';
+import { Vector2 } from '../../math/Vector2.js';
 
 class Pointer {
 

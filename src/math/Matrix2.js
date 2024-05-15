@@ -2,10 +2,8 @@ import { Vector2 } from './Vector2.js';
 
 /**
  * 2D 3x2 transformation matrix, values of the matrix are stored as numeric array.
- *  [ 0 Xx  1 Xy ]
- *  [ 2 Yx  3 Yy ]
- *  [ 4 Ox  5 Oy ]
- * The matrix can be applied to the canvas or DOM elements using CSS transforms.
+ *  [ 0 Xx  2 Yx  4 Ox ]
+ *  [ 1 Xy  3 Yy  5 Oy ]
  */
 class Matrix2 {
 
@@ -51,6 +49,7 @@ class Matrix2 {
         const m4 = mat.m[0] * this.m[4] + mat.m[2] * this.m[5] + mat.m[4];
         const m5 = mat.m[1] * this.m[4] + mat.m[3] * this.m[5] + mat.m[5];
         this.m = [ m0, m1, m2, m3, m4, m5 ];
+        return this;
     }
 
     /**
@@ -78,6 +77,14 @@ class Matrix2 {
 
         // Scale
         if (sx !== 1 || sy !== 1) this.scale(sx, sy);
+        return this;
+    }
+
+    decompose(object) {
+        if (!object || typeof object !== 'object') return this;
+        if (object.position) this.getPosition(object.position);
+        object.rotation = this.getRotation();
+        if (object.scale) this.getScale(object.scale);
         return this;
     }
 
@@ -127,16 +134,18 @@ class Matrix2 {
     }
 
     /** Extract the scale from the transformation matrix */
-    getScale() {
+    getScale(target = new Vector2()) {
         // https://stackoverflow.com/questions/45159314/decompose-2d-transformation-matrix
         const scaleX = Math.sqrt(this.m[0] * this.m[0] + this.m[1] * this.m[1]);
         const scaleY = Math.sqrt(this.m[2] * this.m[2] + this.m[3] * this.m[3]);
-        return new Vector2(scaleX, scaleY);
+        target.set(scaleX, scaleY);
+        return target;
     }
 
     /** Extract the position from the transformation matrix */
-    getPosition() {
-        return new Vector2(this.m[4], this.m[5]);
+    getPosition(target = new Vector2()) {
+        target.set(this.m[4], this.m[5]);
+        return target;
     }
 
     /** Extract the rotation angle from the transformation matrix */
@@ -144,20 +153,30 @@ class Matrix2 {
         return Math.atan2(this.m[1], this.m[0]);
     }
 
+    getShear() {
+        const rotation = this.getRotation();
+        return Math.atan2(this.m[3], this.m[2]) - (Math.PI / 2) - rotation;
+    }
+
     /** Apply skew to this matrix */
     skew(radianX, radianY) {
         return this.multiply(new Matrix2([ 1, Math.tan(radianY), Math.tan(radianX), 1, 0, 0 ]));
     }
 
-    /** Get the matrix determinant */
+    /**
+     * The determinant of a 2D transformation matrix can indicate if the transformation includes a reflection.
+     * A negative determinant means the transformation includes a mirroring.
+     */
     determinant() {
-        return 1 / (this.m[0] * this.m[3] - this.m[1] * this.m[2]);
+        return this.m[0] * this.m[3] - this.m[1] * this.m[2];
     }
 
     /** Get the inverse matrix */
     getInverse() {
         const d = this.determinant();
-        return new Matrix2([ this.m[3] * d, -this.m[1] * d, -this.m[2] * d, this.m[0] * d, d * (this.m[2] * this.m[5] - this.m[3] * this.m[4]), d * (this.m[1] * this.m[4] - this.m[0] * this.m[5]) ]);
+        if (d === 0) console.error(`Matrix2.getInverse(): Matrix is non-invertible`);
+        const invD = 1 / d;
+        return new Matrix2([ this.m[3] * invD, -this.m[1] * invD, -this.m[2] * invD, this.m[0] * invD, invD * (this.m[2] * this.m[5] - this.m[3] * this.m[4]), invD * (this.m[1] * this.m[4] - this.m[0] * this.m[5]) ]);
     }
 
     /** Transform a point using this matrix, returns new transformed point */

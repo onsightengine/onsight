@@ -661,6 +661,12 @@ class MathUtils {
     static degreesToRadians(degrees) {
         return (Math.PI / 180) * degrees;
     }
+    static equalizeAngle0to360(angle, degrees = true) {
+        let equalized = (degrees) ? angle : radiansToDegrees(angle);
+        while (equalized <   0) { equalized += 360; }
+        while (equalized > 360) { equalized -= 360; }
+        return (degrees) ? equalized : degreesToRadians(equalized);
+    }
     static clamp(number, min, max) {
         number = Number(number);
         if (number < min) number = min;
@@ -2095,6 +2101,7 @@ class Matrix2 {
         const m4 = mat.m[0] * this.m[4] + mat.m[2] * this.m[5] + mat.m[4];
         const m5 = mat.m[1] * this.m[4] + mat.m[3] * this.m[5] + mat.m[5];
         this.m = [ m0, m1, m2, m3, m4, m5 ];
+        return this;
     }
     compose(px, py, sx, sy, ox, oy, rot) {
         this.m = [ 1, 0, 0, 1, px, py ];
@@ -2106,6 +2113,13 @@ class Matrix2 {
             this.multiply(new Matrix2([ 1, 0, 0, 1, -ox, -oy ]));
         }
         if (sx !== 1 || sy !== 1) this.scale(sx, sy);
+        return this;
+    }
+    decompose(object) {
+        if (!object || typeof object !== 'object') return this;
+        if (object.position) this.getPosition(object.position);
+        object.rotation = this.getRotation();
+        if (object.scale) this.getScale(object.scale);
         return this;
     }
     translate(x, y) {
@@ -2145,26 +2159,34 @@ class Matrix2 {
         this.m[5] = y;
         return this;
     }
-    getScale() {
+    getScale(target = new Vector2()) {
         const scaleX = Math.sqrt(this.m[0] * this.m[0] + this.m[1] * this.m[1]);
         const scaleY = Math.sqrt(this.m[2] * this.m[2] + this.m[3] * this.m[3]);
-        return new Vector2(scaleX, scaleY);
+        target.set(scaleX, scaleY);
+        return target;
     }
-    getPosition() {
-        return new Vector2(this.m[4], this.m[5]);
+    getPosition(target = new Vector2()) {
+        target.set(this.m[4], this.m[5]);
+        return target;
     }
     getRotation() {
         return Math.atan2(this.m[1], this.m[0]);
+    }
+    getShear() {
+        const rotation = this.getRotation();
+        return Math.atan2(this.m[3], this.m[2]) - (Math.PI / 2) - rotation;
     }
     skew(radianX, radianY) {
         return this.multiply(new Matrix2([ 1, Math.tan(radianY), Math.tan(radianX), 1, 0, 0 ]));
     }
     determinant() {
-        return 1 / (this.m[0] * this.m[3] - this.m[1] * this.m[2]);
+        return this.m[0] * this.m[3] - this.m[1] * this.m[2];
     }
     getInverse() {
         const d = this.determinant();
-        return new Matrix2([ this.m[3] * d, -this.m[1] * d, -this.m[2] * d, this.m[0] * d, d * (this.m[2] * this.m[5] - this.m[3] * this.m[4]), d * (this.m[1] * this.m[4] - this.m[0] * this.m[5]) ]);
+        if (d === 0) console.error(`Matrix2.getInverse(): Matrix is non-invertible`);
+        const invD = 1 / d;
+        return new Matrix2([ this.m[3] * invD, -this.m[1] * invD, -this.m[2] * invD, this.m[0] * invD, invD * (this.m[2] * this.m[5] - this.m[3] * this.m[4]), invD * (this.m[1] * this.m[4] - this.m[0] * this.m[5]) ]);
     }
     transformPoint(x, y) {
         let px, py;
@@ -2528,9 +2550,9 @@ class Object2D extends Thing {
                 this.children.push(object);
                 object.parent = this;
                 object.level = this.level + 1;
-                object.matrixNeedsUpdate = true;
                 object.traverse(function(child) {
                     if (typeof child.onAdd === 'function') child.onAdd(this);
+                    child.matrixNeedsUpdate = true;
                 });
             }
         }
@@ -2546,9 +2568,9 @@ class Object2D extends Thing {
                 this.children.splice(index, 1);
                 object.parent = null;
                 object.level = 0;
-                object.matrixNeedsUpdate = true;
                 object.traverse(function(child) {
                     if (typeof child.onRemove === 'function') child.onRemove(this);
+                    child.matrixNeedsUpdate = true;
                 });
             }
         }
@@ -2646,43 +2668,45 @@ class Object2D extends Thing {
         return this.inverseGlobalMatrix.transformPoint(vector);
     }
     applyMatrix(matrix) {
-        if (this.matrixAutoUpdate || this.matrixNeedsUpdate) this.updateMatrix();
+        this.updateMatrix(true);
         this.matrix.premultiply(matrix);
         this.position.copy(this.matrix.getPosition());
         this.rotation = this.matrix.getRotation();
         this.scale.copy(this.matrix.getScale());
+        this.updateMatrix(true);
         return this;
     }
     attach(object) {
         if (!object || !object.uuid) return this;
         if (this.children.indexOf(object) !== -1) return this;
-        this.updateMatrix();
+        const oldParent = object.parent;
+        this.updateMatrix(true);
         const m1 = new Matrix2().copy(this.inverseGlobalMatrix);
-        if (object.parent) {
-            object.parent.updateMatrix();
-            m1.multiply(object.parent.globalMatrix);
+        if (oldParent) {
+            oldParent.updateMatrix(true);
+            m1.multiply(oldParent.globalMatrix);
         }
         object.applyMatrix(m1);
         object.removeFromParent();
         this.children.push(object);
         object.parent = this;
         object.level = this.level + 1;
-        object.updateMatrix();
         object.traverse(function(child) {
             if (typeof child.onAdd === 'function') child.onAdd(this);
+            child.matrixNeedsUpdate = true;
         });
         return this;
     }
     getWorldPosition() {
-        this.updateMatrix();
+        this.updateMatrix(true);
         return this.globalMatrix.getPosition();
     }
     getWorldRotation() {
-        this.updateMatrix();
+        this.updateMatrix(true);
         return this.globalMatrix.getRotation();
     }
     getWorldScale() {
-        this.updateMatrix();
+        this.updateMatrix(true);
         return this.globalMatrix.getScale();
     }
     setPosition(x, y) {

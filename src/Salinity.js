@@ -32,6 +32,11 @@ export { Asset } from './core/assets/Asset.js';
 export { Palette } from './core/assets/Palette.js';
 export { Script } from './core/assets/Script.js';
 
+// Input
+export { Key } from './core/input/Key.js';
+export { Keyboard } from './core/input/Keyboard.js';
+export { Pointer } from './core/input/Pointer.js';
+
 // Project
 export { Entity } from './core/project/Entity.js';
 export { Project } from './core/project/Project.js';
@@ -62,12 +67,6 @@ export { ColorStyle } from './core/objects/style/ColorStyle.js';
 export { LinearGradientStyle } from './core/objects/style/LinearGradientStyle.js';
 export { RadialGradientStyle } from './core/objects/style/RadialGradientStyle.js';
 // export { PatternStyle } from './objects/style/PatternStyle.js';
-
-/******************** INPUT ********************/
-
-export { Key } from './input/Key.js';
-export { Keyboard } from './input/Keyboard.js';
-export { Pointer } from './input/Pointer.js';
 
 /******************** MATH ********************/
 

@@ -65,15 +65,15 @@ class MultiResizeTool2 extends Box {
             clone.visible = false;
             clone.pointerEvents = false;
 
-            // clone.position.copy(object.position).sub(startPosition);
-            // clone.rotation = object.rotation - startRotation;
-            // clone.scale = object.scale.clone().divide(startScale);
-            // this.add(clone);
-            clone.position.copy(object.position);
-            clone.rotation = object.rotation;
-            clone.scale.copy(object.scale);
-            clone.updateMatrix(true);
-            this.attach(clone);
+            clone.position.copy(object.position).sub(startPosition);
+            clone.rotation = object.rotation - startRotation;
+            clone.scale = object.scale.clone().divide(startScale);
+            this.add(clone);
+            // clone.position.copy(object.position);
+            // clone.rotation = object.rotation;
+            // clone.scale.copy(object.scale);
+            // clone.updateMatrix(true);
+            // this.attach(clone);
 
             clones[object.uuid] = clone;
             // Rotations
@@ -82,6 +82,8 @@ class MultiResizeTool2 extends Box {
                 rotation: object.rotation,
                 scale: object.scale.clone(),
             };
+
+            console.log('Initial Scale', object.scale.x, object.scale.y);
         }
         this.layer = layer;
 
@@ -279,19 +281,20 @@ class MultiResizeTool2 extends Box {
                 // Position
                 clone.globalMatrix.getPosition(object.position);
 
-                // Scale
-                clone.globalMatrix.getScale(object.scale);
-
-                // Flip?
-                const rotationMatrix = new Matrix2().rotate(initialTransforms[object.uuid].rotation);
-                const cloneSign = rotationMatrix.transformPoint(clone.scale);
-                const signX = Math.sign(cloneSign.x) * Math.sign(self.scale.x);
-                const signY = Math.sign(cloneSign.y) * Math.sign(self.scale.y);
-                if (signX < 0 && signY > 0) object.scale.y *= -1;
-                else if (signX > 0 && signY < 0) object.scale.y *= -1;
-
                 // Rotation
                 object.rotation = clone.globalMatrix.getRotation();
+
+                // Scale
+                clone.globalMatrix.getScale(object.scale);
+                object.scale.multiply(clone.globalMatrix.getSign());
+
+                // Signs the Same
+                if ((object.scale.x < 0 && object.scale.y < 0) || (object.scale.x > 0 && object.scale.y > 0)) {
+                    object.scale.abs();
+                // Signs Opposite, angle below -90 or above +90
+                } else if (object.rotation <= Math.PI / -2 || object.rotation >= Math.PI / 2) {
+                    object.scale.multiplyScalar(-1);
+                }
 
                 object.updateMatrix(true);
             }

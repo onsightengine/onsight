@@ -4353,6 +4353,7 @@ class MultiResizeTool2 extends Box {
                 rotation: object.rotation,
                 scale: object.scale.clone(),
             };
+            console.log('Initial Scale', object.scale.x, object.scale.y);
         }
         this.layer = layer;
         let topLeft, topRight, bottomLeft, bottomRight;
@@ -4517,23 +4518,25 @@ class MultiResizeTool2 extends Box {
         this.onPointerDrag = function(pointer, camera) {
             Object2D.prototype.onPointerDrag.call(this, pointer, camera);
             self.updateMatrix(true);
+            updateClones(false );
         };
         function updateClones(updateRotation = false) {
+            let i = 0;
             for (const object of objects) {
                 const clone = clones[object.uuid];
                 clone.updateMatrix(true);
                 clone.globalMatrix.getPosition(object.position);
-                clone.globalMatrix.getScale(object.scale);
-                const rotationMatrix = new Matrix2().rotate(initialTransforms[object.uuid].rotation);
-                const cloneSign = rotationMatrix.transformPoint(clone.scale);
-                const signX = Math.sign(cloneSign.x) * Math.sign(self.scale.x);
-                const signY = Math.sign(cloneSign.y) * Math.sign(self.scale.y);
-                if (signX < 0 && signY > 0) object.scale.y *= -1;
-                else if (signX > 0 && signY < 0) object.scale.y *= -1;
                 object.rotation = clone.globalMatrix.getRotation();
-                if (object.rotation > Math.PI / 2 || object.rotation < Math.PI / -2) {
+                clone.globalMatrix.getScale(object.scale);
+                object.scale.multiply(clone.globalMatrix.getSign());
+                if ((object.scale.x < 0 && object.scale.y < 0) || (object.scale.x > 0 && object.scale.y > 0)) {
+                    object.scale.abs();
+                } else if (object.rotation <= Math.PI / -2 || object.rotation >= Math.PI / 2) {
+                    if (i === 1) console.log(object.rotation);
+                    object.scale.multiplyScalar(-1);
                 }
                 object.updateMatrix(true);
+                i++;
             }
         }
         this.onUpdate = function(renderer) {

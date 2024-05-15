@@ -55,7 +55,7 @@ class MultiResizeTool2 extends Box {
         // Attach Objects
         const self = this;
         const clones = {};
-        const initialRotations = {};
+        const initialTransforms = {};
         this.objects = objects;
         let layer = 0
         for (const object of objects) {
@@ -64,17 +64,24 @@ class MultiResizeTool2 extends Box {
             const clone = new Object2D();
             clone.visible = false;
             clone.pointerEvents = false;
-            clone.draggable = false;
-            clone.focusable = false;
-            clone.selectable = false;
+
+            // clone.position.copy(object.position).sub(startPosition);
+            // clone.rotation = object.rotation - startRotation;
+            // clone.scale = object.scale.clone().divide(startScale);
+            // this.add(clone);
             clone.position.copy(object.position);
             clone.rotation = object.rotation;
             clone.scale.copy(object.scale);
             clone.updateMatrix(true);
             this.attach(clone);
+
             clones[object.uuid] = clone;
             // Rotations
-            initialRotations[object.uuid] = object.rotation;
+            initialTransforms[object.uuid] = {
+                position: object.position.clone(),
+                rotation: object.rotation,
+                scale: object.scale.clone(),
+            };
         }
         this.layer = layer;
 
@@ -156,11 +163,6 @@ class MultiResizeTool2 extends Box {
                     }
                     return closestCursor;
                 };
-                resizer.onPointerDragStart = function(pointer, camera) {
-                    for (const object of objects) {
-                        initialRotations[object.uuid] = clones[object.uuid].globalMatrix.getRotation();//get object.rotation;
-                    }
-                };
                 resizer.onPointerDrag = function(pointer, camera) {
                     Object2D.prototype.onPointerDrag.call(this, pointer, camera);
                     // Transform Delta
@@ -199,6 +201,7 @@ class MultiResizeTool2 extends Box {
                     self.scale.sub(delta);
                     self.scale.x = MathUtils.noZero(MathUtils.sanity(self.scale.x));
                     self.scale.y = MathUtils.noZero(MathUtils.sanity(self.scale.y));
+                    self.updateMatrix(true);
                     updateClones(false /* updateRotation? */);
                 };
                 return resizer;
@@ -245,6 +248,7 @@ class MultiResizeTool2 extends Box {
                 const cross = localPositionEnd.cross(localPositionStart);
                 const sign = Math.sign(cross);
                 self.rotation += (angle * sign);
+                self.updateMatrix(true);
                 updateClones(true /* updateRotation? */);
             };
             // Line
@@ -262,42 +266,33 @@ class MultiResizeTool2 extends Box {
         // Update positions on Drag
         this.onPointerDrag = function(pointer, camera) {
             Object2D.prototype.onPointerDrag.call(this, pointer, camera);
+            self.updateMatrix(true);
             updateClones(false /* updateRotation? */);
         };
 
-        // Update Objects from Clones
+        // Clones
         function updateClones(updateRotation = false) {
-            self.updateMatrix(true);
             for (const object of objects) {
                 const clone = clones[object.uuid];
                 clone.updateMatrix(true);
-                const matrix = clone.globalMatrix;
-                // const determinant = matrix.m[0] * matrix.m[3] - matrix.m[1] * matrix.m[2];
-                // const isMirrored = determinant < 0;
 
                 // Position
-                const position = new Vector2(matrix.m[4], matrix.m[5]);
-                object.position.copy(position);
+                clone.globalMatrix.getPosition(object.position);
 
                 // Scale
-                let scaleX = Math.sqrt(matrix.m[0] * matrix.m[0] + matrix.m[1] * matrix.m[1]);
-                let scaleY = Math.sqrt(matrix.m[2] * matrix.m[2] + matrix.m[3] * matrix.m[3]);
-                object.scale.set(scaleX, scaleY);
+                clone.globalMatrix.getScale(object.scale);
+
+                // Flip?
+                const rotationMatrix = new Matrix2().rotate(initialTransforms[object.uuid].rotation);
+                const cloneSign = rotationMatrix.transformPoint(clone.scale);
+                const signX = Math.sign(cloneSign.x) * Math.sign(self.scale.x);
+                const signY = Math.sign(cloneSign.y) * Math.sign(self.scale.y);
+                if (signX < 0 && signY > 0) object.scale.y *= -1;
+                else if (signX > 0 && signY < 0) object.scale.y *= -1;
 
                 // Rotation
-                if (updateRotation) object.rotation = Math.atan2(matrix.m[1], matrix.m[0]);
-                // else object.rotation = initialRotations[object.uuid];
+                object.rotation = clone.globalMatrix.getRotation();
 
-                // // Mirrored?
-                // if (isMirrored) {
-                //     object.scale.x *= -1;
-                //     object.rotation -= Math.PI;
-                // }
-
-                if (self.scale.x < 0) object.scale.x *= -1;
-                if (self.scale.y < 0) object.scale.y *= -1;
-
-                // Ensure the object matrix is updated
                 object.updateMatrix(true);
             }
         }

@@ -38,14 +38,12 @@ class CameraControls {
                 const worldPoint = camera.inverseMatrix.transformPoint(pointer.position);
                 const objects = renderer.scene.getWorldPointIntersections(worldPoint);
                 let focused = false;
-                for (const object of objects) {
-                    if (object.focusable) {
-                        this.focusCamera(renderer, object, false /* includeChildren? */);
-                        focused = true;
-                        break;
-                    }
+                if (objects.length === 0) {
+                    this.focusCamera(renderer, renderer.scene, true /* includeChildren? */);
+                } else {
+                    const object = objects[0];
+                    if (object.focusable) this.focusCamera(renderer, object, false /* includeChildren? */);
                 }
-                if (!focused) this.focusCamera(renderer, renderer.scene, true /* includeChildren? */);
             }
         }
 

@@ -215,6 +215,13 @@ class Vector3 {
         return this;
     }
 
+    abs() {
+        this.x = Math.abs(this.x);
+        this.y = Math.abs(this.y);
+        this.z = Math.abs(this.z);
+        return this;
+    }
+
     dot(vec) {
         return this.x * vec.x + this.y * vec.y + this.z * vec.z;
     }

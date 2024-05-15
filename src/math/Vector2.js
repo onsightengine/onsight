@@ -184,6 +184,12 @@ class Vector2 {
         return this;
     }
 
+    abs() {
+        this.x = Math.abs(this.x);
+        this.y = Math.abs(this.y);
+        return this;
+    }
+
     dot(vec) {
         return this.x * vec.x + this.y * vec.y;
     }

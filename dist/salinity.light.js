@@ -495,6 +495,12 @@ class Vector3 {
         this.z = -this.z;
         return this;
     }
+    abs() {
+        this.x = Math.abs(this.x);
+        this.y = Math.abs(this.y);
+        this.z = Math.abs(this.z);
+        return this;
+    }
     dot(vec) {
         return this.x * vec.x + this.y * vec.y + this.z * vec.z;
     }
@@ -1978,6 +1984,11 @@ class Vector2 {
         this.y = -this.y;
         return this;
     }
+    abs() {
+        this.x = Math.abs(this.x);
+        this.y = Math.abs(this.y);
+        return this;
+    }
     dot(vec) {
         return this.x * vec.x + this.y * vec.y;
     }
@@ -2175,6 +2186,12 @@ class Matrix2 {
     getShear() {
         const rotation = this.getRotation();
         return Math.atan2(this.m[3], this.m[2]) - (Math.PI / 2) - rotation;
+    }
+    getSign(target = new Vector2()) {
+        const signX = (this.m[0] < 0) ? -1 : 1;
+        const signY = (this.m[3] < 0) ? -1 : 1;
+        target.set(signX, signY);
+        return target;
     }
     skew(radianX, radianY) {
         return this.multiply(new Matrix2([ 1, Math.tan(radianY), Math.tan(radianX), 1, 0, 0 ]));
@@ -2670,9 +2687,9 @@ class Object2D extends Thing {
     applyMatrix(matrix) {
         this.updateMatrix(true);
         this.matrix.premultiply(matrix);
-        this.position.copy(this.matrix.getPosition());
+        this.matrix.getPosition(this.position);
         this.rotation = this.matrix.getRotation();
-        this.scale.copy(this.matrix.getScale());
+        this.matrix.getScale(this.scale);
         this.updateMatrix(true);
         return this;
     }

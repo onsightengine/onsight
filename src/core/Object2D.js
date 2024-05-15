@@ -231,9 +231,9 @@ class Object2D extends Thing {
     applyMatrix(matrix) {
         this.updateMatrix(true);
         this.matrix.premultiply(matrix);
-        this.position.copy(this.matrix.getPosition());
+        this.matrix.getPosition(this.position);
         this.rotation = this.matrix.getRotation();
-        this.scale.copy(this.matrix.getScale());
+        this.matrix.getScale(this.scale);
         this.updateMatrix(true);
         return this;
     }

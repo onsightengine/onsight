@@ -158,6 +158,13 @@ class Matrix2 {
         return Math.atan2(this.m[3], this.m[2]) - (Math.PI / 2) - rotation;
     }
 
+    getSign(target = new Vector2()) {
+        const signX = (this.m[0] < 0) ? -1 : 1;
+        const signY = (this.m[3] < 0) ? -1 : 1;
+        target.set(signX, signY);
+        return target;
+    }
+
     /** Apply skew to this matrix */
     skew(radianX, radianY) {
         return this.multiply(new Matrix2([ 1, Math.tan(radianY), Math.tan(radianX), 1, 0, 0 ]));

@@ -2,7 +2,6 @@ import { ArrayUtils } from '../../utils/ArrayUtils.js';
 import { Keyboard } from '../../core/input/Keyboard.js';
 import { Pointer } from '../../core/input/Pointer.js';
 import { ResizeTool } from '../helpers/ResizeTool.js';
-import { MultiResizeTool } from '../helpers/MultiResizeTool.js';
 
 class SelectControls {
 
@@ -81,9 +80,7 @@ class SelectControls {
             }
             // Create New Tool?
             if (newSelection.length > 0) {
-                // this.resizeTool = new ResizeTool(newSelection[0]);
-                this.resizeTool = new MultiResizeTool(newSelection);
-
+                this.resizeTool = new ResizeTool(newSelection);
                 scene.add(this.resizeTool);
                 this.resizeTool.onUpdate(renderer);
                 renderer.beingDragged = this.resizeTool;

@@ -183,20 +183,26 @@ class MultiResizeTool extends Box {
                     // Update individual objects
                     for (const object of objects) {
                         const initialTransform = initialTransforms[object.uuid];
+                        const initialRotation = MathUtils.equalizeAngle0to360(initialTransform.rotation, false);
+                        const rotatedScale = self.scale.clone();
 
-                        // Rotate Scale
-                        const cos = Math.cos(-initialTransform.rotation);
-                        const sin = Math.sin(-initialTransform.rotation);
-                        const rotatedScaleX = self.scale.x * cos * cos + self.scale.y * sin * sin;
-                        const rotatedScaleY = self.scale.x * sin * sin + self.scale.y * cos * cos;
-                        const rotatedScale = new Vector2(rotatedScaleX, rotatedScaleY);
-
-                        // Apply the rotated scale to the object's initial scale
+                        // Rotate Scale?
+                        const fortyFive = Math.PI / 4;
+                        let flip = false;
+                        if      (initialRotation < fortyFive * 1) flip = false;
+                        else if (initialRotation < fortyFive * 3) flip = true;
+                        else if (initialRotation < fortyFive * 5) flip = false;
+                        else if (initialRotation < fortyFive * 7) flip = true;
+                        else flip = false;
+                        if (flip) {
+                            rotatedScale.x = self.scale.y;
+                            rotatedScale.y = self.scale.x;
+                        }
                         object.scale.copy(initialTransform.scale).multiply(rotatedScale);
                         object.scale.x = MathUtils.noZero(MathUtils.sanity(object.scale.x));
                         object.scale.y = MathUtils.noZero(MathUtils.sanity(object.scale.y));
-                        updateObject(object);
                     }
+                    updateObjects();
                 };
                 return resizer;
             }
@@ -243,12 +249,7 @@ class MultiResizeTool extends Box {
                 const sign = Math.sign(cross);
                 self.rotation += (angle * sign);
                 self.updateMatrix(true);
-
-                // Update individual objects
-                for (const object of objects) {
-                    object.rotation += (angle * sign);
-                    updateObject(object);
-                }
+                updateObjects();
             };
             // Line
             rotateLine = new Line();
@@ -265,20 +266,37 @@ class MultiResizeTool extends Box {
         // Update positions on Drag
         this.onPointerDrag = function(pointer, camera) {
             Object2D.prototype.onPointerDrag.call(this, pointer, camera);
-            for (const object of objects) {
-                updateObject(object);
-            }
+            updateObjects();
         };
 
-        // Update the object's position based on the scaled relative position
-        function updateObject(object) {
-            const initialTransform = initialTransforms[object.uuid];
-            const relativePosition = initialTransform.position.clone().sub(center);
-            const scaledPosition = relativePosition.clone().multiply(self.scale);
-            const rotationMatrix = new Matrix2().rotate(object.rotation - initialTransform.rotation);
-            const rotatedPosition = rotationMatrix.transformPoint(scaledPosition);
-            object.position.copy(rotatedPosition).add(self.position);
-            object.matrixNeedsUpdate = true;
+        // Update object's position based on the scaled relative position
+        function updateObjects() {
+            for (const object of objects) {
+                const initialTransform = initialTransforms[object.uuid];
+                const initialScale = initialTransform.scale;
+
+                // Rotation
+                object.rotation = initialTransforms[object.uuid].rotation + self.rotation;
+
+                // Position
+                const relativePosition = initialTransform.position.clone().sub(center);
+                const scaledPosition = relativePosition.clone().multiply(self.scale);
+                const rotationMatrix = new Matrix2().rotate(object.rotation - initialTransform.rotation);
+                const rotatedPosition = rotationMatrix.transformPoint(scaledPosition);
+                object.position.copy(rotatedPosition).add(self.position);
+
+                // Flipped?
+                const wasSame = Math.sign(object.scale.x) === Math.sign(object.scale.y);
+                const isSame =  Math.sign(initialScale.x) === Math.sign(initialScale.y);
+                if (wasSame !== isSame) {
+                    object.rotation -= self.rotation;
+                    object.rotation *= -1;
+                    object.rotation += self.rotation;
+                }
+
+                // Needs Update
+                object.matrixNeedsUpdate = true;
+            }
         }
 
         // Update

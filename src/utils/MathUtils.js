@@ -51,10 +51,10 @@ class MathUtils {
     }
 
     static equalizeAngle0to360(angle, degrees = true) {
-        let equalized = (degrees) ? angle : radiansToDegrees(angle);
-        while (equalized <   0) { equalized += 360; }
-        while (equalized > 360) { equalized -= 360; }
-        return (degrees) ? equalized : degreesToRadians(equalized);
+        let equalized = (degrees) ? angle : MathUtils.radiansToDegrees(angle);
+        while (equalized < 0) { equalized += 360; }
+        while (equalized >= 360) { equalized -= 360; }
+        return (degrees) ? equalized : MathUtils.degreesToRadians(equalized);
     }
 
     /******************** COMMON ********************/

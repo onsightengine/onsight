@@ -668,10 +668,10 @@ class MathUtils {
         return (Math.PI / 180) * degrees;
     }
     static equalizeAngle0to360(angle, degrees = true) {
-        let equalized = (degrees) ? angle : radiansToDegrees(angle);
-        while (equalized <   0) { equalized += 360; }
-        while (equalized > 360) { equalized -= 360; }
-        return (degrees) ? equalized : degreesToRadians(equalized);
+        let equalized = (degrees) ? angle : MathUtils.radiansToDegrees(angle);
+        while (equalized < 0) { equalized += 360; }
+        while (equalized >= 360) { equalized -= 360; }
+        return (degrees) ? equalized : MathUtils.degreesToRadians(equalized);
     }
     static clamp(number, min, max) {
         number = Number(number);
@@ -2133,6 +2133,11 @@ class Matrix2 {
         if (object.scale) this.getScale(object.scale);
         return this;
     }
+    setPosition(x, y) {
+        this.m[4] = x;
+        this.m[5] = y;
+        return this;
+    }
     translate(x, y) {
         this.m[4] += this.m[0] * x + this.m[2] * y;
         this.m[5] += this.m[1] * x + this.m[3] * y;
@@ -2165,10 +2170,8 @@ class Matrix2 {
         }
         return this;
     }
-    setPosition(x, y) {
-        this.m[4] = x;
-        this.m[5] = y;
-        return this;
+    skew(radianX, radianY) {
+        return this.multiply(new Matrix2([ 1, Math.tan(radianY), Math.tan(radianX), 1, 0, 0 ]));
     }
     getScale(target = new Vector2()) {
         const scaleX = Math.sqrt(this.m[0] * this.m[0] + this.m[1] * this.m[1]);
@@ -2183,18 +2186,20 @@ class Matrix2 {
     getRotation() {
         return Math.atan2(this.m[1], this.m[0]);
     }
-    getShear() {
-        const rotation = this.getRotation();
-        return Math.atan2(this.m[3], this.m[2]) - (Math.PI / 2) - rotation;
+    getShear(target = new Vector2()) {
+        const scaleX = Math.sqrt(this.m[0] * this.m[0] + this.m[1] * this.m[1]);
+        const scaleY = Math.sqrt(this.m[2] * this.m[2] + this.m[3] * this.m[3]);
+        const rotation = Math.atan2(this.m[1], this.m[0]);
+        const shearX = Math.atan2(this.m[0] * this.m[2] + this.m[1] * this.m[3], scaleX * scaleY);
+        const shearY = Math.atan2(-this.m[0] * this.m[3] + this.m[1] * this.m[2], scaleX * scaleY) - rotation;
+        target.set(shearX, shearY);
+        return target;
     }
     getSign(target = new Vector2()) {
         const signX = (this.m[0] < 0) ? -1 : 1;
         const signY = (this.m[3] < 0) ? -1 : 1;
         target.set(signX, signY);
         return target;
-    }
-    skew(radianX, radianY) {
-        return this.multiply(new Matrix2([ 1, Math.tan(radianY), Math.tan(radianX), 1, 0, 0 ]));
     }
     determinant() {
         return this.m[0] * this.m[3] - this.m[1] * this.m[2];

@@ -1,3 +1,5 @@
+// https://stackoverflow.com/questions/45159314/decompose-2d-transformation-matrix
+
 import { Vector2 } from './Vector2.js';
 
 /**
@@ -88,6 +90,13 @@ class Matrix2 {
         return this;
     }
 
+    /** Set the position of the transformation matrix */
+    setPosition(x, y) {
+        this.m[4] = x;
+        this.m[5] = y;
+        return this;
+    }
+
     /** Apply translation to this matrix, adds position to transformation already stored in the matrix */
     translate(x, y) {
         this.m[4] += this.m[0] * x + this.m[2] * y;
@@ -126,36 +135,40 @@ class Matrix2 {
         return this;
     }
 
-    /** Set the position of the transformation matrix */
-    setPosition(x, y) {
-        this.m[4] = x;
-        this.m[5] = y;
-        return this;
+    /** Apply skew to this matrix */
+    skew(radianX, radianY) {
+        return this.multiply(new Matrix2([ 1, Math.tan(radianY), Math.tan(radianX), 1, 0, 0 ]));
     }
 
     /** Extract the scale from the transformation matrix */
     getScale(target = new Vector2()) {
-        // https://stackoverflow.com/questions/45159314/decompose-2d-transformation-matrix
         const scaleX = Math.sqrt(this.m[0] * this.m[0] + this.m[1] * this.m[1]);
         const scaleY = Math.sqrt(this.m[2] * this.m[2] + this.m[3] * this.m[3]);
         target.set(scaleX, scaleY);
         return target;
     }
 
-    /** Extract the position from the transformation matrix */
     getPosition(target = new Vector2()) {
         target.set(this.m[4], this.m[5]);
         return target;
     }
 
-    /** Extract the rotation angle from the transformation matrix */
     getRotation() {
         return Math.atan2(this.m[1], this.m[0]);
     }
 
-    getShear() {
-        const rotation = this.getRotation();
-        return Math.atan2(this.m[3], this.m[2]) - (Math.PI / 2) - rotation;
+    getShear(target = new Vector2()) {
+        // Extract scale and rotation from the matrix
+        const scaleX = Math.sqrt(this.m[0] * this.m[0] + this.m[1] * this.m[1]);
+        const scaleY = Math.sqrt(this.m[2] * this.m[2] + this.m[3] * this.m[3]);
+        const rotation = Math.atan2(this.m[1], this.m[0]);
+
+        // Calculate shearX and shearY
+        const shearX = Math.atan2(this.m[0] * this.m[2] + this.m[1] * this.m[3], scaleX * scaleY);
+        const shearY = Math.atan2(-this.m[0] * this.m[3] + this.m[1] * this.m[2], scaleX * scaleY) - rotation;
+
+        target.set(shearX, shearY);
+        return target;
     }
 
     getSign(target = new Vector2()) {
@@ -163,11 +176,6 @@ class Matrix2 {
         const signY = (this.m[3] < 0) ? -1 : 1;
         target.set(signX, signY);
         return target;
-    }
-
-    /** Apply skew to this matrix */
-    skew(radianX, radianY) {
-        return this.multiply(new Matrix2([ 1, Math.tan(radianY), Math.tan(radianX), 1, 0, 0 ]));
     }
 
     /**

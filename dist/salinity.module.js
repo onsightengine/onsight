@@ -2274,8 +2274,7 @@ class Box2 {
     }
     setFromPoints(...points) {
         if (points.length > 0 && Array.isArray(points[0])) points = points[0];
-        this.min = new Vector2(+Infinity, +Infinity);
-        this.max = new Vector2(-Infinity, -Infinity);
+        this.clear();
         for (const point of points) {
             this.expandByPoint(point);
         }
@@ -2295,6 +2294,10 @@ class Box2 {
         this.max.copy(box.max);
         return this;
     }
+    clear() {
+        this.min.set(+Infinity, +Infinity);
+        this.max.set(-Infinity, -Infinity);
+    }
     isEmpty() {
         return (this.max.x < this.min.x) || (this.max.y < this.min.y);
     }
@@ -2313,28 +2316,34 @@ class Box2 {
         this.max.max(point);
         return this;
     }
-    expandByVector(vector) {
-        this.min.sub(vector);
-        this.max.add(vector);
+    expandByVector(vector, y) {
+        let ex, ey;
+        if (typeof vector === 'object') {
+            ex = vector.x / 2;
+            ey = vector.y / 2;
+        } else {
+            ex = vector / 2;
+            ey = y / 2;
+        }
+        this.min.sub(ex, ey);
+        this.max.add(ex, ey);
         return this;
     }
     expandByScalar(scalar) {
-        this.min.addScalar(-scalar);
-        this.max.addScalar(scalar);
+        this.min.addScalar(scalar * -1);
+        this.max.addScalar(scalar * +1);
         return this;
     }
     multiply(x, y) {
         if (typeof x === 'object') {
-            this.min.x *= x.x;
-            this.min.y *= x.y;
-            this.max.x *= x.x;
-            this.max.y *= x.y;
-        } else {
-            this.min.x *= x;
-            this.min.y *= y;
-            this.max.x *= x;
-            this.max.y *= y;
+            y = x.y;
+            x = x.x;
         }
+        const center = this.getCenter();
+        const newSize = this.getSize().multiply(x, y);
+        const halfNewSize = newSize.clone().multiplyScalar(0.5);
+        this.min.copy(center).sub(halfNewSize);
+        this.max.copy(center).add(halfNewSize);
         return this;
     }
     containsPoint(point) {
@@ -2361,9 +2370,9 @@ class Box2 {
         this.max.max(box.max);
         return this;
     }
-    translate(offset) {
-        this.min.add(offset);
-        this.max.add(offset);
+    translate(x, y) {
+        this.min.add(x, y);
+        this.max.add(x, y);
         return this;
     }
     equals(box) {
@@ -2982,11 +2991,8 @@ class Renderer {
             if (object.pointerEvents && object.inViewport) {
                 const localPoint = object.inverseGlobalMatrix.transformPoint(cameraPoint);
                 const isInside = object.isInside(localPoint);
-                if (!currentCursor && (isInside || this.beingDragged === object) && object.cursor) {
-                    if (typeof object.cursor === 'function') currentCursor = object.cursor(camera);
-                    else currentCursor = object.cursor;
-                }
                 if (isInside) {
+                    if (!currentCursor && object.cursor) setCursor(object);
                     if (this.beingDragged == null) {
                         if (!object.pointerInside && typeof object.onPointerEnter === 'function') object.onPointerEnter(pointer, camera);
                         if (typeof object.onPointerOver === 'function') object.onPointerOver(pointer, camera);
@@ -3014,10 +3020,19 @@ class Renderer {
                     }
                     this.beingDragged = null;
                     pointer.dragging = false;
-                } else if (object.pointerEvents && typeof object.onPointerDrag === 'function') {
-                    object.onPointerDrag(pointer, camera);
+                } else {
+                    if (object.pointerEvents && typeof object.onPointerDrag === 'function') {
+                        object.onPointerDrag(pointer, camera);
+                    }
+                    setCursor(object);
                 }
             }
+        }
+        function setCursor(object) {
+            if (object.cursor) {
+                if (typeof object.cursor === 'function') currentCursor = object.cursor(camera);
+                else currentCursor = object.cursor;
+            } else { currentCursor = 'default'; }
         }
         document.body.style.cursor = currentCursor ?? 'default';
         scene.traverse(function(child) {
@@ -3807,35 +3822,55 @@ class ResizeTool extends Box {
         let layer = 0;
         for (const object of objects) { layer = Math.max(layer, object.layer + 1); }
         this.layer = layer;
-        const combinedBox = new Box2();
-        const worldBox = new Box2();
-        if (objects.length === 1) {
-            this.rotation = objects[0].rotation;
-            for (const object of objects) {
-                combinedBox.union(object.boundingBox.clone().multiply(Math.abs(object.scale.x), Math.abs(object.scale.y)));
-                worldBox.union(object.getWorldBoundingBox());
-            }
-        } else {
-            for (const object of objects) {
-                const objectWorldBox = object.getWorldBoundingBox();
-                combinedBox.union(objectWorldBox);
-                worldBox.union(objectWorldBox);
-            }
-        }
-        const halfSize = combinedBox.getSize().multiplyScalar(0.5);
-        const center = worldBox.getCenter();
-        this.position.copy(center);
-        this.box.set(new Vector2(-halfSize.x, -halfSize.y), new Vector2(+halfSize.x, +halfSize.y));
-        this.computeBoundingBox();
         const self = this;
         const initialTransforms = {};
         for (const object of objects) {
             initialTransforms[object.uuid] = {
                 position: object.position.clone(),
                 scale: object.scale.clone(),
-                rotation: object.rotation - this.rotation,
+                rotation: object.rotation,
             };
         }
+        let firstRotation = MathUtils.equalizeAngle0to360(objects[0].rotation, false );
+        let sameRotation = true;
+        for (const object of objects) {
+            let nextRotation = MathUtils.equalizeAngle0to360(object.rotation, false );
+            sameRotation = sameRotation && MathUtils.fuzzyFloat(firstRotation, nextRotation, MathUtils.degreesToRadians(1));
+        }
+        const worldBox = new Box2();
+        let center;
+        if (sameRotation || objects.length === 1) {
+            this.rotation = objects[0].rotation;
+            worldBox.clear();
+            const rotationMatrix = new Matrix2().rotate(this.rotation);
+            const unRotateMatrix = new Matrix2().rotate(-this.rotation);
+            for (const object of objects) {
+                const box = object.boundingBox.clone();
+                box.multiply(object.scale.clone().abs());
+                box.translate(unRotateMatrix.transformPoint(object.position));
+                worldBox.union(box);
+            }
+            const unRotatedCenter = worldBox.getCenter();
+            center = rotationMatrix.transformPoint(unRotatedCenter);
+            for (const object of objects) {
+                const position = object.position.clone().sub(center);
+                const initialPosition = unRotateMatrix.transformPoint(position);
+                initialPosition.add(center);
+                initialTransforms[object.uuid].position.copy(initialPosition);
+            }
+        } else {
+            for (const object of objects) {
+                worldBox.union(object.getWorldBoundingBox());
+            }
+            center = worldBox.getCenter();
+        }
+        const halfSize = worldBox.getSize().multiplyScalar(0.5);
+        this.position.copy(center);
+        this.box.set(new Vector2(-halfSize.x, -halfSize.y), new Vector2(+halfSize.x, +halfSize.y));
+        this.computeBoundingBox();
+        const startPosition = this.position.clone();
+        const startRotation = this.rotation;
+        const startScale = this.scale.clone();
         let topLeft, topRight, bottomLeft, bottomRight;
         let topResizer, rightResizer, bottomResizer, leftResizer;
         let rotater, rotateLine;
@@ -4019,12 +4054,13 @@ class ResizeTool extends Box {
         };
         function updateObjects() {
             for (const object of objects) {
-                const initialTransform = initialTransforms[object.uuid];
-                const initialScale = initialTransform.scale;
-                object.rotation = initialTransforms[object.uuid].rotation + self.rotation;
-                const relativePosition = initialTransform.position.clone().sub(center);
+                const initialPosition = initialTransforms[object.uuid].position;
+                const initialRotation = initialTransforms[object.uuid].rotation;
+                const initialScale = initialTransforms[object.uuid].scale;
+                object.rotation = initialRotation + (self.rotation - startRotation);
+                const relativePosition = initialPosition.clone().sub(startPosition);
                 const scaledPosition = relativePosition.clone().multiply(self.scale);
-                const rotationMatrix = new Matrix2().rotate(object.rotation - initialTransform.rotation);
+                const rotationMatrix = new Matrix2().rotate((object.rotation - initialRotation) + startRotation);
                 const rotatedPosition = rotationMatrix.transformPoint(scaledPosition);
                 object.position.copy(rotatedPosition).add(self.position);
                 const wasSame = Math.sign(object.scale.x) === Math.sign(object.scale.y);

@@ -39,30 +39,6 @@ class ResizeTool extends Box {
         for (const object of objects) { layer = Math.max(layer, object.layer + 1); }
         this.layer = layer;
 
-        // Size, Position
-        const combinedBox = new Box2();
-        const worldBox = new Box2();
-
-        if (objects.length === 1) {
-            this.rotation = objects[0].rotation;
-            for (const object of objects) {
-                combinedBox.union(object.boundingBox.clone().multiply(Math.abs(object.scale.x), Math.abs(object.scale.y)));
-                worldBox.union(object.getWorldBoundingBox());
-            }
-        } else {
-            for (const object of objects) {
-                const objectWorldBox = object.getWorldBoundingBox();
-                combinedBox.union(objectWorldBox);
-                worldBox.union(objectWorldBox);
-            }
-        }
-
-        const halfSize = combinedBox.getSize().multiplyScalar(0.5);
-        const center = worldBox.getCenter();
-        this.position.copy(center);
-        this.box.set(new Vector2(-halfSize.x, -halfSize.y), new Vector2(+halfSize.x, +halfSize.y));
-        this.computeBoundingBox();
-
         // Initial Object Transforms
         const self = this;
         const initialTransforms = {};
@@ -70,9 +46,61 @@ class ResizeTool extends Box {
             initialTransforms[object.uuid] = {
                 position: object.position.clone(),
                 scale: object.scale.clone(),
-                rotation: object.rotation - this.rotation,
+                rotation: object.rotation,
             }
         }
+
+        // Check for Same Rotation
+        let firstRotation = MathUtils.equalizeAngle0to360(objects[0].rotation, false /* degrees? */);
+        let sameRotation = true;
+        for (const object of objects) {
+            let nextRotation = MathUtils.equalizeAngle0to360(object.rotation, false /* degrees? */);
+            sameRotation = sameRotation && MathUtils.fuzzyFloat(firstRotation, nextRotation, MathUtils.degreesToRadians(1));
+        }
+
+        // World Box / Center
+        const worldBox = new Box2();
+        let center;
+
+        // Shared Rotation?
+        if (sameRotation || objects.length === 1) {
+            this.rotation = objects[0].rotation;
+            worldBox.clear();
+            const rotationMatrix = new Matrix2().rotate(this.rotation);
+            const unRotateMatrix = new Matrix2().rotate(-this.rotation);
+            for (const object of objects) {
+                const box = object.boundingBox.clone();
+                box.multiply(object.scale.clone().abs());
+                box.translate(unRotateMatrix.transformPoint(object.position));
+                worldBox.union(box);
+            }
+            // True Center
+            const unRotatedCenter = worldBox.getCenter();
+            center = rotationMatrix.transformPoint(unRotatedCenter);
+            // Find Initial Positions
+            for (const object of objects) {
+                const position = object.position.clone().sub(center);
+                const initialPosition = unRotateMatrix.transformPoint(position);
+                initialPosition.add(center);
+                initialTransforms[object.uuid].position.copy(initialPosition);
+            }
+        // No Rotation
+        } else {
+            for (const object of objects) {
+                worldBox.union(object.getWorldBoundingBox());
+            }
+            center = worldBox.getCenter();
+        }
+
+        // Starting Transform
+        const halfSize = worldBox.getSize().multiplyScalar(0.5);
+        this.position.copy(center);
+        this.box.set(new Vector2(-halfSize.x, -halfSize.y), new Vector2(+halfSize.x, +halfSize.y));
+        this.computeBoundingBox();
+
+        const startPosition = this.position.clone();
+        const startRotation = this.rotation;
+        const startScale = this.scale.clone();
 
         // Resizers
         let topLeft, topRight, bottomLeft, bottomRight;
@@ -283,16 +311,17 @@ class ResizeTool extends Box {
         // Update object's position based on the scaled relative position
         function updateObjects() {
             for (const object of objects) {
-                const initialTransform = initialTransforms[object.uuid];
-                const initialScale = initialTransform.scale;
+                const initialPosition = initialTransforms[object.uuid].position;
+                const initialRotation = initialTransforms[object.uuid].rotation;
+                const initialScale = initialTransforms[object.uuid].scale;
 
                 // Rotation
-                object.rotation = initialTransforms[object.uuid].rotation + self.rotation;
+                object.rotation = initialRotation + (self.rotation - startRotation);
 
                 // Position
-                const relativePosition = initialTransform.position.clone().sub(center);
+                const relativePosition = initialPosition.clone().sub(startPosition);
                 const scaledPosition = relativePosition.clone().multiply(self.scale);
-                const rotationMatrix = new Matrix2().rotate(object.rotation - initialTransform.rotation);
+                const rotationMatrix = new Matrix2().rotate((object.rotation - initialRotation) + startRotation);
                 const rotatedPosition = rotationMatrix.transformPoint(scaledPosition);
                 object.position.copy(rotatedPosition).add(self.position);
 

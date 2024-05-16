@@ -2274,8 +2274,7 @@ class Box2 {
     }
     setFromPoints(...points) {
         if (points.length > 0 && Array.isArray(points[0])) points = points[0];
-        this.min = new Vector2(+Infinity, +Infinity);
-        this.max = new Vector2(-Infinity, -Infinity);
+        this.clear();
         for (const point of points) {
             this.expandByPoint(point);
         }
@@ -2295,6 +2294,10 @@ class Box2 {
         this.max.copy(box.max);
         return this;
     }
+    clear() {
+        this.min.set(+Infinity, +Infinity);
+        this.max.set(-Infinity, -Infinity);
+    }
     isEmpty() {
         return (this.max.x < this.min.x) || (this.max.y < this.min.y);
     }
@@ -2313,28 +2316,34 @@ class Box2 {
         this.max.max(point);
         return this;
     }
-    expandByVector(vector) {
-        this.min.sub(vector);
-        this.max.add(vector);
+    expandByVector(vector, y) {
+        let ex, ey;
+        if (typeof vector === 'object') {
+            ex = vector.x / 2;
+            ey = vector.y / 2;
+        } else {
+            ex = vector / 2;
+            ey = y / 2;
+        }
+        this.min.sub(ex, ey);
+        this.max.add(ex, ey);
         return this;
     }
     expandByScalar(scalar) {
-        this.min.addScalar(-scalar);
-        this.max.addScalar(scalar);
+        this.min.addScalar(scalar * -1);
+        this.max.addScalar(scalar * +1);
         return this;
     }
     multiply(x, y) {
         if (typeof x === 'object') {
-            this.min.x *= x.x;
-            this.min.y *= x.y;
-            this.max.x *= x.x;
-            this.max.y *= x.y;
-        } else {
-            this.min.x *= x;
-            this.min.y *= y;
-            this.max.x *= x;
-            this.max.y *= y;
+            y = x.y;
+            x = x.x;
         }
+        const center = this.getCenter();
+        const newSize = this.getSize().multiply(x, y);
+        const halfNewSize = newSize.clone().multiplyScalar(0.5);
+        this.min.copy(center).sub(halfNewSize);
+        this.max.copy(center).add(halfNewSize);
         return this;
     }
     containsPoint(point) {
@@ -2361,9 +2370,9 @@ class Box2 {
         this.max.max(box.max);
         return this;
     }
-    translate(offset) {
-        this.min.add(offset);
-        this.max.add(offset);
+    translate(x, y) {
+        this.min.add(x, y);
+        this.max.add(x, y);
         return this;
     }
     equals(box) {
@@ -2982,11 +2991,8 @@ class Renderer {
             if (object.pointerEvents && object.inViewport) {
                 const localPoint = object.inverseGlobalMatrix.transformPoint(cameraPoint);
                 const isInside = object.isInside(localPoint);
-                if (!currentCursor && (isInside || this.beingDragged === object) && object.cursor) {
-                    if (typeof object.cursor === 'function') currentCursor = object.cursor(camera);
-                    else currentCursor = object.cursor;
-                }
                 if (isInside) {
+                    if (!currentCursor && object.cursor) setCursor(object);
                     if (this.beingDragged == null) {
                         if (!object.pointerInside && typeof object.onPointerEnter === 'function') object.onPointerEnter(pointer, camera);
                         if (typeof object.onPointerOver === 'function') object.onPointerOver(pointer, camera);
@@ -3014,10 +3020,19 @@ class Renderer {
                     }
                     this.beingDragged = null;
                     pointer.dragging = false;
-                } else if (object.pointerEvents && typeof object.onPointerDrag === 'function') {
-                    object.onPointerDrag(pointer, camera);
+                } else {
+                    if (object.pointerEvents && typeof object.onPointerDrag === 'function') {
+                        object.onPointerDrag(pointer, camera);
+                    }
+                    setCursor(object);
                 }
             }
+        }
+        function setCursor(object) {
+            if (object.cursor) {
+                if (typeof object.cursor === 'function') currentCursor = object.cursor(camera);
+                else currentCursor = object.cursor;
+            } else { currentCursor = 'default'; }
         }
         document.body.style.cursor = currentCursor ?? 'default';
         scene.traverse(function(child) {

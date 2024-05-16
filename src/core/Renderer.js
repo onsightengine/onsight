@@ -178,13 +178,11 @@ class Renderer {
                 // Local Pointer Position
                 const localPoint = object.inverseGlobalMatrix.transformPoint(cameraPoint);
                 const isInside = object.isInside(localPoint);
-                // Mouse Cursor
-                if (!currentCursor && (isInside || this.beingDragged === object) && object.cursor) {
-                    if (typeof object.cursor === 'function') currentCursor = object.cursor(camera);
-                    else currentCursor = object.cursor;
-                }
                 // Pointer Inside?
                 if (isInside) {
+                    // Mouse Cursor
+                    if (!currentCursor && object.cursor) setCursor(object);
+                    // Pointer Events
                     if (this.beingDragged == null) {
                         if (!object.pointerInside && typeof object.onPointerEnter === 'function') object.onPointerEnter(pointer, camera);
                         if (typeof object.onPointerOver === 'function') object.onPointerOver(pointer, camera);
@@ -200,6 +198,7 @@ class Renderer {
                         }
                     }
                     object.pointerInside = true;
+                // Pointer Leave
                 } else if (this.beingDragged !== object && object.pointerInside) {
                     if (typeof object.onPointerLeave === 'function') object.onPointerLeave(pointer, camera);
                     object.pointerInside = false;
@@ -208,21 +207,31 @@ class Renderer {
 
             // Being Dragged?
             if (this.beingDragged === object) {
-                // Stop Drag
+                // Stop Dragging
                 if (pointer.buttonJustReleased(Pointer.LEFT)) {
                     if (object.pointerEvents && typeof object.onPointerDragEnd === 'function') {
                         object.onPointerDragEnd(pointer, camera);
                     }
                     this.beingDragged = null;
                     pointer.dragging = false;
-                // Still Dragging
-                } else if (object.pointerEvents && typeof object.onPointerDrag === 'function') {
-                    object.onPointerDrag(pointer, camera);
+                // Still Dragging, Update
+                } else {
+                    if (object.pointerEvents && typeof object.onPointerDrag === 'function') {
+                        object.onPointerDrag(pointer, camera);
+                    }
+                    // Mouse Cursor
+                    setCursor(object);
                 }
             }
         }
 
         // Update Cursor
+        function setCursor(object) {
+            if (object.cursor) {
+                if (typeof object.cursor === 'function') currentCursor = object.cursor(camera);
+                else currentCursor = object.cursor;
+            } else { currentCursor = 'default' }
+        }
         document.body.style.cursor = currentCursor ?? 'default';
 
         // Update Object / Matrix
@@ -257,7 +266,7 @@ class Renderer {
             object.transform(context, camera, this.dom, this);
             context.globalAlpha = object.globalOpacity;
 
-            // Style and Draw Object
+            // Draw Object
             if (typeof object.style === 'function') {
                 object.style(context, camera, this.dom, this);
             }
@@ -266,7 +275,7 @@ class Renderer {
                 this.drawCallCount++;
             }
 
-            // Selected?
+            // Highlight Selected
             if (object.isSelected) {
                 camera.matrix.setContextTransform(context);
                 context.globalAlpha = 1;

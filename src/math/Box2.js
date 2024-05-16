@@ -19,8 +19,7 @@ class Box2 {
     /** Set the box from a list of Vector2 points */
     setFromPoints(...points) {
         if (points.length > 0 && Array.isArray(points[0])) points = points[0];
-        this.min = new Vector2(+Infinity, +Infinity);
-        this.max = new Vector2(-Infinity, -Infinity);
+        this.clear();
         for (const point of points) {
             this.expandByPoint(point);
         }
@@ -43,6 +42,11 @@ class Box2 {
         this.min.copy(box.min);
         this.max.copy(box.max);
         return this;
+    }
+
+    clear() {
+        this.min.set(+Infinity, +Infinity);
+        this.max.set(-Infinity, -Infinity);
     }
 
     /** Check if the box is empty (size equals zero or is negative) */
@@ -71,32 +75,38 @@ class Box2 {
         return this;
     }
 
-    /** Expand the box by adding a border with the vector size */
-    expandByVector(vector) {
-        this.min.sub(vector);
-        this.max.add(vector);
+    /** Expand the box by adding a vector */
+    expandByVector(vector, y) {
+        let ex, ey;
+        if (typeof vector === 'object') {
+            ex = vector.x / 2;
+            ey = vector.y / 2;
+        } else {
+            ex = vector / 2;
+            ey = y / 2;
+        }
+        this.min.sub(ex, ey);
+        this.max.add(ex, ey);
         return this;
     }
 
     /** Expand the box by adding a border with the scalar value */
     expandByScalar(scalar) {
-        this.min.addScalar(-scalar);
-        this.max.addScalar(scalar);
+        this.min.addScalar(scalar * -1);
+        this.max.addScalar(scalar * +1);
         return this;
     }
 
     multiply(x, y) {
         if (typeof x === 'object') {
-            this.min.x *= x.x;
-            this.min.y *= x.y;
-            this.max.x *= x.x;
-            this.max.y *= x.y;
-        } else {
-            this.min.x *= x;
-            this.min.y *= y;
-            this.max.x *= x;
-            this.max.y *= y;
+            y = x.y;
+            x = x.x;
         }
+        const center = this.getCenter();
+        const newSize = this.getSize().multiply(x, y);
+        const halfNewSize = newSize.clone().multiplyScalar(0.5);
+        this.min.copy(center).sub(halfNewSize);
+        this.max.copy(center).add(halfNewSize);
         return this;
     }
 
@@ -136,10 +146,10 @@ class Box2 {
         return this;
     }
 
-    /** Translate the box by a offset value, adds the offset to booth min and max */
-    translate(offset) {
-        this.min.add(offset);
-        this.max.add(offset);
+    /** Translate the box by a offset value */
+    translate(x, y) {
+        this.min.add(x, y);
+        this.max.add(x, y);
         return this;
     }
 

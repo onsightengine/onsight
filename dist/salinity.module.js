@@ -4161,7 +4161,10 @@ class SelectControls {
             if (pointer.dragging !== true && performance.now() - this.downTimer < MOUSE_CLICK_TIME) {
                 const underMouse = scene.getWorldPointIntersections(cameraPoint);
                 const withoutResizeTool = ArrayUtils.filterThings(underMouse, { isHelper: undefined });
-                if (withoutResizeTool.length > 0) {
+                if (withoutResizeTool.length === 0) {
+                    scene.traverse((child) => { child.isSelected = false; });
+                    newSelection = [];
+                } else if (withoutResizeTool.length > 0) {
                     const object = withoutResizeTool[0];
                     if (object.selectable && ArrayUtils.compareThingArrays(object, this.selection) === false) {
                         scene.traverse((child) => { child.isSelected = false; });

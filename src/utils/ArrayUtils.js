@@ -46,7 +46,7 @@ class ArrayUtils {
 
     static filterThings(things, properties = {}) {
         const filtered = things.filter((object) => {
-            return Object.keys(properties).every((key) => { return object[key] === properties[key]; });
+            return Object.keys(properties).every((key) => { return object[key] == properties[key]; });
         });
         return filtered;
     }

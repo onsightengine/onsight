@@ -128,7 +128,7 @@ class ArrayUtils {
     }
     static filterThings(things, properties = {}) {
         const filtered = things.filter((object) => {
-            return Object.keys(properties).every((key) => { return object[key] === properties[key]; });
+            return Object.keys(properties).every((key) => { return object[key] == properties[key]; });
         });
         return filtered;
     }
@@ -2323,6 +2323,20 @@ class Box2 {
         this.max.addScalar(scalar);
         return this;
     }
+    multiply(x, y) {
+        if (typeof x === 'object') {
+            this.min.x *= x.x;
+            this.min.y *= x.y;
+            this.max.x *= x.x;
+            this.max.y *= x.y;
+        } else {
+            this.min.x *= x;
+            this.min.y *= y;
+            this.max.x *= x;
+            this.max.y *= y;
+        }
+        return this;
+    }
     containsPoint(point) {
         return !(point.x < this.min.x || point.x > this.max.x || point.y < this.min.y || point.y > this.max.y);
     }
@@ -2427,6 +2441,7 @@ class Pointer {
         this.wheel = 0;
         this.doubleClicked = new Array(5);
         this.pointerInside = false;
+        this.dragging = false;
         for (let i = 0; i < 5; i++) {
             this._doubleClicked[i] = false;
             this.doubleClicked[i] = false;
@@ -2766,6 +2781,7 @@ class Object2D extends Thing {
         } else if (pointer.buttonPressed(Pointer.LEFT)) {
             const manhattanDistance = this.dragStartPosition.manhattanDistanceTo(pointerEnd);
             if (manhattanDistance >= mouseSlopThreshold) {
+                pointer.dragging = true;
                 this.position.add(delta);
                 this.matrixNeedsUpdate = true;
             }
@@ -2997,6 +3013,7 @@ class Renderer {
                         object.onPointerDragEnd(pointer, camera);
                     }
                     this.beingDragged = null;
+                    pointer.dragging = false;
                 } else if (object.pointerEvents && typeof object.onPointerDrag === 'function') {
                     object.onPointerDrag(pointer, camera);
                 }
@@ -3675,7 +3692,6 @@ class CameraControls {
             if (!keyboard.modifierPressed()) {
                 const worldPoint = camera.inverseMatrix.transformPoint(pointer.position);
                 const objects = renderer.scene.getWorldPointIntersections(worldPoint);
-                let focused = false;
                 if (objects.length === 0) {
                     this.focusCamera(renderer, renderer.scene, true );
                 } else {
@@ -3792,12 +3808,22 @@ class ResizeTool extends Box {
         for (const object of objects) { layer = Math.max(layer, object.layer + 1); }
         this.layer = layer;
         const combinedBox = new Box2();
-        for (const object of objects) {
-            const worldBox = object.getWorldBoundingBox();
-            combinedBox.union(worldBox);
+        const worldBox = new Box2();
+        if (objects.length === 1) {
+            this.rotation = objects[0].rotation;
+            for (const object of objects) {
+                combinedBox.union(object.boundingBox.clone().multiply(Math.abs(object.scale.x), Math.abs(object.scale.y)));
+                worldBox.union(object.getWorldBoundingBox());
+            }
+        } else {
+            for (const object of objects) {
+                const objectWorldBox = object.getWorldBoundingBox();
+                combinedBox.union(objectWorldBox);
+                worldBox.union(objectWorldBox);
+            }
         }
         const halfSize = combinedBox.getSize().multiplyScalar(0.5);
-        const center = combinedBox.getCenter();
+        const center = worldBox.getCenter();
         this.position.copy(center);
         this.box.set(new Vector2(-halfSize.x, -halfSize.y), new Vector2(+halfSize.x, +halfSize.y));
         this.computeBoundingBox();
@@ -3807,7 +3833,7 @@ class ResizeTool extends Box {
             initialTransforms[object.uuid] = {
                 position: object.position.clone(),
                 scale: object.scale.clone(),
-                rotation: object.rotation,
+                rotation: object.rotation - this.rotation,
             };
         }
         let topLeft, topRight, bottomLeft, bottomRight;
@@ -4075,10 +4101,12 @@ class ResizeTool extends Box {
     }
 }
 
+const MOUSE_CLICK_TIME = 350;
 class SelectControls {
     constructor() {
         this.selection = [];
         this.resizeTool = null;
+        this.downTimer = performance.now();
     }
     update(renderer) {
         const camera = renderer.camera;
@@ -4091,18 +4119,18 @@ class SelectControls {
         if (pointer.buttonJustPressed(Pointer.LEFT)) {
             const underMouse = scene.getWorldPointIntersections(cameraPoint);
             if (keyboard.shiftPressed()) {
-                const selectOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
-                if (selectOnly.length > 0) {
-                    const object = selectOnly[0];
+                const selectableOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
+                if (selectableOnly.length > 0) {
+                    const object = selectableOnly[0];
                     if (object.selectable) {
                         object.isSelected = true;
                         newSelection = ArrayUtils.combineThingArrays(newSelection, [ object ]);
                     }
                 }
             } else if (keyboard.ctrlPressed() || keyboard.metaPressed()) {
-                const selectOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
-                if (selectOnly.length > 0) {
-                    const object = selectOnly[0];
+                const selectableOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
+                if (selectableOnly.length > 0) {
+                    const object = selectableOnly[0];
                     if (object.selectable) {
                         if (object.isSelected) {
                             object.isSelected = false;
@@ -4119,7 +4147,23 @@ class SelectControls {
                     newSelection = [];
                 } else if (underMouse.length > 0) {
                     const object = underMouse[0];
-                    if (object.selectable) {
+                    if (object.selectable && ArrayUtils.compareThingArrays(object, this.selection) === false) {
+                        scene.traverse((child) => { child.isSelected = false; });
+                        object.isSelected = true;
+                        newSelection = [ object ];
+                    } else {
+                        this.downTimer = performance.now();
+                    }
+                }
+            }
+        }
+        if (pointer.buttonJustReleased(Pointer.LEFT)) {
+            if (pointer.dragging !== true && performance.now() - this.downTimer < MOUSE_CLICK_TIME) {
+                const underMouse = scene.getWorldPointIntersections(cameraPoint);
+                const withoutResizeTool = ArrayUtils.filterThings(underMouse, { isHelper: undefined });
+                if (withoutResizeTool.length > 0) {
+                    const object = withoutResizeTool[0];
+                    if (object.selectable && ArrayUtils.compareThingArrays(object, this.selection) === false) {
                         scene.traverse((child) => { child.isSelected = false; });
                         object.isSelected = true;
                         newSelection = [ object ];

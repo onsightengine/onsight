@@ -214,6 +214,7 @@ class Renderer {
                         object.onPointerDragEnd(pointer, camera);
                     }
                     this.beingDragged = null;
+                    pointer.dragging = false;
                 // Still Dragging
                 } else if (object.pointerEvents && typeof object.onPointerDrag === 'function') {
                     object.onPointerDrag(pointer, camera);

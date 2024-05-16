@@ -34,7 +34,8 @@ class Pointer {
         this.delta = new Vector2(0, 0);         // movement since the last update (coordinates in window space)
         this.wheel = 0;                         // scroll wheel movement since the last update
         this.doubleClicked = new Array(5);      // indicates a button of the pointer was double clicked
-        this.pointerInside = false;
+        this.pointerInside = false;             // indicated if pointer is inside DOM element
+        this.dragging = false;                  // indicates if pointer is dragging an object
 
         // Initialize key instances
         for (let i = 0; i < 5; i++) {

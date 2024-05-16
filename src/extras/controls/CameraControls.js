@@ -37,7 +37,6 @@ class CameraControls {
             if (!keyboard.modifierPressed()) {
                 const worldPoint = camera.inverseMatrix.transformPoint(pointer.position);
                 const objects = renderer.scene.getWorldPointIntersections(worldPoint);
-                let focused = false;
                 if (objects.length === 0) {
                     this.focusCamera(renderer, renderer.scene, true /* includeChildren? */);
                 } else {

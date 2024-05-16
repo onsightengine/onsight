@@ -41,12 +41,24 @@ class ResizeTool extends Box {
 
         // Size, Position
         const combinedBox = new Box2();
-        for (const object of objects) {
-            const worldBox = object.getWorldBoundingBox();
-            combinedBox.union(worldBox);
+        const worldBox = new Box2();
+
+        if (objects.length === 1) {
+            this.rotation = objects[0].rotation;
+            for (const object of objects) {
+                combinedBox.union(object.boundingBox.clone().multiply(Math.abs(object.scale.x), Math.abs(object.scale.y)));
+                worldBox.union(object.getWorldBoundingBox());
+            }
+        } else {
+            for (const object of objects) {
+                const objectWorldBox = object.getWorldBoundingBox();
+                combinedBox.union(objectWorldBox);
+                worldBox.union(objectWorldBox);
+            }
         }
+
         const halfSize = combinedBox.getSize().multiplyScalar(0.5);
-        const center = combinedBox.getCenter();
+        const center = worldBox.getCenter();
         this.position.copy(center);
         this.box.set(new Vector2(-halfSize.x, -halfSize.y), new Vector2(+halfSize.x, +halfSize.y));
         this.computeBoundingBox();
@@ -58,7 +70,7 @@ class ResizeTool extends Box {
             initialTransforms[object.uuid] = {
                 position: object.position.clone(),
                 scale: object.scale.clone(),
-                rotation: object.rotation,
+                rotation: object.rotation - this.rotation,
             }
         }
 

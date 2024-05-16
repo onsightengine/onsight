@@ -128,7 +128,7 @@ class ArrayUtils {
     }
     static filterThings(things, properties = {}) {
         const filtered = things.filter((object) => {
-            return Object.keys(properties).every((key) => { return object[key] === properties[key]; });
+            return Object.keys(properties).every((key) => { return object[key] == properties[key]; });
         });
         return filtered;
     }
@@ -2323,6 +2323,20 @@ class Box2 {
         this.max.addScalar(scalar);
         return this;
     }
+    multiply(x, y) {
+        if (typeof x === 'object') {
+            this.min.x *= x.x;
+            this.min.y *= x.y;
+            this.max.x *= x.x;
+            this.max.y *= x.y;
+        } else {
+            this.min.x *= x;
+            this.min.y *= y;
+            this.max.x *= x;
+            this.max.y *= y;
+        }
+        return this;
+    }
     containsPoint(point) {
         return !(point.x < this.min.x || point.x > this.max.x || point.y < this.min.y || point.y > this.max.y);
     }
@@ -2427,6 +2441,7 @@ class Pointer {
         this.wheel = 0;
         this.doubleClicked = new Array(5);
         this.pointerInside = false;
+        this.dragging = false;
         for (let i = 0; i < 5; i++) {
             this._doubleClicked[i] = false;
             this.doubleClicked[i] = false;
@@ -2766,6 +2781,7 @@ class Object2D extends Thing {
         } else if (pointer.buttonPressed(Pointer.LEFT)) {
             const manhattanDistance = this.dragStartPosition.manhattanDistanceTo(pointerEnd);
             if (manhattanDistance >= mouseSlopThreshold) {
+                pointer.dragging = true;
                 this.position.add(delta);
                 this.matrixNeedsUpdate = true;
             }
@@ -2997,6 +3013,7 @@ class Renderer {
                         object.onPointerDragEnd(pointer, camera);
                     }
                     this.beingDragged = null;
+                    pointer.dragging = false;
                 } else if (object.pointerEvents && typeof object.onPointerDrag === 'function') {
                     object.onPointerDrag(pointer, camera);
                 }

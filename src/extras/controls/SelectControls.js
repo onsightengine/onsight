@@ -3,11 +3,14 @@ import { Keyboard } from '../../core/input/Keyboard.js';
 import { Pointer } from '../../core/input/Pointer.js';
 import { ResizeTool } from '../helpers/ResizeTool.js';
 
+const MOUSE_CLICK_TIME = 350;
+
 class SelectControls {
 
     constructor() {
         this.selection = [];
         this.resizeTool = null;
+        this.downTimer = performance.now();
     }
 
     update(renderer) {
@@ -27,9 +30,9 @@ class SelectControls {
 
             // Holding Shift (Add to Selection)
             if (keyboard.shiftPressed()) {
-                const selectOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
-                if (selectOnly.length > 0) {
-                    const object = selectOnly[0];
+                const selectableOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
+                if (selectableOnly.length > 0) {
+                    const object = selectableOnly[0];
                     if (object.selectable) {
                         object.isSelected = true;
                         newSelection = ArrayUtils.combineThingArrays(newSelection, [ object ]);
@@ -38,9 +41,9 @@ class SelectControls {
 
             // Holding Ctrl/Meta (Toggle Selection)
             } else if (keyboard.ctrlPressed() || keyboard.metaPressed()) {
-                const selectOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
-                if (selectOnly.length > 0) {
-                    const object = selectOnly[0];
+                const selectableOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
+                if (selectableOnly.length > 0) {
+                    const object = selectableOnly[0];
                     if (object.selectable) {
                         if (object.isSelected) {
                             object.isSelected = false;
@@ -52,17 +55,36 @@ class SelectControls {
                     }
                 }
 
-            // Single Click, Select Object
+            // Single Click / Click Timer
             } else {
                 // Clear Previous Selection
                 if (underMouse.length === 0) {
                     scene.traverse((child) => { child.isSelected = false; });
                     newSelection = [];
-
-                // New Selected Objects
+                // New Selected Object
                 } else if (underMouse.length > 0) {
                     const object = underMouse[0];
-                    if (object.selectable) {
+                    if (object.selectable && ArrayUtils.compareThingArrays(object, this.selection) === false) {
+                        scene.traverse((child) => { child.isSelected = false; });
+                        object.isSelected = true;
+                        newSelection = [ object ];
+                    // Start Click Timer
+                    } else {
+                        this.downTimer = performance.now();
+                    }
+                }
+            }
+        }
+
+        // Single Click, Select Object
+        if (pointer.buttonJustReleased(Pointer.LEFT)) {
+            if (pointer.dragging !== true && performance.now() - this.downTimer < MOUSE_CLICK_TIME) {
+                const underMouse = scene.getWorldPointIntersections(cameraPoint);
+                const withoutResizeTool = ArrayUtils.filterThings(underMouse, { isHelper: undefined });
+                // New Selected Object
+                if (withoutResizeTool.length > 0) {
+                    const object = withoutResizeTool[0];
+                    if (object.selectable && ArrayUtils.compareThingArrays(object, this.selection) === false) {
                         scene.traverse((child) => { child.isSelected = false; });
                         object.isSelected = true;
                         newSelection = [ object ];

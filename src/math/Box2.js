@@ -85,6 +85,21 @@ class Box2 {
         return this;
     }
 
+    multiply(x, y) {
+        if (typeof x === 'object') {
+            this.min.x *= x.x;
+            this.min.y *= x.y;
+            this.max.x *= x.x;
+            this.max.y *= x.y;
+        } else {
+            this.min.x *= x;
+            this.min.y *= y;
+            this.max.x *= x;
+            this.max.y *= y;
+        }
+        return this;
+    }
+
     /** Check if the box contains a point inside */
     containsPoint(point) {
         return !(point.x < this.min.x || point.x > this.max.x || point.y < this.min.y || point.y > this.max.y);

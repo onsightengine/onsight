@@ -4,7 +4,7 @@
 
 # Salinity Engine
 
-Open-source app & game framework written in JavaScript to run games and other interactive content in the browser.
+Open-source framework written in JavaScript to run games and other interactive content in the browser.
 
 <br />
 

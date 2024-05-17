@@ -22,14 +22,15 @@
         const scene = new SALT.Object2D();
 
         // Objects
-        const box = new SALT.Box().setPosition(-100, 0);
+        const box = new SALT.Box();
+        box.setPosition(-100, 0);
         box.fillStyle.color = '#ff0000';
         box.draggable = true;
-        // box.origin.set(25, 25);
+        box.origin.set(25, 25);
         scene.add(box);
-        // scene.add(new SALT.ResizeTool(box));
 
-        const rainbowBox = new SALT.Box().setPosition(-100, 200);
+        const rainbowBox = new SALT.Box();
+        rainbowBox.setPosition(-100, 200);
         rainbowBox.draggable = true;
         rainbowBox.fillStyle = new SALT.LinearGradientStyle();
         rainbowBox.fillStyle.start.set(-50, -50);
@@ -39,12 +40,14 @@
         rainbowBox.fillStyle.addColorStop(1, '#0000ff');
         scene.add(rainbowBox);
 
-        const circle = new SALT.Circle().setPosition(100, 0);
+        const circle = new SALT.Circle();
+        circle.setPosition(100, 0);
         circle.radius = 50;
         circle.draggable = true;
         scene.add(circle);
 
-        const rainbowCircle = new SALT.Circle().setPosition(100, 200);
+        const rainbowCircle = new SALT.Circle();
+        rainbowCircle.setPosition(100, 200);
         rainbowCircle.radius = 50;
         rainbowCircle.draggable = true;
         rainbowCircle.fillStyle = new SALT.RadialGradientStyle();
@@ -52,7 +55,8 @@
         rainbowCircle.fillStyle.addColorStop(1, '#ffffff');
         scene.add(rainbowCircle);
 
-        const text = new SALT.Text().setPosition(0, -100);
+        const text = new SALT.Text();
+        text.setPosition(0, -100);
         text.fillStyle.color = 'var(--icon)';
         text.text = 'Hello World!';
         text.draggable = true;
@@ -86,14 +90,18 @@
         line3.to.set(100, 100);
         scene.add(line3);
 
-        for (let i = 0; i < 50; i++) {
-            const box = new SALT.Box().setPosition((Math.random() * 1000) - 500, (Math.random() * 1000) - 500);
-            box.fillStyle.color = `rgb(${Math.floor(Math.random()*256)},${Math.floor(Math.random()*256)},${Math.floor(Math.random()*256)})`;
-            box.draggable = true;
-            // box.focusable = false;
-            // box.selectable = false;
-            scene.add(box);
-        }
+        const sprite1 = new SALT.Sprite('../files/textures/shapes.png');
+        sprite1.setPosition(-500, 0);
+        scene.add(sprite1);
+
+        // for (let i = 0; i < 50; i++) {
+        //     const box = new SALT.Box().setPosition((Math.random() * 1000) - 500, (Math.random() * 1000) - 500);
+        //     box.fillStyle.color = `rgb(0, ${Math.floor(Math.random()*256)},${Math.floor(Math.random()*256)})`;
+        //     box.draggable = true;
+        //     // box.focusable = false;
+        //     // box.selectable = false;
+        //     scene.add(box);
+        // }
 
         // Renderer
         const renderer = new SALT.Renderer({ width: window.innerWidth, height: window.innerHeight });

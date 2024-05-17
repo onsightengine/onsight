@@ -1,6 +1,6 @@
 /**
  * @description Salinity
- * @about       Interactive, easy to use JavaScript app & game framework.
+ * @about       Interactive, easy to use JavaScript game framework.
  * @author      Written by Stephens Nunnally <@stevinz>
  * @license     MIT - Copyright (c) 2024 Stephens Nunnally
  * @source      https://github.com/salinityengine
@@ -47,15 +47,17 @@ export { World } from './core/project/World.js';
 export { Box } from './core/objects/Box.js';
 export { Circle } from './core/objects/Circle.js';
 export { Line } from './core/objects/Line.js';
+export { Sprite } from './core/objects/Sprite.js';
 export { Text } from './core/objects/Text.js';
-// export { DOM } from './objects/DOM.js';
-// export { Image } from './objects/Image.js';
-// export { MultiLineText } from './objects/MultiLineText.js';
-// export { Pattern } from './objects/Pattern.js';
-// export { RoundedBox } from './objects/RoundedBox.js';
-// export { BezierCurve } from './objects/BezierCurve.js';
-// export { QuadraticCurve } from './objects/QuadraticCurve.js';
-// export { Path } from './objects/Path.js';
+// export { DOM } from './core/objects/DOM.js';
+// export { MultiLineText } from './core/objects/MultiLineText.js';
+// export { Pattern } from './core/objects/Pattern.js';
+// export { RoundedBox } from './core/objects/RoundedBox.js';
+
+// Objects, Curves
+// export { BezierCurve } from './core/objects/BezierCurve.js';
+// export { QuadraticCurve } from './core/objects/QuadraticCurve.js';
+// export { Path } from './core/objects/Path.js';
 
 // Objects, Mask
 export { Mask } from './core/objects/mask/Mask.js';
@@ -66,7 +68,7 @@ export { Style } from './core/objects/style/Style.js';
 export { ColorStyle } from './core/objects/style/ColorStyle.js';
 export { LinearGradientStyle } from './core/objects/style/LinearGradientStyle.js';
 export { RadialGradientStyle } from './core/objects/style/RadialGradientStyle.js';
-// export { PatternStyle } from './objects/style/PatternStyle.js';
+// export { PatternStyle } from './core/objects/style/PatternStyle.js';
 
 /******************** MATH ********************/
 

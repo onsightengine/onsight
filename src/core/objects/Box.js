@@ -3,8 +3,6 @@ import { ColorStyle } from './style/ColorStyle.js';
 import { Object2D } from '../Object2D.js';
 import { Vector2 } from '../../math/Vector2.js';
 
-let count = 0;
-
 class Box extends Object2D {
 
     constructor() {

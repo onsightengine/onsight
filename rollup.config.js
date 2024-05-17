@@ -11,7 +11,7 @@ function header() {
         renderChunk(code) {
             return `/**
  * @description Salinity Engine
- * @about       Interactive, easy to use JavaScript app & game framework.
+ * @about       Interactive, easy to use JavaScript game framework.
  * @author      Stephens Nunnally <@stevinz>
  * @version     v${pkg.version}
  * @license     MIT - Copyright (c) 2024 Stephens Nunnally

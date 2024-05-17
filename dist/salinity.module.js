@@ -1,6 +1,6 @@
 /**
  * @description Salinity Engine
- * @about       Interactive, easy to use JavaScript app & game framework.
+ * @about       Interactive, easy to use JavaScript game framework.
  * @author      Stephens Nunnally <@stevinz>
  * @version     v0.0.7
  * @license     MIT - Copyright (c) 2024 Stephens Nunnally
@@ -8,7 +8,7 @@
  */
 var name = "@salinity/engine";
 var version = "0.0.7";
-var description = "Interactive, easy to use JavaScript app & game framework.";
+var description = "Interactive, easy to use JavaScript game framework.";
 var module = "src/Salinity.js";
 var main = "dist/salinity.module.js";
 var type = "module";
@@ -3351,7 +3351,6 @@ class ColorStyle extends Style {
     }
 }
 
-let count = 0;
 class Box extends Object2D {
     constructor() {
         super();
@@ -3547,6 +3546,28 @@ class Line extends Object2D {
             this.computeBoundingBox();
             this._from.copy(this.from);
             this._to.copy(this.to);
+        }
+    }
+}
+
+class Sprite extends Box {
+    constructor(src) {
+        super();
+        this.type = 'Sprite';
+	    this.image = document.createElement('img');
+	    if (src !== undefined) this.setImage(src);
+    }
+    setImage(src) {
+        const self = this;
+        this.image.onload = function() {
+            self.box.min.set(0, 0);
+            self.box.max.set(self.image.naturalWidth, self.image.naturalHeight);
+        };
+        this.image.src = src;
+    }
+    draw(context, viewport, canvas) {
+        if (this.image.src.length > 0) {
+            context.drawImage(this.image, 0, 0, this.image.naturalWidth, this.image.naturalHeight, this.box.min.x, this.box.min.y, this.box.max.x - this.box.min.x, this.box.max.y - this.box.min.y);
         }
     }
 }
@@ -4659,4 +4680,4 @@ function getVariable(variable) {
     return ((value === '') ? undefined : value);
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, Entity, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, Viewport, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, Entity, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Sprite, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, Viewport, WORLD_TYPES, World };

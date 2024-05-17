@@ -1,7 +1,7 @@
 {
   "name": "@salinity/engine",
   "version": "0.0.7",
-  "description": "Interactive, easy to use JavaScript app & game framework.",
+  "description": "Interactive, easy to use JavaScript game framework.",
   "module": "src/Salinity.js",
   "main": "dist/salinity.module.js",
   "type": "module",

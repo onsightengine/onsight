@@ -74,6 +74,8 @@ var pkg = {
 
 const VERSION = pkg.version;
 const APP_SIZE = 1000;
+const MOUSE_CLICK_TIME = 350;
+const MOUSE_SLOP = 2;
 const APP_EVENTS = [
     'init',
     'update',
@@ -2784,12 +2786,11 @@ class Object2D extends Thing {
         const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
         const localPositionEnd = parent.inverseGlobalMatrix.transformPoint(worldPositionEnd);
         const delta = localPositionStart.clone().sub(localPositionEnd);
-        const mouseSlopThreshold = 2;
         if (pointer.buttonJustPressed(Pointer.LEFT)) {
             this.dragStartPosition = pointer.position.clone();
         } else if (pointer.buttonPressed(Pointer.LEFT)) {
             const manhattanDistance = this.dragStartPosition.manhattanDistanceTo(pointerEnd);
-            if (manhattanDistance >= mouseSlopThreshold) {
+            if (manhattanDistance >= MOUSE_SLOP) {
                 pointer.dragging = true;
                 this.position.add(delta);
                 this.matrixNeedsUpdate = true;
@@ -3064,9 +3065,6 @@ class Renderer {
             }
             if (object.isSelected) {
                 camera.matrix.setContextTransform(context);
-                context.globalAlpha = 1;
-                context.strokeStyle = '#00aacc';
-                context.lineWidth = 2 / camera.scale;
                 const box = object.boundingBox;
                 const topLeft = object.globalMatrix.transformPoint(box.min);
                 const topRight = object.globalMatrix.transformPoint(new Vector2(box.max.x, box.min.y));
@@ -3078,6 +3076,10 @@ class Renderer {
                 context.lineTo(bottomRight.x, bottomRight.y);
                 context.lineTo(bottomLeft.x, bottomLeft.y);
                 context.closePath();
+                context.setTransform(1, 0, 0, 1, 0, 0);
+                context.globalAlpha = 1;
+                context.strokeStyle = '#00aacc';
+                context.lineWidth = 1;
                 context.stroke();
             }
         }
@@ -3316,8 +3318,15 @@ class Style {
                 const canvas = context.canvas;
                 const computedStyle = getComputedStyle(canvas);
                 const computedColor = computedStyle.getPropertyValue(cssVariable);
-                if (computedColor && typeof computedColor === 'string' && computedColor !== '') return `rgb(${computedColor})`;
-                else return '#ffffff';
+                if (computedColor && typeof computedColor === 'string' && computedColor !== '') {
+                    if (color.includes('rgb(') || color.includes('rgba(')) {
+                        return color.replace(cssVariable, computedColor);
+                    } else {
+                        return `rgb(${computedColor})`;
+                    }
+                } else {
+                    return null;
+                }
             }
         }
         return color;
@@ -3330,13 +3339,14 @@ class Style {
 }
 
 class ColorStyle extends Style {
-    constructor(color = '#000000') {
+    constructor(color = '#000000', fallback = '#ffffff') {
         super();
         this.color = color;
+        this.fallback = fallback;
     }
     get(context) {
         if (this.needsUpdate || this.cache == null) {
-            this.cache = Style.extractColor(this.color, context);
+            this.cache = Style.extractColor(this.color, context) ?? this.fallback;
             this.needsUpdate = false;
         }
         return this.cache;
@@ -3643,7 +3653,7 @@ class LinearGradientStyle extends Style {
         if (this.needsUpdate || this.cache == null) {
             const style = context.createLinearGradient(this.start.x, this.start.y, this.end.x, this.end.y);
             for (const colorStop of this.colors) {
-                const finalColor = Style.extractColor(colorStop.color, context);
+                const finalColor = Style.extractColor(colorStop.color, context) ?? '#ffffff';
                 style.addColorStop(colorStop.offset, finalColor);
             }
             this.cache = style;
@@ -3811,9 +3821,9 @@ class ResizeTool extends Box {
         objects = Array.isArray(objects) ? objects : [ objects ];
         if (objects.length === 0) return console.error(`ResizeTool(): Objects array is empty`);
         super();
-        this.name = 'Resize Tool';
         this.isHelper = true;
-        this.fillStyle.color = 'rgba(0, 85, 102, 0.25)';
+        this.name = 'Resize Tool';
+        this.fillStyle = null;
         this.strokeStyle = null;
         this.pointerEvents = true;
         this.draggable = true;
@@ -4137,12 +4147,48 @@ class ResizeTool extends Box {
     }
 }
 
-const MOUSE_CLICK_TIME = 350;
+class RubberBandBox extends Box {
+    constructor() {
+        super();
+        this.isHelper = true;
+        this.name = 'Rubber Band Box';
+        this.fillStyle.color = 'rgba(--icon, 0.5)';
+        this.fillStyle.fallback = 'rgba(0, 170, 204, 0.5)';
+        this.strokeStyle.color = 'rgb(--icon-light)';
+        this.strokeStyle.fallback = 'rgba(101, 229, 255)';
+        this.lineWidth = 1;
+        this.constantWidth = true;
+        this.pointerEvents = false;
+        this.draggable = false;
+        this.focusable = false;
+        this.selectable = false;
+    }
+    intersected(scene) {
+        const objects = [];
+        const worldBox = this.getWorldBoundingBox();
+        for (const object of scene.children) {
+            if (object.visible && object.selectable) {
+                const objectBox = object.getWorldBoundingBox();
+                if (worldBox.intersectsBox(objectBox)) {
+                    objects.push(object);
+                }
+            }
+        }
+        return objects;
+    }
+}
+
+const _center = new Vector2();
+const _size = new Vector2();
 class SelectControls {
     constructor() {
         this.selection = [];
         this.resizeTool = null;
-        this.downTimer = performance.now();
+        this.rubberBandBox = null;
+        this.downTimer = 0;
+        this._wantsRubberBand = false;
+        this._rubberStart = new Vector2();
+        this._rubberEnd = new Vector2();
     }
     update(renderer) {
         const camera = renderer.camera;
@@ -4154,72 +4200,86 @@ class SelectControls {
         const cameraPoint = camera.inverseMatrix.transformPoint(pointer.position);
         if (pointer.buttonJustPressed(Pointer.LEFT)) {
             const underMouse = scene.getWorldPointIntersections(cameraPoint);
-            if (keyboard.shiftPressed()) {
+            if (keyboard.ctrlPressed() || keyboard.metaPressed() || keyboard.shiftPressed()) {
                 const selectableOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
                 if (selectableOnly.length > 0) {
                     const object = selectableOnly[0];
-                    if (object.selectable) {
-                        object.isSelected = true;
+                    if (object.isSelected) {
+                        newSelection = ArrayUtils.removeThingFromArray(object, newSelection);
+                    } else {
                         newSelection = ArrayUtils.combineThingArrays(newSelection, [ object ]);
                     }
                 }
-            } else if (keyboard.ctrlPressed() || keyboard.metaPressed()) {
-                const selectableOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
-                if (selectableOnly.length > 0) {
-                    const object = selectableOnly[0];
-                    if (object.selectable) {
-                        if (object.isSelected) {
-                            object.isSelected = false;
-                            newSelection = ArrayUtils.removeThingFromArray(object, newSelection);
-                        } else {
-                            object.isSelected = true;
-                            newSelection = ArrayUtils.combineThingArrays(newSelection, [ object ]);
-                        }
-                    }
-                }
             } else {
+                this.downTimer = performance.now();
                 if (underMouse.length === 0) {
-                    scene.traverse((child) => { child.isSelected = false; });
                     newSelection = [];
+                    this._wantsRubberBand = true;
+                    this._rubberStart.copy(cameraPoint);
                 } else if (underMouse.length > 0) {
                     const object = underMouse[0];
                     if (object.selectable && ArrayUtils.compareThingArrays(object, this.selection) === false) {
-                        scene.traverse((child) => { child.isSelected = false; });
-                        object.isSelected = true;
                         newSelection = [ object ];
-                    } else {
-                        this.downTimer = performance.now();
+                        this.downTimer = 0;
                     }
                 }
             }
         }
+        if (pointer.buttonPressed(Pointer.LEFT)) {
+            this._rubberEnd.copy(cameraPoint);
+            if (this._wantsRubberBand) {
+                if (this.rubberBandBox == null) {
+                    const manhattanDistance = this._rubberStart.manhattanDistanceTo(this._rubberEnd);
+                    if (manhattanDistance >= MOUSE_SLOP) {
+                        renderer.beingDragged = this.rubberBandBox;
+                        const rubberBandBox = new RubberBandBox();
+                        scene.traverse((child) => { rubberBandBox.layer = Math.max(rubberBandBox.layer, child.layer + 1); });
+                        scene.add(rubberBandBox);
+                        this.rubberBandBox = rubberBandBox;
+                    }
+                }
+                if (this.rubberBandBox) {
+                    _center.addVectors(this._rubberStart, this._rubberEnd).divideScalar(2);
+                    this.rubberBandBox.position.copy(_center);
+                    _size.subVectors(this._rubberStart, this._rubberEnd).abs().divideScalar(2);
+                    this.rubberBandBox.box.set(new Vector2(-_size.x, -_size.y), new Vector2(+_size.x, +_size.y));
+                    newSelection = this.rubberBandBox.intersected(scene);
+                }
+            }
+        }
         if (pointer.buttonJustReleased(Pointer.LEFT)) {
-            if (pointer.dragging !== true && performance.now() - this.downTimer < MOUSE_CLICK_TIME) {
+            this._wantsRubberBand = false;
+            if (this.rubberBandBox) {
+                this.rubberBandBox.destroy();
+                this.rubberBandBox = null;
+            } else if (!pointer.dragging && performance.now() - this.downTimer < MOUSE_CLICK_TIME) {
                 const underMouse = scene.getWorldPointIntersections(cameraPoint);
                 const withoutResizeTool = ArrayUtils.filterThings(underMouse, { isHelper: undefined });
                 if (withoutResizeTool.length === 0) {
-                    scene.traverse((child) => { child.isSelected = false; });
                     newSelection = [];
                 } else if (withoutResizeTool.length > 0) {
                     const object = withoutResizeTool[0];
                     if (object.selectable && ArrayUtils.compareThingArrays(object, this.selection) === false) {
-                        scene.traverse((child) => { child.isSelected = false; });
-                        object.isSelected = true;
                         newSelection = [ object ];
                     }
                 }
             }
         }
         if (ArrayUtils.compareThingArrays(this.selection, newSelection) === false) {
+            scene.traverse((child) => { child.isSelected = false; });
+            newSelection.forEach((object) => { object.isSelected = true; });
             if (this.resizeTool) {
                 this.resizeTool.objects = [];
                 this.resizeTool.destroy();
+                this.resizeTool = null;
             }
             if (newSelection.length > 0) {
                 this.resizeTool = new ResizeTool(newSelection);
                 scene.add(this.resizeTool);
                 this.resizeTool.onUpdate(renderer);
-                renderer.beingDragged = this.resizeTool;
+                if (this.rubberBandBox == null) {
+                    renderer.beingDragged = this.resizeTool;
+                }
             }
             this.selection = [ ...newSelection ];
         }
@@ -4584,4 +4644,4 @@ function getVariable(variable) {
     return ((value === '') ? undefined : value);
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, Entity, Key, Keyboard, Line, LinearGradientStyle, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, Viewport, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, Entity, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, Viewport, WORLD_TYPES, World };

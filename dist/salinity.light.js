@@ -74,6 +74,8 @@ var pkg = {
 
 const VERSION = pkg.version;
 const APP_SIZE = 1000;
+const MOUSE_CLICK_TIME = 350;
+const MOUSE_SLOP = 2;
 const APP_EVENTS = [
     'init',
     'update',
@@ -2784,12 +2786,11 @@ class Object2D extends Thing {
         const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
         const localPositionEnd = parent.inverseGlobalMatrix.transformPoint(worldPositionEnd);
         const delta = localPositionStart.clone().sub(localPositionEnd);
-        const mouseSlopThreshold = 2;
         if (pointer.buttonJustPressed(Pointer.LEFT)) {
             this.dragStartPosition = pointer.position.clone();
         } else if (pointer.buttonPressed(Pointer.LEFT)) {
             const manhattanDistance = this.dragStartPosition.manhattanDistanceTo(pointerEnd);
-            if (manhattanDistance >= mouseSlopThreshold) {
+            if (manhattanDistance >= MOUSE_SLOP) {
                 pointer.dragging = true;
                 this.position.add(delta);
                 this.matrixNeedsUpdate = true;
@@ -3064,9 +3065,6 @@ class Renderer {
             }
             if (object.isSelected) {
                 camera.matrix.setContextTransform(context);
-                context.globalAlpha = 1;
-                context.strokeStyle = '#00aacc';
-                context.lineWidth = 2 / camera.scale;
                 const box = object.boundingBox;
                 const topLeft = object.globalMatrix.transformPoint(box.min);
                 const topRight = object.globalMatrix.transformPoint(new Vector2(box.max.x, box.min.y));
@@ -3078,6 +3076,10 @@ class Renderer {
                 context.lineTo(bottomRight.x, bottomRight.y);
                 context.lineTo(bottomLeft.x, bottomLeft.y);
                 context.closePath();
+                context.setTransform(1, 0, 0, 1, 0, 0);
+                context.globalAlpha = 1;
+                context.strokeStyle = '#00aacc';
+                context.lineWidth = 1;
                 context.stroke();
             }
         }
@@ -3316,8 +3318,15 @@ class Style {
                 const canvas = context.canvas;
                 const computedStyle = getComputedStyle(canvas);
                 const computedColor = computedStyle.getPropertyValue(cssVariable);
-                if (computedColor && typeof computedColor === 'string' && computedColor !== '') return `rgb(${computedColor})`;
-                else return '#ffffff';
+                if (computedColor && typeof computedColor === 'string' && computedColor !== '') {
+                    if (color.includes('rgb(') || color.includes('rgba(')) {
+                        return color.replace(cssVariable, computedColor);
+                    } else {
+                        return `rgb(${computedColor})`;
+                    }
+                } else {
+                    return null;
+                }
             }
         }
         return color;
@@ -3330,13 +3339,14 @@ class Style {
 }
 
 class ColorStyle extends Style {
-    constructor(color = '#000000') {
+    constructor(color = '#000000', fallback = '#ffffff') {
         super();
         this.color = color;
+        this.fallback = fallback;
     }
     get(context) {
         if (this.needsUpdate || this.cache == null) {
-            this.cache = Style.extractColor(this.color, context);
+            this.cache = Style.extractColor(this.color, context) ?? this.fallback;
             this.needsUpdate = false;
         }
         return this.cache;
@@ -3643,7 +3653,7 @@ class LinearGradientStyle extends Style {
         if (this.needsUpdate || this.cache == null) {
             const style = context.createLinearGradient(this.start.x, this.start.y, this.end.x, this.end.y);
             for (const colorStop of this.colors) {
-                const finalColor = Style.extractColor(colorStop.color, context);
+                const finalColor = Style.extractColor(colorStop.color, context) ?? '#ffffff';
                 style.addColorStop(colorStop.offset, finalColor);
             }
             this.cache = style;
@@ -3683,4 +3693,4 @@ if (typeof window !== 'undefined') {
     else window.__SALINITY__ = VERSION;
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, Circle, Clock, ColorStyle, Entity, Key, Keyboard, Line, LinearGradientStyle, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, Viewport, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, Circle, Clock, ColorStyle, Entity, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, Viewport, WORLD_TYPES, World };

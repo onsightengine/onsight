@@ -23,12 +23,13 @@ class ResizeTool extends Box {
         if (objects.length === 0) return console.error(`ResizeTool(): Objects array is empty`);
 
         super();
-        this.name = 'Resize Tool';
         this.isHelper = true;
-        this.fillStyle.color = 'rgba(0, 85, 102, 0.25)';
+
+        this.name = 'Resize Tool';
+        this.fillStyle.color = 'rgba(--icon-dark, 0.2)';
+        this.fillStyle.fallback = 'rgba(0, 85, 102, 0.2)';
         this.strokeStyle = null;
 
-        // Properties
         this.pointerEvents = true;
         this.draggable = true;
         this.focusable = true;

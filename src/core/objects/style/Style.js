@@ -12,8 +12,15 @@ class Style {
                 const canvas = context.canvas;
                 const computedStyle = getComputedStyle(canvas);
                 const computedColor = computedStyle.getPropertyValue(cssVariable);
-                if (computedColor && typeof computedColor === 'string' && computedColor !== '') return `rgb(${computedColor})`;
-                else return '#ffffff';
+                if (computedColor && typeof computedColor === 'string' && computedColor !== '') {
+                    if (color.includes('rgb(') || color.includes('rgba(')) {
+                        return color.replace(cssVariable, computedColor);
+                    } else {
+                        return `rgb(${computedColor})`;
+                    }
+                } else {
+                    return null;
+                }
             }
         }
         return color;

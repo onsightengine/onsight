@@ -88,6 +88,7 @@
 
         for (let i = 0; i < 50; i++) {
             const box = new SALT.Box().setPosition((Math.random() * 1000) - 500, (Math.random() * 1000) - 500);
+            box.fillStyle.color = `rgb(${Math.floor(Math.random()*256)},${Math.floor(Math.random()*256)},${Math.floor(Math.random()*256)})`;
             box.draggable = true;
             // box.focusable = false;
             // box.selectable = false;

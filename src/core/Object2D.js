@@ -5,6 +5,9 @@
 //       |
 //  y    V      x
 
+import {
+    MOUSE_SLOP,
+} from '../constants.js';
 import { Box2 } from '../math/Box2.js';
 import { MathUtils } from '../utils/MathUtils.js';
 import { Matrix2 } from '../math/Matrix2.js';
@@ -376,15 +379,12 @@ class Object2D extends Thing {
         const localPositionEnd = parent.inverseGlobalMatrix.transformPoint(worldPositionEnd);
         const delta = localPositionStart.clone().sub(localPositionEnd);
 
-        // Mouse Slop
-        const mouseSlopThreshold = 2;
-
         // Adjust Position
         if (pointer.buttonJustPressed(Pointer.LEFT)) {
             this.dragStartPosition = pointer.position.clone();
         } else if (pointer.buttonPressed(Pointer.LEFT)) {
             const manhattanDistance = this.dragStartPosition.manhattanDistanceTo(pointerEnd);
-            if (manhattanDistance >= mouseSlopThreshold) {
+            if (manhattanDistance >= MOUSE_SLOP) {
                 pointer.dragging = true;
                 this.position.add(delta);
                 this.matrixNeedsUpdate = true;

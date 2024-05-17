@@ -6,14 +6,15 @@ import { Style } from './Style.js';
  */
 class ColorStyle extends Style {
 
-    constructor(color = '#000000') {
+    constructor(color = '#000000', fallback = '#ffffff') {
         super();
         this.color = color;
+        this.fallback = fallback;
     }
 
     get(context) {
         if (this.needsUpdate || this.cache == null) {
-            this.cache = Style.extractColor(this.color, context);
+            this.cache = Style.extractColor(this.color, context) ?? this.fallback;
             this.needsUpdate = false;
         }
         return this.cache;

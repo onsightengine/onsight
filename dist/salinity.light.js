@@ -2791,7 +2791,6 @@ class Object2D extends Thing {
         } else if (pointer.buttonPressed(Pointer.LEFT)) {
             const manhattanDistance = this.dragStartPosition.manhattanDistanceTo(pointerEnd);
             if (manhattanDistance >= MOUSE_SLOP) {
-                pointer.dragging = true;
                 this.position.add(delta);
                 this.matrixNeedsUpdate = true;
             }
@@ -3020,7 +3019,6 @@ class Renderer {
                         object.onPointerDragEnd(pointer, camera);
                     }
                     this.beingDragged = null;
-                    pointer.dragging = false;
                 } else {
                     if (object.pointerEvents && typeof object.onPointerDrag === 'function') {
                         object.onPointerDrag(pointer, camera);

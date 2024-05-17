@@ -2791,7 +2791,6 @@ class Object2D extends Thing {
         } else if (pointer.buttonPressed(Pointer.LEFT)) {
             const manhattanDistance = this.dragStartPosition.manhattanDistanceTo(pointerEnd);
             if (manhattanDistance >= MOUSE_SLOP) {
-                pointer.dragging = true;
                 this.position.add(delta);
                 this.matrixNeedsUpdate = true;
             }
@@ -3020,7 +3019,6 @@ class Renderer {
                         object.onPointerDragEnd(pointer, camera);
                     }
                     this.beingDragged = null;
-                    pointer.dragging = false;
                 } else {
                     if (object.pointerEvents && typeof object.onPointerDrag === 'function') {
                         object.onPointerDrag(pointer, camera);
@@ -4193,10 +4191,10 @@ class SelectControls {
         this.resizeTool = null;
         this.rubberBandBox = null;
         this.downTimer = 0;
-        this._wantsRubberBand = false;
-        this._rubberStart = new Vector2();
-        this._rubberEnd = new Vector2();
         this._existingSelection = [];
+        this._mouseStart = new Vector2();
+        this._mouseNow = new Vector2();
+        this._wantsRubberBand = false;
     }
     update(renderer) {
         const camera = renderer.camera;
@@ -4207,6 +4205,7 @@ class SelectControls {
         let newSelection = [ ...this.selection ];
         const cameraPoint = camera.inverseMatrix.transformPoint(pointer.position);
         if (pointer.buttonJustPressed(Pointer.LEFT)) {
+            this._mouseStart.copy(cameraPoint);
             const underMouse = scene.getWorldPointIntersections(cameraPoint);
             if (keyboard.ctrlPressed() || keyboard.metaPressed() || keyboard.shiftPressed()) {
                 const selectableOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
@@ -4220,7 +4219,6 @@ class SelectControls {
                 } else {
                     this._existingSelection = [ ...this.selection ];
                     this._wantsRubberBand = true;
-                    this._rubberStart.copy(cameraPoint);
                 }
             } else {
                 this.downTimer = performance.now();
@@ -4228,7 +4226,6 @@ class SelectControls {
                     newSelection = [];
                     this._existingSelection = [];
                     this._wantsRubberBand = true;
-                    this._rubberStart.copy(cameraPoint);
                 } else if (underMouse.length > 0) {
                     const object = underMouse[0];
                     if (object.selectable && ArrayUtils.compareThingArrays(object, this.selection) === false) {
@@ -4238,12 +4235,12 @@ class SelectControls {
                 }
             }
         }
+        this._mouseNow.copy(cameraPoint);
         if (pointer.buttonPressed(Pointer.LEFT)) {
-            this._rubberEnd.copy(cameraPoint);
+            const mouseTravel = this._mouseStart.manhattanDistanceTo(this._mouseNow);
             if (this._wantsRubberBand) {
                 if (this.rubberBandBox == null) {
-                    const manhattanDistance = this._rubberStart.manhattanDistanceTo(this._rubberEnd);
-                    if (manhattanDistance >= MOUSE_SLOP) {
+                    if (mouseTravel >= MOUSE_SLOP) {
                         renderer.beingDragged = this.rubberBandBox;
                         const rubberBandBox = new RubberBandBox();
                         scene.traverse((child) => { rubberBandBox.layer = Math.max(rubberBandBox.layer, child.layer + 1); });
@@ -4252,20 +4249,22 @@ class SelectControls {
                     }
                 }
                 if (this.rubberBandBox) {
-                    _center.addVectors(this._rubberStart, this._rubberEnd).divideScalar(2);
+                    _center.addVectors(this._mouseStart, this._mouseNow).divideScalar(2);
                     this.rubberBandBox.position.copy(_center);
-                    _size.subVectors(this._rubberStart, this._rubberEnd).abs().divideScalar(2);
+                    _size.subVectors(this._mouseStart, this._mouseNow).abs().divideScalar(2);
                     this.rubberBandBox.box.set(new Vector2(-_size.x, -_size.y), new Vector2(+_size.x, +_size.y));
                     newSelection = ArrayUtils.combineThingArrays(this.rubberBandBox.intersected(scene), this._existingSelection);
                 }
             }
         }
         if (pointer.buttonJustReleased(Pointer.LEFT)) {
+            const mouseTravel = this._mouseStart.manhattanDistanceTo(this._mouseNow);
+            const shortClick = performance.now() - this.downTimer < MOUSE_CLICK_TIME;
             this._wantsRubberBand = false;
             if (this.rubberBandBox) {
                 this.rubberBandBox.destroy();
                 this.rubberBandBox = null;
-            } else if (!renderer.beingDragged && performance.now() - this.downTimer < MOUSE_CLICK_TIME) {
+            } else if (shortClick && mouseTravel <= MOUSE_SLOP) {
                 const underMouse = scene.getWorldPointIntersections(cameraPoint);
                 const withoutResizeTool = ArrayUtils.filterThings(underMouse, { isHelper: undefined });
                 if (withoutResizeTool.length === 0) {

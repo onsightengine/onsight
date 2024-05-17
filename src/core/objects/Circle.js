@@ -11,6 +11,7 @@ class Circle extends Object2D {
         this.strokeStyle = new ColorStyle('#000000');
         this.lineWidth = 1;
         this.constantWidth = false;
+        this.buffer = 0;
 
         // INTERNAL
         this._radius = 10.0;
@@ -23,12 +24,13 @@ class Circle extends Object2D {
     }
 
     computeBoundingBox() {
-        this.boundingBox.min.set(-this._radius, -this._radius);
-        this.boundingBox.max.set(+this._radius, +this._radius);
+        const radius = this.radius;
+        this.boundingBox.min.set(-radius, -radius);
+        this.boundingBox.max.set(+radius, +radius);
     }
 
     isInside(point) {
-        return point.length() <= this._radius;
+        return point.length() <= (this._radius + this.buffer);
     }
 
     draw(context, camera, canvas, renderer) {

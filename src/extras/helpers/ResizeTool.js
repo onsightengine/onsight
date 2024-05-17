@@ -282,6 +282,7 @@ class ResizeTool extends Box {
             rotater.focusable = false;
             rotater.selectable = false;
             rotater.radius = radius + 1;
+            rotater.buffer = 3;
             rotater.layer = topLayer + 2;
             rotater.constantWidth = true;
             rotater.fillStyle = new LinearGradientStyle();

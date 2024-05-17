@@ -276,6 +276,18 @@ class Renderer {
 
             // Highlight Selected
             if (object.isSelected) {
+                context.globalAlpha = 1;
+                context.lineWidth = 2;
+                // Origin
+                context.strokeStyle = '#ffffff';
+                camera.matrix.setContextTransform(context);
+                const origin = object.globalMatrix.transformPoint(object.origin);
+                context.beginPath();
+                context.arc(origin.x, origin.y, 3 / camera.scale, 0, 2 * Math.PI);
+                context.setTransform(1, 0, 0, 1, 0, 0);
+                context.stroke();
+                // Bounding Box
+                context.strokeStyle = '#65e5ff';
                 camera.matrix.setContextTransform(context);
                 const box = object.boundingBox;
                 const topLeft = object.globalMatrix.transformPoint(box.min);
@@ -289,9 +301,6 @@ class Renderer {
                 context.lineTo(bottomLeft.x, bottomLeft.y);
                 context.closePath();
                 context.setTransform(1, 0, 0, 1, 0, 0);
-                context.globalAlpha = 1;
-                context.strokeStyle = '#65e5ff';
-                context.lineWidth = 2;
                 context.stroke();
             }
         }

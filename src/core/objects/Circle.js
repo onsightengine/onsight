@@ -3,10 +3,11 @@ import { Object2D } from '../Object2D.js';
 
 class Circle extends Object2D {
 
-    constructor() {
+    constructor(radius = 25) {
         super();
         this.type = 'Circle';
 
+        this.radius = radius;
         this.fillStyle = new ColorStyle('#FFFFFF');
         this.strokeStyle = new ColorStyle('#000000');
         this.lineWidth = 1;

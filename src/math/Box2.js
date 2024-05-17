@@ -102,11 +102,8 @@ class Box2 {
             y = x.y;
             x = x.x;
         }
-        const center = this.getCenter();
-        const newSize = this.getSize().multiply(x, y);
-        const halfNewSize = newSize.clone().multiplyScalar(0.5);
-        this.min.copy(center).sub(halfNewSize);
-        this.max.copy(center).add(halfNewSize);
+        this.min.multiply(x, y);
+        this.max.multiply(x, y);
         return this;
     }
 

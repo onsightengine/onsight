@@ -2117,14 +2117,14 @@ class Matrix2 {
         return this;
     }
     compose(px, py, sx, sy, ox, oy, rot) {
-        this.m = [ 1, 0, 0, 1, px, py ];
+        this.m = [ 1, 0, 0, 1, 0, 0 ];
+        this.multiply(new Matrix2([ 1, 0, 0, 1, px, py ]));
         if (rot !== 0) {
-            this.multiply(new Matrix2([ 1, 0, 0, 1, +ox, +oy ]));
             const c = Math.cos(rot);
             const s = Math.sin(rot);
             this.multiply(new Matrix2([ c, s, -s, c, 0, 0 ]));
-            this.multiply(new Matrix2([ 1, 0, 0, 1, -ox, -oy ]));
         }
+        this.multiply(new Matrix2([ 1, 0, 0, 1, -ox, -oy ]));
         if (sx !== 1 || sy !== 1) this.scale(sx, sy);
         return this;
     }
@@ -2341,11 +2341,8 @@ class Box2 {
             y = x.y;
             x = x.x;
         }
-        const center = this.getCenter();
-        const newSize = this.getSize().multiply(x, y);
-        const halfNewSize = newSize.clone().multiplyScalar(0.5);
-        this.min.copy(center).sub(halfNewSize);
-        this.max.copy(center).add(halfNewSize);
+        this.min.multiply(x, y);
+        this.max.multiply(x, y);
         return this;
     }
     containsPoint(point) {
@@ -3062,6 +3059,16 @@ class Renderer {
                 this.drawCallCount++;
             }
             if (object.isSelected) {
+                context.globalAlpha = 1;
+                context.lineWidth = 2;
+                context.strokeStyle = '#ffffff';
+                camera.matrix.setContextTransform(context);
+                const origin = object.globalMatrix.transformPoint(object.origin);
+                context.beginPath();
+                context.arc(origin.x, origin.y, 3 / camera.scale, 0, 2 * Math.PI);
+                context.setTransform(1, 0, 0, 1, 0, 0);
+                context.stroke();
+                context.strokeStyle = '#65e5ff';
                 camera.matrix.setContextTransform(context);
                 const box = object.boundingBox;
                 const topLeft = object.globalMatrix.transformPoint(box.min);
@@ -3075,9 +3082,6 @@ class Renderer {
                 context.lineTo(bottomLeft.x, bottomLeft.y);
                 context.closePath();
                 context.setTransform(1, 0, 0, 1, 0, 0);
-                context.globalAlpha = 1;
-                context.strokeStyle = '#65e5ff';
-                context.lineWidth = 2;
                 context.stroke();
             }
         }
@@ -3364,6 +3368,7 @@ class Box extends Object2D {
     }
     computeBoundingBox() {
         this.boundingBox.copy(this.box);
+        this._box.copy(this.box);
     }
     isInside(point) {
         return this.box.containsPoint(point);
@@ -3405,15 +3410,15 @@ class Box extends Object2D {
     onUpdate(renderer) {
         if (this.box.equals(this._box) === false) {
             this.computeBoundingBox();
-            this._box.copy(this.box);
         }
     }
 }
 
 class Circle extends Object2D {
-    constructor() {
+    constructor(radius = 25) {
         super();
         this.type = 'Circle';
+        this.radius = radius;
         this.fillStyle = new ColorStyle('#FFFFFF');
         this.strokeStyle = new ColorStyle('#000000');
         this.lineWidth = 1;
@@ -3555,18 +3560,23 @@ class Sprite extends Box {
         super();
         this.type = 'Sprite';
 	    this.image = document.createElement('img');
-	    if (src !== undefined) this.setImage(src);
+	    if (src) this.setImage(src);
+        this._loaded = false;
     }
     setImage(src) {
+        this._loaded = false;
         const self = this;
         this.image.onload = function() {
             self.box.min.set(0, 0);
             self.box.max.set(self.image.naturalWidth, self.image.naturalHeight);
+            self.origin.copy(self.box.getCenter());
+            self.computeBoundingBox();
+            self._loaded = true;
         };
         this.image.src = src;
     }
     draw(context, viewport, canvas) {
-        if (this.image.src.length > 0) {
+        if (this.image.src.length > 0 && this._loaded) {
             context.drawImage(this.image, 0, 0, this.image.naturalWidth, this.image.naturalHeight, this.box.min.x, this.box.min.y, this.box.max.x - this.box.min.x, this.box.max.y - this.box.min.y);
         }
     }

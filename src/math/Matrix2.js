@@ -65,17 +65,21 @@ class Matrix2 {
      * @param {number} rot Rotation angle (radians).
      */
     compose(px, py, sx, sy, ox, oy, rot) {
-        // Position (Translation)
-        this.m = [ 1, 0, 0, 1, px, py ];
+        // Identity
+        this.m = [ 1, 0, 0, 1, 0, 0 ];
+
+        // Translation (Position)
+        this.multiply(new Matrix2([ 1, 0, 0, 1, px, py ]));
 
         // Rotation
         if (rot !== 0) {
-            this.multiply(new Matrix2([ 1, 0, 0, 1, +ox, +oy ]));
             const c = Math.cos(rot);
             const s = Math.sin(rot);
             this.multiply(new Matrix2([ c, s, -s, c, 0, 0 ]));
-            this.multiply(new Matrix2([ 1, 0, 0, 1, -ox, -oy ]));
         }
+
+        // Origin
+        this.multiply(new Matrix2([ 1, 0, 0, 1, -ox, -oy ]));
 
         // Scale
         if (sx !== 1 || sy !== 1) this.scale(sx, sy);

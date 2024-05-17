@@ -88,17 +88,17 @@ class ResizeTool extends Box {
             for (const object of objects) {
                 const box = object.boundingBox.clone();
                 box.multiply(object.scale.clone().abs());
+                box.translate(object.origin.clone().multiplyScalar(-1));
                 box.translate(unRotateMatrix.transformPoint(object.position));
                 worldBox.union(box);
             }
             // True Center
-            const unRotatedCenter = worldBox.getCenter();
-            center = rotationMatrix.transformPoint(unRotatedCenter);
+            const rotatedCenter = worldBox.getCenter();
+            center = rotationMatrix.transformPoint(rotatedCenter);
             // Find Initial Positions
             for (const object of objects) {
                 const position = object.position.clone().sub(center);
-                const initialPosition = unRotateMatrix.transformPoint(position);
-                initialPosition.add(center);
+                const initialPosition = unRotateMatrix.transformPoint(position).add(center);
                 initialTransforms[object.uuid].position.copy(initialPosition);
             }
         // No Rotation
@@ -239,8 +239,9 @@ class ResizeTool extends Box {
                     // Update individual objects
                     for (const object of objects) {
                         const initialTransform = initialTransforms[object.uuid];
-                        const initialRotation = MathUtils.equalizeAngle0to360(initialTransform.rotation, false);
                         const rotatedScale = self.scale.clone();
+                        let initialRotation = initialTransform.rotation - startRotation;
+                        initialRotation = MathUtils.equalizeAngle0to360(initialRotation, false);
 
                         // Rotate Scale?
                         const fortyFive = Math.PI / 4;
@@ -332,16 +333,23 @@ class ResizeTool extends Box {
                 const initialPosition = initialTransforms[object.uuid].position;
                 const initialRotation = initialTransforms[object.uuid].rotation;
                 const initialScale = initialTransforms[object.uuid].scale;
+                const initialOrigin = object.origin;
 
                 // Rotation
                 object.rotation = initialRotation + (self.rotation - startRotation);
 
                 // Position
                 const relativePosition = initialPosition.clone().sub(startPosition);
-                const scaledPosition = relativePosition.clone().multiply(self.scale);
-                const rotationMatrix = new Matrix2().rotate((object.rotation - initialRotation) + startRotation);
+                const scaledPosition = relativePosition.clone().multiply(self.scale).add(initialOrigin);
+                const rotateAngle = (object.rotation - initialRotation) + startRotation;
+                const rotationMatrix = new Matrix2().rotate(rotateAngle);
                 const rotatedPosition = rotationMatrix.transformPoint(scaledPosition);
                 object.position.copy(rotatedPosition).add(self.position);
+
+                // Origin
+                const scaledOrigin = initialOrigin.clone().multiply(object.scale);
+                const rotatedOrigin = rotationMatrix.transformPoint(scaledOrigin);
+                object.position.sub(rotatedOrigin);
 
                 // Flipped?
                 const wasSame = Math.sign(object.scale.x) === Math.sign(object.scale.y);

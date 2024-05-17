@@ -21,6 +21,7 @@ class Box extends Object2D {
 
     computeBoundingBox() {
         this.boundingBox.copy(this.box);
+        this._box.copy(this.box);
     }
 
     isInside(point) {
@@ -65,7 +66,6 @@ class Box extends Object2D {
     onUpdate(renderer) {
         if (this.box.equals(this._box) === false) {
             this.computeBoundingBox();
-            this._box.copy(this.box);
         }
     }
 

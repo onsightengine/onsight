@@ -22,6 +22,12 @@
         const scene = new SALT.Object2D();
 
         // Objects
+        const center = new SALT.Circle(10);
+        center.setPosition(0, 0);
+        center.fillStyle.color = '#ff00ff';
+        center.draggable = false;
+        scene.add(center);
+
         const box = new SALT.Box();
         box.setPosition(-100, 0);
         box.fillStyle.color = '#ff0000';
@@ -91,7 +97,7 @@
         scene.add(line3);
 
         const sprite1 = new SALT.Sprite('../files/textures/shapes.png');
-        sprite1.setPosition(-500, 0);
+        sprite1.setPosition(-350, 0);
         scene.add(sprite1);
 
         // for (let i = 0; i < 50; i++) {

@@ -25,6 +25,7 @@ class SelectControls {
         this._wantsRubberBand = false;
         this._rubberStart = new Vector2();
         this._rubberEnd = new Vector2();
+        this._existingSelection = [];
     }
 
     update(renderer) {
@@ -52,6 +53,10 @@ class SelectControls {
                     } else {
                         newSelection = ArrayUtils.combineThingArrays(newSelection, [ object ]);
                     }
+                } else {
+                    this._existingSelection = [ ...this.selection ];
+                    this._wantsRubberBand = true;
+                    this._rubberStart.copy(cameraPoint);
                 }
 
             // Single Click / Click Timer
@@ -60,6 +65,7 @@ class SelectControls {
                 // Clear Previous Selection
                 if (underMouse.length === 0) {
                     newSelection = [];
+                    this._existingSelection = [];
                     this._wantsRubberBand = true;
                     this._rubberStart.copy(cameraPoint);
                 // New Selected Object
@@ -94,7 +100,7 @@ class SelectControls {
                     this.rubberBandBox.position.copy(_center);
                     _size.subVectors(this._rubberStart, this._rubberEnd).abs().divideScalar(2);
                     this.rubberBandBox.box.set(new Vector2(-_size.x, -_size.y), new Vector2(+_size.x, +_size.y));
-                    newSelection = this.rubberBandBox.intersected(scene);
+                    newSelection = ArrayUtils.combineThingArrays(this.rubberBandBox.intersected(scene), this._existingSelection);
                 }
             }
         }

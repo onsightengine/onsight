@@ -3078,8 +3078,8 @@ class Renderer {
                 context.closePath();
                 context.setTransform(1, 0, 0, 1, 0, 0);
                 context.globalAlpha = 1;
-                context.strokeStyle = '#00aacc';
-                context.lineWidth = 1;
+                context.strokeStyle = '#65e5ff';
+                context.lineWidth = 2;
                 context.stroke();
             }
         }

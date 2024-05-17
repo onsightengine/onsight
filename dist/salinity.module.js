@@ -3078,8 +3078,8 @@ class Renderer {
                 context.closePath();
                 context.setTransform(1, 0, 0, 1, 0, 0);
                 context.globalAlpha = 1;
-                context.strokeStyle = '#00aacc';
-                context.lineWidth = 1;
+                context.strokeStyle = '#65e5ff';
+                context.lineWidth = 2;
                 context.stroke();
             }
         }
@@ -3829,9 +3829,13 @@ class ResizeTool extends Box {
         this.draggable = true;
         this.focusable = true;
         this.selectable = false;
-        let layer = 0;
-        for (const object of objects) { layer = Math.max(layer, object.layer + 1); }
-        this.layer = layer;
+        let topLayer = 0;
+        let bottomLayer = 0;
+        for (const object of objects) {
+            topLayer = Math.max(topLayer, object.layer + 1);
+            bottomLayer = Math.max(bottomLayer, object.layer - 1);
+        }
+        this.layer = topLayer;
         const self = this;
         const initialTransforms = {};
         for (const object of objects) {
@@ -3905,7 +3909,7 @@ class ResizeTool extends Box {
                 resizer.draggable = true;
                 resizer.focusable = false;
                 resizer.selectable = false;
-                resizer.layer = layer + 1;
+                resizer.layer = topLayer + 1;
                 resizer.opacity = alpha;
                 resizer.constantWidth = true;
                 switch (type) {
@@ -4023,7 +4027,7 @@ class ResizeTool extends Box {
             rotater.focusable = false;
             rotater.selectable = false;
             rotater.radius = radius + 1;
-            rotater.layer = layer + 1;
+            rotater.layer = topLayer + 2;
             rotater.constantWidth = true;
             rotater.fillStyle = new LinearGradientStyle();
             rotater.fillStyle.start.set(-radius, -radius);
@@ -4053,7 +4057,7 @@ class ResizeTool extends Box {
             rotateLine.draggable = false;
             rotateLine.focusable = false;
             rotateLine.selectable = false;
-            rotateLine.layer = layer;
+            rotateLine.layer = topLayer + 1;
             rotateLine.constantWidth = true;
             rotateLine.strokeStyle.color = '--highlight';
             this.add(rotater, rotateLine);
@@ -4085,6 +4089,9 @@ class ResizeTool extends Box {
         }
         this.onUpdate = function(renderer) {
             const camera = renderer.camera;
+            if (self.bgBox) {
+                self.bgBox.box.set(new Vector2(-halfSize.x, -halfSize.y), new Vector2(+halfSize.x, +halfSize.y));
+            }
             const handleOffset = ((radius * 4) / Math.abs(self.scale.y)) / camera.scale;
             const topCenterWorld = new Vector2(0, -halfSize.y);
             const topCenterWorldOffset = new Vector2(0, -halfSize.y - handleOffset);
@@ -4189,6 +4196,7 @@ class SelectControls {
         this._wantsRubberBand = false;
         this._rubberStart = new Vector2();
         this._rubberEnd = new Vector2();
+        this._existingSelection = [];
     }
     update(renderer) {
         const camera = renderer.camera;
@@ -4209,11 +4217,16 @@ class SelectControls {
                     } else {
                         newSelection = ArrayUtils.combineThingArrays(newSelection, [ object ]);
                     }
+                } else {
+                    this._existingSelection = [ ...this.selection ];
+                    this._wantsRubberBand = true;
+                    this._rubberStart.copy(cameraPoint);
                 }
             } else {
                 this.downTimer = performance.now();
                 if (underMouse.length === 0) {
                     newSelection = [];
+                    this._existingSelection = [];
                     this._wantsRubberBand = true;
                     this._rubberStart.copy(cameraPoint);
                 } else if (underMouse.length > 0) {
@@ -4243,7 +4256,7 @@ class SelectControls {
                     this.rubberBandBox.position.copy(_center);
                     _size.subVectors(this._rubberStart, this._rubberEnd).abs().divideScalar(2);
                     this.rubberBandBox.box.set(new Vector2(-_size.x, -_size.y), new Vector2(+_size.x, +_size.y));
-                    newSelection = this.rubberBandBox.intersected(scene);
+                    newSelection = ArrayUtils.combineThingArrays(this.rubberBandBox.intersected(scene), this._existingSelection);
                 }
             }
         }

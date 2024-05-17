@@ -26,8 +26,7 @@ class ResizeTool extends Box {
         this.isHelper = true;
 
         this.name = 'Resize Tool';
-        this.fillStyle.color = 'rgba(--icon-dark, 0.2)';
-        this.fillStyle.fallback = 'rgba(0, 85, 102, 0.2)';
+        this.fillStyle = null;
         this.strokeStyle = null;
 
         this.pointerEvents = true;
@@ -36,9 +35,26 @@ class ResizeTool extends Box {
         this.selectable = false;
 
         // Layer
-        let layer = 0
-        for (const object of objects) { layer = Math.max(layer, object.layer + 1); }
-        this.layer = layer;
+        let topLayer = 0;
+        let bottomLayer = 0;
+        for (const object of objects) {
+            topLayer = Math.max(topLayer, object.layer + 1);
+            bottomLayer = Math.max(bottomLayer, object.layer - 1);
+        }
+        this.layer = topLayer;
+
+        // // Background
+        // const bgBox = new Box();
+        // bgBox.isHelper = true;
+        // bgBox.pointerEvents = false;
+        // bgBox.draggable = false;
+        // bgBox.focusable = false;
+        // bgBox.selectable = false;
+        // bgBox.layer = bottomLayer;
+        // bgBox.fillStyle.color = 'rgba(--icon-dark, 0.35)';
+        // bgBox.fillStyle.fallback = 'rgba(0, 85, 102, 0.35)';
+        // this.add(bgBox);
+        // this.bgBox = bgBox;
 
         // Initial Object Transforms
         const self = this;
@@ -130,7 +146,7 @@ class ResizeTool extends Box {
                 resizer.draggable = true;
                 resizer.focusable = false;
                 resizer.selectable = false;
-                resizer.layer = layer + 1;
+                resizer.layer = topLayer + 1;
                 resizer.opacity = alpha;
                 resizer.constantWidth = true;
                 switch (type) {
@@ -266,7 +282,7 @@ class ResizeTool extends Box {
             rotater.focusable = false;
             rotater.selectable = false;
             rotater.radius = radius + 1;
-            rotater.layer = layer + 1;
+            rotater.layer = topLayer + 2;
             rotater.constantWidth = true;
             rotater.fillStyle = new LinearGradientStyle();
             rotater.fillStyle.start.set(-radius, -radius);
@@ -297,7 +313,7 @@ class ResizeTool extends Box {
             rotateLine.draggable = false;
             rotateLine.focusable = false;
             rotateLine.selectable = false;
-            rotateLine.layer = layer;
+            rotateLine.layer = topLayer + 1;
             rotateLine.constantWidth = true;
             rotateLine.strokeStyle.color = '--highlight';
             this.add(rotater, rotateLine);
@@ -343,6 +359,11 @@ class ResizeTool extends Box {
         // Update
         this.onUpdate = function(renderer) {
             const camera = renderer.camera;
+
+            // Background
+            if (self.bgBox) {
+                self.bgBox.box.set(new Vector2(-halfSize.x, -halfSize.y), new Vector2(+halfSize.x, +halfSize.y));
+            }
 
             // Rotate Tool
             const handleOffset = ((radius * 4) / Math.abs(self.scale.y)) / camera.scale;

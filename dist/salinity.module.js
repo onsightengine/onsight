@@ -4265,7 +4265,7 @@ class SelectControls {
             if (this.rubberBandBox) {
                 this.rubberBandBox.destroy();
                 this.rubberBandBox = null;
-            } else if (!pointer.dragging && performance.now() - this.downTimer < MOUSE_CLICK_TIME) {
+            } else if (!renderer.beingDragged && performance.now() - this.downTimer < MOUSE_CLICK_TIME) {
                 const underMouse = scene.getWorldPointIntersections(cameraPoint);
                 const withoutResizeTool = ArrayUtils.filterThings(underMouse, { isHelper: undefined });
                 if (withoutResizeTool.length === 0) {

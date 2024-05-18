@@ -17,9 +17,11 @@ class Sprite extends Box {
         this._loaded = false;
         const self = this;
         this.image.onload = function() {
-            self.box.min.set(0, 0);
-            self.box.max.set(self.image.naturalWidth, self.image.naturalHeight);
-            self.origin.copy(self.box.getCenter());
+            const halfWidth = self.image.naturalWidth / 2;
+            const halfHeight = self.image.naturalHeight / 2;
+            self.box.min.set(-halfWidth, -halfHeight);
+            self.box.max.set(+halfWidth, +halfHeight);
+            // self.origin.copy(self.box.getCenter());
             self.computeBoundingBox();
             self._loaded = true;
         };
@@ -28,7 +30,17 @@ class Sprite extends Box {
 
     draw(context, viewport, canvas) {
         if (this.image.src.length > 0 && this._loaded) {
-            context.drawImage(this.image, 0, 0, this.image.naturalWidth, this.image.naturalHeight, this.box.min.x, this.box.min.y, this.box.max.x - this.box.min.x, this.box.max.y - this.box.min.y);
+            const width = this.image.naturalWidth;
+            const height = this.image.naturalHeight;
+            const sx = 0;
+            const sy = 0;
+            const sw = width;
+            const sh = height;
+            const dx = width / -2;
+            const dy = height / -2;
+            const dw = width;
+            const dh = height;
+            context.drawImage(this.image, sx, sy, sw, sh, dx, dy, dw, dh);
         }
     }
 

@@ -258,8 +258,10 @@ class ResizeTool extends Box {
                         else if (initialRotation < fortyFive * 7) flip = true;
                         else flip = false;
                         if (flip) {
-                            rotatedScale.x = self.scale.y;
-                            rotatedScale.y = self.scale.x;
+                            const sx = Math.sign(rotatedScale.x);
+                            const sy = Math.sign(rotatedScale.y);
+                            rotatedScale.x = Math.abs(self.scale.y) * sx;
+                            rotatedScale.y = Math.abs(self.scale.x) * sy;
                         }
                         object.scale.copy(initialTransform.scale).multiply(rotatedScale);
                         object.scale.x = MathUtils.noZero(MathUtils.sanity(object.scale.x));

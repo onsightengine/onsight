@@ -2310,7 +2310,7 @@ class Box2 {
     }
     getSize(target) {
         target = target ?? new Vector2();
-        this.isEmpty() ? target.set(0, 0) : target.subVectors(this.max, this.min);
+        this.isEmpty() ? target.set(0, 0) : target.subVectors(this.max, this.min).abs();
         return target;
     }
     expandByPoint(point) {
@@ -3890,11 +3890,16 @@ class ResizeTool extends Box {
             const rotationMatrix = new Matrix2().rotate(this.rotation);
             const unRotateMatrix = new Matrix2().rotate(-this.rotation);
             for (const object of objects) {
+                const unRotatedPosition = unRotateMatrix.transformPoint(object.position);
+                const objectMatrix = new Matrix2();
+                objectMatrix.compose(unRotatedPosition.x, unRotatedPosition.y, object.scale.x, object.scale.y, object.origin.x, object.origin.y, 0);
                 const box = object.boundingBox.clone();
-                box.multiply(object.scale.clone().abs());
-                box.translate(object.origin.clone().multiplyScalar(-1));
-                box.translate(unRotateMatrix.transformPoint(object.position));
-                worldBox.union(box);
+                const topLeftWorld = objectMatrix.transformPoint(box.min);
+                const topRightWorld = objectMatrix.transformPoint(new Vector2(box.max.x, box.min.y));
+                const bottomLeftWorld = objectMatrix.transformPoint(new Vector2(box.min.x, box.max.y));
+                const bottomRightWorld = objectMatrix.transformPoint(box.max);
+                const unrotatedBox = new Box2().setFromPoints(topLeftWorld, topRightWorld, bottomLeftWorld, bottomRightWorld);
+                worldBox.union(unrotatedBox);
             }
             const rotatedCenter = worldBox.getCenter();
             center = rotationMatrix.transformPoint(rotatedCenter);
@@ -4104,17 +4109,14 @@ class ResizeTool extends Box {
                 const initialPosition = initialTransforms[object.uuid].position;
                 const initialRotation = initialTransforms[object.uuid].rotation;
                 const initialScale = initialTransforms[object.uuid].scale;
-                const initialOrigin = object.origin;
                 object.rotation = initialRotation + (self.rotation - startRotation);
+                const origin = object.origin.clone();
                 const relativePosition = initialPosition.clone().sub(startPosition);
-                const scaledPosition = relativePosition.clone().multiply(self.scale).add(initialOrigin);
+                const scaledPosition = relativePosition.clone().sub(origin).multiply(self.scale).add(origin);
                 const rotateAngle = (object.rotation - initialRotation) + startRotation;
                 const rotationMatrix = new Matrix2().rotate(rotateAngle);
                 const rotatedPosition = rotationMatrix.transformPoint(scaledPosition);
                 object.position.copy(rotatedPosition).add(self.position);
-                const scaledOrigin = initialOrigin.clone().multiply(object.scale);
-                const rotatedOrigin = rotationMatrix.transformPoint(scaledOrigin);
-                object.position.sub(rotatedOrigin);
                 const wasSame = Math.sign(object.scale.x) === Math.sign(object.scale.y);
                 const isSame =  Math.sign(initialScale.x) === Math.sign(initialScale.y);
                 if (wasSame !== isSame) {

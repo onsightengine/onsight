@@ -64,7 +64,7 @@ class Box2 {
     /** Get the size of the box from its min and max points */
     getSize(target) {
         target = target ?? new Vector2();
-        this.isEmpty() ? target.set(0, 0) : target.subVectors(this.max, this.min);
+        this.isEmpty() ? target.set(0, 0) : target.subVectors(this.max, this.min).abs();
         return target;
     }
 

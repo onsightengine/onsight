@@ -2310,7 +2310,7 @@ class Box2 {
     }
     getSize(target) {
         target = target ?? new Vector2();
-        this.isEmpty() ? target.set(0, 0) : target.subVectors(this.max, this.min);
+        this.isEmpty() ? target.set(0, 0) : target.subVectors(this.max, this.min).abs();
         return target;
     }
     expandByPoint(point) {

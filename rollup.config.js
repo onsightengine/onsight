@@ -25,7 +25,7 @@ ${code}`;
 const builds = [
 
     { // Standard Build
-        input: [ './src/Salinity.js', './src/Extra.js' ],
+        input: [ './src/Salinity.js', './src/Extras.js' ],
         treeshake: false,
 
         plugins: [
@@ -49,7 +49,7 @@ const builds = [
     },
 
     { // Minified
-        input: [ './src/Salinity.js', './src/Extra.js' ],
+        input: [ './src/Salinity.js', './src/Extras.js' ],
         treeshake: false,
 
         plugins: [

@@ -1,4 +1,4 @@
-import { Clock } from '../../core/Clock.js';
+import { Clock } from '../../core/app/Clock.js';
 
 let _singleton = null;
 

@@ -2,7 +2,7 @@
 <img src="./files/logo/salinity256.png" alt="Salinity Engine"/>
 </div>
 
-# Salinity Engine
+# Salinity
 
 Open-source framework written in JavaScript to run games and other interactive content in the browser.
 

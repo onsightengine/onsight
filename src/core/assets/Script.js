@@ -1,7 +1,7 @@
 import {
     SCRIPT_FORMAT,
 } from '../../constants.js';
-import { AssetManager } from '../../app/AssetManager.js';
+import { AssetManager } from '../app/AssetManager.js';
 import { Asset } from './Asset.js';
 
 class Script extends Asset {

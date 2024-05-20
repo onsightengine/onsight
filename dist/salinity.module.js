@@ -105,212 +105,375 @@ const SCRIPT_FORMAT = {
     PYTHON:         'python',
 };
 
-class ArrayUtils {
-    static isIterable(array) {
-        return (array && (typeof array[Symbol.iterator] === 'function') || Array.isArray(array));
-    }
-    static swapItems(array, a, b) {
-        array[a] = array.splice(b, 1, array[a])[0];
-        return array;
-    }
-    static combineThingArrays(arrayOne, arrayTwo) {
-        const things = [ ...arrayOne ];
-        for (const thing of arrayTwo) {
-            if (ArrayUtils.includesThing(thing, arrayOne) === false) things.push(thing);
+class Vector2 {
+    constructor(x = 0, y = 0) {
+        if (typeof x === 'object') {
+            this.x = x.x;
+            this.y = x.y;
+        } else {
+            this.x = x;
+            this.y = y;
         }
-        return things;
     }
-    static compareThingArrays(arrayOne, arrayTwo) {
-        arrayOne = Array.isArray(arrayOne) ? arrayOne : [ arrayOne ];
-        arrayTwo = Array.isArray(arrayTwo) ? arrayTwo : [ arrayTwo ];
-        if (arrayOne.length === 0 && arrayTwo.length === 0) return true;
-        for (const thing of arrayOne) if (ArrayUtils.includesThing(thing, arrayTwo) === false) return false;
-        for (const thing of arrayTwo) if (ArrayUtils.includesThing(thing, arrayOne) === false) return false;
+    set(x, y) {
+        if (typeof x === 'object') return this.copy(x);
+        this.x = x;
+        this.y = y;
+        return this;
+    }
+    setScalar(scalar) {
+        this.x = scalar;
+        this.y = scalar;
+        return this;
+    }
+    clone() {
+        return new Vector2(this.x, this.y);
+    }
+    copy(x, y) {
+        if (typeof x === 'object') {
+            this.x = x.x;
+            this.y = x.y;
+        } else {
+            this.x = x;
+            this.y = y;
+        }
+        return this;
+    }
+    add(x, y) {
+        if (typeof x === 'object') {
+            this.x += x.x;
+            this.y += x.y;
+        } else {
+            this.x += x;
+            this.y += y;
+        }
+        return this;
+    }
+    addScalar(scalar) {
+        this.x += scalar;
+        this.y += scalar;
+        return this;
+    }
+    addVectors(a, b) {
+        this.x = a.x + b.x;
+        this.y = a.y + b.y;
+        return this;
+    }
+    addScaledVector(vec, scale) {
+        this.x += vec.x * scale;
+        this.y += vec.y * scale;
+        return this;
+    }
+    sub(x, y) {
+        if (typeof x === 'object') {
+            this.x -= x.x;
+            this.y -= x.y;
+        } else {
+            this.x -= x;
+            this.y -= y;
+        }
+        return this;
+    }
+    subScalar(scalar) {
+        this.x -= scalar;
+        this.y -= scalar;
+        return this;
+    }
+    subVectors(a, b) {
+        this.x = a.x - b.x;
+        this.y = a.y - b.y;
+        return this;
+    }
+    multiply(x, y) {
+        if (typeof x === 'object') {
+            this.x *= x.x;
+            this.y *= x.y;
+        } else {
+            this.x *= x;
+            this.y *= y;
+        }
+        return this;
+    }
+    multiplyScalar(scalar) {
+        this.x *= scalar;
+        this.y *= scalar;
+        return this;
+    }
+    divide(x, y) {
+        if (typeof x === 'object') {
+            this.x /= x.x;
+            this.y /= x.y;
+        } else {
+            this.x /= x;
+            this.y /= y;
+        }
+        return this;
+    }
+    divideScalar(scalar) {
+        return this.multiplyScalar(1 / scalar);
+    }
+    min(vec) {
+        this.x = Math.min(this.x, vec.x);
+        this.y = Math.min(this.y, vec.y);
+        return this;
+    }
+    max(vec) {
+        this.x = Math.max(this.x, vec.x);
+        this.y = Math.max(this.y, vec.y);
+        return this;
+    }
+    clamp(minv, maxv) {
+        if (minv.x < maxv.x) this.x = Math.max(minv.x, Math.min(maxv.x, this.x));
+        else this.x = Math.max(maxv.x, Math.min(minv.x, this.x));
+        if (minv.y < maxv.y) this.y = Math.max(minv.y, Math.min(maxv.y, this.y));
+        else this.y = Math.max(maxv.y, Math.min(minv.y, this.y));
+        return this;
+    }
+    clampScalar(minVal, maxVal) {
+        this.x = Math.max(minVal, Math.min(maxVal, this.x));
+        this.y = Math.max(minVal, Math.min(maxVal, this.y));
+        return this;
+    }
+    clampLength(min, max) {
+        const length = this.length();
+        return this.divideScalar(length || 1).multiplyScalar(Math.max(min, Math.min(max, length)));
+    }
+    floor() {
+        this.x = Math.floor(this.x);
+        this.y = Math.floor(this.y);
+        return this;
+    }
+    ceil() {
+        this.x = Math.ceil(this.x);
+        this.y = Math.ceil(this.y);
+        return this;
+    }
+    round() {
+        this.x = Math.round(this.x);
+        this.y = Math.round(this.y);
+        return this;
+    }
+    negate() {
+        this.x = -this.x;
+        this.y = -this.y;
+        return this;
+    }
+    abs() {
+        this.x = Math.abs(this.x);
+        this.y = Math.abs(this.y);
+        return this;
+    }
+    dot(vec) {
+        return this.x * vec.x + this.y * vec.y;
+    }
+    cross(vec) {
+        return this.x * vec.y - this.y * vec.x;
+    }
+    length() {
+        return Math.sqrt(this.x * this.x + this.y * this.y);
+    }
+    lengthSq() {
+        return this.x * this.x + this.y * this.y;
+    }
+    manhattanLength() {
+        return Math.abs(this.x) + Math.abs(this.y);
+    }
+    normalize() {
+        return this.divideScalar(this.length() || 1);
+    }
+    angle(forcePositive) {
+        let angle = Math.atan2(this.y, this.x);
+        if (forcePositive && angle < 0) angle += 2 * Math.PI;
+        return angle;
+    }
+    angleBetween(vec) {
+        const magnitudes = this.length() * vec.length();
+        const dot = this.dot(vec);
+        const theta = dot / magnitudes;
+        const clampedDot = Math.min(Math.max(theta, -1), 1);
+        return Math.acos(clampedDot);
+    }
+    rotateAround(center, angle) {
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+        const x = this.x - center.x;
+        const y = this.y - center.y;
+        this.x = x * c - y * s + center.x;
+        this.y = x * s + y * c + center.y;
+    }
+    distanceTo(vec) {
+        return Math.sqrt(this.distanceToSquared(vec));
+    }
+    distanceToSquared(vec) {
+        const dx = this.x - vec.x;
+        const dy = this.y - vec.y;
+        return dx * dx + dy * dy;
+    }
+    manhattanDistanceTo(vec) {
+        return Math.abs(this.x - vec.x) + Math.abs(this.y - vec.y);
+    }
+    setLength(length) {
+        return this.normalize().multiplyScalar(length);
+    }
+    lerp(vec, t) {
+        return this.lerpVectors(this, vec, t);
+    }
+    lerpVectors(a, b, t) {
+        this.x = a.x + ((b.x - a.x) * t);
+        this.y = a.y + ((b.y - a.y) * t);
+        return this;
+    }
+    equals(vec) {
+        return ((vec.x === this.x) && (vec.y === this.y));
+    }
+    fuzzyEquals(vec, tolerance = 0.001) {
+        if (fuzzyFloat$1(this.x, vec.x, tolerance) === false) return false;
+        if (fuzzyFloat$1(this.y, vec.y, tolerance) === false) return false;
         return true;
     }
-    static filterThings(things, properties = {}) {
-        const filtered = things.filter((object) => {
-            return Object.keys(properties).every((key) => { return object[key] == properties[key]; });
-        });
-        return filtered;
+    random() {
+        this.x = Math.random();
+        this.y = Math.random();
     }
-    static includesThing(findThing, ...things) {
-        if (!findThing || !findThing.uuid) return false;
-        if (things.length === 0) return false;
-        if (things.length > 0 && Array.isArray(things[0])) things = things[0];
-        for (const thing of things) if (thing.uuid && thing.uuid === findThing.uuid) return true;
-        return false;
+    log(description = '') {
+        if (description !== '') description += ' - ';
+        console.log(`${description}X: ${this.x}, Y: ${this.y}`);
+        return this;
     }
-    static removeThingFromArray(removeThing, ...things) {
-        if (things.length > 0 && Array.isArray(things[0])) things = things[0];
-        if (!removeThing || !removeThing.uuid) return [ ...things ];
-        const newArray = [];
-        for (const thing of things) if (thing.uuid !== removeThing.uuid) newArray.push(thing);
-        return newArray;
+    toArray() {
+        return [ this.x, this.y ];
     }
-    static shareValues(arrayOne, arrayTwo) {
-        for (let i = 0; i < arrayOne.length; i++) {
-            if (arrayTwo.includes(arrayOne[i])) return true;
-        }
-        return false;
+    fromArray(array, offset = 0) {
+        this.set(array[offset + 0], array[offset + 1]);
+        return this;
     }
 }
-
-const _assets = {};
-class AssetManager {
-    static get(uuid) {
-        if (uuid && uuid.uuid) uuid = uuid.uuid;
-        return _assets[uuid];
-    }
-    static library(type, category) {
-        const library = [];
-        if (type && typeof type === 'string') type = type.toLowerCase();
-        if (category && typeof category === 'string') category = category.toLowerCase();
-        for (const [ uuid, asset ] of Object.entries(_assets)) {
-            if (type && typeof asset.type === 'string' && asset.type.toLowerCase() !== type) continue;
-            if (category == undefined || (typeof asset.category === 'string' && asset.category.toLowerCase() === category)) {
-                library.push(asset);
-            }
-        }
-        return library;
-    }
-    static add(...assets) {
-        if (assets.length > 0 && Array.isArray(assets[0])) assets = assets[0];
-        let addedAsset = undefined;
-        for (const asset of assets) {
-            if (!asset || !asset.uuid) continue;
-            if (!asset.name || asset.name === '') asset.name = asset.constructor.name;
-            _assets[asset.uuid] = asset;
-            addedAsset = addedAsset ?? asset;
-        }
-        return addedAsset;
-    }
-    static clear() {
-        for (const uuid in _assets) {
-            const asset = _assets[uuid];
-            if (asset.isBuiltIn) continue;
-            AssetManager.remove(_assets[uuid], true);
-        }
-    }
-    static remove(asset, dispose = true) {
-        const assets = Array.isArray(asset) ? asset : [ asset ];
-        for (const asset of assets) {
-            if (!asset || !asset.uuid) continue;
-            if (_assets[asset.uuid]) {
-                if (dispose && typeof asset.dispose === 'function') asset.dispose();
-                delete _assets[asset.uuid];
-            }
-        }
-    }
-    static toJSON() {
-        const data = {};
-        for (const type of _types$2.keys()) {
-            const assets = AssetManager.library(type);
-            if (assets.length > 0) {
-                data[type] = [];
-                for (const asset of assets) {
-                    data[type].push(asset.toJSON());
-                }
-            }
-        }
-        return data;
-    }
-    static fromJSON(json, onLoad = () => {}) {
-        AssetManager.clear();
-        for (const type of _types$2.keys()) {
-            if (!json[type]) continue;
-            for (const assetData of json[type]) {
-                const Constructor = AssetManager.type(type);
-                if (Constructor) {
-                    const asset = new Constructor().fromJSON(assetData);
-                    AssetManager.add(asset);
-                } else {
-                    console.warn(`AssetManager.fromJSON(): Unknown asset type '${assetData.type}'`);
-                }
-            }
-        }
-        if (typeof onLoad === 'function') onLoad();
-    }
-    static register(type, AssetClass) {
-        _types$2.set(type, AssetClass);
-    }
-    static type(type) {
-        return _types$2.get(type);
-    }
+function fuzzyFloat$1(a, b, tolerance = 0.001) {
+    return ((a < (b + tolerance)) && (a > (b - tolerance)));
 }
-const _types$2 = new Map();
 
-class Clock {
-    #running = false;
-    #startTime = 0;
-    #elapsedTime = 0;
-    #lastChecked = 0;
-    #deltaCount = 0;
-    #frameTime = 0;
-    #frameCount = 0;
-    #lastFrameCount = null;
-    constructor(autoStart = true, msRewind = 0) {
-        if (autoStart) this.start();
-        this.#startTime -= msRewind;
-        this.#lastChecked -= msRewind;
+class Box2 {
+    constructor(min, max) {
+        this.min = new Vector2(+Infinity, +Infinity);
+        this.max = new Vector2(-Infinity, -Infinity);
+        if (typeof min === 'object') this.min.copy(min);
+        if (typeof max === 'object') this.max.copy(max);
     }
-    start(reset = false) {
-        if (reset) this.reset();
-        this.#startTime = performance.now();
-        this.#lastChecked = this.#startTime;
-        this.#running = true;
+    set(min, max) {
+        this.min.copy(min);
+        this.max.copy(max);
+        return this;
     }
-    stop() {
-        this.getDeltaTime();
-        this.#running = false;
-    }
-    toggle() {
-        if (this.#running) this.stop();
-        else this.start();
-    }
-    reset() {
-        this.#startTime = performance.now();
-        this.#lastChecked = this.#startTime;
-        this.#elapsedTime = 0;
-        this.#deltaCount = 0;
-    }
-    getElapsedTime() {
-        return this.#elapsedTime;
-    }
-    getDeltaTime() {
-        if (!this.#running) {
-            this.#lastFrameCount = null;
-            return 0;
+    setFromPoints(...points) {
+        if (points.length > 0 && Array.isArray(points[0])) points = points[0];
+        this.clear();
+        for (const point of points) {
+            this.expandByPoint(point);
         }
-        const newTime = performance.now();
-        const dt = (newTime - this.#lastChecked) / 1000;
-        this.#lastChecked = newTime;
-        this.#elapsedTime += dt;
-        this.#deltaCount++;
-        this.#frameTime += dt;
-        this.#frameCount++;
-        if (this.#frameTime > 1) {
-            this.#lastFrameCount = this.#frameCount;
-            this.#frameTime = 0;
-            this.#frameCount = 0;
+        return this;
+    }
+    setFromCenterAndSize(center, size) {
+        const halfSize = new Vector2().copy(size).multiplyScalar(0.5);
+        this.min.copy(center).sub(halfSize);
+        this.max.copy(center).add(halfSize);
+        return this;
+    }
+    clone() {
+        return new Box2().copy(this);
+    }
+    copy(box) {
+        this.min.copy(box.min);
+        this.max.copy(box.max);
+        return this;
+    }
+    clear() {
+        this.min.set(+Infinity, +Infinity);
+        this.max.set(-Infinity, -Infinity);
+    }
+    isEmpty() {
+        return (this.max.x < this.min.x) || (this.max.y < this.min.y);
+    }
+    getCenter(target) {
+        target = target ?? new Vector2();
+        this.isEmpty() ? target.set(0, 0) : target.addVectors(this.min, this.max).multiplyScalar(0.5);
+        return target;
+    }
+    getSize(target) {
+        target = target ?? new Vector2();
+        this.isEmpty() ? target.set(0, 0) : target.subVectors(this.max, this.min).abs();
+        return target;
+    }
+    expandByPoint(point) {
+        this.min.min(point);
+        this.max.max(point);
+        return this;
+    }
+    expandByVector(vector, y) {
+        let ex, ey;
+        if (typeof vector === 'object') {
+            ex = vector.x / 2;
+            ey = vector.y / 2;
+        } else {
+            ex = vector / 2;
+            ey = y / 2;
         }
-        return dt;
+        this.min.sub(ex, ey);
+        this.max.add(ex, ey);
+        return this;
     }
-    isRunning() {
-        return this.#running;
+    expandByScalar(scalar) {
+        this.min.addScalar(scalar * -1);
+        this.max.addScalar(scalar * +1);
+        return this;
     }
-    isStopped() {
-        return !(this.#running);
+    multiply(x, y) {
+        if (typeof x === 'object') {
+            y = x.y;
+            x = x.x;
+        }
+        this.min.multiply(x, y);
+        this.max.multiply(x, y);
+        return this;
     }
-    count() {
-        return this.#deltaCount;
+    containsPoint(point) {
+        return !(point.x < this.min.x || point.x > this.max.x || point.y < this.min.y || point.y > this.max.y);
     }
-    averageDelta() {
-        const frameRate = (this.#lastFrameCount !== null) ? (1 / this.#lastFrameCount) : (this.#frameTime / this.#frameCount);
-        return Math.min(1, frameRate);
+    containsBox(box) {
+        return this.min.x <= box.min.x && box.max.x <= this.max.x && this.min.y <= box.min.y && box.max.y <= this.max.y;
     }
-    fps() {
-        return (this.#lastFrameCount !== null) ? this.#lastFrameCount : (this.#frameCount / this.#frameTime);
+    intersectsBox(box) {
+        return !(box.max.x < this.min.x || box.min.x > this.max.x || box.max.y < this.min.y || box.min.y > this.max.y);
+    }
+    distanceToPoint(point) {
+        let v = new Vector2();
+        let clampedPoint = v.copy(point).clamp(this.min, this.max);
+        return clampedPoint.sub(point).length();
+    }
+    intersect(box) {
+        this.min.max(box.min);
+        this.max.min(box.max);
+        return this;
+    }
+    union(box) {
+        this.min.min(box.min);
+        this.max.max(box.max);
+        return this;
+    }
+    translate(x, y) {
+        this.min.add(x, y);
+        this.max.add(x, y);
+        return this;
+    }
+    equals(box) {
+        return box.min.equals(this.min) && box.max.equals(this.max);
+    }
+    toArray() {
+        return [ this.min.x, this.min.y, this.max.x, this.max.y ];
+    }
+    fromArray(array) {
+        this.min.set(array[0], array[1]);
+        this.max.set(array[2], array[3]);
+        return this;
     }
 }
 
@@ -629,9 +792,9 @@ class Vector3 {
         return ((vec.x === this.x) && (vec.y === this.y) && (vec.z === this.z));
     }
     fuzzyEquals(vec, tolerance = 0.001) {
-        if (fuzzyFloat$1(this.x, vec.x, tolerance) === false) return false;
-        if (fuzzyFloat$1(this.y, vec.y, tolerance) === false) return false;
-        if (fuzzyFloat$1(this.z, vec.z, tolerance) === false) return false;
+        if (fuzzyFloat(this.x, vec.x, tolerance) === false) return false;
+        if (fuzzyFloat(this.y, vec.y, tolerance) === false) return false;
+        if (fuzzyFloat(this.z, vec.z, tolerance) === false) return false;
         return true;
     }
     random() {
@@ -654,7 +817,7 @@ class Vector3 {
 }
 const temp1 = new Vector3();
 const temp2 = new Vector3();
-function fuzzyFloat$1(a, b, tolerance = 0.001) {
+function fuzzyFloat(a, b, tolerance = 0.001) {
     return ((a < (b + tolerance)) && (a > (b - tolerance)));
 }
 
@@ -779,6 +942,329 @@ class MathUtils {
             }
         }
         return uuids;
+    }
+}
+
+class Matrix2 {
+    constructor(values) {
+        if (Array.isArray(values)) this.m = [ ...values ];
+        else this.identity();
+    }
+    copy(mat) {
+        this.m = [ ...mat.m ];
+        return this;
+    }
+    clone() {
+        return new Matrix2([ ...this.m ]);
+    }
+    identity() {
+        this.m = [ 1, 0, 0, 1, 0, 0 ];
+        return this;
+    }
+    multiply(mat) {
+        const m0 = this.m[0] * mat.m[0] + this.m[2] * mat.m[1];
+        const m1 = this.m[1] * mat.m[0] + this.m[3] * mat.m[1];
+        const m2 = this.m[0] * mat.m[2] + this.m[2] * mat.m[3];
+        const m3 = this.m[1] * mat.m[2] + this.m[3] * mat.m[3];
+        const m4 = this.m[0] * mat.m[4] + this.m[2] * mat.m[5] + this.m[4];
+        const m5 = this.m[1] * mat.m[4] + this.m[3] * mat.m[5] + this.m[5];
+        this.m = [ m0, m1, m2, m3, m4, m5 ];
+        return this;
+    }
+    premultiply(mat) {
+        const m0 = mat.m[0] * this.m[0] + mat.m[2] * this.m[1];
+        const m1 = mat.m[1] * this.m[0] + mat.m[3] * this.m[1];
+        const m2 = mat.m[0] * this.m[2] + mat.m[2] * this.m[3];
+        const m3 = mat.m[1] * this.m[2] + mat.m[3] * this.m[3];
+        const m4 = mat.m[0] * this.m[4] + mat.m[2] * this.m[5] + mat.m[4];
+        const m5 = mat.m[1] * this.m[4] + mat.m[3] * this.m[5] + mat.m[5];
+        this.m = [ m0, m1, m2, m3, m4, m5 ];
+        return this;
+    }
+    compose(px, py, sx, sy, ox, oy, rot) {
+        this.m = [ 1, 0, 0, 1, 0, 0 ];
+        this.multiply(new Matrix2([ 1, 0, 0, 1, px, py ]));
+        if (rot !== 0) {
+            const c = Math.cos(rot);
+            const s = Math.sin(rot);
+            this.multiply(new Matrix2([ c, s, -s, c, 0, 0 ]));
+        }
+        this.multiply(new Matrix2([ 1, 0, 0, 1, -ox, -oy ]));
+        if (sx !== 1 || sy !== 1) this.scale(sx, sy);
+        return this;
+    }
+    decompose(object) {
+        if (!object || typeof object !== 'object') return this;
+        if (object.position) this.getPosition(object.position);
+        object.rotation = this.getRotation();
+        if (object.scale) this.getScale(object.scale);
+        return this;
+    }
+    setPosition(x, y) {
+        this.m[4] = x;
+        this.m[5] = y;
+        return this;
+    }
+    translate(x, y) {
+        this.m[4] += this.m[0] * x + this.m[2] * y;
+        this.m[5] += this.m[1] * x + this.m[3] * y;
+        return this;
+    }
+    rotate(rad) {
+        const c = Math.cos(rad);
+        const s = Math.sin(rad);
+        const m11 = this.m[0] * c + this.m[2] * s;
+        const m12 = this.m[1] * c + this.m[3] * s;
+        const m21 = this.m[0] * -s + this.m[2] * c;
+        const m22 = this.m[1] * -s + this.m[3] * c;
+        this.m[0] = m11;
+        this.m[1] = m12;
+        this.m[2] = m21;
+        this.m[3] = m22;
+        return this;
+    }
+    scale(sx, sy) {
+        if (typeof sx === 'object') {
+            this.m[0] *= sx.x;
+            this.m[1] *= sx.x;
+            this.m[2] *= sx.y;
+            this.m[3] *= sx.y;
+        } else {
+            this.m[0] *= sx;
+            this.m[1] *= sx;
+            this.m[2] *= sy;
+            this.m[3] *= sy;
+        }
+        return this;
+    }
+    skew(radianX, radianY) {
+        return this.multiply(new Matrix2([ 1, Math.tan(radianY), Math.tan(radianX), 1, 0, 0 ]));
+    }
+    getScale(target = new Vector2()) {
+        const scaleX = Math.sqrt(this.m[0] * this.m[0] + this.m[1] * this.m[1]);
+        const scaleY = Math.sqrt(this.m[2] * this.m[2] + this.m[3] * this.m[3]);
+        target.set(scaleX, scaleY);
+        return target;
+    }
+    getPosition(target = new Vector2()) {
+        target.set(this.m[4], this.m[5]);
+        return target;
+    }
+    getRotation() {
+        return Math.atan2(this.m[1], this.m[0]);
+    }
+    getShear(target = new Vector2()) {
+        const scaleX = Math.sqrt(this.m[0] * this.m[0] + this.m[1] * this.m[1]);
+        const scaleY = Math.sqrt(this.m[2] * this.m[2] + this.m[3] * this.m[3]);
+        const rotation = Math.atan2(this.m[1], this.m[0]);
+        const shearX = Math.atan2(this.m[0] * this.m[2] + this.m[1] * this.m[3], scaleX * scaleY);
+        const shearY = Math.atan2(-this.m[0] * this.m[3] + this.m[1] * this.m[2], scaleX * scaleY) - rotation;
+        target.set(shearX, shearY);
+        return target;
+    }
+    getSign(target = new Vector2()) {
+        const signX = (this.m[0] < 0) ? -1 : 1;
+        const signY = (this.m[3] < 0) ? -1 : 1;
+        target.set(signX, signY);
+        return target;
+    }
+    determinant() {
+        return this.m[0] * this.m[3] - this.m[1] * this.m[2];
+    }
+    getInverse() {
+        const d = this.determinant();
+        if (d === 0) console.error(`Matrix2.getInverse(): Matrix is non-invertible`);
+        const invD = 1 / d;
+        return new Matrix2([ this.m[3] * invD, -this.m[1] * invD, -this.m[2] * invD, this.m[0] * invD, invD * (this.m[2] * this.m[5] - this.m[3] * this.m[4]), invD * (this.m[1] * this.m[4] - this.m[0] * this.m[5]) ]);
+    }
+    transformPoint(x, y) {
+        let px, py;
+        if (typeof x === 'object') {
+            px = x.x * this.m[0] + x.y * this.m[2] + this.m[4];
+            py = x.x * this.m[1] + x.y * this.m[3] + this.m[5];
+        } else {
+            px = x * this.m[0] + y * this.m[2] + this.m[4];
+            py = x * this.m[1] + y * this.m[3] + this.m[5];
+        }
+        return new Vector2(px, py);
+    }
+    setContextTransform(context) {
+        context.setTransform(this.m[0], this.m[1], this.m[2], this.m[3], this.m[4], this.m[5]);
+        return this;
+    }
+    tranformContext(context) {
+        context.transform(this.m[0], this.m[1], this.m[2], this.m[3], this.m[4], this.m[5]);
+        return this;
+    }
+    cssTransform() {
+        return 'matrix(' + this.m[0] + ',' + this.m[1] + ',' + this.m[2] + ',' + this.m[3] + ',' + this.m[4] + ',' + this.m[5] + ')';
+    }
+}
+
+class Key {
+    static DOWN = -1;
+    static UP = 1;
+    static RESET = 0;
+    constructor() {
+        this.pressed = false;
+        this.justPressed = false;
+        this.justReleased = false;
+    }
+    update(action) {
+        this.justPressed = false;
+        this.justReleased = false;
+        if (action === Key.DOWN) {
+            if (this.pressed === false) this.justPressed = true;
+            this.pressed = true;
+        } else if(action === Key.UP) {
+            if (this.pressed) this.justReleased = true;
+            this.pressed = false;
+        } else if(action === Key.RESET) {
+            this.justReleased = false;
+            this.justPressed = false;
+        }
+    }
+    set(justPressed, pressed, justReleased) {
+        this.justPressed = justPressed;
+        this.pressed = pressed;
+        this.justReleased = justReleased;
+    }
+    reset() {
+        this.justPressed = false;
+        this.pressed = false;
+        this.justReleased = false;
+    }
+}
+
+class Pointer {
+    static LEFT = 0;
+    static MIDDLE = 1;
+    static RIGHT = 2;
+    static BACK = 3;
+    static FORWARD = 4;
+    #locked = false;
+    #lockID = 1;
+    constructor(element, disableContextMenu = true) {
+        if (!element || !element.dom) {
+            console.error(`Pointer: No element was provided`);
+            return;
+        }
+        const self = this;
+        this._keys = new Array(5);
+        this._position = new Vector2(0, 0);
+        this._positionUpdated = false;
+        this._delta = new Vector2(0, 0);
+        this._wheel = 0;
+        this._wheelUpdated = false;
+        this._doubleClicked = new Array(5);
+        this.keys = new Array(5);
+        this.position = new Vector2(0, 0);
+        this.delta = new Vector2(0, 0);
+        this.wheel = 0;
+        this.doubleClicked = new Array(5);
+        this.pointerInside = false;
+        this.dragging = false;
+        for (let i = 0; i < 5; i++) {
+            this._doubleClicked[i] = false;
+            this.doubleClicked[i] = false;
+            this._keys[i] = new Key();
+            this.keys[i] = new Key();
+        }
+        function updatePosition(x, y, xDiff, yDiff) {
+            if (element && element.dom) {
+                const rect = element.dom.getBoundingClientRect();
+                x -= rect.left;
+                y -= rect.top;
+            }
+            self._position.set(x, y);
+            self._delta.x += xDiff;
+            self._delta.y += yDiff;
+            self._positionUpdated = true;
+        }
+        function updateKey(button, action) {
+            if (button >= 0) self._keys[button].update(action);
+        }
+        if (disableContextMenu) {
+            element.on('contextmenu', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+            });
+        }
+        element.on('pointermove', (event) => {
+            updatePosition(event.clientX, event.clientY, event.movementX, event.movementY);
+        });
+        element.on('pointerdown', (event) => {
+            element.dom.setPointerCapture(event.pointerId);
+            updateKey(event.button, Key.DOWN);
+        });
+        element.on('pointerup', (event) => {
+            element.dom.releasePointerCapture(event.pointerId);
+            updateKey(event.button, Key.UP);
+        });
+        element.on('pointerenter', () => { self.pointerInside = true; });
+        element.on('pointerleave', () => { self.pointerInside = false; });
+        element.on('wheel', (event) => {
+            updatePosition(event.clientX, event.clientY, event.movementX, event.movementY);
+            self._wheel = event.deltaY;
+            self._wheelUpdated = true;
+        });
+        element.on('dragstart', (event) => { updateKey(event.button, Key.UP); });
+        element.on('dblclick', (event) => { self._doubleClicked[event.button] = true; });
+    }
+    buttonPressed(button, id = -1) {
+        if (this.#locked && this.#locked !== id) return false;
+        return this.keys[button].pressed;
+    }
+    buttonDoubleClicked(button, id = -1) {
+        if (this.#locked && this.#locked !== id) return false;
+        return this.doubleClicked[button]
+    }
+    buttonJustPressed(button, id = -1) {
+        if (this.#locked && this.#locked !== id) return false;
+        return this.keys[button].justPressed;
+    }
+    buttonJustReleased(button, id = -1) {
+        if (this.#locked && this.#locked !== id) return false;
+        return this.keys[button].justReleased;
+    }
+    insideDom() {
+        return this.pointerInside;
+    }
+    lock() {
+        this.#locked = this.#lockID;
+        this.#lockID++;
+        return this.#locked;
+    }
+    unlock() {
+        this.#locked = false;
+    }
+    update() {
+        for (let i = 0; i < 5; i++) {
+            if (this._keys[i].justPressed && this.keys[i].justPressed) this._keys[i].justPressed = false;
+            if (this._keys[i].justReleased && this.keys[i].justReleased) this._keys[i].justReleased = false;
+            this.keys[i].set(this._keys[i].justPressed, this._keys[i].pressed, this._keys[i].justReleased);
+            if (this._doubleClicked[i] === true) {
+                this.doubleClicked[i] = true;
+                this._doubleClicked[i] = false;
+            } else {
+                this.doubleClicked[i] = false;
+            }
+        }
+        if (this._wheelUpdated) {
+            this.wheel = this._wheel;
+            this._wheelUpdated = false;
+        } else {
+            this.wheel = 0;
+        }
+        if (this._positionUpdated) {
+            this.delta.copy(this._delta);
+            this.position.copy(this._position);
+            this._delta.set(0, 0);
+            this._positionUpdated = false;
+        } else {
+            this.delta.x = 0;
+            this.delta.y = 0;
+        }
     }
 }
 
@@ -922,6 +1408,456 @@ class Thing {
         if (data.name !== undefined) this.name = data.name;
         if (data.uuid !== undefined) this.uuid = data.uuid;
         return this;
+    }
+}
+
+class Object2D extends Thing {
+    constructor(name = 'Object') {
+        super(name);
+        this.type = 'Object2D';
+        this.children = [];
+        this.parent = null;
+        this.visible = true;
+        this.layer = 0;
+        this.level = 0;
+        this.opacity = 1;
+        this.globalOpacity = 1;
+        this.position = new Vector2(0, 0);
+        this.scale = new Vector2(1, 1);
+        this.rotation = 0.0;
+        this.origin = new Vector2(0, 0);
+        this.matrix = new Matrix2();
+        this.globalMatrix = new Matrix2();
+        this.inverseGlobalMatrix = new Matrix2();
+        this.matrixAutoUpdate = true;
+        this.matrixNeedsUpdate = true;
+        this.boundingBox = new Box2();
+        this.masks = [];
+        this.pointerEvents = true;
+        this.draggable = false;
+        this.focusable = true;
+        this.selectable = true;
+        this.pointerInside = false;
+        this.inViewport = true;
+        this.isSelected = false;
+    }
+    add(...objects) {
+        if (!objects) return this;
+        if (objects.length > 0 && Array.isArray(objects[0])) objects = objects[0];
+        for (const object of objects) {
+            if (!object || !object.uuid) continue;
+            const index = this.children.indexOf(object);
+            if (index === -1) {
+                if (object.parent) object.parent.remove(object);
+                this.children.push(object);
+                object.parent = this;
+                object.level = this.level + 1;
+                object.traverse(function(child) {
+                    if (typeof child.onAdd === 'function') child.onAdd(this);
+                    child.matrixNeedsUpdate = true;
+                });
+            }
+        }
+        return this;
+    }
+    remove(...objects) {
+        if (!objects) return this;
+        if (objects.length > 0 && Array.isArray(objects[0])) objects = objects[0];
+        for (const object of objects) {
+            if (!object || !object.uuid) continue;
+            const index = this.children.indexOf(object);
+            if (index !== -1) {
+                this.children.splice(index, 1);
+                object.parent = null;
+                object.level = 0;
+                object.traverse(function(child) {
+                    if (typeof child.onRemove === 'function') child.onRemove(this);
+                    child.matrixNeedsUpdate = true;
+                });
+            }
+        }
+        return this;
+    }
+    removeFromParent() {
+		const parent = this.parent;
+		if (parent) parent.remove(this);
+		return this;
+	}
+    getChildByUUID(uuid) {
+        return this.getEntityByProperty('uuid', uuid);
+    }
+    getChildByProperty(property, value) {
+        if (this[property] === value) return this;
+        for (const child of this.children) {
+            const object = child.getChildByProperty(property, value);
+            if (object) return object;
+        }
+        return undefined;
+    }
+    traverse(callback) {
+        if (typeof callback === 'function' && callback(this)) return true;
+        for (const child of this.children) {
+            if (child.traverse(callback)) return true;
+        }
+        return false;
+    }
+    traverseVisible(callback) {
+        if (!this.visible) return false;
+        if (typeof callback === 'function' && callback(this)) return true;
+        for (const child of this.children) {
+            if (child.traverseVisible(callback)) return true;
+        }
+        return false;
+    }
+    traverseAncestors(callback) {
+		const parent = this.parent;
+        if (!parent) return false;
+		if (typeof callback === 'function' && callback(parent)) return true;
+		parent.traverseAncestors(callback);
+        return false;
+	}
+    clear() {
+        return this.remove(...this.children);
+    }
+    destroy() {
+        this.clear();
+        this.removeFromParent();
+        return this;
+    }
+    computeBoundingBox() {
+        return this.boundingBox;
+    }
+    isInside(point) {
+        return false;
+    }
+    isWorldPointInside(worldPoint, recursive = false) {
+        const localPoint = this.worldToLocal(worldPoint);
+        if (this.isInside(localPoint)) return true;
+        if (recursive) {
+            for (const child of this.children) {
+                if (child.isWorldPointInside(worldPoint, true)) return true;
+            }
+        }
+        return false;
+    }
+    getWorldPointIntersections(worldPoint) {
+        const objects = [];
+        this.traverse((child) => {
+            if (!child.visible) return;
+            const localPoint = child.worldToLocal(worldPoint);
+            if (child.isInside(localPoint)) objects.push(child);
+        });
+        objects.sort((a, b) => {
+            if (b.layer === a.layer) return b.level - a.level;
+            return b.layer - a.layer;
+        });
+        return objects;
+    }
+    getWorldBoundingBox() {
+        const box = this.boundingBox;
+        if (Number.isFinite(box.min.x) === false || Number.isFinite(box.min.y) === false) return box;
+        if (Number.isFinite(box.max.x) === false || Number.isFinite(box.max.y) === false) return box;
+        const topLeftWorld = this.localToWorld(box.min);
+        const topRightWorld = this.localToWorld(new Vector2(box.max.x, box.min.y));
+        const bottomLeftWorld = this.localToWorld(new Vector2(box.min.x, box.max.y));
+        const bottomRightWorld = this.localToWorld(box.max);
+        return new Box2().setFromPoints(topLeftWorld, topRightWorld, bottomLeftWorld, bottomRightWorld);
+    }
+    localToWorld(vector) {
+        return this.globalMatrix.transformPoint(vector);
+    }
+    worldToLocal(vector) {
+        return this.inverseGlobalMatrix.transformPoint(vector);
+    }
+    applyMatrix(matrix) {
+        this.updateMatrix(true);
+        this.matrix.premultiply(matrix);
+        this.matrix.getPosition(this.position);
+        this.rotation = this.matrix.getRotation();
+        this.matrix.getScale(this.scale);
+        this.updateMatrix(true);
+        return this;
+    }
+    attach(object) {
+        if (!object || !object.uuid) return this;
+        if (this.children.indexOf(object) !== -1) return this;
+        const oldParent = object.parent;
+        this.updateMatrix(true);
+        const m1 = new Matrix2().copy(this.inverseGlobalMatrix);
+        if (oldParent) {
+            oldParent.updateMatrix(true);
+            m1.multiply(oldParent.globalMatrix);
+        }
+        object.applyMatrix(m1);
+        object.removeFromParent();
+        this.children.push(object);
+        object.parent = this;
+        object.level = this.level + 1;
+        object.traverse(function(child) {
+            if (typeof child.onAdd === 'function') child.onAdd(this);
+            child.matrixNeedsUpdate = true;
+        });
+        return this;
+    }
+    getWorldPosition() {
+        this.updateMatrix(true);
+        return this.globalMatrix.getPosition();
+    }
+    getWorldRotation() {
+        this.updateMatrix(true);
+        return this.globalMatrix.getRotation();
+    }
+    getWorldScale() {
+        this.updateMatrix(true);
+        return this.globalMatrix.getScale();
+    }
+    setPosition(x, y) {
+        if (typeof x === 'object' && x.x && x.y) this.position.copy(x);
+        else this.position.set(x, y);
+        return this;
+    }
+    updateMatrix(force = false) {
+        if (force || this.matrixAutoUpdate || this.matrixNeedsUpdate) {
+            this.globalOpacity = this.opacity * ((this.parent) ? this.parent.globalOpacity : 1);
+            this.scale.x = MathUtils.noZero(MathUtils.sanity(this.scale.x));
+            this.scale.y = MathUtils.noZero(MathUtils.sanity(this.scale.y));
+            this.matrix.compose(this.position.x, this.position.y, this.scale.x, this.scale.y, this.origin.x, this.origin.y, this.rotation);
+            this.globalMatrix.copy(this.matrix);
+            if (this.parent) this.globalMatrix.premultiply(this.parent.globalMatrix);
+            this.inverseGlobalMatrix = this.globalMatrix.getInverse();
+            this.matrixNeedsUpdate = false;
+        }
+    }
+    transform(context, camera, canvas, renderer) {
+        this.globalMatrix.tranformContext(context);
+    }
+    onPointerDrag(pointer, camera) {
+        const pointerStart = pointer.position.clone();
+        const pointerEnd = pointer.position.clone().sub(pointer.delta);
+        const parent = this.parent ?? this;
+        const worldPositionStart = camera.inverseMatrix.transformPoint(pointerStart);
+        const localPositionStart = parent.inverseGlobalMatrix.transformPoint(worldPositionStart);
+        const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
+        const localPositionEnd = parent.inverseGlobalMatrix.transformPoint(worldPositionEnd);
+        const delta = localPositionStart.clone().sub(localPositionEnd);
+        if (pointer.buttonJustPressed(Pointer.LEFT)) {
+            this.dragStartPosition = pointer.position.clone();
+        } else if (pointer.buttonPressed(Pointer.LEFT)) {
+            const manhattanDistance = this.dragStartPosition.manhattanDistanceTo(pointerEnd);
+            if (manhattanDistance >= MOUSE_SLOP) {
+                this.position.add(delta);
+                this.matrixNeedsUpdate = true;
+            }
+        }
+    }
+}
+
+class ArrayUtils {
+    static isIterable(array) {
+        return (array && (typeof array[Symbol.iterator] === 'function') || Array.isArray(array));
+    }
+    static swapItems(array, a, b) {
+        array[a] = array.splice(b, 1, array[a])[0];
+        return array;
+    }
+    static combineThingArrays(arrayOne, arrayTwo) {
+        const things = [ ...arrayOne ];
+        for (const thing of arrayTwo) {
+            if (ArrayUtils.includesThing(thing, arrayOne) === false) things.push(thing);
+        }
+        return things;
+    }
+    static compareThingArrays(arrayOne, arrayTwo) {
+        arrayOne = Array.isArray(arrayOne) ? arrayOne : [ arrayOne ];
+        arrayTwo = Array.isArray(arrayTwo) ? arrayTwo : [ arrayTwo ];
+        if (arrayOne.length === 0 && arrayTwo.length === 0) return true;
+        for (const thing of arrayOne) if (ArrayUtils.includesThing(thing, arrayTwo) === false) return false;
+        for (const thing of arrayTwo) if (ArrayUtils.includesThing(thing, arrayOne) === false) return false;
+        return true;
+    }
+    static filterThings(things, properties = {}) {
+        const filtered = things.filter((object) => {
+            return Object.keys(properties).every((key) => { return object[key] == properties[key]; });
+        });
+        return filtered;
+    }
+    static includesThing(findThing, ...things) {
+        if (!findThing || !findThing.uuid) return false;
+        if (things.length === 0) return false;
+        if (things.length > 0 && Array.isArray(things[0])) things = things[0];
+        for (const thing of things) if (thing.uuid && thing.uuid === findThing.uuid) return true;
+        return false;
+    }
+    static removeThingFromArray(removeThing, ...things) {
+        if (things.length > 0 && Array.isArray(things[0])) things = things[0];
+        if (!removeThing || !removeThing.uuid) return [ ...things ];
+        const newArray = [];
+        for (const thing of things) if (thing.uuid !== removeThing.uuid) newArray.push(thing);
+        return newArray;
+    }
+    static shareValues(arrayOne, arrayTwo) {
+        for (let i = 0; i < arrayOne.length; i++) {
+            if (arrayTwo.includes(arrayOne[i])) return true;
+        }
+        return false;
+    }
+}
+
+const _assets = {};
+class AssetManager {
+    static get(uuid) {
+        if (uuid && uuid.uuid) uuid = uuid.uuid;
+        return _assets[uuid];
+    }
+    static library(type, category) {
+        const library = [];
+        if (type && typeof type === 'string') type = type.toLowerCase();
+        if (category && typeof category === 'string') category = category.toLowerCase();
+        for (const [ uuid, asset ] of Object.entries(_assets)) {
+            if (type && typeof asset.type === 'string' && asset.type.toLowerCase() !== type) continue;
+            if (category == undefined || (typeof asset.category === 'string' && asset.category.toLowerCase() === category)) {
+                library.push(asset);
+            }
+        }
+        return library;
+    }
+    static add(...assets) {
+        if (assets.length > 0 && Array.isArray(assets[0])) assets = assets[0];
+        let addedAsset = undefined;
+        for (const asset of assets) {
+            if (!asset || !asset.uuid) continue;
+            if (!asset.name || asset.name === '') asset.name = asset.constructor.name;
+            _assets[asset.uuid] = asset;
+            addedAsset = addedAsset ?? asset;
+        }
+        return addedAsset;
+    }
+    static clear() {
+        for (const uuid in _assets) {
+            const asset = _assets[uuid];
+            if (asset.isBuiltIn) continue;
+            AssetManager.remove(_assets[uuid], true);
+        }
+    }
+    static remove(asset, dispose = true) {
+        const assets = Array.isArray(asset) ? asset : [ asset ];
+        for (const asset of assets) {
+            if (!asset || !asset.uuid) continue;
+            if (_assets[asset.uuid]) {
+                if (dispose && typeof asset.dispose === 'function') asset.dispose();
+                delete _assets[asset.uuid];
+            }
+        }
+    }
+    static toJSON() {
+        const data = {};
+        for (const type of _types$2.keys()) {
+            const assets = AssetManager.library(type);
+            if (assets.length > 0) {
+                data[type] = [];
+                for (const asset of assets) {
+                    data[type].push(asset.toJSON());
+                }
+            }
+        }
+        return data;
+    }
+    static fromJSON(json, onLoad = () => {}) {
+        AssetManager.clear();
+        for (const type of _types$2.keys()) {
+            if (!json[type]) continue;
+            for (const assetData of json[type]) {
+                const Constructor = AssetManager.type(type);
+                if (Constructor) {
+                    const asset = new Constructor().fromJSON(assetData);
+                    AssetManager.add(asset);
+                } else {
+                    console.warn(`AssetManager.fromJSON(): Unknown asset type '${assetData.type}'`);
+                }
+            }
+        }
+        if (typeof onLoad === 'function') onLoad();
+    }
+    static register(type, AssetClass) {
+        _types$2.set(type, AssetClass);
+    }
+    static type(type) {
+        return _types$2.get(type);
+    }
+}
+const _types$2 = new Map();
+
+class Clock {
+    #running = false;
+    #startTime = 0;
+    #elapsedTime = 0;
+    #lastChecked = 0;
+    #deltaCount = 0;
+    #frameTime = 0;
+    #frameCount = 0;
+    #lastFrameCount = null;
+    constructor(autoStart = true, msRewind = 0) {
+        if (autoStart) this.start();
+        this.#startTime -= msRewind;
+        this.#lastChecked -= msRewind;
+    }
+    start(reset = false) {
+        if (reset) this.reset();
+        this.#startTime = performance.now();
+        this.#lastChecked = this.#startTime;
+        this.#running = true;
+    }
+    stop() {
+        this.getDeltaTime();
+        this.#running = false;
+    }
+    toggle() {
+        if (this.#running) this.stop();
+        else this.start();
+    }
+    reset() {
+        this.#startTime = performance.now();
+        this.#lastChecked = this.#startTime;
+        this.#elapsedTime = 0;
+        this.#deltaCount = 0;
+    }
+    getElapsedTime() {
+        return this.#elapsedTime;
+    }
+    getDeltaTime() {
+        if (!this.#running) {
+            this.#lastFrameCount = null;
+            return 0;
+        }
+        const newTime = performance.now();
+        const dt = (newTime - this.#lastChecked) / 1000;
+        this.#lastChecked = newTime;
+        this.#elapsedTime += dt;
+        this.#deltaCount++;
+        this.#frameTime += dt;
+        this.#frameCount++;
+        if (this.#frameTime > 1) {
+            this.#lastFrameCount = this.#frameCount;
+            this.#frameTime = 0;
+            this.#frameCount = 0;
+        }
+        return dt;
+    }
+    isRunning() {
+        return this.#running;
+    }
+    isStopped() {
+        return !(this.#running);
+    }
+    count() {
+        return this.#deltaCount;
+    }
+    averageDelta() {
+        const frameRate = (this.#lastFrameCount !== null) ? (1 / this.#lastFrameCount) : (this.#frameTime / this.#frameCount);
+        return Math.min(1, frameRate);
+    }
+    fps() {
+        return (this.#lastFrameCount !== null) ? this.#lastFrameCount : (this.#frameCount / this.#frameTime);
     }
 }
 
@@ -1833,409 +2769,6 @@ function appPointerMove(event) {
     }
 }
 
-class Vector2 {
-    constructor(x = 0, y = 0) {
-        if (typeof x === 'object') {
-            this.x = x.x;
-            this.y = x.y;
-        } else {
-            this.x = x;
-            this.y = y;
-        }
-    }
-    set(x, y) {
-        if (typeof x === 'object') return this.copy(x);
-        this.x = x;
-        this.y = y;
-        return this;
-    }
-    setScalar(scalar) {
-        this.x = scalar;
-        this.y = scalar;
-        return this;
-    }
-    clone() {
-        return new Vector2(this.x, this.y);
-    }
-    copy(x, y) {
-        if (typeof x === 'object') {
-            this.x = x.x;
-            this.y = x.y;
-        } else {
-            this.x = x;
-            this.y = y;
-        }
-        return this;
-    }
-    add(x, y) {
-        if (typeof x === 'object') {
-            this.x += x.x;
-            this.y += x.y;
-        } else {
-            this.x += x;
-            this.y += y;
-        }
-        return this;
-    }
-    addScalar(scalar) {
-        this.x += scalar;
-        this.y += scalar;
-        return this;
-    }
-    addVectors(a, b) {
-        this.x = a.x + b.x;
-        this.y = a.y + b.y;
-        return this;
-    }
-    addScaledVector(vec, scale) {
-        this.x += vec.x * scale;
-        this.y += vec.y * scale;
-        return this;
-    }
-    sub(x, y) {
-        if (typeof x === 'object') {
-            this.x -= x.x;
-            this.y -= x.y;
-        } else {
-            this.x -= x;
-            this.y -= y;
-        }
-        return this;
-    }
-    subScalar(scalar) {
-        this.x -= scalar;
-        this.y -= scalar;
-        return this;
-    }
-    subVectors(a, b) {
-        this.x = a.x - b.x;
-        this.y = a.y - b.y;
-        return this;
-    }
-    multiply(x, y) {
-        if (typeof x === 'object') {
-            this.x *= x.x;
-            this.y *= x.y;
-        } else {
-            this.x *= x;
-            this.y *= y;
-        }
-        return this;
-    }
-    multiplyScalar(scalar) {
-        this.x *= scalar;
-        this.y *= scalar;
-        return this;
-    }
-    divide(x, y) {
-        if (typeof x === 'object') {
-            this.x /= x.x;
-            this.y /= x.y;
-        } else {
-            this.x /= x;
-            this.y /= y;
-        }
-        return this;
-    }
-    divideScalar(scalar) {
-        return this.multiplyScalar(1 / scalar);
-    }
-    min(vec) {
-        this.x = Math.min(this.x, vec.x);
-        this.y = Math.min(this.y, vec.y);
-        return this;
-    }
-    max(vec) {
-        this.x = Math.max(this.x, vec.x);
-        this.y = Math.max(this.y, vec.y);
-        return this;
-    }
-    clamp(minv, maxv) {
-        if (minv.x < maxv.x) this.x = Math.max(minv.x, Math.min(maxv.x, this.x));
-        else this.x = Math.max(maxv.x, Math.min(minv.x, this.x));
-        if (minv.y < maxv.y) this.y = Math.max(minv.y, Math.min(maxv.y, this.y));
-        else this.y = Math.max(maxv.y, Math.min(minv.y, this.y));
-        return this;
-    }
-    clampScalar(minVal, maxVal) {
-        this.x = Math.max(minVal, Math.min(maxVal, this.x));
-        this.y = Math.max(minVal, Math.min(maxVal, this.y));
-        return this;
-    }
-    clampLength(min, max) {
-        const length = this.length();
-        return this.divideScalar(length || 1).multiplyScalar(Math.max(min, Math.min(max, length)));
-    }
-    floor() {
-        this.x = Math.floor(this.x);
-        this.y = Math.floor(this.y);
-        return this;
-    }
-    ceil() {
-        this.x = Math.ceil(this.x);
-        this.y = Math.ceil(this.y);
-        return this;
-    }
-    round() {
-        this.x = Math.round(this.x);
-        this.y = Math.round(this.y);
-        return this;
-    }
-    negate() {
-        this.x = -this.x;
-        this.y = -this.y;
-        return this;
-    }
-    abs() {
-        this.x = Math.abs(this.x);
-        this.y = Math.abs(this.y);
-        return this;
-    }
-    dot(vec) {
-        return this.x * vec.x + this.y * vec.y;
-    }
-    cross(vec) {
-        return this.x * vec.y - this.y * vec.x;
-    }
-    length() {
-        return Math.sqrt(this.x * this.x + this.y * this.y);
-    }
-    lengthSq() {
-        return this.x * this.x + this.y * this.y;
-    }
-    manhattanLength() {
-        return Math.abs(this.x) + Math.abs(this.y);
-    }
-    normalize() {
-        return this.divideScalar(this.length() || 1);
-    }
-    angle(forcePositive) {
-        let angle = Math.atan2(this.y, this.x);
-        if (forcePositive && angle < 0) angle += 2 * Math.PI;
-        return angle;
-    }
-    angleBetween(vec) {
-        const magnitudes = this.length() * vec.length();
-        const dot = this.dot(vec);
-        const theta = dot / magnitudes;
-        const clampedDot = Math.min(Math.max(theta, -1), 1);
-        return Math.acos(clampedDot);
-    }
-    rotateAround(center, angle) {
-        const c = Math.cos(angle);
-        const s = Math.sin(angle);
-        const x = this.x - center.x;
-        const y = this.y - center.y;
-        this.x = x * c - y * s + center.x;
-        this.y = x * s + y * c + center.y;
-    }
-    distanceTo(vec) {
-        return Math.sqrt(this.distanceToSquared(vec));
-    }
-    distanceToSquared(vec) {
-        const dx = this.x - vec.x;
-        const dy = this.y - vec.y;
-        return dx * dx + dy * dy;
-    }
-    manhattanDistanceTo(vec) {
-        return Math.abs(this.x - vec.x) + Math.abs(this.y - vec.y);
-    }
-    setLength(length) {
-        return this.normalize().multiplyScalar(length);
-    }
-    lerp(vec, t) {
-        return this.lerpVectors(this, vec, t);
-    }
-    lerpVectors(a, b, t) {
-        this.x = a.x + ((b.x - a.x) * t);
-        this.y = a.y + ((b.y - a.y) * t);
-        return this;
-    }
-    equals(vec) {
-        return ((vec.x === this.x) && (vec.y === this.y));
-    }
-    fuzzyEquals(vec, tolerance = 0.001) {
-        if (fuzzyFloat(this.x, vec.x, tolerance) === false) return false;
-        if (fuzzyFloat(this.y, vec.y, tolerance) === false) return false;
-        return true;
-    }
-    random() {
-        this.x = Math.random();
-        this.y = Math.random();
-    }
-    log(description = '') {
-        if (description !== '') description += ' - ';
-        console.log(`${description}X: ${this.x}, Y: ${this.y}`);
-        return this;
-    }
-    toArray() {
-        return [ this.x, this.y ];
-    }
-    fromArray(array, offset = 0) {
-        this.set(array[offset + 0], array[offset + 1]);
-        return this;
-    }
-}
-function fuzzyFloat(a, b, tolerance = 0.001) {
-    return ((a < (b + tolerance)) && (a > (b - tolerance)));
-}
-
-class Matrix2 {
-    constructor(values) {
-        if (Array.isArray(values)) this.m = [ ...values ];
-        else this.identity();
-    }
-    copy(mat) {
-        this.m = [ ...mat.m ];
-        return this;
-    }
-    clone() {
-        return new Matrix2([ ...this.m ]);
-    }
-    identity() {
-        this.m = [ 1, 0, 0, 1, 0, 0 ];
-        return this;
-    }
-    multiply(mat) {
-        const m0 = this.m[0] * mat.m[0] + this.m[2] * mat.m[1];
-        const m1 = this.m[1] * mat.m[0] + this.m[3] * mat.m[1];
-        const m2 = this.m[0] * mat.m[2] + this.m[2] * mat.m[3];
-        const m3 = this.m[1] * mat.m[2] + this.m[3] * mat.m[3];
-        const m4 = this.m[0] * mat.m[4] + this.m[2] * mat.m[5] + this.m[4];
-        const m5 = this.m[1] * mat.m[4] + this.m[3] * mat.m[5] + this.m[5];
-        this.m = [ m0, m1, m2, m3, m4, m5 ];
-        return this;
-    }
-    premultiply(mat) {
-        const m0 = mat.m[0] * this.m[0] + mat.m[2] * this.m[1];
-        const m1 = mat.m[1] * this.m[0] + mat.m[3] * this.m[1];
-        const m2 = mat.m[0] * this.m[2] + mat.m[2] * this.m[3];
-        const m3 = mat.m[1] * this.m[2] + mat.m[3] * this.m[3];
-        const m4 = mat.m[0] * this.m[4] + mat.m[2] * this.m[5] + mat.m[4];
-        const m5 = mat.m[1] * this.m[4] + mat.m[3] * this.m[5] + mat.m[5];
-        this.m = [ m0, m1, m2, m3, m4, m5 ];
-        return this;
-    }
-    compose(px, py, sx, sy, ox, oy, rot) {
-        this.m = [ 1, 0, 0, 1, 0, 0 ];
-        this.multiply(new Matrix2([ 1, 0, 0, 1, px, py ]));
-        if (rot !== 0) {
-            const c = Math.cos(rot);
-            const s = Math.sin(rot);
-            this.multiply(new Matrix2([ c, s, -s, c, 0, 0 ]));
-        }
-        this.multiply(new Matrix2([ 1, 0, 0, 1, -ox, -oy ]));
-        if (sx !== 1 || sy !== 1) this.scale(sx, sy);
-        return this;
-    }
-    decompose(object) {
-        if (!object || typeof object !== 'object') return this;
-        if (object.position) this.getPosition(object.position);
-        object.rotation = this.getRotation();
-        if (object.scale) this.getScale(object.scale);
-        return this;
-    }
-    setPosition(x, y) {
-        this.m[4] = x;
-        this.m[5] = y;
-        return this;
-    }
-    translate(x, y) {
-        this.m[4] += this.m[0] * x + this.m[2] * y;
-        this.m[5] += this.m[1] * x + this.m[3] * y;
-        return this;
-    }
-    rotate(rad) {
-        const c = Math.cos(rad);
-        const s = Math.sin(rad);
-        const m11 = this.m[0] * c + this.m[2] * s;
-        const m12 = this.m[1] * c + this.m[3] * s;
-        const m21 = this.m[0] * -s + this.m[2] * c;
-        const m22 = this.m[1] * -s + this.m[3] * c;
-        this.m[0] = m11;
-        this.m[1] = m12;
-        this.m[2] = m21;
-        this.m[3] = m22;
-        return this;
-    }
-    scale(sx, sy) {
-        if (typeof sx === 'object') {
-            this.m[0] *= sx.x;
-            this.m[1] *= sx.x;
-            this.m[2] *= sx.y;
-            this.m[3] *= sx.y;
-        } else {
-            this.m[0] *= sx;
-            this.m[1] *= sx;
-            this.m[2] *= sy;
-            this.m[3] *= sy;
-        }
-        return this;
-    }
-    skew(radianX, radianY) {
-        return this.multiply(new Matrix2([ 1, Math.tan(radianY), Math.tan(radianX), 1, 0, 0 ]));
-    }
-    getScale(target = new Vector2()) {
-        const scaleX = Math.sqrt(this.m[0] * this.m[0] + this.m[1] * this.m[1]);
-        const scaleY = Math.sqrt(this.m[2] * this.m[2] + this.m[3] * this.m[3]);
-        target.set(scaleX, scaleY);
-        return target;
-    }
-    getPosition(target = new Vector2()) {
-        target.set(this.m[4], this.m[5]);
-        return target;
-    }
-    getRotation() {
-        return Math.atan2(this.m[1], this.m[0]);
-    }
-    getShear(target = new Vector2()) {
-        const scaleX = Math.sqrt(this.m[0] * this.m[0] + this.m[1] * this.m[1]);
-        const scaleY = Math.sqrt(this.m[2] * this.m[2] + this.m[3] * this.m[3]);
-        const rotation = Math.atan2(this.m[1], this.m[0]);
-        const shearX = Math.atan2(this.m[0] * this.m[2] + this.m[1] * this.m[3], scaleX * scaleY);
-        const shearY = Math.atan2(-this.m[0] * this.m[3] + this.m[1] * this.m[2], scaleX * scaleY) - rotation;
-        target.set(shearX, shearY);
-        return target;
-    }
-    getSign(target = new Vector2()) {
-        const signX = (this.m[0] < 0) ? -1 : 1;
-        const signY = (this.m[3] < 0) ? -1 : 1;
-        target.set(signX, signY);
-        return target;
-    }
-    determinant() {
-        return this.m[0] * this.m[3] - this.m[1] * this.m[2];
-    }
-    getInverse() {
-        const d = this.determinant();
-        if (d === 0) console.error(`Matrix2.getInverse(): Matrix is non-invertible`);
-        const invD = 1 / d;
-        return new Matrix2([ this.m[3] * invD, -this.m[1] * invD, -this.m[2] * invD, this.m[0] * invD, invD * (this.m[2] * this.m[5] - this.m[3] * this.m[4]), invD * (this.m[1] * this.m[4] - this.m[0] * this.m[5]) ]);
-    }
-    transformPoint(x, y) {
-        let px, py;
-        if (typeof x === 'object') {
-            px = x.x * this.m[0] + x.y * this.m[2] + this.m[4];
-            py = x.x * this.m[1] + x.y * this.m[3] + this.m[5];
-        } else {
-            px = x * this.m[0] + y * this.m[2] + this.m[4];
-            py = x * this.m[1] + y * this.m[3] + this.m[5];
-        }
-        return new Vector2(px, py);
-    }
-    setContextTransform(context) {
-        context.setTransform(this.m[0], this.m[1], this.m[2], this.m[3], this.m[4], this.m[5]);
-        return this;
-    }
-    tranformContext(context) {
-        context.transform(this.m[0], this.m[1], this.m[2], this.m[3], this.m[4], this.m[5]);
-        return this;
-    }
-    cssTransform() {
-        return 'matrix(' + this.m[0] + ',' + this.m[1] + ',' + this.m[2] + ',' + this.m[3] + ',' + this.m[4] + ',' + this.m[5] + ')';
-    }
-}
-
 class Camera2D extends Thing {
     constructor() {
         super('Camera2D');
@@ -2246,6 +2779,15 @@ class Camera2D extends Thing {
         this.matrix = new Matrix2();
         this.inverseMatrix = new Matrix2();
         this.matrixNeedsUpdate = true;
+        this.viewport = new Box2(new Vector2(0, 0), new Vector2(1, 1));
+    }
+    intersectsViewport(box) {
+        const topLeft = this.matrix.transformPoint(box.min);
+        const topRight = this.matrix.transformPoint(new Vector2(box.max.x, box.min.y));
+        const bottomLeft = this.matrix.transformPoint(new Vector2(box.min.x, box.max.y));
+        const bottomRight = this.matrix.transformPoint(box.max);
+        const cameraViewBox = new Box2().setFromPoints(topLeft, topRight, bottomLeft, bottomRight);
+        return this.viewport.intersectsBox(cameraViewBox);
     }
     updateMatrix(offsetX, offsetY) {
         if (!this.matrixNeedsUpdate) return;
@@ -2260,538 +2802,8 @@ class Camera2D extends Thing {
         this.inverseMatrix = this.matrix.getInverse();
         this.matrixNeedsUpdate = false;
     }
-}
-
-class Box2 {
-    constructor(min, max) {
-        this.min = new Vector2(+Infinity, +Infinity);
-        this.max = new Vector2(-Infinity, -Infinity);
-        if (typeof min === 'object') this.min.copy(min);
-        if (typeof max === 'object') this.max.copy(max);
-    }
-    set(min, max) {
-        this.min.copy(min);
-        this.max.copy(max);
-        return this;
-    }
-    setFromPoints(...points) {
-        if (points.length > 0 && Array.isArray(points[0])) points = points[0];
-        this.clear();
-        for (const point of points) {
-            this.expandByPoint(point);
-        }
-        return this;
-    }
-    setFromCenterAndSize(center, size) {
-        const halfSize = new Vector2().copy(size).multiplyScalar(0.5);
-        this.min.copy(center).sub(halfSize);
-        this.max.copy(center).add(halfSize);
-        return this;
-    }
-    clone() {
-        return new Box2().copy(this);
-    }
-    copy(box) {
-        this.min.copy(box.min);
-        this.max.copy(box.max);
-        return this;
-    }
-    clear() {
-        this.min.set(+Infinity, +Infinity);
-        this.max.set(-Infinity, -Infinity);
-    }
-    isEmpty() {
-        return (this.max.x < this.min.x) || (this.max.y < this.min.y);
-    }
-    getCenter(target) {
-        target = target ?? new Vector2();
-        this.isEmpty() ? target.set(0, 0) : target.addVectors(this.min, this.max).multiplyScalar(0.5);
-        return target;
-    }
-    getSize(target) {
-        target = target ?? new Vector2();
-        this.isEmpty() ? target.set(0, 0) : target.subVectors(this.max, this.min).abs();
-        return target;
-    }
-    expandByPoint(point) {
-        this.min.min(point);
-        this.max.max(point);
-        return this;
-    }
-    expandByVector(vector, y) {
-        let ex, ey;
-        if (typeof vector === 'object') {
-            ex = vector.x / 2;
-            ey = vector.y / 2;
-        } else {
-            ex = vector / 2;
-            ey = y / 2;
-        }
-        this.min.sub(ex, ey);
-        this.max.add(ex, ey);
-        return this;
-    }
-    expandByScalar(scalar) {
-        this.min.addScalar(scalar * -1);
-        this.max.addScalar(scalar * +1);
-        return this;
-    }
-    multiply(x, y) {
-        if (typeof x === 'object') {
-            y = x.y;
-            x = x.x;
-        }
-        this.min.multiply(x, y);
-        this.max.multiply(x, y);
-        return this;
-    }
-    containsPoint(point) {
-        return !(point.x < this.min.x || point.x > this.max.x || point.y < this.min.y || point.y > this.max.y);
-    }
-    containsBox(box) {
-        return this.min.x <= box.min.x && box.max.x <= this.max.x && this.min.y <= box.min.y && box.max.y <= this.max.y;
-    }
-    intersectsBox(box) {
-        return !(box.max.x < this.min.x || box.min.x > this.max.x || box.max.y < this.min.y || box.min.y > this.max.y);
-    }
-    distanceToPoint(point) {
-        let v = new Vector2();
-        let clampedPoint = v.copy(point).clamp(this.min, this.max);
-        return clampedPoint.sub(point).length();
-    }
-    intersect(box) {
-        this.min.max(box.min);
-        this.max.min(box.max);
-        return this;
-    }
-    union(box) {
-        this.min.min(box.min);
-        this.max.max(box.max);
-        return this;
-    }
-    translate(x, y) {
-        this.min.add(x, y);
-        this.max.add(x, y);
-        return this;
-    }
-    equals(box) {
-        return box.min.equals(this.min) && box.max.equals(this.max);
-    }
-    toArray() {
-        return [ this.min.x, this.min.y, this.max.x, this.max.y ];
-    }
-    fromArray(array) {
-        this.min.set(array[0], array[1]);
-        this.max.set(array[2], array[3]);
-        return this;
-    }
-}
-
-class Key {
-    static DOWN = -1;
-    static UP = 1;
-    static RESET = 0;
-    constructor() {
-        this.pressed = false;
-        this.justPressed = false;
-        this.justReleased = false;
-    }
-    update(action) {
-        this.justPressed = false;
-        this.justReleased = false;
-        if (action === Key.DOWN) {
-            if (this.pressed === false) this.justPressed = true;
-            this.pressed = true;
-        } else if(action === Key.UP) {
-            if (this.pressed) this.justReleased = true;
-            this.pressed = false;
-        } else if(action === Key.RESET) {
-            this.justReleased = false;
-            this.justPressed = false;
-        }
-    }
-    set(justPressed, pressed, justReleased) {
-        this.justPressed = justPressed;
-        this.pressed = pressed;
-        this.justReleased = justReleased;
-    }
-    reset() {
-        this.justPressed = false;
-        this.pressed = false;
-        this.justReleased = false;
-    }
-}
-
-class Pointer {
-    static LEFT = 0;
-    static MIDDLE = 1;
-    static RIGHT = 2;
-    static BACK = 3;
-    static FORWARD = 4;
-    #locked = false;
-    #lockID = 1;
-    constructor(element, disableContextMenu = true) {
-        if (!element || !element.dom) {
-            console.error(`Pointer: No element was provided`);
-            return;
-        }
-        const self = this;
-        this._keys = new Array(5);
-        this._position = new Vector2(0, 0);
-        this._positionUpdated = false;
-        this._delta = new Vector2(0, 0);
-        this._wheel = 0;
-        this._wheelUpdated = false;
-        this._doubleClicked = new Array(5);
-        this.keys = new Array(5);
-        this.position = new Vector2(0, 0);
-        this.delta = new Vector2(0, 0);
-        this.wheel = 0;
-        this.doubleClicked = new Array(5);
-        this.pointerInside = false;
-        this.dragging = false;
-        for (let i = 0; i < 5; i++) {
-            this._doubleClicked[i] = false;
-            this.doubleClicked[i] = false;
-            this._keys[i] = new Key();
-            this.keys[i] = new Key();
-        }
-        function updatePosition(x, y, xDiff, yDiff) {
-            if (element && element.dom) {
-                const rect = element.dom.getBoundingClientRect();
-                x -= rect.left;
-                y -= rect.top;
-            }
-            self._position.set(x, y);
-            self._delta.x += xDiff;
-            self._delta.y += yDiff;
-            self._positionUpdated = true;
-        }
-        function updateKey(button, action) {
-            if (button >= 0) self._keys[button].update(action);
-        }
-        if (disableContextMenu) {
-            element.on('contextmenu', (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-            });
-        }
-        element.on('pointermove', (event) => {
-            updatePosition(event.clientX, event.clientY, event.movementX, event.movementY);
-        });
-        element.on('pointerdown', (event) => {
-            element.dom.setPointerCapture(event.pointerId);
-            updateKey(event.button, Key.DOWN);
-        });
-        element.on('pointerup', (event) => {
-            element.dom.releasePointerCapture(event.pointerId);
-            updateKey(event.button, Key.UP);
-        });
-        element.on('pointerenter', () => { self.pointerInside = true; });
-        element.on('pointerleave', () => { self.pointerInside = false; });
-        element.on('wheel', (event) => {
-            updatePosition(event.clientX, event.clientY, event.movementX, event.movementY);
-            self._wheel = event.deltaY;
-            self._wheelUpdated = true;
-        });
-        element.on('dragstart', (event) => { updateKey(event.button, Key.UP); });
-        element.on('dblclick', (event) => { self._doubleClicked[event.button] = true; });
-    }
-    buttonPressed(button, id = -1) {
-        if (this.#locked && this.#locked !== id) return false;
-        return this.keys[button].pressed;
-    }
-    buttonDoubleClicked(button, id = -1) {
-        if (this.#locked && this.#locked !== id) return false;
-        return this.doubleClicked[button]
-    }
-    buttonJustPressed(button, id = -1) {
-        if (this.#locked && this.#locked !== id) return false;
-        return this.keys[button].justPressed;
-    }
-    buttonJustReleased(button, id = -1) {
-        if (this.#locked && this.#locked !== id) return false;
-        return this.keys[button].justReleased;
-    }
-    insideDom() {
-        return this.pointerInside;
-    }
-    lock() {
-        this.#locked = this.#lockID;
-        this.#lockID++;
-        return this.#locked;
-    }
-    unlock() {
-        this.#locked = false;
-    }
-    update() {
-        for (let i = 0; i < 5; i++) {
-            if (this._keys[i].justPressed && this.keys[i].justPressed) this._keys[i].justPressed = false;
-            if (this._keys[i].justReleased && this.keys[i].justReleased) this._keys[i].justReleased = false;
-            this.keys[i].set(this._keys[i].justPressed, this._keys[i].pressed, this._keys[i].justReleased);
-            if (this._doubleClicked[i] === true) {
-                this.doubleClicked[i] = true;
-                this._doubleClicked[i] = false;
-            } else {
-                this.doubleClicked[i] = false;
-            }
-        }
-        if (this._wheelUpdated) {
-            this.wheel = this._wheel;
-            this._wheelUpdated = false;
-        } else {
-            this.wheel = 0;
-        }
-        if (this._positionUpdated) {
-            this.delta.copy(this._delta);
-            this.position.copy(this._position);
-            this._delta.set(0, 0);
-            this._positionUpdated = false;
-        } else {
-            this.delta.x = 0;
-            this.delta.y = 0;
-        }
-    }
-}
-
-class Object2D extends Thing {
-    constructor(name = 'Object') {
-        super(name);
-        this.type = 'Object2D';
-        this.children = [];
-        this.parent = null;
-        this.visible = true;
-        this.layer = 0;
-        this.level = 0;
-        this.opacity = 1;
-        this.globalOpacity = 1;
-        this.position = new Vector2(0, 0);
-        this.scale = new Vector2(1, 1);
-        this.rotation = 0.0;
-        this.origin = new Vector2(0, 0);
-        this.matrix = new Matrix2();
-        this.globalMatrix = new Matrix2();
-        this.inverseGlobalMatrix = new Matrix2();
-        this.matrixAutoUpdate = true;
-        this.matrixNeedsUpdate = true;
-        this.boundingBox = new Box2();
-        this.masks = [];
-        this.pointerEvents = true;
-        this.draggable = false;
-        this.focusable = true;
-        this.selectable = true;
-        this.pointerInside = false;
-        this.inViewport = true;
-        this.isSelected = false;
-    }
-    add(...objects) {
-        if (!objects) return this;
-        if (objects.length > 0 && Array.isArray(objects[0])) objects = objects[0];
-        for (const object of objects) {
-            if (!object || !object.uuid) continue;
-            const index = this.children.indexOf(object);
-            if (index === -1) {
-                if (object.parent) object.parent.remove(object);
-                this.children.push(object);
-                object.parent = this;
-                object.level = this.level + 1;
-                object.traverse(function(child) {
-                    if (typeof child.onAdd === 'function') child.onAdd(this);
-                    child.matrixNeedsUpdate = true;
-                });
-            }
-        }
-        return this;
-    }
-    remove(...objects) {
-        if (!objects) return this;
-        if (objects.length > 0 && Array.isArray(objects[0])) objects = objects[0];
-        for (const object of objects) {
-            if (!object || !object.uuid) continue;
-            const index = this.children.indexOf(object);
-            if (index !== -1) {
-                this.children.splice(index, 1);
-                object.parent = null;
-                object.level = 0;
-                object.traverse(function(child) {
-                    if (typeof child.onRemove === 'function') child.onRemove(this);
-                    child.matrixNeedsUpdate = true;
-                });
-            }
-        }
-        return this;
-    }
-    removeFromParent() {
-		const parent = this.parent;
-		if (parent) parent.remove(this);
-		return this;
-	}
-    getChildByUUID(uuid) {
-        return this.getEntityByProperty('uuid', uuid);
-    }
-    getChildByProperty(property, value) {
-        if (this[property] === value) return this;
-        for (const child of this.children) {
-            const object = child.getChildByProperty(property, value);
-            if (object) return object;
-        }
-        return undefined;
-    }
-    traverse(callback) {
-        if (typeof callback === 'function' && callback(this)) return true;
-        for (const child of this.children) {
-            if (child.traverse(callback)) return true;
-        }
-        return false;
-    }
-    traverseVisible(callback) {
-        if (!this.visible) return false;
-        if (typeof callback === 'function' && callback(this)) return true;
-        for (const child of this.children) {
-            if (child.traverseVisible(callback)) return true;
-        }
-        return false;
-    }
-    traverseAncestors(callback) {
-		const parent = this.parent;
-        if (!parent) return false;
-		if (typeof callback === 'function' && callback(parent)) return true;
-		parent.traverseAncestors(callback);
-        return false;
-	}
-    clear() {
-        return this.remove(...this.children);
-    }
-    destroy() {
-        this.clear();
-        this.removeFromParent();
-        return this;
-    }
-    computeBoundingBox() {
-        return this.boundingBox;
-    }
-    isInside(point) {
-        return false;
-    }
-    isWorldPointInside(worldPoint, recursive = false) {
-        const localPoint = this.worldToLocal(worldPoint);
-        if (this.isInside(localPoint)) return true;
-        if (recursive) {
-            for (const child of this.children) {
-                if (child.isWorldPointInside(worldPoint, true)) return true;
-            }
-        }
-        return false;
-    }
-    getWorldPointIntersections(worldPoint) {
-        const objects = [];
-        this.traverse((child) => {
-            if (!child.visible) return;
-            const localPoint = child.worldToLocal(worldPoint);
-            if (child.isInside(localPoint)) objects.push(child);
-        });
-        objects.sort((a, b) => {
-            if (b.layer === a.layer) return b.level - a.level;
-            return b.layer - a.layer;
-        });
-        return objects;
-    }
-    getWorldBoundingBox() {
-        const box = this.boundingBox;
-        if (Number.isFinite(box.min.x) === false || Number.isFinite(box.min.y) === false) return box;
-        if (Number.isFinite(box.max.x) === false || Number.isFinite(box.max.y) === false) return box;
-        const topLeftWorld = this.localToWorld(box.min);
-        const topRightWorld = this.localToWorld(new Vector2(box.max.x, box.min.y));
-        const bottomLeftWorld = this.localToWorld(new Vector2(box.min.x, box.max.y));
-        const bottomRightWorld = this.localToWorld(box.max);
-        return new Box2().setFromPoints(topLeftWorld, topRightWorld, bottomLeftWorld, bottomRightWorld);
-    }
-    localToWorld(vector) {
-        return this.globalMatrix.transformPoint(vector);
-    }
-    worldToLocal(vector) {
-        return this.inverseGlobalMatrix.transformPoint(vector);
-    }
-    applyMatrix(matrix) {
-        this.updateMatrix(true);
-        this.matrix.premultiply(matrix);
-        this.matrix.getPosition(this.position);
-        this.rotation = this.matrix.getRotation();
-        this.matrix.getScale(this.scale);
-        this.updateMatrix(true);
-        return this;
-    }
-    attach(object) {
-        if (!object || !object.uuid) return this;
-        if (this.children.indexOf(object) !== -1) return this;
-        const oldParent = object.parent;
-        this.updateMatrix(true);
-        const m1 = new Matrix2().copy(this.inverseGlobalMatrix);
-        if (oldParent) {
-            oldParent.updateMatrix(true);
-            m1.multiply(oldParent.globalMatrix);
-        }
-        object.applyMatrix(m1);
-        object.removeFromParent();
-        this.children.push(object);
-        object.parent = this;
-        object.level = this.level + 1;
-        object.traverse(function(child) {
-            if (typeof child.onAdd === 'function') child.onAdd(this);
-            child.matrixNeedsUpdate = true;
-        });
-        return this;
-    }
-    getWorldPosition() {
-        this.updateMatrix(true);
-        return this.globalMatrix.getPosition();
-    }
-    getWorldRotation() {
-        this.updateMatrix(true);
-        return this.globalMatrix.getRotation();
-    }
-    getWorldScale() {
-        this.updateMatrix(true);
-        return this.globalMatrix.getScale();
-    }
-    setPosition(x, y) {
-        if (typeof x === 'object' && x.x && x.y) this.position.copy(x);
-        else this.position.set(x, y);
-        return this;
-    }
-    updateMatrix(force = false) {
-        if (force || this.matrixAutoUpdate || this.matrixNeedsUpdate) {
-            this.globalOpacity = this.opacity * ((this.parent) ? this.parent.globalOpacity : 1);
-            this.scale.x = MathUtils.noZero(MathUtils.sanity(this.scale.x));
-            this.scale.y = MathUtils.noZero(MathUtils.sanity(this.scale.y));
-            this.matrix.compose(this.position.x, this.position.y, this.scale.x, this.scale.y, this.origin.x, this.origin.y, this.rotation);
-            this.globalMatrix.copy(this.matrix);
-            if (this.parent) this.globalMatrix.premultiply(this.parent.globalMatrix);
-            this.inverseGlobalMatrix = this.globalMatrix.getInverse();
-            this.matrixNeedsUpdate = false;
-        }
-    }
-    transform(context, camera, canvas, renderer) {
-        this.globalMatrix.tranformContext(context);
-    }
-    onPointerDrag(pointer, camera) {
-        const pointerStart = pointer.position.clone();
-        const pointerEnd = pointer.position.clone().sub(pointer.delta);
-        const parent = this.parent ?? this;
-        const worldPositionStart = camera.inverseMatrix.transformPoint(pointerStart);
-        const localPositionStart = parent.inverseGlobalMatrix.transformPoint(worldPositionStart);
-        const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
-        const localPositionEnd = parent.inverseGlobalMatrix.transformPoint(worldPositionEnd);
-        const delta = localPositionStart.clone().sub(localPositionEnd);
-        if (pointer.buttonJustPressed(Pointer.LEFT)) {
-            this.dragStartPosition = pointer.position.clone();
-        } else if (pointer.buttonPressed(Pointer.LEFT)) {
-            const manhattanDistance = this.dragStartPosition.manhattanDistanceTo(pointerEnd);
-            if (manhattanDistance >= MOUSE_SLOP) {
-                this.position.add(delta);
-                this.matrixNeedsUpdate = true;
-            }
-        }
+    setViewport(width = 1, height = 1) {
+        this.viewport.max.set(width, height);
     }
 }
 
@@ -2845,23 +2857,6 @@ class Keyboard {
                 this._keys[code].justReleased
             );
         }
-    }
-}
-
-class Viewport {
-    constructor(context, camera) {
-        const canvas = context.canvas;
-        const topLeft = new Vector2(0, 0);
-        const bottomRight = new Vector2(canvas.width, canvas.height);
-        this.box = new Box2(topLeft, bottomRight);
-    }
-    intersectsBox(camera, box) {
-        const topLeft = camera.matrix.transformPoint(box.min);
-        const topRight = camera.matrix.transformPoint(new Vector2(box.max.x, box.min.y));
-        const bottomLeft = camera.matrix.transformPoint(new Vector2(box.min.x, box.max.y));
-        const bottomRight = camera.matrix.transformPoint(box.max);
-        const actualBox = new Box2().setFromPoints(topLeft, topRight, bottomLeft, bottomRight);
-        return this.box.intersectsBox(actualBox);
     }
 }
 
@@ -2978,9 +2973,9 @@ class Renderer {
             if (b.layer === a.layer) return b.level - a.level;
             return b.layer - a.layer;
         });
-        const viewport = new Viewport(context, camera);
+        camera.setViewport(context.canvas.width, context.canvas.height);
         for (const object of objects) {
-            object.inViewport = viewport.intersectsBox(camera, object.getWorldBoundingBox());
+            object.inViewport = camera.intersectsViewport(object.getWorldBoundingBox());
         }
         const cameraPoint = camera.inverseMatrix.transformPoint(pointer.position);
         let currentCursor = null;
@@ -4711,4 +4706,4 @@ function getVariable(variable) {
     return ((value === '') ? undefined : value);
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, Entity, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Sprite, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, Viewport, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, Entity, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Sprite, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, WORLD_TYPES, World };

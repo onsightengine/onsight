@@ -2,14 +2,14 @@ import {
     APP_EVENTS,
     APP_ORIENTATION,
     WORLD_TYPES,
- } from '../constants.js';
-import { ArrayUtils } from '../utils/ArrayUtils.js';
+ } from '../../constants.js';
+import { ArrayUtils } from '../../utils/ArrayUtils.js';
 import { AssetManager } from './AssetManager.js';
-import { Clock } from '../core/Clock.js';
-import { Project } from '../core/project/Project.js';
+import { Clock } from './Clock.js';
+import { Project } from '../project/Project.js';
 import { SceneManager } from './SceneManager.js';
-import { Stage } from '../core/project/Stage.js';
-import { World } from '../core/project/World.js';
+import { Stage } from '../project/Stage.js';
+import { World } from '../project/World.js';
 
 let _animationID = null;
 

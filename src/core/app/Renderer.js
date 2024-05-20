@@ -1,7 +1,7 @@
-import { Keyboard } from './input/Keyboard.js';
-import { Pointer } from './input/Pointer.js';
-import { Vector2 } from '../math/Vector2.js';
-import { Viewport } from './Viewport.js';
+import { Box2 } from '../../math/Box2.js';
+import { Keyboard } from '../input/Keyboard.js';
+import { Pointer } from '../input/Pointer.js';
+import { Vector2 } from '../../math/Vector2.js';
 
 class Renderer {
 
@@ -162,9 +162,9 @@ class Renderer {
         });
 
         // Viewport Frustum Culling
-        const viewport = new Viewport(context, camera);
+        camera.setViewport(context.canvas.width, context.canvas.height);
         for (const object of objects) {
-            object.inViewport = viewport.intersectsBox(camera, object.getWorldBoundingBox());
+            object.inViewport = camera.intersectsViewport(object.getWorldBoundingBox());
         }
 
         // Pointer in Camera Coordinates

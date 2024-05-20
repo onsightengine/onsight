@@ -1,7 +1,7 @@
 import {
     APP_EVENTS,
     APP_SIZE,
-} from '../constants.js';
+} from '../../constants.js';
 import { AssetManager } from './AssetManager.js';
 
 const scriptFunctions = APP_EVENTS.toString();

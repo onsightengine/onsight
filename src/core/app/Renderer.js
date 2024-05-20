@@ -1,4 +1,4 @@
-import { Box2 } from '../../math/Box2.js';
+import { EventManager } from './EventManager.js';
 import { Keyboard } from '../input/Keyboard.js';
 import { Pointer } from '../input/Pointer.js';
 import { Vector2 } from '../../math/Vector2.js';
@@ -11,6 +11,7 @@ class Renderer {
         imageSmoothingEnabled = true,
         imageSmoothingQuality = 'medium', // 'low',
         globalCompositeOperation = 'source-over',
+        pointerEvents = true,
         width = 1000,
         height = 1000,
     } = {}) {
@@ -32,6 +33,7 @@ class Renderer {
         this.context.globalCompositeOperation = globalCompositeOperation;
 
         // Pointer / Keyboard Input Handlers
+        this.pointerEvents = pointerEvents;
         this.pointer = new Pointer(this, disableContextMenu);
         this.keyboard = new Keyboard(this);
 
@@ -150,7 +152,6 @@ class Renderer {
         if (camera) this.camera = camera; else camera = this.camera;
         if (!scene || !camera) return;
         const renderer = this;
-        const pointer = this.pointer;
         const context = this.context;
 
         // Gather, Sort Objects
@@ -167,71 +168,10 @@ class Renderer {
             object.inViewport = camera.intersectsViewport(object.getWorldBoundingBox());
         }
 
-        // Pointer in Camera Coordinates
-        const cameraPoint = camera.inverseMatrix.transformPoint(pointer.position);
-
         // Pointer Events
-        let currentCursor = null;
-        for (const object of objects) {
-            // Process?
-            if (object.pointerEvents && object.inViewport) {
-                // Local Pointer Position
-                const localPoint = object.inverseGlobalMatrix.transformPoint(cameraPoint);
-                const isInside = object.isInside(localPoint);
-                // Pointer Inside?
-                if (isInside) {
-                    // Mouse Cursor
-                    if (!currentCursor && object.cursor) setCursor(object);
-                    // Pointer Events
-                    if (this.beingDragged == null) {
-                        if (!object.pointerInside && typeof object.onPointerEnter === 'function') object.onPointerEnter(pointer, camera);
-                        if (typeof object.onPointerOver === 'function') object.onPointerOver(pointer, camera);
-                        if (pointer.buttonDoubleClicked(Pointer.LEFT) && typeof object.onDoubleClick === 'function') object.onDoubleClick(pointer, camera);
-                        if (pointer.buttonPressed(Pointer.LEFT) && typeof object.onButtonPressed === 'function') object.onButtonPressed(pointer, camera);
-                        if (pointer.buttonJustReleased(Pointer.LEFT) && typeof object.onButtonUp === 'function') object.onButtonUp(pointer, camera);
-                        if (pointer.buttonJustPressed(Pointer.LEFT)) {
-                            if (typeof object.onButtonDown === 'function') object.onButtonDown(pointer, camera);
-                            if (object.draggable) {
-                                this.beingDragged = object;
-                                if (typeof object.onPointerDragStart === 'function') object.onPointerDragStart(pointer, camera);
-                            }
-                        }
-                    }
-                    object.pointerInside = true;
-                // Pointer Leave
-                } else if (this.beingDragged !== object && object.pointerInside) {
-                    if (typeof object.onPointerLeave === 'function') object.onPointerLeave(pointer, camera);
-                    object.pointerInside = false;
-                }
-            }
-
-            // Being Dragged?
-            if (this.beingDragged === object) {
-                // Stop Dragging
-                if (pointer.buttonJustReleased(Pointer.LEFT)) {
-                    if (object.pointerEvents && typeof object.onPointerDragEnd === 'function') {
-                        object.onPointerDragEnd(pointer, camera);
-                    }
-                    this.beingDragged = null;
-                // Still Dragging, Update
-                } else {
-                    if (object.pointerEvents && typeof object.onPointerDrag === 'function') {
-                        object.onPointerDrag(pointer, camera);
-                    }
-                    // Mouse Cursor
-                    setCursor(object);
-                }
-            }
+        if (this.pointerEvents) {
+            EventManager.pointerEvents(renderer, objects);
         }
-
-        // Update Cursor
-        function setCursor(object) {
-            if (object.cursor) {
-                if (typeof object.cursor === 'function') currentCursor = object.cursor(camera);
-                else currentCursor = object.cursor;
-            } else { currentCursor = 'default' }
-        }
-        document.body.style.cursor = currentCursor ?? 'default';
 
         // Update Object / Matrix
         scene.traverse(function(child) {
@@ -247,11 +187,7 @@ class Renderer {
         for (let i = objects.length - 1; i >= 0; i--) {
             const object = objects[i];
             if (object.isMask) continue;
-            if (object.inViewport !== true) {
-                // // DEBUG
-                // console.log(`Object culled: ${object.constructor.name}`);
-                continue;
-            }
+            if (object.inViewport !== true) continue;
 
             // Apply Masks
             for (const mask of object.masks) {
@@ -275,35 +211,39 @@ class Renderer {
             }
 
             // Highlight Selected
-            if (object.isSelected) {
-                context.globalAlpha = 1;
-                context.lineWidth = 2;
-                // Origin
-                context.strokeStyle = '#ffffff';
-                camera.matrix.setContextTransform(context);
-                const origin = object.globalMatrix.transformPoint(object.origin);
-                context.beginPath();
-                context.arc(origin.x, origin.y, 3 / camera.scale, 0, 2 * Math.PI);
-                context.setTransform(1, 0, 0, 1, 0, 0);
-                context.stroke();
-                // Bounding Box
-                context.strokeStyle = '#65e5ff';
-                camera.matrix.setContextTransform(context);
-                const box = object.boundingBox;
-                const topLeft = object.globalMatrix.transformPoint(box.min);
-                const topRight = object.globalMatrix.transformPoint(new Vector2(box.max.x, box.min.y));
-                const bottomLeft = object.globalMatrix.transformPoint(new Vector2(box.min.x, box.max.y));
-                const bottomRight = object.globalMatrix.transformPoint(box.max);
-                context.beginPath();
-                context.moveTo(topLeft.x, topLeft.y);
-                context.lineTo(topRight.x, topRight.y);
-                context.lineTo(bottomRight.x, bottomRight.y);
-                context.lineTo(bottomLeft.x, bottomLeft.y);
-                context.closePath();
-                context.setTransform(1, 0, 0, 1, 0, 0);
-                context.stroke();
-            }
+            if (object.isSelected) this.renderOutline(object);
         }
+    }
+
+    renderOutline(object) {
+        const camera = this.camera;
+        const context = this.context;
+        context.globalAlpha = 1;
+        context.lineWidth = 2;
+        // Origin
+        context.strokeStyle = '#ffffff';
+        camera.matrix.setContextTransform(context);
+        const origin = object.globalMatrix.transformPoint(object.origin);
+        context.beginPath();
+        context.arc(origin.x, origin.y, 3 / camera.scale, 0, 2 * Math.PI);
+        context.setTransform(1, 0, 0, 1, 0, 0);
+        context.stroke();
+        // Bounding Box
+        context.strokeStyle = '#65e5ff';
+        camera.matrix.setContextTransform(context);
+        const box = object.boundingBox;
+        const topLeft = object.globalMatrix.transformPoint(box.min);
+        const topRight = object.globalMatrix.transformPoint(new Vector2(box.max.x, box.min.y));
+        const bottomLeft = object.globalMatrix.transformPoint(new Vector2(box.min.x, box.max.y));
+        const bottomRight = object.globalMatrix.transformPoint(box.max);
+        context.beginPath();
+        context.moveTo(topLeft.x, topLeft.y);
+        context.lineTo(topRight.x, topRight.y);
+        context.lineTo(bottomRight.x, bottomRight.y);
+        context.lineTo(bottomLeft.x, bottomLeft.y);
+        context.closePath();
+        context.setTransform(1, 0, 0, 1, 0, 0);
+        context.stroke();
     }
 
 }

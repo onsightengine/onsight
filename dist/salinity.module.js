@@ -2807,6 +2807,62 @@ class Camera2D extends Thing {
     }
 }
 
+class EventManager {
+    static pointerEvents(renderer, objects) {
+        const camera = renderer.camera;
+        const pointer = renderer.pointer;
+        const cameraPoint = camera.inverseMatrix.transformPoint(pointer.position);
+        let currentCursor = null;
+        for (const object of objects) {
+            if (object.pointerEvents && object.inViewport) {
+                const localPoint = object.inverseGlobalMatrix.transformPoint(cameraPoint);
+                const isInside = object.isInside(localPoint);
+                if (isInside) {
+                    if (!currentCursor && object.cursor) setCursor(object);
+                    if (renderer.beingDragged == null) {
+                        if (!object.pointerInside && typeof object.onPointerEnter === 'function') object.onPointerEnter(pointer, camera);
+                        if (typeof object.onPointerOver === 'function') object.onPointerOver(pointer, camera);
+                        if (pointer.buttonDoubleClicked(Pointer.LEFT) && typeof object.onDoubleClick === 'function') object.onDoubleClick(pointer, camera);
+                        if (pointer.buttonPressed(Pointer.LEFT) && typeof object.onButtonPressed === 'function') object.onButtonPressed(pointer, camera);
+                        if (pointer.buttonJustReleased(Pointer.LEFT) && typeof object.onButtonUp === 'function') object.onButtonUp(pointer, camera);
+                        if (pointer.buttonJustPressed(Pointer.LEFT)) {
+                            if (typeof object.onButtonDown === 'function') object.onButtonDown(pointer, camera);
+                            if (object.draggable) {
+                                renderer.beingDragged = object;
+                                if (typeof object.onPointerDragStart === 'function') object.onPointerDragStart(pointer, camera);
+                            }
+                        }
+                    }
+                    object.pointerInside = true;
+                } else if (renderer.beingDragged !== object && object.pointerInside) {
+                    if (typeof object.onPointerLeave === 'function') object.onPointerLeave(pointer, camera);
+                    object.pointerInside = false;
+                }
+            }
+            if (renderer.beingDragged === object) {
+                if (pointer.buttonJustReleased(Pointer.LEFT)) {
+                    if (object.pointerEvents && typeof object.onPointerDragEnd === 'function') {
+                        object.onPointerDragEnd(pointer, camera);
+                    }
+                    renderer.beingDragged = null;
+                } else {
+                    if (object.pointerEvents && typeof object.onPointerDrag === 'function') {
+                        object.onPointerDrag(pointer, camera);
+                    }
+                    setCursor(object);
+                }
+            }
+        }
+        function setCursor(object) {
+            if (object.cursor) {
+                if (typeof object.cursor === 'function') currentCursor = object.cursor(camera);
+                else currentCursor = object.cursor;
+            } else { currentCursor = 'default'; }
+        }
+        document.body.style.cursor = currentCursor ?? 'default';
+    }
+}
+
 class Keyboard {
     constructor(element) {
         if (!element || !element.dom) {
@@ -2867,6 +2923,7 @@ class Renderer {
         imageSmoothingEnabled = true,
         imageSmoothingQuality = 'medium',
         globalCompositeOperation = 'source-over',
+        pointerEvents = true,
         width = 1000,
         height = 1000,
     } = {}) {
@@ -2882,6 +2939,7 @@ class Renderer {
         this.context.imageSmoothingEnabled = imageSmoothingEnabled;
         this.context.imageSmoothingQuality = imageSmoothingQuality;
         this.context.globalCompositeOperation = globalCompositeOperation;
+        this.pointerEvents = pointerEvents;
         this.pointer = new Pointer(this, disableContextMenu);
         this.keyboard = new Keyboard(this);
         this.autoClear = true;
@@ -2965,7 +3023,6 @@ class Renderer {
         if (camera) this.camera = camera; else camera = this.camera;
         if (!scene || !camera) return;
         const renderer = this;
-        const pointer = this.pointer;
         const context = this.context;
         const objects = [];
         scene.traverse(function(child) { if (child.visible) objects.push(child); });
@@ -2977,55 +3034,9 @@ class Renderer {
         for (const object of objects) {
             object.inViewport = camera.intersectsViewport(object.getWorldBoundingBox());
         }
-        const cameraPoint = camera.inverseMatrix.transformPoint(pointer.position);
-        let currentCursor = null;
-        for (const object of objects) {
-            if (object.pointerEvents && object.inViewport) {
-                const localPoint = object.inverseGlobalMatrix.transformPoint(cameraPoint);
-                const isInside = object.isInside(localPoint);
-                if (isInside) {
-                    if (!currentCursor && object.cursor) setCursor(object);
-                    if (this.beingDragged == null) {
-                        if (!object.pointerInside && typeof object.onPointerEnter === 'function') object.onPointerEnter(pointer, camera);
-                        if (typeof object.onPointerOver === 'function') object.onPointerOver(pointer, camera);
-                        if (pointer.buttonDoubleClicked(Pointer.LEFT) && typeof object.onDoubleClick === 'function') object.onDoubleClick(pointer, camera);
-                        if (pointer.buttonPressed(Pointer.LEFT) && typeof object.onButtonPressed === 'function') object.onButtonPressed(pointer, camera);
-                        if (pointer.buttonJustReleased(Pointer.LEFT) && typeof object.onButtonUp === 'function') object.onButtonUp(pointer, camera);
-                        if (pointer.buttonJustPressed(Pointer.LEFT)) {
-                            if (typeof object.onButtonDown === 'function') object.onButtonDown(pointer, camera);
-                            if (object.draggable) {
-                                this.beingDragged = object;
-                                if (typeof object.onPointerDragStart === 'function') object.onPointerDragStart(pointer, camera);
-                            }
-                        }
-                    }
-                    object.pointerInside = true;
-                } else if (this.beingDragged !== object && object.pointerInside) {
-                    if (typeof object.onPointerLeave === 'function') object.onPointerLeave(pointer, camera);
-                    object.pointerInside = false;
-                }
-            }
-            if (this.beingDragged === object) {
-                if (pointer.buttonJustReleased(Pointer.LEFT)) {
-                    if (object.pointerEvents && typeof object.onPointerDragEnd === 'function') {
-                        object.onPointerDragEnd(pointer, camera);
-                    }
-                    this.beingDragged = null;
-                } else {
-                    if (object.pointerEvents && typeof object.onPointerDrag === 'function') {
-                        object.onPointerDrag(pointer, camera);
-                    }
-                    setCursor(object);
-                }
-            }
+        if (this.pointerEvents) {
+            EventManager.pointerEvents(renderer, objects);
         }
-        function setCursor(object) {
-            if (object.cursor) {
-                if (typeof object.cursor === 'function') currentCursor = object.cursor(camera);
-                else currentCursor = object.cursor;
-            } else { currentCursor = 'default'; }
-        }
-        document.body.style.cursor = currentCursor ?? 'default';
         scene.traverse(function(child) {
             child.updateMatrix();
             if (typeof child.onUpdate === 'function') child.onUpdate(renderer);
@@ -3035,9 +3046,7 @@ class Renderer {
         for (let i = objects.length - 1; i >= 0; i--) {
             const object = objects[i];
             if (object.isMask) continue;
-            if (object.inViewport !== true) {
-                continue;
-            }
+            if (object.inViewport !== true) continue;
             for (const mask of object.masks) {
                 camera.matrix.setContextTransform(context);
                 mask.transform(context, camera, this.dom, this);
@@ -3053,33 +3062,36 @@ class Renderer {
                 object.draw(context, camera, this.dom, this);
                 this.drawCallCount++;
             }
-            if (object.isSelected) {
-                context.globalAlpha = 1;
-                context.lineWidth = 2;
-                context.strokeStyle = '#ffffff';
-                camera.matrix.setContextTransform(context);
-                const origin = object.globalMatrix.transformPoint(object.origin);
-                context.beginPath();
-                context.arc(origin.x, origin.y, 3 / camera.scale, 0, 2 * Math.PI);
-                context.setTransform(1, 0, 0, 1, 0, 0);
-                context.stroke();
-                context.strokeStyle = '#65e5ff';
-                camera.matrix.setContextTransform(context);
-                const box = object.boundingBox;
-                const topLeft = object.globalMatrix.transformPoint(box.min);
-                const topRight = object.globalMatrix.transformPoint(new Vector2(box.max.x, box.min.y));
-                const bottomLeft = object.globalMatrix.transformPoint(new Vector2(box.min.x, box.max.y));
-                const bottomRight = object.globalMatrix.transformPoint(box.max);
-                context.beginPath();
-                context.moveTo(topLeft.x, topLeft.y);
-                context.lineTo(topRight.x, topRight.y);
-                context.lineTo(bottomRight.x, bottomRight.y);
-                context.lineTo(bottomLeft.x, bottomLeft.y);
-                context.closePath();
-                context.setTransform(1, 0, 0, 1, 0, 0);
-                context.stroke();
-            }
+            if (object.isSelected) this.renderOutline(object);
         }
+    }
+    renderOutline(object) {
+        const camera = this.camera;
+        const context = this.context;
+        context.globalAlpha = 1;
+        context.lineWidth = 2;
+        context.strokeStyle = '#ffffff';
+        camera.matrix.setContextTransform(context);
+        const origin = object.globalMatrix.transformPoint(object.origin);
+        context.beginPath();
+        context.arc(origin.x, origin.y, 3 / camera.scale, 0, 2 * Math.PI);
+        context.setTransform(1, 0, 0, 1, 0, 0);
+        context.stroke();
+        context.strokeStyle = '#65e5ff';
+        camera.matrix.setContextTransform(context);
+        const box = object.boundingBox;
+        const topLeft = object.globalMatrix.transformPoint(box.min);
+        const topRight = object.globalMatrix.transformPoint(new Vector2(box.max.x, box.min.y));
+        const bottomLeft = object.globalMatrix.transformPoint(new Vector2(box.min.x, box.max.y));
+        const bottomRight = object.globalMatrix.transformPoint(box.max);
+        context.beginPath();
+        context.moveTo(topLeft.x, topLeft.y);
+        context.lineTo(topRight.x, topRight.y);
+        context.lineTo(bottomRight.x, bottomRight.y);
+        context.lineTo(bottomLeft.x, bottomLeft.y);
+        context.closePath();
+        context.setTransform(1, 0, 0, 1, 0, 0);
+        context.stroke();
     }
 }
 
@@ -4706,4 +4718,4 @@ function getVariable(variable) {
     return ((value === '') ? undefined : value);
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, Entity, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Sprite, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, Entity, EventManager, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Sprite, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, WORLD_TYPES, World };

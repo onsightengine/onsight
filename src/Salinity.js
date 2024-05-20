@@ -21,6 +21,7 @@ export { App } from './core/app/App.js';
 export { AssetManager } from './core/app/AssetManager.js';
 export { Camera2D } from './core/app/Camera2D.js';
 export { Clock } from './core/app/Clock.js';
+export { EventManager } from './core/app/EventManager.js';
 export { Renderer } from './core/app/Renderer.js';
 export { SceneManager } from './core/app/SceneManager.js'
 

@@ -34,6 +34,7 @@ class Line extends Object2D {
 
     computeBoundingBox() {
         this.boundingBox.setFromPoints(this.from, this.to);
+        return this.boundingBox;
     }
 
     isInside(point) {
@@ -89,14 +90,17 @@ class Line extends Object2D {
         return distanceSquared <= buffer * buffer;
     }
 
-    style(context, camera, canvas) {
+    style(renderer) {
+        const context = renderer.context;
+        const camera = renderer.camera;
         this._cameraScale = camera.scale;
         context.lineWidth = this.lineWidth;
         context.strokeStyle = this.strokeStyle.get(context);
         context.setLineDash(this.dashPattern);
     }
 
-    draw(context, camera, canvas, renderer) {
+    draw(renderer) {
+        const context = renderer.context;
         context.beginPath();
         context.moveTo(this.from.x, this.from.y);
         context.lineTo(this.to.x, this.to.y);

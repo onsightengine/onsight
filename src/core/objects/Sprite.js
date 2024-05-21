@@ -28,7 +28,8 @@ class Sprite extends Box {
         this.image.src = src;
     }
 
-    draw(context, viewport, canvas) {
+    draw(renderer) {
+        const context = renderer.context;
         if (this.image.src.length > 0 && this._loaded) {
             const width = this.image.naturalWidth;
             const height = this.image.naturalHeight;

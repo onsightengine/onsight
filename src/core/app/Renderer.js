@@ -192,23 +192,18 @@ class Renderer {
             // Apply Masks
             for (const mask of object.masks) {
                 camera.matrix.setContextTransform(context);
-                mask.transform(context, camera, this.dom, this);
-                mask.clip(context, camera, this.dom);
+                mask.transform(renderer);
+                mask.clip(renderer);
             }
 
             // Apply Camera / Object Transforms to Canvas
             camera.matrix.setContextTransform(context);
-            object.transform(context, camera, this.dom, this);
+            object.transform(renderer);
             context.globalAlpha = object.globalOpacity;
 
             // Draw Object
-            if (typeof object.style === 'function') {
-                object.style(context, camera, this.dom, this);
-            }
-            if (typeof object.draw === 'function') {
-                object.draw(context, camera, this.dom, this);
-                this.drawCallCount++;
-            }
+            if (typeof object.style === 'function') { object.style(renderer); }
+            if (typeof object.draw === 'function') { object.draw(renderer); this.drawCallCount++; }
 
             // Highlight Selected
             if (object.isSelected) this.renderOutline(object);

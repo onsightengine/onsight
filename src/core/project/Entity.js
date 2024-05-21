@@ -101,16 +101,16 @@ class Entity extends Thing {
         return component;
     }
 
-    /** Get component by type (string, required) and tag (string, optional - in case of multiple components with type) */
-    getComponent(type, tag /* optional */) {
-        if (tag === undefined) return this.getComponentByProperty('type', type);
-        const components = this.getComponentsWithProperties('type', type, 'tag', tag);
+    /** Get component by type (string, required) and id (string, optional - in case of multiple components with type) */
+    getComponent(type, id /* optional */) {
+        if (id === undefined) return this.getComponentByProperty('type', type);
+        const components = this.getComponentsWithProperties('type', type, 'id', id);
         if (components.length > 0) return components[0];
         return undefined;
     }
 
-    getComponentByTag(tag) {
-        return this.getComponentByProperty('tag', tag);
+    getComponentByID(id) {
+        return this.getComponentByProperty('id', id);
     }
 
     getComponentByType(type) {
@@ -301,7 +301,6 @@ class Entity extends Thing {
         // Components
         for (const component of source.components) {
             const clonedComponent = this.addComponent(component.type, component.toJSON(), false);
-            clonedComponent.tag = component.tag;
         }
 
         // Children
@@ -370,7 +369,6 @@ class Entity extends Thing {
             for (const componentData of data.components) {
                 if (componentData && componentData.base && componentData.base.type) {
                     const component = this.addComponent(componentData.base.type, componentData, false);
-                    component.tag = componentData.base.tag;
                 }
             }
         }

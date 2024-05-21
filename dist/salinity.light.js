@@ -1434,7 +1434,7 @@ class Object2D extends Thing {
         this.boundingBox = new Box2();
         this.masks = [];
         this.pointerEvents = true;
-        this.draggable = false;
+        this.draggable = true;
         this.focusable = true;
         this.selectable = true;
         this.pointerInside = false;
@@ -1628,8 +1628,8 @@ class Object2D extends Thing {
             this.matrixNeedsUpdate = false;
         }
     }
-    transform(context, camera, canvas, renderer) {
-        this.globalMatrix.tranformContext(context);
+    transform(renderer) {
+        this.globalMatrix.tranformContext(renderer.context);
     }
     onPointerDrag(pointer, camera) {
         const pointerStart = pointer.position.clone();
@@ -1928,14 +1928,14 @@ class Entity extends Thing {
         component.attach();
         return component;
     }
-    getComponent(type, tag ) {
-        if (tag === undefined) return this.getComponentByProperty('type', type);
-        const components = this.getComponentsWithProperties('type', type, 'tag', tag);
+    getComponent(type, id ) {
+        if (id === undefined) return this.getComponentByProperty('type', type);
+        const components = this.getComponentsWithProperties('type', type, 'id', id);
         if (components.length > 0) return components[0];
         return undefined;
     }
-    getComponentByTag(tag) {
-        return this.getComponentByProperty('tag', tag);
+    getComponentByID(id) {
+        return this.getComponentByProperty('id', id);
     }
     getComponentByType(type) {
         return this.getComponentByProperty('type', type);
@@ -2078,7 +2078,6 @@ class Entity extends Thing {
         this.visible = source.visible;
         for (const component of source.components) {
             const clonedComponent = this.addComponent(component.type, component.toJSON(), false);
-            clonedComponent.tag = component.tag;
         }
         if (recursive) {
             for (const child of source.getEntities()) {
@@ -2125,7 +2124,6 @@ class Entity extends Thing {
             for (const componentData of data.components) {
                 if (componentData && componentData.base && componentData.base.type) {
                     const component = this.addComponent(componentData.base.type, componentData, false);
-                    component.tag = componentData.base.tag;
                 }
             }
         }
@@ -3049,19 +3047,14 @@ class Renderer {
             if (object.inViewport !== true) continue;
             for (const mask of object.masks) {
                 camera.matrix.setContextTransform(context);
-                mask.transform(context, camera, this.dom, this);
-                mask.clip(context, camera, this.dom);
+                mask.transform(renderer);
+                mask.clip(renderer);
             }
             camera.matrix.setContextTransform(context);
-            object.transform(context, camera, this.dom, this);
+            object.transform(renderer);
             context.globalAlpha = object.globalOpacity;
-            if (typeof object.style === 'function') {
-                object.style(context, camera, this.dom, this);
-            }
-            if (typeof object.draw === 'function') {
-                object.draw(context, camera, this.dom, this);
-                this.drawCallCount++;
-            }
+            if (typeof object.style === 'function') { object.style(renderer); }
+            if (typeof object.draw === 'function') { object.draw(renderer); this.drawCallCount++; }
             if (object.isSelected) this.renderOutline(object);
         }
     }
@@ -3370,24 +3363,46 @@ class Box extends Object2D {
         this.fillStyle = new ColorStyle('#FFFFFF');
         this.strokeStyle = new ColorStyle('#000000');
         this.lineWidth = 1;
+        this.radius = 0;
         this.constantWidth = false;
         this._box = new Box2();
     }
     computeBoundingBox() {
         this.boundingBox.copy(this.box);
         this._box.copy(this.box);
+        return this.boundingBox;
     }
     isInside(point) {
         return this.box.containsPoint(point);
     }
-    draw(context, camera, canvas, renderer) {
-        if (this.constantWidth) {
-            context.beginPath();
-            context.moveTo(this.box.min.x, this.box.min.y);
-            context.lineTo(this.box.max.x, this.box.min.y);
-            context.lineTo(this.box.max.x, this.box.max.y);
-            context.lineTo(this.box.min.x, this.box.max.y);
-            context.closePath();
+    draw(renderer) {
+        const context = renderer.context;
+        if (this.constantWidth || this.radius !== 0) {
+            if (this.radius === 0) {
+                context.beginPath();
+                context.moveTo(this.box.min.x, this.box.min.y);
+                context.lineTo(this.box.max.x, this.box.min.y);
+                context.lineTo(this.box.max.x, this.box.max.y);
+                context.lineTo(this.box.min.x, this.box.max.y);
+                context.closePath();
+            } else {
+                const width = Math.abs(this.box.max.x - this.box.min.x);
+	            const height = Math.abs(this.box.max.y - this.box.min.y);
+                const x = Math.min(this.box.min.x, this.box.max.x);
+                const y = Math.min(this.box.min.y, this.box.max.y);
+                const radius = this.radius;
+                context.beginPath();
+                context.moveTo(x + radius, y);
+                context.lineTo(x + width - radius, y);
+                context.quadraticCurveTo(x + width, y, x + width, y + radius);
+                context.lineTo(x + width, y + height - radius);
+                context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                context.lineTo(x + radius, y + height);
+                context.quadraticCurveTo(x, y + height, x, y + height - radius);
+                context.lineTo(x, y + radius);
+                context.quadraticCurveTo(x, y, x + radius, y);
+                context.closePath();
+            }
             if (this.fillStyle) {
                 context.fillStyle = this.fillStyle.get(context);
                 context.fill();
@@ -3442,11 +3457,13 @@ class Circle extends Object2D {
         const radius = this.radius;
         this.boundingBox.min.set(-radius, -radius);
         this.boundingBox.max.set(+radius, +radius);
+        return this.boundingBox;
     }
     isInside(point) {
         return point.length() <= (this._radius + this.buffer);
     }
-    draw(context, camera, canvas, renderer) {
+    draw(renderer) {
+        const context = renderer.context;
         context.beginPath();
         context.arc(0, 0, this._radius, 0, 2 * Math.PI);
         if (this.fillStyle) {
@@ -3468,6 +3485,61 @@ class Circle extends Object2D {
     }
 }
 
+class DomElement extends Object2D {
+	constructor(element) {
+		super();
+		this.type = 'DomElement';
+		this.parentElement = null;
+		this.dom = element ?? document.createElement('div');
+		this.dom.style.transformStyle = 'preserve-3d';
+		this.dom.style.position = 'absolute';
+		this.dom.style.top = '0px';
+		this.dom.style.bottom = '0px';
+		this.dom.style.transformOrigin = '0px 0px';
+		this.dom.style.overflow = 'auto';
+		this.dom.style.pointerEvents = 'none';
+		this.dom.style.background = 'purple';
+		this.dom.style.zIndex = '1';
+		this.size = new Vector2(100, 100);
+	}
+    computeBoundingBox() {
+		this.boundingBox.min.set(0, 0);
+        this.boundingBox.max.copy(this.size);
+		return this.boundingBox;
+    }
+    isInside(point) {
+        return this.boundingBox.containsPoint(point);
+    }
+	onAdd() {
+		if (this.parentElement) this.parentElement.appendChild(this.dom);
+	}
+	onRemove() {
+		if (this.parentElement) this.parentElement.removeChild(this.dom);
+	}
+	transform(renderer) {
+		if (this.parentElement == null) {
+			this.parentElement = renderer.dom.parentElement;
+			this.parentElement.appendChild(this.dom);
+		}
+		if (this.ignoreViewport) {
+			this.dom.style.transform = this.globalMatrix.cssTransform();
+		} else {
+			const projection = renderer.camera.matrix.clone();
+			projection.multiply(this.globalMatrix);
+			this.dom.style.transform = projection.cssTransform();
+		}
+		this.dom.style.width = `${this.size.x}px`;
+		this.dom.style.height = `${this.size.y}px`;
+		this.dom.style.display = this.visible ? 'absolute' : 'none';
+	}
+    onUpdate(renderer) {
+        if (this.boundingBox.max.x !== parseFloat(this.dom.style.width) ||
+	    	this.boundingBox.max.y !== parseFloat(this.dom.style.height)) {
+            this.computeBoundingBox();
+        }
+    }
+}
+
 class Line extends Object2D {
     constructor() {
         super();
@@ -3485,6 +3557,7 @@ class Line extends Object2D {
     }
     computeBoundingBox() {
         this.boundingBox.setFromPoints(this.from, this.to);
+        return this.boundingBox;
     }
     isInside(point) {
         const globalPoint = this.globalMatrix.transformPoint(point);
@@ -3534,13 +3607,16 @@ class Line extends Object2D {
         const distanceSquared = (x - nearestX) * (x - nearestX) + (y - nearestY) * (y - nearestY);
         return distanceSquared <= buffer * buffer;
     }
-    style(context, camera, canvas) {
+    style(renderer) {
+        const context = renderer.context;
+        const camera = renderer.camera;
         this._cameraScale = camera.scale;
         context.lineWidth = this.lineWidth;
         context.strokeStyle = this.strokeStyle.get(context);
         context.setLineDash(this.dashPattern);
     }
-    draw(context, camera, canvas, renderer) {
+    draw(renderer) {
+        const context = renderer.context;
         context.beginPath();
         context.moveTo(this.from.x, this.from.y);
         context.lineTo(this.to.x, this.to.y);
@@ -3583,7 +3659,8 @@ class Sprite extends Box {
         };
         this.image.src = src;
     }
-    draw(context, viewport, canvas) {
+    draw(renderer) {
+        const context = renderer.context;
         if (this.image.src.length > 0 && this._loaded) {
             const width = this.image.naturalWidth;
             const height = this.image.naturalHeight;
@@ -3615,7 +3692,7 @@ class Text extends Object2D {
         this._text = text;
     }
     computeBoundingBox(context) {
-        if (!context) return false;
+        if (!context) return null;
         context.font = this.font;
         context.textAlign = this.textAlign;
         context.textBaseline = this.textBaseline;
@@ -3623,12 +3700,13 @@ class Text extends Object2D {
         const textWidth = textMetrics.width;
         const textHeight = Math.max(textMetrics.actualBoundingBoxAscent, textMetrics.actualBoundingBoxDescent) * 2.0;
         this.boundingBox.set(new Vector2(textWidth / -2, textHeight / -2), new Vector2(textWidth / 2, textHeight / 2));
-        return true;
+        return this.boundingBox;
     }
     isInside(point) {
         return this.boundingBox.containsPoint(point);
     }
-    draw(context, camera, canvas, renderer) {
+    draw(renderer) {
+        const context = renderer.context;
         context.font = this.font;
         context.textAlign = this.textAlign;
         context.textBaseline = this.textBaseline;
@@ -3658,7 +3736,7 @@ class Mask extends Object2D {
         this.isMask = true;
         this.type = 'Mask';
     }
-    clip(context, camera, canvas) {
+    clip(renderer) {
     }
 }
 
@@ -3672,7 +3750,8 @@ class BoxMask extends Mask {
     isInside(point) {
         return this.box.containsPoint(point);
     }
-    clip(context, camera, canvas) {
+    clip(renderer) {
+        const context = renderer.context;
         context.beginPath();
         const width = this.box.max.x - this.box.min.x;
         if (this.invert) {
@@ -3742,4 +3821,4 @@ if (typeof window !== 'undefined') {
     else window.__SALINITY__ = VERSION;
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, Circle, Clock, ColorStyle, Entity, EventManager, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, Sprite, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, Circle, Clock, ColorStyle, DomElement, Entity, EventManager, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, Sprite, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, WORLD_TYPES, World };

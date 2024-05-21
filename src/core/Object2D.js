@@ -53,7 +53,7 @@ class Object2D extends Thing {
 
         // Pointer Events
         this.pointerEvents = true;                  // better performance if pointer events are not required
-        this.draggable = false;
+        this.draggable = true;
         this.focusable = true;
         this.selectable = true;
 
@@ -307,19 +307,14 @@ class Object2D extends Thing {
      *
      * Overloadable Render Loop Functions (called in this order):
      *
-     *      transform(context, camera, canvas, renderer) {}
-     *      style(context, camera, canvas, renderer) {}
-     *      draw(context, camera, canvas, renderer) {}
-     *
-     * @param {CanvasRenderingContext2D} context Canvas 2d drawing context.
-     * @param {Camera} camera Camera applied to the canvas.
-     * @param {Element} canvas DOM canvas element where the content is being drawn.
-     * @param {Renderer} renderer Renderer object being used to draw the object into the canvas.
+     *      transform(renderer) {}
+     *      style(renderer) {}
+     *      draw(renderer) {}
      */
 
     /** Apply the transform to the rendering context (camera transform is already applied) */
-    transform(context, camera, canvas, renderer) {
-        this.globalMatrix.tranformContext(context);
+    transform(renderer) {
+        this.globalMatrix.tranformContext(renderer.context);
     }
 
     /******************** EVENTS */

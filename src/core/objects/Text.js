@@ -25,7 +25,7 @@ class Text extends Object2D {
     }
 
     computeBoundingBox(context) {
-        if (!context) return false;
+        if (!context) return null;
         context.font = this.font;
         context.textAlign = this.textAlign;
         context.textBaseline = this.textBaseline;
@@ -33,14 +33,15 @@ class Text extends Object2D {
         const textWidth = textMetrics.width;
         const textHeight = Math.max(textMetrics.actualBoundingBoxAscent, textMetrics.actualBoundingBoxDescent) * 2.0;
         this.boundingBox.set(new Vector2(textWidth / -2, textHeight / -2), new Vector2(textWidth / 2, textHeight / 2));
-        return true;
+        return this.boundingBox;
     }
 
     isInside(point) {
         return this.boundingBox.containsPoint(point);
     }
 
-    draw(context, camera, canvas, renderer) {
+    draw(renderer) {
+        const context = renderer.context;
         context.font = this.font;
         context.textAlign = this.textAlign;
         context.textBaseline = this.textBaseline;

@@ -16,7 +16,8 @@ class BoxMask extends Mask {
         return this.box.containsPoint(point);
     }
 
-    clip(context, camera, canvas) {
+    clip(renderer) {
+        const context = renderer.context;
         context.beginPath();
         const width = this.box.max.x - this.box.min.x;
         if (this.invert) {

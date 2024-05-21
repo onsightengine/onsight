@@ -28,13 +28,15 @@ class Circle extends Object2D {
         const radius = this.radius;
         this.boundingBox.min.set(-radius, -radius);
         this.boundingBox.max.set(+radius, +radius);
+        return this.boundingBox;
     }
 
     isInside(point) {
         return point.length() <= (this._radius + this.buffer);
     }
 
-    draw(context, camera, canvas, renderer) {
+    draw(renderer) {
+        const context = renderer.context;
         context.beginPath();
         context.arc(0, 0, this._radius, 0, 2 * Math.PI);
         if (this.fillStyle) {

@@ -13,6 +13,7 @@ class Box extends Object2D {
         this.fillStyle = new ColorStyle('#FFFFFF');
         this.strokeStyle = new ColorStyle('#000000');
         this.lineWidth = 1;
+        this.radius = 0;
         this.constantWidth = false;
 
         // INTERNAL
@@ -22,20 +23,41 @@ class Box extends Object2D {
     computeBoundingBox() {
         this.boundingBox.copy(this.box);
         this._box.copy(this.box);
+        return this.boundingBox;
     }
 
     isInside(point) {
         return this.box.containsPoint(point);
     }
 
-    draw(context, camera, canvas, renderer) {
-        if (this.constantWidth) {
-            context.beginPath();
-            context.moveTo(this.box.min.x, this.box.min.y);
-            context.lineTo(this.box.max.x, this.box.min.y);
-            context.lineTo(this.box.max.x, this.box.max.y);
-            context.lineTo(this.box.min.x, this.box.max.y);
-            context.closePath();
+    draw(renderer) {
+        const context = renderer.context;
+        if (this.constantWidth || this.radius !== 0) {
+            if (this.radius === 0) {
+                context.beginPath();
+                context.moveTo(this.box.min.x, this.box.min.y);
+                context.lineTo(this.box.max.x, this.box.min.y);
+                context.lineTo(this.box.max.x, this.box.max.y);
+                context.lineTo(this.box.min.x, this.box.max.y);
+                context.closePath();
+            } else {
+                const width = Math.abs(this.box.max.x - this.box.min.x);
+	            const height = Math.abs(this.box.max.y - this.box.min.y);
+                const x = Math.min(this.box.min.x, this.box.max.x);
+                const y = Math.min(this.box.min.y, this.box.max.y);
+                const radius = this.radius;
+                context.beginPath();
+                context.moveTo(x + radius, y);
+                context.lineTo(x + width - radius, y);
+                context.quadraticCurveTo(x + width, y, x + width, y + radius);
+                context.lineTo(x + width, y + height - radius);
+                context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                context.lineTo(x + radius, y + height);
+                context.quadraticCurveTo(x, y + height, x, y + height - radius);
+                context.lineTo(x, y + radius);
+                context.quadraticCurveTo(x, y, x + radius, y);
+                context.closePath();
+            }
             if (this.fillStyle) {
                 context.fillStyle = this.fillStyle.get(context);
                 context.fill();

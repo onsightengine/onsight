@@ -32,13 +32,12 @@
         const box = new SALT.Box();
         box.setPosition(-100, 0);
         box.fillStyle.color = '#ff0000';
-        box.draggable = true;
         box.origin.set(25, 25);
         scene.add(box);
 
         const rainbowBox = new SALT.Box();
         rainbowBox.setPosition(-100, 200);
-        rainbowBox.draggable = true;
+        rainbowBox.radius = 25;
         rainbowBox.fillStyle = new SALT.LinearGradientStyle();
         rainbowBox.fillStyle.start.set(-50, -50);
         rainbowBox.fillStyle.end.set(50, 50);
@@ -50,13 +49,11 @@
         const circle = new SALT.Circle();
         circle.setPosition(100, 0);
         circle.radius = 50;
-        circle.draggable = true;
         scene.add(circle);
 
         const rainbowCircle = new SALT.Circle();
         rainbowCircle.setPosition(100, 200);
         rainbowCircle.radius = 50;
-        rainbowCircle.draggable = true;
         rainbowCircle.fillStyle = new SALT.RadialGradientStyle();
         rainbowCircle.fillStyle.addColorStop(0, '#000000');
         rainbowCircle.fillStyle.addColorStop(1, '#ffffff');
@@ -66,13 +63,11 @@
         text.setPosition(0, -100);
         text.fillStyle.color = 'var(--icon)';
         text.text = 'Hello World!';
-        text.draggable = true;
         scene.add(text);
 
         const line = new SALT.Line();
         line.strokeStyle.color = '#ff0000';
         line.lineWidth = 10;
-        line.draggable = true;
         line.mouseBuffer = 0;
         line.from.set(-200, -200);
         line.to.set(0, 0);
@@ -81,7 +76,6 @@
         const line2 = new SALT.Line();
         line2.strokeStyle.color = '#00ff00';
         line2.lineWidth = 10;
-        line2.draggable = true;
         line2.mouseBuffer = 0;
         line2.from.set(-200, -200);
         line2.to.set(0, 0);
@@ -91,7 +85,6 @@
         const line3 = new SALT.Line();
         line3.strokeStyle.color = '#0000ff';
         line3.lineWidth = 10;
-        line3.draggable = true;
         line3.mouseBuffer = 0;
         line3.from.set(-100, -100);
         line3.to.set(100, 100);
@@ -104,11 +97,24 @@
         // for (let i = 0; i < 50; i++) {
         //     const box = new SALT.Box().setPosition((Math.random() * 1000) - 500, (Math.random() * 1000) - 500);
         //     box.fillStyle.color = `rgb(0, ${Math.floor(Math.random()*256)},${Math.floor(Math.random()*256)})`;
-        //     box.draggable = true;
+        //     box.draggable = true; // false;
         //     // box.focusable = false;
         //     // box.selectable = false;
         //     scene.add(box);
         // }
+
+        const dom1 = new SALT.DomElement();
+        const video = document.createElement('video');
+        video.src = '../files/video/scidian.mp4';
+        video.loop = true;
+        video.muted = true;
+        video.setAttribute('playsinline', 'playsinline');
+        video.play();
+        dom1.dom.appendChild(video);
+        video.addEventListener('loadeddata', function() {
+            dom1.size.set(parseFloat(video.videoWidth), parseFloat(video.videoHeight));
+        }, false);
+        scene.add(dom1);
 
         // Renderer
         const renderer = new SALT.Renderer({ width: window.innerWidth, height: window.innerHeight });

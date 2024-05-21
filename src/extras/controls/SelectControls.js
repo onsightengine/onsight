@@ -146,7 +146,10 @@ class SelectControls {
             // Create New Tool?
             if (newSelection.length > 0) {
                 this.resizeTool = new ResizeTool(newSelection);
-                scene.add(this.resizeTool);
+
+                const commonAncestor = findCommonMostAncestor(newSelection);
+                commonAncestor.add(this.resizeTool);
+
                 this.resizeTool.onUpdate(renderer);
                 if (this.rubberBandBox == null) {
                     renderer.beingDragged = this.resizeTool;
@@ -160,3 +163,32 @@ class SelectControls {
 }
 
 export { SelectControls };
+
+/******************** INTERNAL ********************/
+
+function findCommonMostAncestor(objects) {
+    if (objects.length === 0) return null;
+    if (objects.length === 1) return objects[0].parent;
+
+    function getAncestors(object) {
+        const ancestors = [];
+        let currentObject = object;
+        while (currentObject.parent) {
+            ancestors.unshift(currentObject.parent);
+            currentObject = currentObject.parent;
+        }
+        return ancestors;
+    }
+
+    const ancestors = objects.map(getAncestors);
+    const minLength = Math.min(...ancestors.map(arr => arr.length));
+    for (let i = 0; i < minLength; i++) {
+        const ancestor = ancestors[0][i];
+        for (let j = 1; j < ancestors.length; j++) {
+            if (ancestors[j][i] !== ancestor) {
+                return ancestor.parent;
+            }
+        }
+    }
+    return ancestors[0][minLength - 1];
+}

@@ -49,7 +49,7 @@
         const circle = new SALT.Circle();
         circle.setPosition(100, 0);
         circle.radius = 50;
-        scene.add(circle);
+        rainbowBox.add(circle);
 
         const rainbowCircle = new SALT.Circle();
         rainbowCircle.setPosition(100, 200);
@@ -103,19 +103,19 @@
         //     scene.add(box);
         // }
 
-        const dom1 = new SALT.DomElement();
-        const video = document.createElement('video');
-        video.src = '../files/video/scidian.mp4';
-        video.loop = true;
-        video.muted = true;
-        video.setAttribute('playsinline', 'playsinline');
-        video.play();
-        dom1.dom.appendChild(video);
-        video.addEventListener('loadeddata', function() {
-            dom1.size.set(parseFloat(video.videoWidth), parseFloat(video.videoHeight));
-        }, false);
-        dom1.scale.set(0.1, 0.1);
-        scene.add(dom1);
+        // const dom1 = new SALT.DomElement();
+        // const video = document.createElement('video');
+        // video.src = '../files/video/scidian.mp4';
+        // video.loop = true;
+        // video.muted = true;
+        // video.setAttribute('playsinline', 'playsinline');
+        // video.play();
+        // dom1.dom.appendChild(video);
+        // video.addEventListener('loadeddata', function() {
+        //     dom1.size.set(parseFloat(video.videoWidth), parseFloat(video.videoHeight));
+        // }, false);
+        // dom1.scale.set(0.1, 0.1);
+        // scene.add(dom1);
 
         // Renderer
         const renderer = new SALT.Renderer({ width: window.innerWidth, height: window.innerHeight });

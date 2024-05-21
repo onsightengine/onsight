@@ -5,6 +5,8 @@ import { Vector2} from '../../math/Vector2.js';
 
 class Line extends Object2D {
 
+    #cameraScale = 1;
+
     constructor() {
         super();
         this.type = 'Line';
@@ -16,20 +18,15 @@ class Line extends Object2D {
         this.lineWidth = 5;
         this.constantWidth = false;
 
-        /** Mouse inside pixel buffer, extends this many pixels away from line */
+        /** Mouse isInside() pixel buffer, extends this many pixels away from line */
         this.mouseBuffer = 5;
 
         /**
-         * Dash line pattern to be used, if empty draws a solid line.
-         * Dash pattern is defined as the size of dashes as pairs of space with no line and with line.
-         * E.g if the dash pattern is [1, 2] we get 1 point with line, 2 without line repeat infinitelly.
+         * Dash line pattern, if empty draws solid line.
+         * Defined as the size of dashes as pairs of space with no line and with line.
+         * For example, [1, 2] we get 1 point with line, 2 without line repeated.
          */
         this.dashPattern = [];
-
-        // INTERNAL
-        this._cameraScale = 1;
-        this._from = new Vector2();
-        this._to = new Vector2();
     }
 
     computeBoundingBox() {
@@ -51,7 +48,7 @@ class Line extends Object2D {
         // Calculate Line Width
         let scaledLineWidth;
         if (this.constantWidth) {
-            scaledLineWidth = this.lineWidth / this._cameraScale;
+            scaledLineWidth = this.lineWidth / this.#cameraScale;
         } else {
             function getPercentageOfDistance(origin, destination) {
                 const dx = destination.x - origin.x;
@@ -67,7 +64,7 @@ class Line extends Object2D {
             const scalePercent = (Math.abs(scale.x * xyPercent.y) + Math.abs(scale.y * xyPercent.x)) / (xyPercent.x + xyPercent.y);
             scaledLineWidth = MathUtils.sanity(this.lineWidth * scalePercent);
         }
-        const buffer = (scaledLineWidth / 2) + (this.mouseBuffer / this._cameraScale);
+        const buffer = (scaledLineWidth / 2) + (this.mouseBuffer / this.#cameraScale);
         const dx = x2 - x1;
         const dy = y2 - y1;
         const lengthSquared = dx * dx + dy * dy;
@@ -93,7 +90,7 @@ class Line extends Object2D {
     style(renderer) {
         const context = renderer.context;
         const camera = renderer.camera;
-        this._cameraScale = camera.scale;
+        this.#cameraScale = camera.scale;
         context.lineWidth = this.lineWidth;
         context.strokeStyle = this.strokeStyle.get(context);
         context.setLineDash(this.dashPattern);
@@ -111,14 +108,6 @@ class Line extends Object2D {
             context.restore();
         } else {
             context.stroke();
-        }
-    }
-
-    onUpdate(renderer) {
-        if ((this.from.equals(this._from) === false) || (this.to.equals(this._to) === false)) {
-            this.computeBoundingBox();
-            this._from.copy(this.from);
-            this._to.copy(this.to);
         }
     }
 

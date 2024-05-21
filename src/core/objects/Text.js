@@ -5,6 +5,8 @@ import { Vector2 } from '../../math/Vector2.js';
 
 class Text extends Object2D {
 
+    #needsBounds = true;
+
     constructor(text = '', font = '16px Arial') {
         super();
         this.type = 'Text';
@@ -18,21 +20,20 @@ class Text extends Object2D {
 
         this.textAlign = 'center';      // https://developer.mozilla.org/en-US/docs/Web/CSS/text-align
         this.textBaseline = 'middle';   // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/textBaseline
-
-        // INTERNAL
-        this._font = font;
-        this._text = text;
     }
 
     computeBoundingBox(context) {
-        if (!context) return null;
-        context.font = this.font;
-        context.textAlign = this.textAlign;
-        context.textBaseline = this.textBaseline;
-        const textMetrics = context.measureText(this.text);
-        const textWidth = textMetrics.width;
-        const textHeight = Math.max(textMetrics.actualBoundingBoxAscent, textMetrics.actualBoundingBoxDescent) * 2.0;
-        this.boundingBox.set(new Vector2(textWidth / -2, textHeight / -2), new Vector2(textWidth / 2, textHeight / 2));
+        this.#needsBounds = true;
+        if (context) {
+            context.font = this.font;
+            context.textAlign = this.textAlign;
+            context.textBaseline = this.textBaseline;
+            const textMetrics = context.measureText(this.text);
+            const textWidth = textMetrics.width;
+            const textHeight = Math.max(textMetrics.actualBoundingBoxAscent, textMetrics.actualBoundingBoxDescent) * 2.0;
+            this.boundingBox.set(new Vector2(textWidth / -2, textHeight / -2), new Vector2(textWidth / 2, textHeight / 2));
+            this.#needsBounds = false;
+        }
         return this.boundingBox;
     }
 
@@ -41,6 +42,7 @@ class Text extends Object2D {
     }
 
     draw(renderer) {
+        if (this.#needsBounds) this.computeBoundingBox(renderer.context);
         const context = renderer.context;
         context.font = this.font;
         context.textAlign = this.textAlign;
@@ -53,15 +55,6 @@ class Text extends Object2D {
             context.lineWidth = this.lineWidth;;
             context.strokeStyle = this.strokeStyle.get(context);
             context.strokeText(this.text, 0, 0);
-        }
-    }
-
-    onUpdate(renderer) {
-        if (this._font !== this.font || this._text !== this.text) {
-            if (this.computeBoundingBox(renderer.context)) {
-                this._font = this.font;
-                this._text = this.text;
-            }
         }
     }
 

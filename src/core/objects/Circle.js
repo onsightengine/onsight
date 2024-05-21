@@ -3,6 +3,8 @@ import { Object2D } from '../Object2D.js';
 
 class Circle extends Object2D {
 
+    #radius = 25;
+
     constructor(radius = 25) {
         super();
         this.type = 'Circle';
@@ -13,14 +15,11 @@ class Circle extends Object2D {
         this.lineWidth = 1;
         this.constantWidth = false;
         this.buffer = 0;
-
-        // INTERNAL
-        this._radius = 10.0;
     }
 
-    get radius() { return this._radius; }
+    get radius() { return this.#radius; }
     set radius(value) {
-        this._radius = value;
+        this.#radius = value;
         this.computeBoundingBox();
     }
 
@@ -32,13 +31,13 @@ class Circle extends Object2D {
     }
 
     isInside(point) {
-        return point.length() <= (this._radius + this.buffer);
+        return point.length() <= (this.#radius + this.buffer);
     }
 
     draw(renderer) {
         const context = renderer.context;
         context.beginPath();
-        context.arc(0, 0, this._radius, 0, 2 * Math.PI);
+        context.arc(0, 0, this.#radius, 0, 2 * Math.PI);
         if (this.fillStyle) {
             context.fillStyle = this.fillStyle.get(context);
             context.fill();

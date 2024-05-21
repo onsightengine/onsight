@@ -76,6 +76,7 @@ class Object2D extends Thing {
                 this.children.push(object);
                 object.parent = this;
                 object.level = this.level + 1;
+                object.computeBoundingBox();
                 object.traverse(function(child) {
                     if (typeof child.onAdd === 'function') child.onAdd(this);
                     child.matrixNeedsUpdate = true;

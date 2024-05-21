@@ -8,13 +8,9 @@ class Sprite extends Box {
 
 	    this.image = document.createElement('img');
 	    if (src) this.setImage(src);
-
-        // INTERNAL
-        this._loaded = false;
     }
 
     setImage(src) {
-        this._loaded = false;
         const self = this;
         this.image.onload = function() {
             const halfWidth = self.image.naturalWidth / 2;
@@ -23,14 +19,13 @@ class Sprite extends Box {
             self.box.max.set(+halfWidth, +halfHeight);
             // self.origin.copy(self.box.getCenter());
             self.computeBoundingBox();
-            self._loaded = true;
         };
         this.image.src = src;
     }
 
     draw(renderer) {
         const context = renderer.context;
-        if (this.image.src.length > 0 && this._loaded) {
+        if (this.image.src.length > 0 && this.image.complete) {
             const width = this.image.naturalWidth;
             const height = this.image.naturalHeight;
             const sx = 0;

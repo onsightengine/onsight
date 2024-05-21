@@ -97,25 +97,25 @@
         // for (let i = 0; i < 50; i++) {
         //     const box = new SALT.Box().setPosition((Math.random() * 1000) - 500, (Math.random() * 1000) - 500);
         //     box.fillStyle.color = `rgb(0, ${Math.floor(Math.random()*256)},${Math.floor(Math.random()*256)})`;
-        //     box.draggable = true; // false;
+        //     // box.draggable = false;
         //     // box.focusable = false;
         //     // box.selectable = false;
         //     scene.add(box);
         // }
 
-        // const dom1 = new SALT.DomElement();
-        // const video = document.createElement('video');
-        // video.src = '../files/video/scidian.mp4';
-        // video.loop = true;
-        // video.muted = true;
-        // video.setAttribute('playsinline', 'playsinline');
-        // video.play();
-        // dom1.dom.appendChild(video);
-        // video.addEventListener('loadeddata', function() {
-        //     dom1.size.set(parseFloat(video.videoWidth), parseFloat(video.videoHeight));
-        // }, false);
-        // dom1.scale.set(0.1, 0.1);
-        // scene.add(dom1);
+        const dom1 = new SALT.DomElement();
+        const video = document.createElement('video');
+        video.src = '../files/video/scidian.mp4';
+        video.loop = true;
+        video.muted = true;
+        video.setAttribute('playsinline', 'playsinline');
+        video.play();
+        video.addEventListener('loadeddata', () => {
+            dom1.setSize(parseFloat(video.videoWidth), parseFloat(video.videoHeight));
+        }, false);
+        dom1.dom.appendChild(video);
+        dom1.scale.set(0.1, 0.1);
+        scene.add(dom1);
 
         // Renderer
         const renderer = new SALT.Renderer({ width: window.innerWidth, height: window.innerHeight });

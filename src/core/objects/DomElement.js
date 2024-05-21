@@ -1,5 +1,8 @@
+import { Matrix2 } from '../../math/Matrix2.js';
 import { Object2D } from '../Object2D.js';
 import { Vector2 } from '../../math/Vector2.js';
+
+const _projection = new Matrix2();
 
 /**
  * DOM object transformed using CSS3D to be included in the scene.
@@ -14,26 +17,18 @@ class DomElement extends Object2D {
 		super();
 		this.type = 'DomElement';
 
-		/** Parent element that contains this HTML Element, if not set auto set to the parent of the canvas. */
-		this.parentElement = null;
+		this.size = new Vector2(100, 100);							// size in world coordinates
+		this.parentElement = null;									// auto set to the parent of the canvas
 
-		/**
-		 * HTMLElement contained by this object.
-		 * By default it has the pointerEvents style set to none.
-		 * In order to use any DOM event with this object first you have to set the dom.style.pointerEvents to 'auto'.
-		 */
 		this.dom = element ?? document.createElement('div');
+		this.dom.style.pointerEvents = 'none';						// default 'pointerEvents' style set to none!
 		this.dom.style.transformStyle = 'preserve-3d';
 		this.dom.style.position = 'absolute';
 		this.dom.style.top = '0px';
 		this.dom.style.bottom = '0px';
 		this.dom.style.transformOrigin = '0px 0px';
 		this.dom.style.overflow = 'none';
-		this.dom.style.pointerEvents = 'none';
 		this.dom.style.zIndex = '1';
-
-		/** Size in world coordinates. */
-		this.size = new Vector2(100, 100);
 	}
 
     computeBoundingBox() {
@@ -67,9 +62,9 @@ class DomElement extends Object2D {
 		if (this.ignoreViewport) {
 			this.dom.style.transform = this.globalMatrix.cssTransform();
 		} else {
-			const projection = renderer.camera.matrix.clone();
-			projection.multiply(this.globalMatrix);
-			this.dom.style.transform = projection.cssTransform();
+			_projection.copy(renderer.camera.matrix);
+			_projection.multiply(this.globalMatrix);
+			this.dom.style.transform = _projection.cssTransform();
 		}
 
 		// Set Size
@@ -80,12 +75,12 @@ class DomElement extends Object2D {
 		this.dom.style.display = this.visible ? 'absolute' : 'none';
 	}
 
-    onUpdate(renderer) {
-        if (this.boundingBox.max.x !== parseFloat(this.dom.style.width) ||
-	    	this.boundingBox.max.y !== parseFloat(this.dom.style.height)) {
-            this.computeBoundingBox();
-        }
-    }
+	/******************** SETTINGS */
+
+	setSize(width, height) {
+		this.size.set(width, height);
+		this.computeBoundingBox();
+	}
 
 }
 

@@ -46,15 +46,17 @@ class Pointer {
         }
 
         // Updates
-        function updatePosition(x, y, xDiff, yDiff) {
+        function updatePosition(x, y) {
             if (element && element.dom) {
                 const rect = element.dom.getBoundingClientRect();
                 x -= rect.left;
                 y -= rect.top;
             }
-            self._position.set(x, y);
+            const xDiff = x - self._position.x;
+            const yDiff = y - self._position.y;
             self._delta.x += xDiff;
             self._delta.y += yDiff;
+            self._position.set(x, y);
             self._positionUpdated = true;
         }
         function updateKey(button, action) {
@@ -71,19 +73,15 @@ class Pointer {
 
         // Pointer
         element.on('pointermove', (event) => {
-            updatePosition(event.clientX, event.clientY, event.movementX, event.movementY);
+            updatePosition(event.clientX, event.clientY);
         });
         element.on('pointerdown', (event) => {
-            // // OPTION
             element.dom.setPointerCapture(event.pointerId);
-            // // OPTION
             // element.dom.requestPointerLock();
             updateKey(event.button, Key.DOWN);
         });
         element.on('pointerup', (event) => {
-            // // OPTION
             element.dom.releasePointerCapture(event.pointerId);
-            // // OPTION
             // if (document.pointerLockElement === element.dom) document.exitPointerLock();
             updateKey(event.button, Key.UP);
         });
@@ -92,7 +90,6 @@ class Pointer {
 
         // Wheel
         element.on('wheel', (event) => {
-            updatePosition(event.clientX, event.clientY, event.movementX, event.movementY);
             self._wheel = event.deltaY;
             self._wheelUpdated = true;
         });

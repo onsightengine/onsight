@@ -1200,15 +1200,17 @@ class Pointer {
             this._keys[i] = new Key();
             this.keys[i] = new Key();
         }
-        function updatePosition(x, y, xDiff, yDiff) {
+        function updatePosition(x, y) {
             if (element && element.dom) {
                 const rect = element.dom.getBoundingClientRect();
                 x -= rect.left;
                 y -= rect.top;
             }
-            self._position.set(x, y);
+            const xDiff = x - self._position.x;
+            const yDiff = y - self._position.y;
             self._delta.x += xDiff;
             self._delta.y += yDiff;
+            self._position.set(x, y);
             self._positionUpdated = true;
         }
         function updateKey(button, action) {
@@ -1221,7 +1223,7 @@ class Pointer {
             });
         }
         element.on('pointermove', (event) => {
-            updatePosition(event.clientX, event.clientY, event.movementX, event.movementY);
+            updatePosition(event.clientX, event.clientY);
         });
         element.on('pointerdown', (event) => {
             element.dom.setPointerCapture(event.pointerId);
@@ -1234,7 +1236,6 @@ class Pointer {
         element.on('pointerenter', () => { self.pointerInside = true; });
         element.on('pointerleave', () => { self.pointerInside = false; });
         element.on('wheel', (event) => {
-            updatePosition(event.clientX, event.clientY, event.movementX, event.movementY);
             self._wheel = event.deltaY;
             self._wheelUpdated = true;
         });

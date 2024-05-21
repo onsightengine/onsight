@@ -59,6 +59,10 @@
         rainbowCircle.fillStyle.addColorStop(1, '#ffffff');
         scene.add(rainbowCircle);
 
+        rainbowCircle.onUpdate = function() {
+            rainbowCircle.position.x += 1;
+        };
+
         const text = new SALT.Text();
         text.setPosition(0, -100);
         text.fillStyle.color = 'var(--icon)';

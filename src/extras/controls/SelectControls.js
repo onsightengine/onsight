@@ -10,6 +10,7 @@ import { ResizeTool } from '../helpers/ResizeTool.js';
 import { RubberBandBox } from '../helpers/RubberBandBox.js';
 import { Vector2 } from '../../math/Vector2.js';
 
+const _cameraPoint = new Vector2();
 const _center = new Vector2();
 const _size = new Vector2();
 
@@ -37,12 +38,12 @@ class SelectControls {
         let newSelection = [ ...this.selection ];
 
         // Pointer in Camera (World) Coordinates
-        const cameraPoint = camera.inverseMatrix.transformPoint(pointer.position);
+        camera.inverseMatrix.applyToVector(_cameraPoint.copy(pointer.position));
 
         // Button Press
         if (pointer.buttonJustPressed(Pointer.LEFT)) {
-            this._mouseStart.copy(cameraPoint);
-            const underMouse = scene.getWorldPointIntersections(cameraPoint);
+            this._mouseStart.copy(_cameraPoint);
+            const underMouse = scene.getWorldPointIntersections(_cameraPoint);
 
             // Holding Ctrl/Meta/Shift (Toggle Selection)
             if (keyboard.ctrlPressed() || keyboard.metaPressed() || keyboard.shiftPressed()) {
@@ -79,7 +80,7 @@ class SelectControls {
         }
 
         // Mouse Distance
-        this._mouseNow.copy(cameraPoint);
+        this._mouseNow.copy(_cameraPoint);
 
         // Rubber Band Box
         if (pointer.buttonPressed(Pointer.LEFT)) {
@@ -117,7 +118,7 @@ class SelectControls {
                 this.rubberBandBox = null;
             // Select Object
             } else if (shortClick && mouseTravel <= MOUSE_SLOP) {
-                const underMouse = scene.getWorldPointIntersections(cameraPoint);
+                const underMouse = scene.getWorldPointIntersections(_cameraPoint);
                 const withoutResizeTool = ArrayUtils.filterThings(underMouse, { isHelper: undefined });
                 // Clear Previous Selection
                 if (withoutResizeTool.length === 0) {

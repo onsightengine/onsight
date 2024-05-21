@@ -9,25 +9,36 @@ import { Vector2 } from './Vector2.js';
  */
 class Matrix2 {
 
-    /* Values by row, needs to have exactly 6 values */
-    constructor(values) {
-        if (Array.isArray(values)) this.m = [ ...values ];
-        else this.identity();
+    constructor(...values) {
+        this.m = [ 1, 0, 0, 1, 0, 0 ];
+        if (values && values.length > 0) {
+            if (Array.isArray(values[0])) this.set(...values[0])
+            else this.set(...values);
+        }
+    }
+
+    set(m0, m1, m2, m3, m4, m5) {
+        this.m[0] = m0;
+        this.m[1] = m1;
+        this.m[2] = m2;
+        this.m[3] = m3;
+        this.m[4] = m4;
+        this.m[5] = m5;
+        return this;
     }
 
     copy(mat) {
-        this.m = [ ...mat.m ];
+        if (mat && mat instanceof Matrix2) this.set(...mat.m);
         return this;
     }
 
     clone() {
-        return new Matrix2([ ...this.m ]);
+        return new Matrix2(...this.m);
     }
 
     /** Reset this matrix to identity */
     identity() {
-        this.m = [ 1, 0, 0, 1, 0, 0 ];
-        return this;
+        return this.set(1, 0, 0, 1, 0, 0);
     }
 
     /** Multiply another matrix by this one and store the result */
@@ -38,8 +49,7 @@ class Matrix2 {
         const m3 = this.m[1] * mat.m[2] + this.m[3] * mat.m[3];
         const m4 = this.m[0] * mat.m[4] + this.m[2] * mat.m[5] + this.m[4];
         const m5 = this.m[1] * mat.m[4] + this.m[3] * mat.m[5] + this.m[5];
-        this.m = [ m0, m1, m2, m3, m4, m5 ];
-        return this;
+        return this.set(m0, m1, m2, m3, m4, m5);
     }
 
     /** Premultiply another matrix by this one and store the result */
@@ -50,8 +60,7 @@ class Matrix2 {
         const m3 = mat.m[1] * this.m[2] + mat.m[3] * this.m[3];
         const m4 = mat.m[0] * this.m[4] + mat.m[2] * this.m[5] + mat.m[4];
         const m5 = mat.m[1] * this.m[4] + mat.m[3] * this.m[5] + mat.m[5];
-        this.m = [ m0, m1, m2, m3, m4, m5 ];
-        return this;
+        return this.set(m0, m1, m2, m3, m4, m5);
     }
 
     /**
@@ -60,26 +69,26 @@ class Matrix2 {
      * @param {number} py Position Y
      * @param {number} sx Scale X
      * @param {number} sy Scale Y
-     * @param {number} ox Origin X (applied before scale and rotation)
-     * @param {number} oy Origin Y (applied before scale and rotation)
-     * @param {number} rot Rotation angle (radians).
+     * @param {number} ox Origin X (applied before scale and after rotation)
+     * @param {number} oy Origin Y (applied before scale and after rotation)
+     * @param {number} rot Rotation angle (in radians)
      */
     compose(px, py, sx, sy, ox, oy, rot) {
         // Identity
-        this.m = [ 1, 0, 0, 1, 0, 0 ];
+        this.identity();
 
         // Translation (Position)
-        this.multiply(new Matrix2([ 1, 0, 0, 1, px, py ]));
+        this.multiply(_translate.set(1, 0, 0, 1, px, py));
 
         // Rotation
         if (rot !== 0) {
             const c = Math.cos(rot);
             const s = Math.sin(rot);
-            this.multiply(new Matrix2([ c, s, -s, c, 0, 0 ]));
+            this.multiply(_rotate.set(c, s, -s, c, 0, 0));
         }
 
         // Origin
-        this.multiply(new Matrix2([ 1, 0, 0, 1, -ox, -oy ]));
+        this.multiply(_origin.set(1, 0, 0, 1, -ox, -oy));
 
         // Scale
         if (sx !== 1 || sy !== 1) this.scale(sx, sy);
@@ -101,7 +110,7 @@ class Matrix2 {
         return this;
     }
 
-    /** Apply translation to this matrix, adds position to transformation already stored in the matrix */
+    /** Apply translation to this matrix (adds position to transformation already in the matrix) */
     translate(x, y) {
         this.m[4] += this.m[0] * x + this.m[2] * y;
         this.m[5] += this.m[1] * x + this.m[3] * y;
@@ -141,7 +150,7 @@ class Matrix2 {
 
     /** Apply skew to this matrix */
     skew(radianX, radianY) {
-        return this.multiply(new Matrix2([ 1, Math.tan(radianY), Math.tan(radianX), 1, 0, 0 ]));
+        return this.multiply(_skew.set(1, Math.tan(radianY), Math.tan(radianX), 1, 0, 0));
     }
 
     /** Extract the scale from the transformation matrix */
@@ -191,11 +200,25 @@ class Matrix2 {
     }
 
     /** Get the inverse matrix */
-    getInverse() {
+    getInverse(mat = new Matrix2()) {
         const d = this.determinant();
         if (d === 0) console.error(`Matrix2.getInverse(): Matrix is non-invertible`);
         const invD = 1 / d;
-        return new Matrix2([ this.m[3] * invD, -this.m[1] * invD, -this.m[2] * invD, this.m[0] * invD, invD * (this.m[2] * this.m[5] - this.m[3] * this.m[4]), invD * (this.m[1] * this.m[4] - this.m[0] * this.m[5]) ]);
+        const m0 =  this.m[3] * invD;
+        const m1 = -this.m[1] * invD;
+        const m2 = -this.m[2] * invD;
+        const m3 =  this.m[0] * invD;
+        const m4 = invD * (this.m[2] * this.m[5] - this.m[3] * this.m[4]);
+        const m5 = invD * (this.m[1] * this.m[4] - this.m[0] * this.m[5]);
+        return mat.set(m0, m1, m2, m3, m4, m5);
+    }
+
+    /** Transform target point using this matrix */
+    applyToVector(target) {
+        if (!target) console.warn(`Matrix2.applyToVector(): Missing vector target`);
+        const x = target.x * this.m[0] + target.y * this.m[2] + this.m[4];
+        const y = target.x * this.m[1] + target.y * this.m[3] + this.m[5];
+        return target.set(x, y);
     }
 
     /** Transform a point using this matrix, returns new transformed point */
@@ -231,9 +254,25 @@ class Matrix2 {
 
     /** CSS transform string that can be applied to the transform style of any DOM element */
     cssTransform() {
-        return 'matrix(' + this.m[0] + ',' + this.m[1] + ',' + this.m[2] + ',' + this.m[3] + ',' + this.m[4] + ',' + this.m[5] + ')';
+        return `matrix(${this.m[0]}, ${this.m[1]}, ${this.m[2]}, ${this.m[3]}, ${this.m[4]}, ${this.m[5]}`;
+    }
+
+    toArray() {
+        return [ ...this.m ];
+    }
+
+    fromArray(array, offset = 0) {
+        this.set(array[offset + 0], array[offset + 1], array[offset + 2], array[offset + 3], array[offset + 4], array[offset + 5]);
+        return this;
     }
 
 }
 
 export { Matrix2 };
+
+/******************** INTERNAL ********************/
+
+const _translate = new Matrix2();
+const _rotate = new Matrix2();
+const _skew = new Matrix2();
+const _origin = new Matrix2();

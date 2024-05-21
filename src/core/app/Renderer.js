@@ -3,6 +3,12 @@ import { Keyboard } from '../input/Keyboard.js';
 import { Pointer } from '../input/Pointer.js';
 import { Vector2 } from '../../math/Vector2.js';
 
+const _origin = new Vector2();
+const _topLeft = new Vector2();
+const _topRight = new Vector2();
+const _botLeft = new Vector2();
+const _botRight = new Vector2();
+
 class Renderer {
 
     constructor({
@@ -218,24 +224,24 @@ class Renderer {
         // Origin
         context.strokeStyle = '#ffffff';
         camera.matrix.setContextTransform(context);
-        const origin = object.globalMatrix.transformPoint(object.origin);
+        object.globalMatrix.applyToVector(_origin.copy(object.origin));
         context.beginPath();
-        context.arc(origin.x, origin.y, 3 / camera.scale, 0, 2 * Math.PI);
+        context.arc(_origin.x, _origin.y, 3 / camera.scale, 0, 2 * Math.PI);
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.stroke();
         // Bounding Box
         context.strokeStyle = '#65e5ff';
         camera.matrix.setContextTransform(context);
         const box = object.boundingBox;
-        const topLeft = object.globalMatrix.transformPoint(box.min);
-        const topRight = object.globalMatrix.transformPoint(new Vector2(box.max.x, box.min.y));
-        const bottomLeft = object.globalMatrix.transformPoint(new Vector2(box.min.x, box.max.y));
-        const bottomRight = object.globalMatrix.transformPoint(box.max);
+        object.globalMatrix.applyToVector(_topLeft.copy(box.min));
+        object.globalMatrix.applyToVector(_topRight.copy(box.max.x, box.min.y));
+        object.globalMatrix.applyToVector(_botLeft.copy(box.min.x, box.max.y));
+        object.globalMatrix.applyToVector(_botRight.copy(box.max));
         context.beginPath();
-        context.moveTo(topLeft.x, topLeft.y);
-        context.lineTo(topRight.x, topRight.y);
-        context.lineTo(bottomRight.x, bottomRight.y);
-        context.lineTo(bottomLeft.x, bottomLeft.y);
+        context.moveTo(_topLeft.x, _topLeft.y);
+        context.lineTo(_topRight.x, _topRight.y);
+        context.lineTo(_botRight.x, _botRight.y);
+        context.lineTo(_botLeft.x, _botLeft.y);
         context.closePath();
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.stroke();

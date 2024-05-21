@@ -1,5 +1,8 @@
 import { Vector2 } from './Vector2.js';
 
+const _clamp = new Vector2();
+const _half = new Vector2();
+
 class Box2 {
 
     constructor(min, max) {
@@ -18,19 +21,17 @@ class Box2 {
 
     /** Set the box from a list of Vector2 points */
     setFromPoints(...points) {
-        if (points.length > 0 && Array.isArray(points[0])) points = points[0];
         this.clear();
-        for (const point of points) {
-            this.expandByPoint(point);
-        }
+        if (points.length > 0 && Array.isArray(points[0])) points = points[0];
+        for (const point of points) this.expandByPoint(point);
         return this;
     }
 
     /** Set the box minimum and maximum from center point and size */
     setFromCenterAndSize(center, size) {
-        const halfSize = new Vector2().copy(size).multiplyScalar(0.5);
-        this.min.copy(center).sub(halfSize);
-        this.max.copy(center).add(halfSize);
+        _half.copy(size).multiplyScalar(0.5);
+        this.min.copy(center).sub(_half);
+        this.max.copy(center).add(_half);
         return this;
     }
 
@@ -55,15 +56,13 @@ class Box2 {
     }
 
     /** Calculate the center point of the box */
-    getCenter(target) {
-        target = target ?? new Vector2();
+    getCenter(target = new Vector2()) {
         this.isEmpty() ? target.set(0, 0) : target.addVectors(this.min, this.max).multiplyScalar(0.5);
         return target;
     }
 
     /** Get the size of the box from its min and max points */
-    getSize(target) {
-        target = target ?? new Vector2();
+    getSize(target = new Vector2()) {
         this.isEmpty() ? target.set(0, 0) : target.subVectors(this.max, this.min).abs();
         return target;
     }
@@ -124,9 +123,8 @@ class Box2 {
 
     /** Calculate the distance to a point */
     distanceToPoint(point) {
-        let v = new Vector2();
-        let clampedPoint = v.copy(point).clamp(this.min, this.max);
-        return clampedPoint.sub(point).length();
+        _clamp.copy(point).clamp(this.min, this.max).sub(point);
+        return _clamp.length();
     }
 
     /** Make an intersection between this box and another box, store the result in this object */
@@ -159,9 +157,9 @@ class Box2 {
         return [ this.min.x, this.min.y, this.max.x, this.max.y ];
     }
 
-    fromArray(array) {
-        this.min.set(array[0], array[1]);
-        this.max.set(array[2], array[3]);
+    fromArray(array, offset = 0) {
+        this.min.set(array[offset + 0], array[offset + 1]);
+        this.max.set(array[offset + 2], array[offset + 3]);
         return this;
     }
 

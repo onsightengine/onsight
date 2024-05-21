@@ -15,6 +15,11 @@ import { Pointer } from './input/Pointer.js';
 import { Thing } from './Thing.js';
 import { Vector2 } from '../math/Vector2.js';
 
+const _topLeft = new Vector2();
+const _topRight = new Vector2();
+const _botLeft = new Vector2();
+const _botRight = new Vector2();
+
 class Object2D extends Thing {
 
     constructor(name = 'Object') {
@@ -215,11 +220,11 @@ class Object2D extends Thing {
         const box = this.boundingBox;
         if (Number.isFinite(box.min.x) === false || Number.isFinite(box.min.y) === false) return box;
         if (Number.isFinite(box.max.x) === false || Number.isFinite(box.max.y) === false) return box;
-        const topLeftWorld = this.localToWorld(box.min);
-        const topRightWorld = this.localToWorld(new Vector2(box.max.x, box.min.y));
-        const bottomLeftWorld = this.localToWorld(new Vector2(box.min.x, box.max.y));
-        const bottomRightWorld = this.localToWorld(box.max);
-        return new Box2().setFromPoints(topLeftWorld, topRightWorld, bottomLeftWorld, bottomRightWorld);
+        this.globalMatrix.applyToVector(_topLeft.copy(box.min));
+        this.globalMatrix.applyToVector(_topRight.copy(box.max.x, box.min.y));
+        this.globalMatrix.applyToVector(_botLeft.copy(box.min.x, box.max.y));
+        this.globalMatrix.applyToVector(_botRight.copy(box.max));
+        return new Box2().setFromPoints(_topLeft, _topRight, _botLeft, _botRight);
     }
 
     localToWorld(vector) {
@@ -297,7 +302,7 @@ class Object2D extends Thing {
             this.matrix.compose(this.position.x, this.position.y, this.scale.x, this.scale.y, this.origin.x, this.origin.y, this.rotation);
             this.globalMatrix.copy(this.matrix);
             if (this.parent) this.globalMatrix.premultiply(this.parent.globalMatrix);
-            this.inverseGlobalMatrix = this.globalMatrix.getInverse();
+            this.globalMatrix.getInverse(this.inverseGlobalMatrix);
             this.matrixNeedsUpdate = false;
         }
     }

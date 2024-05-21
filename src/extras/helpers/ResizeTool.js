@@ -395,29 +395,21 @@ class ResizeTool extends Box {
             }
 
             // Corner Resizers
-            const topLeftWorld = new Vector2(-halfSize.x, -halfSize.y);
-            const topRightWorld = new Vector2(+halfSize.x, -halfSize.y);
-            const bottomLeftWorld = new Vector2(-halfSize.x, +halfSize.y);
-            const bottomRightWorld = new Vector2(+halfSize.x, +halfSize.y);
-            function updateCornerResizer(resizer, point) {
+            function updateCornerResizer(resizer, x, y) {
                 if (!resizer) return;
-                resizer.position.copy(point);
+                resizer.position.set(x, y);
                 resizer.scale.set((1 / self.scale.x) / camera.scale, (1 / self.scale.y) / camera.scale);
                 resizer.updateMatrix();
             }
-            updateCornerResizer(topLeft, topLeftWorld);
-            updateCornerResizer(topRight, topRightWorld);
-            updateCornerResizer(bottomLeft, bottomLeftWorld);
-            updateCornerResizer(bottomRight, bottomRightWorld);
+            updateCornerResizer(topLeft, -halfSize.x, -halfSize.y);
+            updateCornerResizer(topRight, +halfSize.x, -halfSize.y);
+            updateCornerResizer(bottomLeft, -halfSize.x, +halfSize.y);
+            updateCornerResizer(bottomRight, +halfSize.x, +halfSize.y);
 
             // Side Resizers
-            const leftMiddleWorld = new Vector2(-halfSize.x, 0);
-            const rightMiddleWorld = new Vector2(+halfSize.x, 0);
-            const topMiddleWorld = new Vector2(0, -halfSize.y);
-            const bottomMiddleWorld = new Vector2(0, +halfSize.y);
-            function updateSideResizer(resizer, point, type = 'v') {
+            function updateSideResizer(resizer, x, y, type = 'v') {
                 if (!resizer) return;
-                resizer.position.copy(point);
+                resizer.position.set(x, y);
                 if (resizer.type === 'Box') {
                     if (type === 'v') {
                         resizer.scale.set((1 / self.scale.x) / camera.scale, 1);
@@ -438,10 +430,10 @@ class ResizeTool extends Box {
                 }
                 resizer.updateMatrix();
             }
-            updateSideResizer(leftResizer, leftMiddleWorld, 'v');
-            updateSideResizer(rightResizer, rightMiddleWorld, 'v');
-            updateSideResizer(topResizer, topMiddleWorld, 'h');
-            updateSideResizer(bottomResizer, bottomMiddleWorld, 'h');
+            updateSideResizer(leftResizer, -halfSize.x, 0, 'v');
+            updateSideResizer(rightResizer, +halfSize.x, 0, 'v');
+            updateSideResizer(topResizer, 0, -halfSize.y, 'h');
+            updateSideResizer(bottomResizer, 0, +halfSize.y, 'h');
         };
     }
 

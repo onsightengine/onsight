@@ -1,4 +1,8 @@
 import { Pointer } from '../input/Pointer.js';
+import { Vector2 } from '../../math/Vector2.js';
+
+const _cameraPoint = new Vector2();
+const _localPoint = new Vector2();
 
 class EventManager {
 
@@ -7,7 +11,7 @@ class EventManager {
         const pointer = renderer.pointer;
 
         // Pointer in Camera Coordinates
-        const cameraPoint = camera.inverseMatrix.transformPoint(pointer.position);
+        camera.inverseMatrix.applyToVector(_cameraPoint.copy(pointer.position));
 
         // Pointer Events
         let currentCursor = null;
@@ -15,8 +19,8 @@ class EventManager {
             // Process?
             if (object.pointerEvents && object.inViewport) {
                 // Local Pointer Position
-                const localPoint = object.inverseGlobalMatrix.transformPoint(cameraPoint);
-                const isInside = object.isInside(localPoint);
+                object.inverseGlobalMatrix.applyToVector(_localPoint.copy(_cameraPoint));
+                const isInside = object.isInside(_localPoint);
                 // Pointer Inside?
                 if (isInside) {
                     // Mouse Cursor

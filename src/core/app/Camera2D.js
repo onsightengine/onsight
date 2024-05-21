@@ -3,6 +3,15 @@ import { Matrix2 } from '../../math/Matrix2.js';
 import { Thing } from '../Thing.js';
 import { Vector2 } from '../../math/Vector2.js';
 
+const _cameraView = new Box2();
+const _topLeft = new Vector2();
+const _topRight = new Vector2();
+const _botLeft = new Vector2();
+const _botRight = new Vector2();
+const _translate = new Matrix2();
+const _rotate = new Matrix2();
+const _scale = new Matrix2();
+
 class Camera2D extends Thing {
 
     constructor() {
@@ -24,12 +33,12 @@ class Camera2D extends Thing {
     }
 
     intersectsViewport(box) {
-        const topLeft = this.matrix.transformPoint(box.min);
-        const topRight = this.matrix.transformPoint(new Vector2(box.max.x, box.min.y));
-        const bottomLeft = this.matrix.transformPoint(new Vector2(box.min.x, box.max.y));
-        const bottomRight = this.matrix.transformPoint(box.max);
-        const cameraViewBox = new Box2().setFromPoints(topLeft, topRight, bottomLeft, bottomRight);
-        return this.viewport.intersectsBox(cameraViewBox);
+        this.matrix.applyToVector(_topLeft.copy(box.min));
+        this.matrix.applyToVector(_topRight.copy(box.max.x, box.min.y));
+        this.matrix.applyToVector(_botLeft.copy(box.min.x, box.max.y));
+        this.matrix.applyToVector(_botRight.copy(box.max));
+        _cameraView.setFromPoints(_topLeft, _topRight, _botLeft, _botRight);
+        return this.viewport.intersectsBox(_cameraView);
     }
 
     updateMatrix(offsetX, offsetY) {
@@ -37,19 +46,20 @@ class Camera2D extends Thing {
         this.matrix.identity();
 
         // Rotate
-        this.matrix.multiply(new Matrix2([ 1, 0, 0, 1, +offsetX, +offsetY ]));
+        this.matrix.multiply(_translate.set(1, 0, 0, 1, +offsetX, +offsetY));
         const c = Math.cos(this.rotation);
         const s = Math.sin(this.rotation);
-        this.matrix.multiply(new Matrix2([ c, s, -s, c, 0, 0 ]));
-        this.matrix.multiply(new Matrix2([ 1, 0, 0, 1, -offsetX, -offsetY ]));
+        this.matrix.multiply(_rotate.set(c, s, -s, c, 0, 0));
+        this.matrix.multiply(_translate.set(1, 0, 0, 1, -offsetX, -offsetY));
 
         // Translate
-        this.matrix.multiply(new Matrix2([ 1, 0, 0, 1, this.position.x, this.position.y ]));
+        this.matrix.multiply(_translate.set(1, 0, 0, 1, this.position.x, this.position.y));
 
         // Scale
-        this.matrix.multiply(new Matrix2([ this.scale, 0, 0, this.scale, 0, 0 ]));
+        this.matrix.multiply(_scale.set(this.scale, 0, 0, this.scale, 0, 0));
 
-        this.inverseMatrix = this.matrix.getInverse();
+        // Inverse
+        this.matrix.getInverse(this.inverseMatrix);
         this.matrixNeedsUpdate = false;
     }
 

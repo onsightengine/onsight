@@ -3,6 +3,11 @@ import { MathUtils } from '../../utils/MathUtils.js';
 import { Object2D} from '../Object2D.js';
 import { Vector2} from '../../math/Vector2.js';
 
+const _globalPoint = new Vector2();
+const _globalFrom = new Vector2();
+const _globalTo = new Vector2();
+const _scale = new Vector2();
+
 class Line extends Object2D {
 
     #cameraScale = 1;
@@ -36,15 +41,15 @@ class Line extends Object2D {
 
     isInside(point) {
         // Transform Points
-        const globalPoint = this.globalMatrix.transformPoint(point);
-        const globalFrom = this.globalMatrix.transformPoint(this.from);
-        const globalTo = this.globalMatrix.transformPoint(this.to);
-        const x = globalPoint.x;
-        const y = globalPoint.y;
-        const x1 = globalFrom.x;
-        const y1 = globalFrom.y;
-        const x2 = globalTo.x;
-        const y2 = globalTo.y;
+        this.globalMatrix.applyToVector(_globalPoint.copy(point));
+        this.globalMatrix.applyToVector(_globalFrom.copy(this.from));
+        this.globalMatrix.applyToVector(_globalTo.copy(this.to));
+        const x = _globalPoint.x;
+        const y = _globalPoint.y;
+        const x1 = _globalFrom.x;
+        const y1 = _globalFrom.y;
+        const x2 = _globalTo.x;
+        const y2 = _globalTo.y;
         // Calculate Line Width
         let scaledLineWidth;
         if (this.constantWidth) {
@@ -60,8 +65,8 @@ class Line extends Object2D {
                 return { x: percentX, y: percentY };
             }
             const xyPercent = getPercentageOfDistance(this.from, this.to);
-            const scale = this.globalMatrix.getScale();
-            const scalePercent = (Math.abs(scale.x * xyPercent.y) + Math.abs(scale.y * xyPercent.x)) / (xyPercent.x + xyPercent.y);
+            this.globalMatrix.getScale(_scale);
+            const scalePercent = (Math.abs(_scale.x * xyPercent.y) + Math.abs(_scale.y * xyPercent.x)) / (xyPercent.x + xyPercent.y);
             scaledLineWidth = MathUtils.sanity(this.lineWidth * scalePercent);
         }
         const buffer = (scaledLineWidth / 2) + (this.mouseBuffer / this.#cameraScale);

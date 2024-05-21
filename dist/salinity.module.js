@@ -352,6 +352,8 @@ function fuzzyFloat$1(a, b, tolerance = 0.001) {
     return ((a < (b + tolerance)) && (a > (b - tolerance)));
 }
 
+const _clamp = new Vector2();
+const _half = new Vector2();
 class Box2 {
     constructor(min, max) {
         this.min = new Vector2(+Infinity, +Infinity);
@@ -365,17 +367,15 @@ class Box2 {
         return this;
     }
     setFromPoints(...points) {
-        if (points.length > 0 && Array.isArray(points[0])) points = points[0];
         this.clear();
-        for (const point of points) {
-            this.expandByPoint(point);
-        }
+        if (points.length > 0 && Array.isArray(points[0])) points = points[0];
+        for (const point of points) this.expandByPoint(point);
         return this;
     }
     setFromCenterAndSize(center, size) {
-        const halfSize = new Vector2().copy(size).multiplyScalar(0.5);
-        this.min.copy(center).sub(halfSize);
-        this.max.copy(center).add(halfSize);
+        _half.copy(size).multiplyScalar(0.5);
+        this.min.copy(center).sub(_half);
+        this.max.copy(center).add(_half);
         return this;
     }
     clone() {
@@ -393,13 +393,11 @@ class Box2 {
     isEmpty() {
         return (this.max.x < this.min.x) || (this.max.y < this.min.y);
     }
-    getCenter(target) {
-        target = target ?? new Vector2();
+    getCenter(target = new Vector2()) {
         this.isEmpty() ? target.set(0, 0) : target.addVectors(this.min, this.max).multiplyScalar(0.5);
         return target;
     }
-    getSize(target) {
-        target = target ?? new Vector2();
+    getSize(target = new Vector2()) {
         this.isEmpty() ? target.set(0, 0) : target.subVectors(this.max, this.min).abs();
         return target;
     }
@@ -445,9 +443,8 @@ class Box2 {
         return !(box.max.x < this.min.x || box.min.x > this.max.x || box.max.y < this.min.y || box.min.y > this.max.y);
     }
     distanceToPoint(point) {
-        let v = new Vector2();
-        let clampedPoint = v.copy(point).clamp(this.min, this.max);
-        return clampedPoint.sub(point).length();
+        _clamp.copy(point).clamp(this.min, this.max).sub(point);
+        return _clamp.length();
     }
     intersect(box) {
         this.min.max(box.min);
@@ -470,9 +467,9 @@ class Box2 {
     toArray() {
         return [ this.min.x, this.min.y, this.max.x, this.max.y ];
     }
-    fromArray(array) {
-        this.min.set(array[0], array[1]);
-        this.max.set(array[2], array[3]);
+    fromArray(array, offset = 0) {
+        this.min.set(array[offset + 0], array[offset + 1]);
+        this.max.set(array[offset + 2], array[offset + 3]);
         return this;
     }
 }
@@ -693,9 +690,9 @@ class Vector3 {
         return this.divideScalar(this.length() || 1);
     }
     angle(vec) {
-        temp1.copy(this).normalize();
-        temp2.copy(vec).normalize();
-        const cosine = temp1.dot(temp2);
+        _temp1.copy(this).normalize();
+        _temp2.copy(vec).normalize();
+        const cosine = _temp1.dot(_temp2);
         if (cosine > 1.0) return 0;
         if (cosine < -1.0) return Math.PI;
         return Math.acos(cosine);
@@ -783,10 +780,11 @@ class Vector3 {
         return this.normalize();
     }
     calculateNormal(target = new Vector3(), a, b, c) {
-        temp1.subVectors(a, b);
+        _temp1.subVectors(a, b);
         target.subVectors(b, c);
-        target.cross(temp1);
-        return target.normalize();
+        target.cross(_temp1);
+        target.normalize();
+        return target;
     }
     equals(vec) {
         return ((vec.x === this.x) && (vec.y === this.y) && (vec.z === this.z));
@@ -815,8 +813,8 @@ class Vector3 {
         return this;
     }
 }
-const temp1 = new Vector3();
-const temp2 = new Vector3();
+const _temp1 = new Vector3();
+const _temp2 = new Vector3();
 function fuzzyFloat(a, b, tolerance = 0.001) {
     return ((a < (b + tolerance)) && (a > (b - tolerance)));
 }
@@ -946,20 +944,31 @@ class MathUtils {
 }
 
 class Matrix2 {
-    constructor(values) {
-        if (Array.isArray(values)) this.m = [ ...values ];
-        else this.identity();
+    constructor(...values) {
+        this.m = [ 1, 0, 0, 1, 0, 0 ];
+        if (values && values.length > 0) {
+            if (Array.isArray(values[0])) this.set(...values[0]);
+            else this.set(...values);
+        }
+    }
+    set(m0, m1, m2, m3, m4, m5) {
+        this.m[0] = m0;
+        this.m[1] = m1;
+        this.m[2] = m2;
+        this.m[3] = m3;
+        this.m[4] = m4;
+        this.m[5] = m5;
+        return this;
     }
     copy(mat) {
-        this.m = [ ...mat.m ];
+        if (mat && mat instanceof Matrix2) this.set(...mat.m);
         return this;
     }
     clone() {
-        return new Matrix2([ ...this.m ]);
+        return new Matrix2(...this.m);
     }
     identity() {
-        this.m = [ 1, 0, 0, 1, 0, 0 ];
-        return this;
+        return this.set(1, 0, 0, 1, 0, 0);
     }
     multiply(mat) {
         const m0 = this.m[0] * mat.m[0] + this.m[2] * mat.m[1];
@@ -968,8 +977,7 @@ class Matrix2 {
         const m3 = this.m[1] * mat.m[2] + this.m[3] * mat.m[3];
         const m4 = this.m[0] * mat.m[4] + this.m[2] * mat.m[5] + this.m[4];
         const m5 = this.m[1] * mat.m[4] + this.m[3] * mat.m[5] + this.m[5];
-        this.m = [ m0, m1, m2, m3, m4, m5 ];
-        return this;
+        return this.set(m0, m1, m2, m3, m4, m5);
     }
     premultiply(mat) {
         const m0 = mat.m[0] * this.m[0] + mat.m[2] * this.m[1];
@@ -978,18 +986,17 @@ class Matrix2 {
         const m3 = mat.m[1] * this.m[2] + mat.m[3] * this.m[3];
         const m4 = mat.m[0] * this.m[4] + mat.m[2] * this.m[5] + mat.m[4];
         const m5 = mat.m[1] * this.m[4] + mat.m[3] * this.m[5] + mat.m[5];
-        this.m = [ m0, m1, m2, m3, m4, m5 ];
-        return this;
+        return this.set(m0, m1, m2, m3, m4, m5);
     }
     compose(px, py, sx, sy, ox, oy, rot) {
-        this.m = [ 1, 0, 0, 1, 0, 0 ];
-        this.multiply(new Matrix2([ 1, 0, 0, 1, px, py ]));
+        this.identity();
+        this.multiply(_translate$1.set(1, 0, 0, 1, px, py));
         if (rot !== 0) {
             const c = Math.cos(rot);
             const s = Math.sin(rot);
-            this.multiply(new Matrix2([ c, s, -s, c, 0, 0 ]));
+            this.multiply(_rotate$1.set(c, s, -s, c, 0, 0));
         }
-        this.multiply(new Matrix2([ 1, 0, 0, 1, -ox, -oy ]));
+        this.multiply(_origin$1.set(1, 0, 0, 1, -ox, -oy));
         if (sx !== 1 || sy !== 1) this.scale(sx, sy);
         return this;
     }
@@ -1038,7 +1045,7 @@ class Matrix2 {
         return this;
     }
     skew(radianX, radianY) {
-        return this.multiply(new Matrix2([ 1, Math.tan(radianY), Math.tan(radianX), 1, 0, 0 ]));
+        return this.multiply(_skew.set(1, Math.tan(radianY), Math.tan(radianX), 1, 0, 0));
     }
     getScale(target = new Vector2()) {
         const scaleX = Math.sqrt(this.m[0] * this.m[0] + this.m[1] * this.m[1]);
@@ -1071,11 +1078,23 @@ class Matrix2 {
     determinant() {
         return this.m[0] * this.m[3] - this.m[1] * this.m[2];
     }
-    getInverse() {
+    getInverse(mat = new Matrix2()) {
         const d = this.determinant();
         if (d === 0) console.error(`Matrix2.getInverse(): Matrix is non-invertible`);
         const invD = 1 / d;
-        return new Matrix2([ this.m[3] * invD, -this.m[1] * invD, -this.m[2] * invD, this.m[0] * invD, invD * (this.m[2] * this.m[5] - this.m[3] * this.m[4]), invD * (this.m[1] * this.m[4] - this.m[0] * this.m[5]) ]);
+        const m0 =  this.m[3] * invD;
+        const m1 = -this.m[1] * invD;
+        const m2 = -this.m[2] * invD;
+        const m3 =  this.m[0] * invD;
+        const m4 = invD * (this.m[2] * this.m[5] - this.m[3] * this.m[4]);
+        const m5 = invD * (this.m[1] * this.m[4] - this.m[0] * this.m[5]);
+        return mat.set(m0, m1, m2, m3, m4, m5);
+    }
+    applyToVector(target) {
+        if (!target) console.warn(`Matrix2.applyToVector(): Missing vector target`);
+        const x = target.x * this.m[0] + target.y * this.m[2] + this.m[4];
+        const y = target.x * this.m[1] + target.y * this.m[3] + this.m[5];
+        return target.set(x, y);
     }
     transformPoint(x, y) {
         let px, py;
@@ -1097,9 +1116,20 @@ class Matrix2 {
         return this;
     }
     cssTransform() {
-        return 'matrix(' + this.m[0] + ',' + this.m[1] + ',' + this.m[2] + ',' + this.m[3] + ',' + this.m[4] + ',' + this.m[5] + ')';
+        return `matrix(${this.m[0]}, ${this.m[1]}, ${this.m[2]}, ${this.m[3]}, ${this.m[4]}, ${this.m[5]}`;
+    }
+    toArray() {
+        return [ ...this.m ];
+    }
+    fromArray(array, offset = 0) {
+        this.set(array[offset + 0], array[offset + 1], array[offset + 2], array[offset + 3], array[offset + 4], array[offset + 5]);
+        return this;
     }
 }
+const _translate$1 = new Matrix2();
+const _rotate$1 = new Matrix2();
+const _skew = new Matrix2();
+const _origin$1 = new Matrix2();
 
 class Key {
     static DOWN = -1;
@@ -1411,6 +1441,10 @@ class Thing {
     }
 }
 
+const _topLeft$2 = new Vector2();
+const _topRight$2 = new Vector2();
+const _botLeft$2 = new Vector2();
+const _botRight$2 = new Vector2();
 class Object2D extends Thing {
     constructor(name = 'Object') {
         super(name);
@@ -1558,11 +1592,11 @@ class Object2D extends Thing {
         const box = this.boundingBox;
         if (Number.isFinite(box.min.x) === false || Number.isFinite(box.min.y) === false) return box;
         if (Number.isFinite(box.max.x) === false || Number.isFinite(box.max.y) === false) return box;
-        const topLeftWorld = this.localToWorld(box.min);
-        const topRightWorld = this.localToWorld(new Vector2(box.max.x, box.min.y));
-        const bottomLeftWorld = this.localToWorld(new Vector2(box.min.x, box.max.y));
-        const bottomRightWorld = this.localToWorld(box.max);
-        return new Box2().setFromPoints(topLeftWorld, topRightWorld, bottomLeftWorld, bottomRightWorld);
+        this.globalMatrix.applyToVector(_topLeft$2.copy(box.min));
+        this.globalMatrix.applyToVector(_topRight$2.copy(box.max.x, box.min.y));
+        this.globalMatrix.applyToVector(_botLeft$2.copy(box.min.x, box.max.y));
+        this.globalMatrix.applyToVector(_botRight$2.copy(box.max));
+        return new Box2().setFromPoints(_topLeft$2, _topRight$2, _botLeft$2, _botRight$2);
     }
     localToWorld(vector) {
         return this.globalMatrix.transformPoint(vector);
@@ -1625,7 +1659,7 @@ class Object2D extends Thing {
             this.matrix.compose(this.position.x, this.position.y, this.scale.x, this.scale.y, this.origin.x, this.origin.y, this.rotation);
             this.globalMatrix.copy(this.matrix);
             if (this.parent) this.globalMatrix.premultiply(this.parent.globalMatrix);
-            this.inverseGlobalMatrix = this.globalMatrix.getInverse();
+            this.globalMatrix.getInverse(this.inverseGlobalMatrix);
             this.matrixNeedsUpdate = false;
         }
     }
@@ -2768,6 +2802,14 @@ function appPointerMove(event) {
     }
 }
 
+const _cameraView = new Box2();
+const _topLeft$1 = new Vector2();
+const _topRight$1 = new Vector2();
+const _botLeft$1 = new Vector2();
+const _botRight$1 = new Vector2();
+const _translate = new Matrix2();
+const _rotate = new Matrix2();
+const _scale$1 = new Matrix2();
 class Camera2D extends Thing {
     constructor() {
         super('Camera2D');
@@ -2781,24 +2823,24 @@ class Camera2D extends Thing {
         this.viewport = new Box2(new Vector2(0, 0), new Vector2(1, 1));
     }
     intersectsViewport(box) {
-        const topLeft = this.matrix.transformPoint(box.min);
-        const topRight = this.matrix.transformPoint(new Vector2(box.max.x, box.min.y));
-        const bottomLeft = this.matrix.transformPoint(new Vector2(box.min.x, box.max.y));
-        const bottomRight = this.matrix.transformPoint(box.max);
-        const cameraViewBox = new Box2().setFromPoints(topLeft, topRight, bottomLeft, bottomRight);
-        return this.viewport.intersectsBox(cameraViewBox);
+        this.matrix.applyToVector(_topLeft$1.copy(box.min));
+        this.matrix.applyToVector(_topRight$1.copy(box.max.x, box.min.y));
+        this.matrix.applyToVector(_botLeft$1.copy(box.min.x, box.max.y));
+        this.matrix.applyToVector(_botRight$1.copy(box.max));
+        _cameraView.setFromPoints(_topLeft$1, _topRight$1, _botLeft$1, _botRight$1);
+        return this.viewport.intersectsBox(_cameraView);
     }
     updateMatrix(offsetX, offsetY) {
         if (!this.matrixNeedsUpdate) return;
         this.matrix.identity();
-        this.matrix.multiply(new Matrix2([ 1, 0, 0, 1, +offsetX, +offsetY ]));
+        this.matrix.multiply(_translate.set(1, 0, 0, 1, +offsetX, +offsetY));
         const c = Math.cos(this.rotation);
         const s = Math.sin(this.rotation);
-        this.matrix.multiply(new Matrix2([ c, s, -s, c, 0, 0 ]));
-        this.matrix.multiply(new Matrix2([ 1, 0, 0, 1, -offsetX, -offsetY ]));
-        this.matrix.multiply(new Matrix2([ 1, 0, 0, 1, this.position.x, this.position.y ]));
-        this.matrix.multiply(new Matrix2([ this.scale, 0, 0, this.scale, 0, 0 ]));
-        this.inverseMatrix = this.matrix.getInverse();
+        this.matrix.multiply(_rotate.set(c, s, -s, c, 0, 0));
+        this.matrix.multiply(_translate.set(1, 0, 0, 1, -offsetX, -offsetY));
+        this.matrix.multiply(_translate.set(1, 0, 0, 1, this.position.x, this.position.y));
+        this.matrix.multiply(_scale$1.set(this.scale, 0, 0, this.scale, 0, 0));
+        this.matrix.getInverse(this.inverseMatrix);
         this.matrixNeedsUpdate = false;
     }
     setViewport(width = 1, height = 1) {
@@ -2806,16 +2848,18 @@ class Camera2D extends Thing {
     }
 }
 
+const _cameraPoint$1 = new Vector2();
+const _localPoint = new Vector2();
 class EventManager {
     static pointerEvents(renderer, objects) {
         const camera = renderer.camera;
         const pointer = renderer.pointer;
-        const cameraPoint = camera.inverseMatrix.transformPoint(pointer.position);
+        camera.inverseMatrix.applyToVector(_cameraPoint$1.copy(pointer.position));
         let currentCursor = null;
         for (const object of objects) {
             if (object.pointerEvents && object.inViewport) {
-                const localPoint = object.inverseGlobalMatrix.transformPoint(cameraPoint);
-                const isInside = object.isInside(localPoint);
+                object.inverseGlobalMatrix.applyToVector(_localPoint.copy(_cameraPoint$1));
+                const isInside = object.isInside(_localPoint);
                 if (isInside) {
                     if (!currentCursor && object.cursor) setCursor(object);
                     if (renderer.beingDragged == null) {
@@ -2915,6 +2959,11 @@ class Keyboard {
     }
 }
 
+const _origin = new Vector2();
+const _topLeft = new Vector2();
+const _topRight = new Vector2();
+const _botLeft = new Vector2();
+const _botRight = new Vector2();
 class Renderer {
     constructor({
         alpha = true,
@@ -3066,23 +3115,23 @@ class Renderer {
         context.lineWidth = 2;
         context.strokeStyle = '#ffffff';
         camera.matrix.setContextTransform(context);
-        const origin = object.globalMatrix.transformPoint(object.origin);
+        object.globalMatrix.applyToVector(_origin.copy(object.origin));
         context.beginPath();
-        context.arc(origin.x, origin.y, 3 / camera.scale, 0, 2 * Math.PI);
+        context.arc(_origin.x, _origin.y, 3 / camera.scale, 0, 2 * Math.PI);
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.stroke();
         context.strokeStyle = '#65e5ff';
         camera.matrix.setContextTransform(context);
         const box = object.boundingBox;
-        const topLeft = object.globalMatrix.transformPoint(box.min);
-        const topRight = object.globalMatrix.transformPoint(new Vector2(box.max.x, box.min.y));
-        const bottomLeft = object.globalMatrix.transformPoint(new Vector2(box.min.x, box.max.y));
-        const bottomRight = object.globalMatrix.transformPoint(box.max);
+        object.globalMatrix.applyToVector(_topLeft.copy(box.min));
+        object.globalMatrix.applyToVector(_topRight.copy(box.max.x, box.min.y));
+        object.globalMatrix.applyToVector(_botLeft.copy(box.min.x, box.max.y));
+        object.globalMatrix.applyToVector(_botRight.copy(box.max));
         context.beginPath();
-        context.moveTo(topLeft.x, topLeft.y);
-        context.lineTo(topRight.x, topRight.y);
-        context.lineTo(bottomRight.x, bottomRight.y);
-        context.lineTo(bottomLeft.x, bottomLeft.y);
+        context.moveTo(_topLeft.x, _topLeft.y);
+        context.lineTo(_topRight.x, _topRight.y);
+        context.lineTo(_botRight.x, _botRight.y);
+        context.lineTo(_botLeft.x, _botLeft.y);
         context.closePath();
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.stroke();
@@ -3523,6 +3572,10 @@ class DomElement extends Object2D {
 	}
 }
 
+const _globalPoint = new Vector2();
+const _globalFrom = new Vector2();
+const _globalTo = new Vector2();
+const _scale = new Vector2();
 class Line extends Object2D {
     #cameraScale = 1;
     constructor() {
@@ -3541,15 +3594,15 @@ class Line extends Object2D {
         return this.boundingBox;
     }
     isInside(point) {
-        const globalPoint = this.globalMatrix.transformPoint(point);
-        const globalFrom = this.globalMatrix.transformPoint(this.from);
-        const globalTo = this.globalMatrix.transformPoint(this.to);
-        const x = globalPoint.x;
-        const y = globalPoint.y;
-        const x1 = globalFrom.x;
-        const y1 = globalFrom.y;
-        const x2 = globalTo.x;
-        const y2 = globalTo.y;
+        this.globalMatrix.applyToVector(_globalPoint.copy(point));
+        this.globalMatrix.applyToVector(_globalFrom.copy(this.from));
+        this.globalMatrix.applyToVector(_globalTo.copy(this.to));
+        const x = _globalPoint.x;
+        const y = _globalPoint.y;
+        const x1 = _globalFrom.x;
+        const y1 = _globalFrom.y;
+        const x2 = _globalTo.x;
+        const y2 = _globalTo.y;
         let scaledLineWidth;
         if (this.constantWidth) {
             scaledLineWidth = this.lineWidth / this.#cameraScale;
@@ -3564,8 +3617,8 @@ class Line extends Object2D {
                 return { x: percentX, y: percentY };
             }
             const xyPercent = getPercentageOfDistance(this.from, this.to);
-            const scale = this.globalMatrix.getScale();
-            const scalePercent = (Math.abs(scale.x * xyPercent.y) + Math.abs(scale.y * xyPercent.x)) / (xyPercent.x + xyPercent.y);
+            this.globalMatrix.getScale(_scale);
+            const scalePercent = (Math.abs(_scale.x * xyPercent.y) + Math.abs(_scale.y * xyPercent.x)) / (xyPercent.x + xyPercent.y);
             scaledLineWidth = MathUtils.sanity(this.lineWidth * scalePercent);
         }
         const buffer = (scaledLineWidth / 2) + (this.mouseBuffer / this.#cameraScale);
@@ -4210,27 +4263,19 @@ class ResizeTool extends Box {
                 rotateLine.to.copy(topCenterWorld);
                 rotateLine.updateMatrix();
             }
-            const topLeftWorld = new Vector2(-halfSize.x, -halfSize.y);
-            const topRightWorld = new Vector2(+halfSize.x, -halfSize.y);
-            const bottomLeftWorld = new Vector2(-halfSize.x, +halfSize.y);
-            const bottomRightWorld = new Vector2(+halfSize.x, +halfSize.y);
-            function updateCornerResizer(resizer, point) {
+            function updateCornerResizer(resizer, x, y) {
                 if (!resizer) return;
-                resizer.position.copy(point);
+                resizer.position.set(x, y);
                 resizer.scale.set((1 / self.scale.x) / camera.scale, (1 / self.scale.y) / camera.scale);
                 resizer.updateMatrix();
             }
-            updateCornerResizer(topLeft, topLeftWorld);
-            updateCornerResizer(topRight, topRightWorld);
-            updateCornerResizer(bottomLeft, bottomLeftWorld);
-            updateCornerResizer(bottomRight, bottomRightWorld);
-            const leftMiddleWorld = new Vector2(-halfSize.x, 0);
-            const rightMiddleWorld = new Vector2(+halfSize.x, 0);
-            const topMiddleWorld = new Vector2(0, -halfSize.y);
-            const bottomMiddleWorld = new Vector2(0, +halfSize.y);
-            function updateSideResizer(resizer, point, type = 'v') {
+            updateCornerResizer(topLeft, -halfSize.x, -halfSize.y);
+            updateCornerResizer(topRight, +halfSize.x, -halfSize.y);
+            updateCornerResizer(bottomLeft, -halfSize.x, +halfSize.y);
+            updateCornerResizer(bottomRight, +halfSize.x, +halfSize.y);
+            function updateSideResizer(resizer, x, y, type = 'v') {
                 if (!resizer) return;
-                resizer.position.copy(point);
+                resizer.position.set(x, y);
                 if (resizer.type === 'Box') {
                     if (type === 'v') {
                         resizer.scale.set((1 / self.scale.x) / camera.scale, 1);
@@ -4251,10 +4296,10 @@ class ResizeTool extends Box {
                 }
                 resizer.updateMatrix();
             }
-            updateSideResizer(leftResizer, leftMiddleWorld, 'v');
-            updateSideResizer(rightResizer, rightMiddleWorld, 'v');
-            updateSideResizer(topResizer, topMiddleWorld, 'h');
-            updateSideResizer(bottomResizer, bottomMiddleWorld, 'h');
+            updateSideResizer(leftResizer, -halfSize.x, 0, 'v');
+            updateSideResizer(rightResizer, +halfSize.x, 0, 'v');
+            updateSideResizer(topResizer, 0, -halfSize.y, 'h');
+            updateSideResizer(bottomResizer, 0, +halfSize.y, 'h');
         };
     }
 }
@@ -4290,6 +4335,7 @@ class RubberBandBox extends Box {
     }
 }
 
+const _cameraPoint = new Vector2();
 const _center = new Vector2();
 const _size = new Vector2();
 class SelectControls {
@@ -4310,10 +4356,10 @@ class SelectControls {
         const keyboard = renderer.keyboard;
         if (!camera || !scene || !pointer || !keyboard) return;
         let newSelection = [ ...this.selection ];
-        const cameraPoint = camera.inverseMatrix.transformPoint(pointer.position);
+        camera.inverseMatrix.applyToVector(_cameraPoint.copy(pointer.position));
         if (pointer.buttonJustPressed(Pointer.LEFT)) {
-            this._mouseStart.copy(cameraPoint);
-            const underMouse = scene.getWorldPointIntersections(cameraPoint);
+            this._mouseStart.copy(_cameraPoint);
+            const underMouse = scene.getWorldPointIntersections(_cameraPoint);
             if (keyboard.ctrlPressed() || keyboard.metaPressed() || keyboard.shiftPressed()) {
                 const selectableOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
                 if (selectableOnly.length > 0) {
@@ -4342,7 +4388,7 @@ class SelectControls {
                 }
             }
         }
-        this._mouseNow.copy(cameraPoint);
+        this._mouseNow.copy(_cameraPoint);
         if (pointer.buttonPressed(Pointer.LEFT)) {
             const mouseTravel = this._mouseStart.manhattanDistanceTo(this._mouseNow);
             if (this._wantsRubberBand) {
@@ -4372,7 +4418,7 @@ class SelectControls {
                 this.rubberBandBox.destroy();
                 this.rubberBandBox = null;
             } else if (shortClick && mouseTravel <= MOUSE_SLOP) {
-                const underMouse = scene.getWorldPointIntersections(cameraPoint);
+                const underMouse = scene.getWorldPointIntersections(_cameraPoint);
                 const withoutResizeTool = ArrayUtils.filterThings(underMouse, { isHelper: undefined });
                 if (withoutResizeTool.length === 0) {
                     newSelection = [];

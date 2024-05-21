@@ -259,9 +259,9 @@ class Vector3 {
 
     /** Computes the angle (in radians) between this and another vector */
     angle(vec) {
-        temp1.copy(this).normalize();
-        temp2.copy(vec).normalize();
-        const cosine = temp1.dot(temp2);
+        _temp1.copy(this).normalize();
+        _temp2.copy(vec).normalize();
+        const cosine = _temp1.dot(_temp2);
         if (cosine > 1.0) return 0;
         if (cosine < -1.0) return Math.PI;
         return Math.acos(cosine);
@@ -366,10 +366,11 @@ class Vector3 {
     }
 
     calculateNormal(target = new Vector3(), a, b, c) {
-        temp1.subVectors(a, b);
+        _temp1.subVectors(a, b);
         target.subVectors(b, c);
-        target.cross(temp1);
-        return target.normalize();
+        target.cross(_temp1);
+        target.normalize();
+        return target;
     }
 
     equals(vec) {
@@ -410,8 +411,8 @@ export { Vector3 };
 
 /******************** INTERNAL ********************/
 
-const temp1 = new Vector3();
-const temp2 = new Vector3();
+const _temp1 = new Vector3();
+const _temp2 = new Vector3();
 
 /** Compares two decimal numbers to see if they're almost the same */
 function fuzzyFloat(a, b, tolerance = 0.001) {

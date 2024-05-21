@@ -114,6 +114,7 @@
         video.addEventListener('loadeddata', function() {
             dom1.size.set(parseFloat(video.videoWidth), parseFloat(video.videoHeight));
         }, false);
+        dom1.scale.set(0.1, 0.1);
         scene.add(dom1);
 
         // Renderer

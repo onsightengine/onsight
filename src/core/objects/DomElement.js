@@ -28,9 +28,8 @@ class DomElement extends Object2D {
 		this.dom.style.top = '0px';
 		this.dom.style.bottom = '0px';
 		this.dom.style.transformOrigin = '0px 0px';
-		this.dom.style.overflow = 'auto';
+		this.dom.style.overflow = 'none';
 		this.dom.style.pointerEvents = 'none';
-		this.dom.style.background = 'purple';
 		this.dom.style.zIndex = '1';
 
 		/** Size in world coordinates. */

@@ -1,3 +1,6 @@
+import {
+    OUTLINE_THICKNESS,
+} from '../../constants.js';
 import { Clock } from './Clock.js';
 import { EventManager } from './EventManager.js';
 import { Keyboard } from '../input/Keyboard.js';
@@ -171,8 +174,8 @@ class Renderer {
 
         // Gather, Sort Objects
         const objects = [];
-        scene.traverse(function(child) { if (child.visible) objects.push(child); });
-        objects.sort(function(a, b) {
+        scene.traverse((child) => { if (child.visible) objects.push(child); });
+        objects.sort((a, b) => {
             if (b.layer === a.layer) return b.level - a.level;
             return b.layer - a.layer;
         });
@@ -189,7 +192,7 @@ class Renderer {
         }
 
         // Update Object / Matrix
-        scene.traverse(function(child) {
+        scene.traverse((child) => {
             child.updateMatrix();
             if (typeof child.onUpdate === 'function') child.onUpdate(renderer);
         });
@@ -229,7 +232,7 @@ class Renderer {
         const camera = this.camera;
         const context = this.context;
         context.globalAlpha = 1;
-        context.lineWidth = 2;
+        context.lineWidth = OUTLINE_THICKNESS;
         // Origin
         context.strokeStyle = '#ffffff';
         camera.matrix.setContextTransform(context);
@@ -253,7 +256,11 @@ class Renderer {
         context.lineTo(_botLeft.x, _botLeft.y);
         context.closePath();
         context.setTransform(1, 0, 0, 1, 0, 0);
+        context.shadowBlur = 1;
+        context.shadowColor = '#65e5ff';
         context.stroke();
+        context.shadowBlur = 0;
+        context.shadowColor = 'transparent';
     }
 
 }

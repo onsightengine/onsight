@@ -76,6 +76,7 @@ const VERSION = pkg.version;
 const APP_SIZE = 1000;
 const MOUSE_CLICK_TIME = 350;
 const MOUSE_SLOP = 2;
+const OUTLINE_THICKNESS = 2;
 const APP_EVENTS = [
     'init',
     'update',
@@ -3098,8 +3099,8 @@ class Renderer {
         const renderer = this;
         const context = this.context;
         const objects = [];
-        scene.traverse(function(child) { if (child.visible) objects.push(child); });
-        objects.sort(function(a, b) {
+        scene.traverse((child) => { if (child.visible) objects.push(child); });
+        objects.sort((a, b) => {
             if (b.layer === a.layer) return b.level - a.level;
             return b.layer - a.layer;
         });
@@ -3110,7 +3111,7 @@ class Renderer {
         if (this.pointerEvents) {
             EventManager.pointerEvents(renderer, objects);
         }
-        scene.traverse(function(child) {
+        scene.traverse((child) => {
             child.updateMatrix();
             if (typeof child.onUpdate === 'function') child.onUpdate(renderer);
         });
@@ -3137,7 +3138,7 @@ class Renderer {
         const camera = this.camera;
         const context = this.context;
         context.globalAlpha = 1;
-        context.lineWidth = 2;
+        context.lineWidth = OUTLINE_THICKNESS;
         context.strokeStyle = '#ffffff';
         camera.matrix.setContextTransform(context);
         object.globalMatrix.applyToVector(_origin.copy(object.origin));
@@ -3159,7 +3160,11 @@ class Renderer {
         context.lineTo(_botLeft$1.x, _botLeft$1.y);
         context.closePath();
         context.setTransform(1, 0, 0, 1, 0, 0);
+        context.shadowBlur = 1;
+        context.shadowColor = '#65e5ff';
         context.stroke();
+        context.shadowBlur = 0;
+        context.shadowColor = 'transparent';
     }
 }
 
@@ -4103,11 +4108,11 @@ class ResizeTool extends Box {
                         resizer.fillStyle.addColorStop(0, '--icon-light');
                         resizer.fillStyle.addColorStop(1, '--icon-dark');
                         resizer.strokeStyle.color = '--highlight';
-                        resizer.lineWidth = 1;
+                        resizer.lineWidth = OUTLINE_THICKNESS;
                         break;
                     case 'line':
                         resizer.strokeStyle.color = '--highlight';
-                        resizer.lineWidth = 1;
+                        resizer.lineWidth = OUTLINE_THICKNESS;
                         break;
                 }
                 resizer.cursor = function(camera) {
@@ -4216,6 +4221,7 @@ class ResizeTool extends Box {
             rotater.radius = radius + 1;
             rotater.buffer = 3;
             rotater.layer = topLayer + 2;
+            rotater.lineWidth = OUTLINE_THICKNESS;
             rotater.constantWidth = true;
             rotater.fillStyle = new LinearGradientStyle();
             rotater.fillStyle.start.set(-radius, -radius);
@@ -4243,7 +4249,7 @@ class ResizeTool extends Box {
                 updateObjects();
             };
             rotateLine = new Line();
-            rotateLine.lineWidth = 1;
+            rotateLine.lineWidth = OUTLINE_THICKNESS;
             rotateLine.draggable = false;
             rotateLine.focusable = false;
             rotateLine.selectable = false;
@@ -4273,8 +4279,7 @@ class ResizeTool extends Box {
                 const rotatedPosition = rotationMatrix.transformPoint(scaledPosition);
                 _position.copy(rotatedPosition).add(self.position);
                 if (self.isDragging) {
-                    object.position.smoothstep(_position, renderer.deltaTime * 33);
-                    console.log(renderer.deltaTime);
+                    object.position.smoothstep(_position, renderer.deltaTime * 30);
                 } else {
                     object.position.copy(_position);
                 }
@@ -4360,7 +4365,7 @@ class RubberBandBox extends Box {
         this.fillStyle.fallback = 'rgba(0, 170, 204, 0.5)';
         this.strokeStyle.color = 'rgb(--icon-light)';
         this.strokeStyle.fallback = 'rgba(101, 229, 255)';
-        this.lineWidth = 1;
+        this.lineWidth = OUTLINE_THICKNESS;
         this.constantWidth = true;
         this.pointerEvents = false;
         this.draggable = false;
@@ -4881,4 +4886,4 @@ function getVariable(variable) {
     return ((value === '') ? undefined : value);
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, DomElement, Entity, EventManager, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Sprite, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, DomElement, Entity, EventManager, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, OUTLINE_THICKNESS, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Sprite, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, WORLD_TYPES, World };

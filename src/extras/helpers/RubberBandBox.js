@@ -1,3 +1,6 @@
+import {
+    OUTLINE_THICKNESS,
+} from '../../constants.js';
 import { Box } from '../../core/objects/Box.js';
 
 class RubberBandBox extends Box {
@@ -11,7 +14,7 @@ class RubberBandBox extends Box {
         this.fillStyle.fallback = 'rgba(0, 170, 204, 0.5)';
         this.strokeStyle.color = 'rgb(--icon-light)';
         this.strokeStyle.fallback = 'rgba(101, 229, 255)';
-        this.lineWidth = 1;
+        this.lineWidth = OUTLINE_THICKNESS;
         this.constantWidth = true;
 
         this.pointerEvents = false;

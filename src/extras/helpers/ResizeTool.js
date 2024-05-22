@@ -1,3 +1,6 @@
+import {
+    OUTLINE_THICKNESS,
+} from '../../constants.js';
 import { Box } from '../../core/objects/Box.js';
 import { Box2 } from '../../math/Box2.js';
 import { Circle } from '../../core/objects/Circle.js';
@@ -170,11 +173,11 @@ class ResizeTool extends Box {
                         resizer.fillStyle.addColorStop(0, '--icon-light');
                         resizer.fillStyle.addColorStop(1, '--icon-dark');
                         resizer.strokeStyle.color = '--highlight';
-                        resizer.lineWidth = 1;
+                        resizer.lineWidth = OUTLINE_THICKNESS;
                         break;
                     case 'line':
                         resizer.strokeStyle.color = '--highlight';
-                        resizer.lineWidth = 1;
+                        resizer.lineWidth = OUTLINE_THICKNESS;
                         break;
                 }
                 resizer.cursor = function(camera) {
@@ -301,6 +304,7 @@ class ResizeTool extends Box {
             rotater.radius = radius + 1;
             rotater.buffer = 3;
             rotater.layer = topLayer + 2;
+            rotater.lineWidth = OUTLINE_THICKNESS;
             rotater.constantWidth = true;
             rotater.fillStyle = new LinearGradientStyle();
             rotater.fillStyle.start.set(-radius, -radius);
@@ -329,7 +333,7 @@ class ResizeTool extends Box {
             };
             // Line
             rotateLine = new Line();
-            rotateLine.lineWidth = 1;
+            rotateLine.lineWidth = OUTLINE_THICKNESS;
             rotateLine.draggable = false;
             rotateLine.focusable = false;
             rotateLine.selectable = false;
@@ -373,8 +377,7 @@ class ResizeTool extends Box {
 
                 // Lerp?
                 if (self.isDragging) {
-                    object.position.smoothstep(_position, renderer.deltaTime * 33);
-                    console.log(renderer.deltaTime);
+                    object.position.smoothstep(_position, renderer.deltaTime * 30); // delta time ~ 0.0167 (1 / 60)
                 } else {
                     object.position.copy(_position);
                 }

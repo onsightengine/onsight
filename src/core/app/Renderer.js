@@ -1,3 +1,4 @@
+import { Clock } from './Clock.js';
 import { EventManager } from './EventManager.js';
 import { Keyboard } from '../input/Keyboard.js';
 import { Pointer } from '../input/Pointer.js';
@@ -66,12 +67,17 @@ class Renderer {
             resizeObserver.unobserve(canvas);
         });
 
+        // Clock
+        this.clock = new Clock(false);      // update clock
+        this.deltaTime = 0;                 // time between frames
+        this.totalTime = 0;                 // total time since started
+
         // INTERNAL
-        this.running = false;           // is animating?
-        this.frame = -1;                // frame count
-        this.scene = null;              // last rendered scene
-        this.camera = null;             // last rendered camera
-        this.beingDragged = null;       // object being dragged
+        this.running = false;               // is animating?
+        this.frame = -1;                    // frame count
+        this.scene = null;                  // last rendered scene
+        this.camera = null;                 // last rendered camera
+        this.dragObject = null;             // object being dragged
     }
 
     /******************** ELEMENT */
@@ -122,9 +128,12 @@ class Renderer {
     start(scene, camera, onBeforeRender, onAfterRender) {
         if (this.running) return;
         this.running = true;
+        this.clock.start(true /* reset? */);
 
         const renderer = this;
         function loop() {
+            renderer.deltaTime = renderer.clock.getDeltaTime();
+            renderer.totalTime = renderer.clock.getElapsedTime();
             if (typeof onBeforeRender === 'function') onBeforeRender();
 
             // Updates

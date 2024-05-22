@@ -273,6 +273,14 @@ class Vector2 {
         return this;
     }
 
+    smoothstep(vec, t) {
+        t = 3 * t * t - 2 * t * t * t;
+        t = Math.min(1, Math.max(0, t));
+        this.x = this.x + ((vec.x - this.x) * t);
+        this.y = this.y + ((vec.y - this.y) * t);
+        return this;
+    }
+
     equals(vec) {
         return ((vec.x === this.x) && (vec.y === this.y));
     }

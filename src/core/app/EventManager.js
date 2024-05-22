@@ -26,40 +26,41 @@ class EventManager {
                     // Mouse Cursor
                     if (!currentCursor && object.cursor) setCursor(object);
                     // Pointer Events
-                    if (renderer.beingDragged == null) {
-                        if (!object.pointerInside && typeof object.onPointerEnter === 'function') object.onPointerEnter(pointer, camera);
-                        if (typeof object.onPointerOver === 'function') object.onPointerOver(pointer, camera);
-                        if (pointer.buttonDoubleClicked(Pointer.LEFT) && typeof object.onDoubleClick === 'function') object.onDoubleClick(pointer, camera);
-                        if (pointer.buttonPressed(Pointer.LEFT) && typeof object.onButtonPressed === 'function') object.onButtonPressed(pointer, camera);
-                        if (pointer.buttonJustReleased(Pointer.LEFT) && typeof object.onButtonUp === 'function') object.onButtonUp(pointer, camera);
+                    if (renderer.dragObject == null) {
+                        if (!object.pointerInside && typeof object.onPointerEnter === 'function') object.onPointerEnter(renderer);
+                        if (typeof object.onPointerOver === 'function') object.onPointerOver(renderer);
+                        if (pointer.buttonDoubleClicked(Pointer.LEFT) && typeof object.onDoubleClick === 'function') object.onDoubleClick(renderer);
+                        if (pointer.buttonPressed(Pointer.LEFT) && typeof object.onButtonPressed === 'function') object.onButtonPressed(renderer);
+                        if (pointer.buttonJustReleased(Pointer.LEFT) && typeof object.onButtonUp === 'function') object.onButtonUp(renderer);
                         if (pointer.buttonJustPressed(Pointer.LEFT)) {
-                            if (typeof object.onButtonDown === 'function') object.onButtonDown(pointer, camera);
+                            if (typeof object.onButtonDown === 'function') object.onButtonDown(renderer);
                             if (object.draggable) {
-                                renderer.beingDragged = object;
-                                if (typeof object.onPointerDragStart === 'function') object.onPointerDragStart(pointer, camera);
+                                renderer.dragObject = object;
+                                if (typeof object.onPointerDragStart === 'function') object.onPointerDragStart(renderer);
                             }
                         }
                     }
                     object.pointerInside = true;
                 // Pointer Leave
-                } else if (renderer.beingDragged !== object && object.pointerInside) {
-                    if (typeof object.onPointerLeave === 'function') object.onPointerLeave(pointer, camera);
+                } else if (renderer.dragObject !== object && object.pointerInside) {
+                    if (typeof object.onPointerLeave === 'function') object.onPointerLeave(renderer);
                     object.pointerInside = false;
                 }
             }
 
             // Being Dragged?
-            if (renderer.beingDragged === object) {
+            if (renderer.dragObject === object) {
                 // Stop Dragging
                 if (pointer.buttonJustReleased(Pointer.LEFT)) {
+                    renderer.dragObject = null;
+                    object.isDragging = false;
                     if (object.pointerEvents && typeof object.onPointerDragEnd === 'function') {
-                        object.onPointerDragEnd(pointer, camera);
+                        object.onPointerDragEnd(renderer);
                     }
-                    renderer.beingDragged = null;
                 // Still Dragging, Update
                 } else {
                     if (object.pointerEvents && typeof object.onPointerDrag === 'function') {
-                        object.onPointerDrag(pointer, camera);
+                        object.onPointerDrag(renderer);
                     }
                     // Mouse Cursor
                     setCursor(object);

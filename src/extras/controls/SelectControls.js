@@ -89,7 +89,7 @@ class SelectControls {
                 // Create Rubber Band Box?
                 if (this.rubberBandBox == null) {
                     if (mouseTravel >= MOUSE_SLOP) {
-                        renderer.beingDragged = this.rubberBandBox;
+                        renderer.dragObject = this.rubberBandBox;
                         const rubberBandBox = new RubberBandBox();
                         scene.traverse((child) => { rubberBandBox.layer = Math.max(rubberBandBox.layer, child.layer + 1); });
                         scene.add(rubberBandBox);
@@ -153,7 +153,7 @@ class SelectControls {
 
                 this.resizeTool.onUpdate(renderer);
                 if (this.rubberBandBox == null) {
-                    renderer.beingDragged = this.resizeTool;
+                    renderer.dragObject = this.resizeTool;
                 }
             }
             // Save Selection

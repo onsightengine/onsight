@@ -4,13 +4,15 @@
 //  equalizeAngle0to360()   Clamps degrees in between 0 and 360
 // COMMON
 //  clamp()                 Clamps a number between min and max
+//  roundTo()               Returns a number rounded to 'decimalPlaces'
+// EASING
 //  damp()                  Time based linear interpolation
 //  lerp()                  Linear interpolation
-//  roundTo()               Returns a number rounded to 'decimalPlaces'
+//  smoothstep()            Sigmoid-like interpolation
+//  smootherstep()          Perlin smoothstep
 // FUZZY
 //  fuzzyFloat()            Compares two numbers to see if they're roughly the same
-//  fuzzyVector()           Compares two Vector3
-//  fuzzyQuaternion()       Compares two Quaternion
+//  fuzzyVector()           Compares two Vector / Quaternion
 // GEOMETRY
 //  isPowerOfTwo()          Checks if a number is power of 2
 // NUMBERS
@@ -67,20 +69,36 @@ class MathUtils {
         return number;
     }
 
-    /** http://www.rorydriscoll.com/2016/03/07/frame-rate-independent-damping-using-lerp/ */
-    static damp(x, y, lambda, dt) {
-        return MathUtils.lerp(x, y, 1 - Math.exp(- lambda * dt));
-    }
-
-    /** https://en.wikipedia.org/wiki/Linear_interpolation */
-    static lerp(x, y, t) {
-        return (1 - t) * x + t * y;
-    }
-
     /** Returns a number rounded to 'decimalPlaces' */
     static roundTo(number, decimalPlaces = 0) {
         const shift = Math.pow(10, decimalPlaces);
         return Math.round(number * shift) / shift;
+    }
+
+    /******************** EASING ********************/
+
+    /** http://www.rorydriscoll.com/2016/03/07/frame-rate-independent-damping-using-lerp/ */
+    static damp(a, b, lambda, dt) {
+        return MathUtils.lerp(a, b, 1 - Math.exp(-lambda * dt));
+    }
+
+    /** https://en.wikipedia.org/wiki/Linear_interpolation */
+    static lerp(a, b, t) {
+        return (1 - t) * a + t * b;
+    }
+
+    /** https://en.wikipedia.org/wiki/Smoothstep */
+    static smoothstep(a, b, t) {
+        t = 3 * t * t - 2 * t * t * t;
+        t = Math.min(1, Math.max(0, t));
+        return a + ((b - a) * t);
+    }
+
+    /** https://en.wikipedia.org/wiki/Smoothstep */
+    static smootherstep(a, b, t) {
+        t = t * t * t * (t * (t * 6 - 15) + 10);
+        t = Math.min(1, Math.max(0, t));
+        return a + ((b - a) * t);
     }
 
     /******************** FUZZY ********************/
@@ -93,13 +111,8 @@ class MathUtils {
     static fuzzyVector(a, b, tolerance = 0.001) {
         if (MathUtils.fuzzyFloat(a.x, b.x, tolerance) === false) return false;
         if (MathUtils.fuzzyFloat(a.y, b.y, tolerance) === false) return false;
-        if (MathUtils.fuzzyFloat(a.z, b.z, tolerance) === false) return false;
-        return true;
-    }
-
-    static fuzzyQuaternion(a, b, tolerance = 0.001) {
-        if (MathUtils.fuzzyVector(a, b, tolerance) === false) return false;
-        if (MathUtils.fuzzyFloat(a.w, b.w, tolerance) === false) return false;
+        if (('z' in a) && ('z' in b) && MathUtils.fuzzyFloat(a.z, b.z, tolerance) === false) return false;
+        if (('w' in a) && ('w' in b) && MathUtils.fuzzyFloat(a.w, b.w, tolerance) === false) return false;
         return true;
     }
 

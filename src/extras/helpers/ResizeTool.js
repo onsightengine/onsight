@@ -11,6 +11,13 @@ import { Vector2 } from '../../math/Vector2.js';
 // svg to base64, 'cursors/rotate.svg'
 const CURSOR_ROTATE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWw6c3BhY2U9InByZXNlcnZlIiBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlLWxpbmVqb2luOnJvdW5kO3N0cm9rZS1taXRlcmxpbWl0OjI7Ij48cGF0aCBkPSJNMjEuMjQ3LDUuODY3YzAuNDE3LC0wLjQ1MiAxLjAzNiwtMC42NjYgMS42NDcsLTAuNTYzYzAuNjQ0LDAuMTA5IDEuMTgsMC41NTMgMS40MDcsMS4xNjRsMS44MjQsNC45MDFjMC4yMjcsMC42MTEgMC4xMTEsMS4yOTggLTAuMzA1LDEuODAxYy0wLjQxNiwwLjUwMyAtMS4wNjksMC43NDUgLTEuNzEzLDAuNjM2bC01LjE1NCwtMC44NzRjLTAuNjQ0LC0wLjEwOSAtMS4xOCwtMC41NTMgLTEuNDA3LC0xLjE2NWMtMC4xNzksLTAuNDgxIC0wLjE0NSwtMS4wMDggMC4wOCwtMS40NTVjLTAuNTIxLC0wLjE0OCAtMS4wNjQsLTAuMjI1IC0xLjYxNSwtMC4yMjVjLTMuMjY0LDAgLTUuOTEzLDIuNjUgLTUuOTEzLDUuOTEzYy0wLDMuMjYzIDIuNjQ5LDUuOTEzIDUuOTEzLDUuOTEzYzEuNjQsMCAzLjIwNiwtMC42ODEgNC4zMjQsLTEuODhjMC42ODgsLTAuNzM4IDEuODQ0LC0wLjc3OCAyLjU4MiwtMC4wOWwxLjM0NiwxLjI1NWMwLjczNywwLjY4OCAwLjc3OCwxLjg0MyAwLjA5LDIuNTgxYy0yLjE1OCwyLjMxNCAtNS4xNzksMy42MjcgLTguMzQyLDMuNjI3Yy02LjI5NSwwIC0xMS40MDYsLTUuMTExIC0xMS40MDYsLTExLjQwNmMtMCwtNi4yOTUgNS4xMTEsLTExLjQwNiAxMS40MDYsLTExLjQwNmMxLjgzOCwtMCAzLjYzMSwwLjQ0MyA1LjIzNiwxLjI3M1oiIHN0eWxlPSJmaWxsOiNmZmY7Ii8+PHBhdGggZD0iTTE5LjgzNSw5Ljc2N2wtMC45MDUsMS4wOTNjLTAuMDk3LDAuMTE3IC0wLjEyNCwwLjI3NyAtMC4wNzEsMC40MTljMC4wNTMsMC4xNDMgMC4xNzgsMC4yNDYgMC4zMjgsMC4yNzJsNS4xNTQsMC44NzRjMC4xNTEsMC4wMjYgMC4zMDMsLTAuMDMxIDAuNCwtMC4xNDhjMC4wOTcsLTAuMTE3IDAuMTI0LC0wLjI3NyAwLjA3MSwtMC40MmwtMS44MjMsLTQuOWMtMC4wNTMsLTAuMTQzIC0wLjE3OCwtMC4yNDYgLTAuMzI4LC0wLjI3MWMtMC4xNSwtMC4wMjYgLTAuMzAyLDAuMDMxIC0wLjM5OSwwLjE0OGwtMC42OTksMC44NDRjLTEuNjMyLC0xLjA5MSAtMy41NjIsLTEuNjgzIC01LjU1MiwtMS42ODNjLTUuNTIyLC0wIC0xMC4wMDYsNC40ODMgLTEwLjAwNiwxMC4wMDVjMCw1LjUyMiA0LjQ4NCwxMC4wMDUgMTAuMDA2LDEwLjAwNWMyLjc3NSwwIDUuNDI1LC0xLjE1MiA3LjMxNywtMy4xODFjMC4xNjEsLTAuMTcyIDAuMTUxLC0wLjQ0MiAtMC4wMjEsLTAuNjAybC0xLjM0NSwtMS4yNTVjLTAuMTcyLC0wLjE2IC0wLjQ0MiwtMC4xNTEgLTAuNjAyLDAuMDIxYy0xLjM4MywxLjQ4MyAtMy4zMjEsMi4zMjYgLTUuMzQ5LDIuMzI2Yy00LjAzNywtMCAtNy4zMTQsLTMuMjc3IC03LjMxNCwtNy4zMTRjMCwtNC4wMzcgMy4yNzcsLTcuMzE0IDcuMzE0LC03LjMxNGMxLjM2LDAgMi42ODIsMC4zNzkgMy44MjQsMS4wODFaIi8+PC9zdmc+';
 
+const _position = new Vector2();
+const _topLeft = new Vector2();
+const _topRight = new Vector2();
+const _botLeft = new Vector2();
+const _botRight = new Vector2();
+const _objectMatrix = new Matrix2();
+
 class ResizeTool extends Box {
 
     static ALL = 0;
@@ -88,14 +95,13 @@ class ResizeTool extends Box {
             // Unrotated World Boxes
             for (const object of objects) {
                 const unRotatedPosition = unRotateMatrix.transformPoint(object.position);
-                const objectMatrix = new Matrix2();
-                objectMatrix.compose(unRotatedPosition.x, unRotatedPosition.y, object.scale.x, object.scale.y, object.origin.x, object.origin.y, 0);
-                const box = object.boundingBox.clone();
-                const topLeftWorld = objectMatrix.transformPoint(box.min);
-                const topRightWorld = objectMatrix.transformPoint(new Vector2(box.max.x, box.min.y));
-                const bottomLeftWorld = objectMatrix.transformPoint(new Vector2(box.min.x, box.max.y));
-                const bottomRightWorld = objectMatrix.transformPoint(box.max);
-                const unrotatedBox = new Box2().setFromPoints(topLeftWorld, topRightWorld, bottomLeftWorld, bottomRightWorld);
+                _objectMatrix.compose(unRotatedPosition.x, unRotatedPosition.y, object.scale.x, object.scale.y, object.origin.x, object.origin.y, 0);
+                const box = object.boundingBox;
+                _objectMatrix.applyToVector(_topLeft.copy(box.min));
+                _objectMatrix.applyToVector(_topRight.copy(box.max.x, box.min.y));
+                _objectMatrix.applyToVector(_botLeft.copy(box.min.x, box.max.y));
+                _objectMatrix.applyToVector(_botRight.copy(box.max));
+                const unrotatedBox = new Box2().setFromPoints(_topLeft, _topRight, _botLeft, _botRight);
                 worldBox.union(unrotatedBox);
             }
             // True Center
@@ -202,8 +208,10 @@ class ResizeTool extends Box {
                     }
                     return closestCursor;
                 };
-                resizer.onPointerDrag = function(pointer, camera) {
-                    Object2D.prototype.onPointerDrag.call(this, pointer, camera);
+                resizer.onPointerDrag = function(renderer) {
+                    Object2D.prototype.onPointerDrag.call(this, renderer);
+                    const pointer = renderer.pointer;
+                    const camera = renderer.camera;
                     // Transform Delta
                     const pointerStart = pointer.position.clone();
                     const pointerEnd = pointer.position.clone().sub(pointer.delta);
@@ -301,7 +309,9 @@ class ResizeTool extends Box {
             rotater.fillStyle.addColorStop(1, '--icon-dark');
             rotater.strokeStyle.color = '--highlight';
             rotater.cursor = `url('${CURSOR_ROTATE}') 16 16, auto`;
-            rotater.onPointerDrag = function(pointer, camera) {
+            rotater.onPointerDrag = function(renderer) {
+                const pointer = renderer.pointer;
+                const camera = renderer.camera;
                 const pointerStart = pointer.position.clone();
                 const pointerEnd = pointer.position.clone().sub(pointer.delta);
                 const worldPositionStart = camera.inverseMatrix.transformPoint(pointerStart);
@@ -330,13 +340,18 @@ class ResizeTool extends Box {
         }
 
         // Update positions on Drag
-        this.onPointerDrag = function(pointer, camera) {
-            Object2D.prototype.onPointerDrag.call(this, pointer, camera);
-            updateObjects();
+        this.onPointerDrag = function(renderer) {
+            Object2D.prototype.onPointerDrag.call(this, renderer);
+            updateObjects(renderer);
+        };
+
+        // Update positions on Drag End
+        this.onPointerDragEnd = function(renderer) {
+            updateObjects(renderer);
         };
 
         // Update object's position based on the scaled relative position
-        function updateObjects() {
+        function updateObjects(renderer) {
             for (const object of objects) {
                 const initialPosition = initialTransforms[object.uuid].position;
                 const initialRotation = initialTransforms[object.uuid].rotation;
@@ -354,7 +369,15 @@ class ResizeTool extends Box {
                 const rotateAngle = (object.rotation - initialRotation) + startRotation;
                 const rotationMatrix = new Matrix2().rotate(rotateAngle);
                 const rotatedPosition = rotationMatrix.transformPoint(scaledPosition);
-                object.position.copy(rotatedPosition).add(self.position);
+                _position.copy(rotatedPosition).add(self.position);
+
+                // Lerp?
+                if (self.isDragging) {
+                    object.position.smoothstep(_position, renderer.deltaTime * 33);
+                    console.log(renderer.deltaTime);
+                } else {
+                    object.position.copy(_position);
+                }
 
                 // Flipped?
                 const wasSame = Math.sign(object.scale.x) === Math.sign(object.scale.y);
@@ -387,11 +410,14 @@ class ResizeTool extends Box {
                 rotater.position.copy(topCenterWorldOffset);
                 rotater.scale.set((1 / self.scale.x) / camera.scale, (1 / self.scale.y) / camera.scale);
                 rotater.updateMatrix();
+                rotater.visible = !self.isDragging;
+
             }
             if (rotateLine) {
                 rotateLine.from.copy(topCenterWorldOffset);
                 rotateLine.to.copy(topCenterWorld);
                 rotateLine.updateMatrix();
+                rotateLine.visible = !self.isDragging;
             }
 
             // Corner Resizers
@@ -400,6 +426,7 @@ class ResizeTool extends Box {
                 resizer.position.set(x, y);
                 resizer.scale.set((1 / self.scale.x) / camera.scale, (1 / self.scale.y) / camera.scale);
                 resizer.updateMatrix();
+                resizer.visible = !self.isDragging;
             }
             updateCornerResizer(topLeft, -halfSize.x, -halfSize.y);
             updateCornerResizer(topRight, +halfSize.x, -halfSize.y);
@@ -429,6 +456,7 @@ class ResizeTool extends Box {
                     }
                 }
                 resizer.updateMatrix();
+                resizer.visible = !self.isDragging;
             }
             updateSideResizer(leftResizer, -halfSize.x, 0, 'v');
             updateSideResizer(rightResizer, +halfSize.x, 0, 'v');

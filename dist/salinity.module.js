@@ -323,6 +323,13 @@ class Vector2 {
         this.y = a.y + ((b.y - a.y) * t);
         return this;
     }
+    smoothstep(vec, t) {
+        t = 3 * t * t - 2 * t * t * t;
+        t = Math.min(1, Math.max(0, t));
+        this.x = this.x + ((vec.x - this.x) * t);
+        this.y = this.y + ((vec.y - this.y) * t);
+        return this;
+    }
     equals(vec) {
         return ((vec.x === this.x) && (vec.y === this.y));
     }
@@ -842,15 +849,25 @@ class MathUtils {
         if (number > max) number = max;
         return number;
     }
-    static damp(x, y, lambda, dt) {
-        return MathUtils.lerp(x, y, 1 - Math.exp(- lambda * dt));
-    }
-    static lerp(x, y, t) {
-        return (1 - t) * x + t * y;
-    }
     static roundTo(number, decimalPlaces = 0) {
         const shift = Math.pow(10, decimalPlaces);
         return Math.round(number * shift) / shift;
+    }
+    static damp(a, b, lambda, dt) {
+        return MathUtils.lerp(a, b, 1 - Math.exp(-lambda * dt));
+    }
+    static lerp(a, b, t) {
+        return (1 - t) * a + t * b;
+    }
+    static smoothstep(a, b, t) {
+        t = 3 * t * t - 2 * t * t * t;
+        t = Math.min(1, Math.max(0, t));
+        return a + ((b - a) * t);
+    }
+    static smootherstep(a, b, t) {
+        t = t * t * t * (t * (t * 6 - 15) + 10);
+        t = Math.min(1, Math.max(0, t));
+        return a + ((b - a) * t);
     }
     static fuzzyFloat(a, b, tolerance = 0.001) {
         return ((a < (b + tolerance)) && (a > (b - tolerance)));
@@ -858,12 +875,8 @@ class MathUtils {
     static fuzzyVector(a, b, tolerance = 0.001) {
         if (MathUtils.fuzzyFloat(a.x, b.x, tolerance) === false) return false;
         if (MathUtils.fuzzyFloat(a.y, b.y, tolerance) === false) return false;
-        if (MathUtils.fuzzyFloat(a.z, b.z, tolerance) === false) return false;
-        return true;
-    }
-    static fuzzyQuaternion(a, b, tolerance = 0.001) {
-        if (MathUtils.fuzzyVector(a, b, tolerance) === false) return false;
-        if (MathUtils.fuzzyFloat(a.w, b.w, tolerance) === false) return false;
+        if (('z' in a) && ('z' in b) && MathUtils.fuzzyFloat(a.z, b.z, tolerance) === false) return false;
+        if (('w' in a) && ('w' in b) && MathUtils.fuzzyFloat(a.w, b.w, tolerance) === false) return false;
         return true;
     }
     static isPowerOfTwo(value) {
@@ -1442,10 +1455,10 @@ class Thing {
     }
 }
 
-const _topLeft$2 = new Vector2();
-const _topRight$2 = new Vector2();
-const _botLeft$2 = new Vector2();
-const _botRight$2 = new Vector2();
+const _topLeft$3 = new Vector2();
+const _topRight$3 = new Vector2();
+const _botLeft$3 = new Vector2();
+const _botRight$3 = new Vector2();
 class Object2D extends Thing {
     constructor(name = 'Object') {
         super(name);
@@ -1475,6 +1488,7 @@ class Object2D extends Thing {
         this.pointerInside = false;
         this.inViewport = true;
         this.isSelected = false;
+        this.isDragging = false;
     }
     add(...objects) {
         if (!objects) return this;
@@ -1593,11 +1607,11 @@ class Object2D extends Thing {
         const box = this.boundingBox;
         if (Number.isFinite(box.min.x) === false || Number.isFinite(box.min.y) === false) return box;
         if (Number.isFinite(box.max.x) === false || Number.isFinite(box.max.y) === false) return box;
-        this.globalMatrix.applyToVector(_topLeft$2.copy(box.min));
-        this.globalMatrix.applyToVector(_topRight$2.copy(box.max.x, box.min.y));
-        this.globalMatrix.applyToVector(_botLeft$2.copy(box.min.x, box.max.y));
-        this.globalMatrix.applyToVector(_botRight$2.copy(box.max));
-        return new Box2().setFromPoints(_topLeft$2, _topRight$2, _botLeft$2, _botRight$2);
+        this.globalMatrix.applyToVector(_topLeft$3.copy(box.min));
+        this.globalMatrix.applyToVector(_topRight$3.copy(box.max.x, box.min.y));
+        this.globalMatrix.applyToVector(_botLeft$3.copy(box.min.x, box.max.y));
+        this.globalMatrix.applyToVector(_botRight$3.copy(box.max));
+        return new Box2().setFromPoints(_topLeft$3, _topRight$3, _botLeft$3, _botRight$3);
     }
     localToWorld(vector) {
         return this.globalMatrix.transformPoint(vector);
@@ -1667,7 +1681,9 @@ class Object2D extends Thing {
     transform(renderer) {
         this.globalMatrix.tranformContext(renderer.context);
     }
-    onPointerDrag(pointer, camera) {
+    onPointerDrag(renderer) {
+        const pointer = renderer.pointer;
+        const camera = renderer.camera;
         const pointerStart = pointer.position.clone();
         const pointerEnd = pointer.position.clone().sub(pointer.delta);
         const parent = this.parent ?? this;
@@ -1680,7 +1696,8 @@ class Object2D extends Thing {
             this.dragStartPosition = pointer.position.clone();
         } else if (pointer.buttonPressed(Pointer.LEFT)) {
             const manhattanDistance = this.dragStartPosition.manhattanDistanceTo(pointerEnd);
-            if (manhattanDistance >= MOUSE_SLOP) {
+            if (manhattanDistance >= MOUSE_SLOP || this.isDragging) {
+                this.isDragging = true;
                 this.position.add(delta);
                 this.matrixNeedsUpdate = true;
             }
@@ -2804,10 +2821,10 @@ function appPointerMove(event) {
 }
 
 const _cameraView = new Box2();
-const _topLeft$1 = new Vector2();
-const _topRight$1 = new Vector2();
-const _botLeft$1 = new Vector2();
-const _botRight$1 = new Vector2();
+const _topLeft$2 = new Vector2();
+const _topRight$2 = new Vector2();
+const _botLeft$2 = new Vector2();
+const _botRight$2 = new Vector2();
 const _translate = new Matrix2();
 const _rotate = new Matrix2();
 const _scale$1 = new Matrix2();
@@ -2824,11 +2841,11 @@ class Camera2D extends Thing {
         this.viewport = new Box2(new Vector2(0, 0), new Vector2(1, 1));
     }
     intersectsViewport(box) {
-        this.matrix.applyToVector(_topLeft$1.copy(box.min));
-        this.matrix.applyToVector(_topRight$1.copy(box.max.x, box.min.y));
-        this.matrix.applyToVector(_botLeft$1.copy(box.min.x, box.max.y));
-        this.matrix.applyToVector(_botRight$1.copy(box.max));
-        _cameraView.setFromPoints(_topLeft$1, _topRight$1, _botLeft$1, _botRight$1);
+        this.matrix.applyToVector(_topLeft$2.copy(box.min));
+        this.matrix.applyToVector(_topRight$2.copy(box.max.x, box.min.y));
+        this.matrix.applyToVector(_botLeft$2.copy(box.min.x, box.max.y));
+        this.matrix.applyToVector(_botRight$2.copy(box.max));
+        _cameraView.setFromPoints(_topLeft$2, _topRight$2, _botLeft$2, _botRight$2);
         return this.viewport.intersectsBox(_cameraView);
     }
     updateMatrix(offsetX, offsetY) {
@@ -2863,35 +2880,36 @@ class EventManager {
                 const isInside = object.isInside(_localPoint);
                 if (isInside) {
                     if (!currentCursor && object.cursor) setCursor(object);
-                    if (renderer.beingDragged == null) {
-                        if (!object.pointerInside && typeof object.onPointerEnter === 'function') object.onPointerEnter(pointer, camera);
-                        if (typeof object.onPointerOver === 'function') object.onPointerOver(pointer, camera);
-                        if (pointer.buttonDoubleClicked(Pointer.LEFT) && typeof object.onDoubleClick === 'function') object.onDoubleClick(pointer, camera);
-                        if (pointer.buttonPressed(Pointer.LEFT) && typeof object.onButtonPressed === 'function') object.onButtonPressed(pointer, camera);
-                        if (pointer.buttonJustReleased(Pointer.LEFT) && typeof object.onButtonUp === 'function') object.onButtonUp(pointer, camera);
+                    if (renderer.dragObject == null) {
+                        if (!object.pointerInside && typeof object.onPointerEnter === 'function') object.onPointerEnter(renderer);
+                        if (typeof object.onPointerOver === 'function') object.onPointerOver(renderer);
+                        if (pointer.buttonDoubleClicked(Pointer.LEFT) && typeof object.onDoubleClick === 'function') object.onDoubleClick(renderer);
+                        if (pointer.buttonPressed(Pointer.LEFT) && typeof object.onButtonPressed === 'function') object.onButtonPressed(renderer);
+                        if (pointer.buttonJustReleased(Pointer.LEFT) && typeof object.onButtonUp === 'function') object.onButtonUp(renderer);
                         if (pointer.buttonJustPressed(Pointer.LEFT)) {
-                            if (typeof object.onButtonDown === 'function') object.onButtonDown(pointer, camera);
+                            if (typeof object.onButtonDown === 'function') object.onButtonDown(renderer);
                             if (object.draggable) {
-                                renderer.beingDragged = object;
-                                if (typeof object.onPointerDragStart === 'function') object.onPointerDragStart(pointer, camera);
+                                renderer.dragObject = object;
+                                if (typeof object.onPointerDragStart === 'function') object.onPointerDragStart(renderer);
                             }
                         }
                     }
                     object.pointerInside = true;
-                } else if (renderer.beingDragged !== object && object.pointerInside) {
-                    if (typeof object.onPointerLeave === 'function') object.onPointerLeave(pointer, camera);
+                } else if (renderer.dragObject !== object && object.pointerInside) {
+                    if (typeof object.onPointerLeave === 'function') object.onPointerLeave(renderer);
                     object.pointerInside = false;
                 }
             }
-            if (renderer.beingDragged === object) {
+            if (renderer.dragObject === object) {
                 if (pointer.buttonJustReleased(Pointer.LEFT)) {
+                    renderer.dragObject = null;
+                    object.isDragging = false;
                     if (object.pointerEvents && typeof object.onPointerDragEnd === 'function') {
-                        object.onPointerDragEnd(pointer, camera);
+                        object.onPointerDragEnd(renderer);
                     }
-                    renderer.beingDragged = null;
                 } else {
                     if (object.pointerEvents && typeof object.onPointerDrag === 'function') {
-                        object.onPointerDrag(pointer, camera);
+                        object.onPointerDrag(renderer);
                     }
                     setCursor(object);
                 }
@@ -2961,10 +2979,10 @@ class Keyboard {
 }
 
 const _origin = new Vector2();
-const _topLeft = new Vector2();
-const _topRight = new Vector2();
-const _botLeft = new Vector2();
-const _botRight = new Vector2();
+const _topLeft$1 = new Vector2();
+const _topRight$1 = new Vector2();
+const _botLeft$1 = new Vector2();
+const _botRight$1 = new Vector2();
 class Renderer {
     constructor({
         alpha = true,
@@ -3006,11 +3024,14 @@ class Renderer {
         this.on('destroy', () => {
             resizeObserver.unobserve(canvas);
         });
+        this.clock = new Clock(false);
+        this.deltaTime = 0;
+        this.totalTime = 0;
         this.running = false;
         this.frame = -1;
         this.scene = null;
         this.camera = null;
-        this.beingDragged = null;
+        this.dragObject = null;
     }
     destroy() {
         dom.dispatchEvent(new Event('destroy'));
@@ -3049,8 +3070,11 @@ class Renderer {
     start(scene, camera, onBeforeRender, onAfterRender) {
         if (this.running) return;
         this.running = true;
+        this.clock.start(true );
         const renderer = this;
         function loop() {
+            renderer.deltaTime = renderer.clock.getDeltaTime();
+            renderer.totalTime = renderer.clock.getElapsedTime();
             if (typeof onBeforeRender === 'function') onBeforeRender();
             for (const object of renderer.updatable) {
                 if (typeof object.update === 'function') object.update(renderer);
@@ -3124,15 +3148,15 @@ class Renderer {
         context.strokeStyle = '#65e5ff';
         camera.matrix.setContextTransform(context);
         const box = object.boundingBox;
-        object.globalMatrix.applyToVector(_topLeft.copy(box.min));
-        object.globalMatrix.applyToVector(_topRight.copy(box.max.x, box.min.y));
-        object.globalMatrix.applyToVector(_botLeft.copy(box.min.x, box.max.y));
-        object.globalMatrix.applyToVector(_botRight.copy(box.max));
+        object.globalMatrix.applyToVector(_topLeft$1.copy(box.min));
+        object.globalMatrix.applyToVector(_topRight$1.copy(box.max.x, box.min.y));
+        object.globalMatrix.applyToVector(_botLeft$1.copy(box.min.x, box.max.y));
+        object.globalMatrix.applyToVector(_botRight$1.copy(box.max));
         context.beginPath();
-        context.moveTo(_topLeft.x, _topLeft.y);
-        context.lineTo(_topRight.x, _topRight.y);
-        context.lineTo(_botRight.x, _botRight.y);
-        context.lineTo(_botLeft.x, _botLeft.y);
+        context.moveTo(_topLeft$1.x, _topLeft$1.y);
+        context.lineTo(_topRight$1.x, _topRight$1.y);
+        context.lineTo(_botRight$1.x, _botRight$1.y);
+        context.lineTo(_botLeft$1.x, _botLeft$1.y);
         context.closePath();
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.stroke();
@@ -3960,6 +3984,12 @@ class CameraControls {
 }
 
 const CURSOR_ROTATE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWw6c3BhY2U9InByZXNlcnZlIiBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlLWxpbmVqb2luOnJvdW5kO3N0cm9rZS1taXRlcmxpbWl0OjI7Ij48cGF0aCBkPSJNMjEuMjQ3LDUuODY3YzAuNDE3LC0wLjQ1MiAxLjAzNiwtMC42NjYgMS42NDcsLTAuNTYzYzAuNjQ0LDAuMTA5IDEuMTgsMC41NTMgMS40MDcsMS4xNjRsMS44MjQsNC45MDFjMC4yMjcsMC42MTEgMC4xMTEsMS4yOTggLTAuMzA1LDEuODAxYy0wLjQxNiwwLjUwMyAtMS4wNjksMC43NDUgLTEuNzEzLDAuNjM2bC01LjE1NCwtMC44NzRjLTAuNjQ0LC0wLjEwOSAtMS4xOCwtMC41NTMgLTEuNDA3LC0xLjE2NWMtMC4xNzksLTAuNDgxIC0wLjE0NSwtMS4wMDggMC4wOCwtMS40NTVjLTAuNTIxLC0wLjE0OCAtMS4wNjQsLTAuMjI1IC0xLjYxNSwtMC4yMjVjLTMuMjY0LDAgLTUuOTEzLDIuNjUgLTUuOTEzLDUuOTEzYy0wLDMuMjYzIDIuNjQ5LDUuOTEzIDUuOTEzLDUuOTEzYzEuNjQsMCAzLjIwNiwtMC42ODEgNC4zMjQsLTEuODhjMC42ODgsLTAuNzM4IDEuODQ0LC0wLjc3OCAyLjU4MiwtMC4wOWwxLjM0NiwxLjI1NWMwLjczNywwLjY4OCAwLjc3OCwxLjg0MyAwLjA5LDIuNTgxYy0yLjE1OCwyLjMxNCAtNS4xNzksMy42MjcgLTguMzQyLDMuNjI3Yy02LjI5NSwwIC0xMS40MDYsLTUuMTExIC0xMS40MDYsLTExLjQwNmMtMCwtNi4yOTUgNS4xMTEsLTExLjQwNiAxMS40MDYsLTExLjQwNmMxLjgzOCwtMCAzLjYzMSwwLjQ0MyA1LjIzNiwxLjI3M1oiIHN0eWxlPSJmaWxsOiNmZmY7Ii8+PHBhdGggZD0iTTE5LjgzNSw5Ljc2N2wtMC45MDUsMS4wOTNjLTAuMDk3LDAuMTE3IC0wLjEyNCwwLjI3NyAtMC4wNzEsMC40MTljMC4wNTMsMC4xNDMgMC4xNzgsMC4yNDYgMC4zMjgsMC4yNzJsNS4xNTQsMC44NzRjMC4xNTEsMC4wMjYgMC4zMDMsLTAuMDMxIDAuNCwtMC4xNDhjMC4wOTcsLTAuMTE3IDAuMTI0LC0wLjI3NyAwLjA3MSwtMC40MmwtMS44MjMsLTQuOWMtMC4wNTMsLTAuMTQzIC0wLjE3OCwtMC4yNDYgLTAuMzI4LC0wLjI3MWMtMC4xNSwtMC4wMjYgLTAuMzAyLDAuMDMxIC0wLjM5OSwwLjE0OGwtMC42OTksMC44NDRjLTEuNjMyLC0xLjA5MSAtMy41NjIsLTEuNjgzIC01LjU1MiwtMS42ODNjLTUuNTIyLC0wIC0xMC4wMDYsNC40ODMgLTEwLjAwNiwxMC4wMDVjMCw1LjUyMiA0LjQ4NCwxMC4wMDUgMTAuMDA2LDEwLjAwNWMyLjc3NSwwIDUuNDI1LC0xLjE1MiA3LjMxNywtMy4xODFjMC4xNjEsLTAuMTcyIDAuMTUxLC0wLjQ0MiAtMC4wMjEsLTAuNjAybC0xLjM0NSwtMS4yNTVjLTAuMTcyLC0wLjE2IC0wLjQ0MiwtMC4xNTEgLTAuNjAyLDAuMDIxYy0xLjM4MywxLjQ4MyAtMy4zMjEsMi4zMjYgLTUuMzQ5LDIuMzI2Yy00LjAzNywtMCAtNy4zMTQsLTMuMjc3IC03LjMxNCwtNy4zMTRjMCwtNC4wMzcgMy4yNzcsLTcuMzE0IDcuMzE0LC03LjMxNGMxLjM2LDAgMi42ODIsMC4zNzkgMy44MjQsMS4wODFaIi8+PC9zdmc+';
+const _position = new Vector2();
+const _topLeft = new Vector2();
+const _topRight = new Vector2();
+const _botLeft = new Vector2();
+const _botRight = new Vector2();
+const _objectMatrix = new Matrix2();
 class ResizeTool extends Box {
     static ALL = 0;
     static RESIZE = 1;
@@ -4008,14 +4038,13 @@ class ResizeTool extends Box {
             const unRotateMatrix = new Matrix2().rotate(-this.rotation);
             for (const object of objects) {
                 const unRotatedPosition = unRotateMatrix.transformPoint(object.position);
-                const objectMatrix = new Matrix2();
-                objectMatrix.compose(unRotatedPosition.x, unRotatedPosition.y, object.scale.x, object.scale.y, object.origin.x, object.origin.y, 0);
-                const box = object.boundingBox.clone();
-                const topLeftWorld = objectMatrix.transformPoint(box.min);
-                const topRightWorld = objectMatrix.transformPoint(new Vector2(box.max.x, box.min.y));
-                const bottomLeftWorld = objectMatrix.transformPoint(new Vector2(box.min.x, box.max.y));
-                const bottomRightWorld = objectMatrix.transformPoint(box.max);
-                const unrotatedBox = new Box2().setFromPoints(topLeftWorld, topRightWorld, bottomLeftWorld, bottomRightWorld);
+                _objectMatrix.compose(unRotatedPosition.x, unRotatedPosition.y, object.scale.x, object.scale.y, object.origin.x, object.origin.y, 0);
+                const box = object.boundingBox;
+                _objectMatrix.applyToVector(_topLeft.copy(box.min));
+                _objectMatrix.applyToVector(_topRight.copy(box.max.x, box.min.y));
+                _objectMatrix.applyToVector(_botLeft.copy(box.min.x, box.max.y));
+                _objectMatrix.applyToVector(_botRight.copy(box.max));
+                const unrotatedBox = new Box2().setFromPoints(_topLeft, _topRight, _botLeft, _botRight);
                 worldBox.union(unrotatedBox);
             }
             const rotatedCenter = worldBox.getCenter();
@@ -4112,8 +4141,10 @@ class ResizeTool extends Box {
                     }
                     return closestCursor;
                 };
-                resizer.onPointerDrag = function(pointer, camera) {
-                    Object2D.prototype.onPointerDrag.call(this, pointer, camera);
+                resizer.onPointerDrag = function(renderer) {
+                    Object2D.prototype.onPointerDrag.call(this, renderer);
+                    const pointer = renderer.pointer;
+                    const camera = renderer.camera;
                     const pointerStart = pointer.position.clone();
                     const pointerEnd = pointer.position.clone().sub(pointer.delta);
                     const worldPositionStart = camera.inverseMatrix.transformPoint(pointerStart);
@@ -4193,7 +4224,9 @@ class ResizeTool extends Box {
             rotater.fillStyle.addColorStop(1, '--icon-dark');
             rotater.strokeStyle.color = '--highlight';
             rotater.cursor = `url('${CURSOR_ROTATE}') 16 16, auto`;
-            rotater.onPointerDrag = function(pointer, camera) {
+            rotater.onPointerDrag = function(renderer) {
+                const pointer = renderer.pointer;
+                const camera = renderer.camera;
                 const pointerStart = pointer.position.clone();
                 const pointerEnd = pointer.position.clone().sub(pointer.delta);
                 const worldPositionStart = camera.inverseMatrix.transformPoint(pointerStart);
@@ -4219,11 +4252,14 @@ class ResizeTool extends Box {
             rotateLine.strokeStyle.color = '--highlight';
             this.add(rotater, rotateLine);
         }
-        this.onPointerDrag = function(pointer, camera) {
-            Object2D.prototype.onPointerDrag.call(this, pointer, camera);
-            updateObjects();
+        this.onPointerDrag = function(renderer) {
+            Object2D.prototype.onPointerDrag.call(this, renderer);
+            updateObjects(renderer);
         };
-        function updateObjects() {
+        this.onPointerDragEnd = function(renderer) {
+            updateObjects(renderer);
+        };
+        function updateObjects(renderer) {
             for (const object of objects) {
                 const initialPosition = initialTransforms[object.uuid].position;
                 const initialRotation = initialTransforms[object.uuid].rotation;
@@ -4235,7 +4271,13 @@ class ResizeTool extends Box {
                 const rotateAngle = (object.rotation - initialRotation) + startRotation;
                 const rotationMatrix = new Matrix2().rotate(rotateAngle);
                 const rotatedPosition = rotationMatrix.transformPoint(scaledPosition);
-                object.position.copy(rotatedPosition).add(self.position);
+                _position.copy(rotatedPosition).add(self.position);
+                if (self.isDragging) {
+                    object.position.smoothstep(_position, renderer.deltaTime * 33);
+                    console.log(renderer.deltaTime);
+                } else {
+                    object.position.copy(_position);
+                }
                 const wasSame = Math.sign(object.scale.x) === Math.sign(object.scale.y);
                 const isSame =  Math.sign(initialScale.x) === Math.sign(initialScale.y);
                 if (wasSame !== isSame) {
@@ -4258,17 +4300,20 @@ class ResizeTool extends Box {
                 rotater.position.copy(topCenterWorldOffset);
                 rotater.scale.set((1 / self.scale.x) / camera.scale, (1 / self.scale.y) / camera.scale);
                 rotater.updateMatrix();
+                rotater.visible = !self.isDragging;
             }
             if (rotateLine) {
                 rotateLine.from.copy(topCenterWorldOffset);
                 rotateLine.to.copy(topCenterWorld);
                 rotateLine.updateMatrix();
+                rotateLine.visible = !self.isDragging;
             }
             function updateCornerResizer(resizer, x, y) {
                 if (!resizer) return;
                 resizer.position.set(x, y);
                 resizer.scale.set((1 / self.scale.x) / camera.scale, (1 / self.scale.y) / camera.scale);
                 resizer.updateMatrix();
+                resizer.visible = !self.isDragging;
             }
             updateCornerResizer(topLeft, -halfSize.x, -halfSize.y);
             updateCornerResizer(topRight, +halfSize.x, -halfSize.y);
@@ -4296,6 +4341,7 @@ class ResizeTool extends Box {
                     }
                 }
                 resizer.updateMatrix();
+                resizer.visible = !self.isDragging;
             }
             updateSideResizer(leftResizer, -halfSize.x, 0, 'v');
             updateSideResizer(rightResizer, +halfSize.x, 0, 'v');
@@ -4395,7 +4441,7 @@ class SelectControls {
             if (this._wantsRubberBand) {
                 if (this.rubberBandBox == null) {
                     if (mouseTravel >= MOUSE_SLOP) {
-                        renderer.beingDragged = this.rubberBandBox;
+                        renderer.dragObject = this.rubberBandBox;
                         const rubberBandBox = new RubberBandBox();
                         scene.traverse((child) => { rubberBandBox.layer = Math.max(rubberBandBox.layer, child.layer + 1); });
                         scene.add(rubberBandBox);
@@ -4445,7 +4491,7 @@ class SelectControls {
                 commonAncestor.add(this.resizeTool);
                 this.resizeTool.onUpdate(renderer);
                 if (this.rubberBandBox == null) {
-                    renderer.beingDragged = this.resizeTool;
+                    renderer.dragObject = this.resizeTool;
                 }
             }
             this.selection = [ ...newSelection ];

@@ -323,6 +323,13 @@ class Vector2 {
         this.y = a.y + ((b.y - a.y) * t);
         return this;
     }
+    smoothstep(vec, t) {
+        t = 3 * t * t - 2 * t * t * t;
+        t = Math.min(1, Math.max(0, t));
+        this.x = this.x + ((vec.x - this.x) * t);
+        this.y = this.y + ((vec.y - this.y) * t);
+        return this;
+    }
     equals(vec) {
         return ((vec.x === this.x) && (vec.y === this.y));
     }
@@ -842,15 +849,25 @@ class MathUtils {
         if (number > max) number = max;
         return number;
     }
-    static damp(x, y, lambda, dt) {
-        return MathUtils.lerp(x, y, 1 - Math.exp(- lambda * dt));
-    }
-    static lerp(x, y, t) {
-        return (1 - t) * x + t * y;
-    }
     static roundTo(number, decimalPlaces = 0) {
         const shift = Math.pow(10, decimalPlaces);
         return Math.round(number * shift) / shift;
+    }
+    static damp(a, b, lambda, dt) {
+        return MathUtils.lerp(a, b, 1 - Math.exp(-lambda * dt));
+    }
+    static lerp(a, b, t) {
+        return (1 - t) * a + t * b;
+    }
+    static smoothstep(a, b, t) {
+        t = 3 * t * t - 2 * t * t * t;
+        t = Math.min(1, Math.max(0, t));
+        return a + ((b - a) * t);
+    }
+    static smootherstep(a, b, t) {
+        t = t * t * t * (t * (t * 6 - 15) + 10);
+        t = Math.min(1, Math.max(0, t));
+        return a + ((b - a) * t);
     }
     static fuzzyFloat(a, b, tolerance = 0.001) {
         return ((a < (b + tolerance)) && (a > (b - tolerance)));
@@ -858,12 +875,8 @@ class MathUtils {
     static fuzzyVector(a, b, tolerance = 0.001) {
         if (MathUtils.fuzzyFloat(a.x, b.x, tolerance) === false) return false;
         if (MathUtils.fuzzyFloat(a.y, b.y, tolerance) === false) return false;
-        if (MathUtils.fuzzyFloat(a.z, b.z, tolerance) === false) return false;
-        return true;
-    }
-    static fuzzyQuaternion(a, b, tolerance = 0.001) {
-        if (MathUtils.fuzzyVector(a, b, tolerance) === false) return false;
-        if (MathUtils.fuzzyFloat(a.w, b.w, tolerance) === false) return false;
+        if (('z' in a) && ('z' in b) && MathUtils.fuzzyFloat(a.z, b.z, tolerance) === false) return false;
+        if (('w' in a) && ('w' in b) && MathUtils.fuzzyFloat(a.w, b.w, tolerance) === false) return false;
         return true;
     }
     static isPowerOfTwo(value) {
@@ -1475,6 +1488,7 @@ class Object2D extends Thing {
         this.pointerInside = false;
         this.inViewport = true;
         this.isSelected = false;
+        this.isDragging = false;
     }
     add(...objects) {
         if (!objects) return this;
@@ -1667,7 +1681,9 @@ class Object2D extends Thing {
     transform(renderer) {
         this.globalMatrix.tranformContext(renderer.context);
     }
-    onPointerDrag(pointer, camera) {
+    onPointerDrag(renderer) {
+        const pointer = renderer.pointer;
+        const camera = renderer.camera;
         const pointerStart = pointer.position.clone();
         const pointerEnd = pointer.position.clone().sub(pointer.delta);
         const parent = this.parent ?? this;
@@ -1680,7 +1696,8 @@ class Object2D extends Thing {
             this.dragStartPosition = pointer.position.clone();
         } else if (pointer.buttonPressed(Pointer.LEFT)) {
             const manhattanDistance = this.dragStartPosition.manhattanDistanceTo(pointerEnd);
-            if (manhattanDistance >= MOUSE_SLOP) {
+            if (manhattanDistance >= MOUSE_SLOP || this.isDragging) {
+                this.isDragging = true;
                 this.position.add(delta);
                 this.matrixNeedsUpdate = true;
             }
@@ -2863,35 +2880,36 @@ class EventManager {
                 const isInside = object.isInside(_localPoint);
                 if (isInside) {
                     if (!currentCursor && object.cursor) setCursor(object);
-                    if (renderer.beingDragged == null) {
-                        if (!object.pointerInside && typeof object.onPointerEnter === 'function') object.onPointerEnter(pointer, camera);
-                        if (typeof object.onPointerOver === 'function') object.onPointerOver(pointer, camera);
-                        if (pointer.buttonDoubleClicked(Pointer.LEFT) && typeof object.onDoubleClick === 'function') object.onDoubleClick(pointer, camera);
-                        if (pointer.buttonPressed(Pointer.LEFT) && typeof object.onButtonPressed === 'function') object.onButtonPressed(pointer, camera);
-                        if (pointer.buttonJustReleased(Pointer.LEFT) && typeof object.onButtonUp === 'function') object.onButtonUp(pointer, camera);
+                    if (renderer.dragObject == null) {
+                        if (!object.pointerInside && typeof object.onPointerEnter === 'function') object.onPointerEnter(renderer);
+                        if (typeof object.onPointerOver === 'function') object.onPointerOver(renderer);
+                        if (pointer.buttonDoubleClicked(Pointer.LEFT) && typeof object.onDoubleClick === 'function') object.onDoubleClick(renderer);
+                        if (pointer.buttonPressed(Pointer.LEFT) && typeof object.onButtonPressed === 'function') object.onButtonPressed(renderer);
+                        if (pointer.buttonJustReleased(Pointer.LEFT) && typeof object.onButtonUp === 'function') object.onButtonUp(renderer);
                         if (pointer.buttonJustPressed(Pointer.LEFT)) {
-                            if (typeof object.onButtonDown === 'function') object.onButtonDown(pointer, camera);
+                            if (typeof object.onButtonDown === 'function') object.onButtonDown(renderer);
                             if (object.draggable) {
-                                renderer.beingDragged = object;
-                                if (typeof object.onPointerDragStart === 'function') object.onPointerDragStart(pointer, camera);
+                                renderer.dragObject = object;
+                                if (typeof object.onPointerDragStart === 'function') object.onPointerDragStart(renderer);
                             }
                         }
                     }
                     object.pointerInside = true;
-                } else if (renderer.beingDragged !== object && object.pointerInside) {
-                    if (typeof object.onPointerLeave === 'function') object.onPointerLeave(pointer, camera);
+                } else if (renderer.dragObject !== object && object.pointerInside) {
+                    if (typeof object.onPointerLeave === 'function') object.onPointerLeave(renderer);
                     object.pointerInside = false;
                 }
             }
-            if (renderer.beingDragged === object) {
+            if (renderer.dragObject === object) {
                 if (pointer.buttonJustReleased(Pointer.LEFT)) {
+                    renderer.dragObject = null;
+                    object.isDragging = false;
                     if (object.pointerEvents && typeof object.onPointerDragEnd === 'function') {
-                        object.onPointerDragEnd(pointer, camera);
+                        object.onPointerDragEnd(renderer);
                     }
-                    renderer.beingDragged = null;
                 } else {
                     if (object.pointerEvents && typeof object.onPointerDrag === 'function') {
-                        object.onPointerDrag(pointer, camera);
+                        object.onPointerDrag(renderer);
                     }
                     setCursor(object);
                 }
@@ -3006,11 +3024,14 @@ class Renderer {
         this.on('destroy', () => {
             resizeObserver.unobserve(canvas);
         });
+        this.clock = new Clock(false);
+        this.deltaTime = 0;
+        this.totalTime = 0;
         this.running = false;
         this.frame = -1;
         this.scene = null;
         this.camera = null;
-        this.beingDragged = null;
+        this.dragObject = null;
     }
     destroy() {
         dom.dispatchEvent(new Event('destroy'));
@@ -3049,8 +3070,11 @@ class Renderer {
     start(scene, camera, onBeforeRender, onAfterRender) {
         if (this.running) return;
         this.running = true;
+        this.clock.start(true );
         const renderer = this;
         function loop() {
+            renderer.deltaTime = renderer.clock.getDeltaTime();
+            renderer.totalTime = renderer.clock.getElapsedTime();
             if (typeof onBeforeRender === 'function') onBeforeRender();
             for (const object of renderer.updatable) {
                 if (typeof object.update === 'function') object.update(renderer);

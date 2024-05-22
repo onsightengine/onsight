@@ -66,6 +66,7 @@ class Object2D extends Thing {
         this.pointerInside = false;                 // pointer is inside of the element?
         this.inViewport = true;                     // object within viewport frustum?
         this.isSelected = false;                    // object is selected?
+        this.isDragging = false;                    // object is being dragged?
     }
 
     /******************** CHILDREN */
@@ -313,9 +314,9 @@ class Object2D extends Thing {
      *
      * Overloadable Render Loop Functions (called in this order):
      *
-     *      transform(renderer) {}
-     *      style(renderer) {}
-     *      draw(renderer) {}
+     *      transform(renderer)
+     *      style(renderer)
+     *      draw(renderer)
      */
 
     /** Apply the transform to the rendering context (camera transform is already applied) */
@@ -327,47 +328,35 @@ class Object2D extends Thing {
 
     /**
      *
-     * Overloadable Hierarchy Events
+     * OVERLOAD HIERARCHY
      *
-     *      onAdd(parent) {}
-     *      onRemove(parent) {}
+     *      onAdd(parent)           // parent is object added to
+     *      onRemove(parent)        // parent is object removed from
      *
-     * @param {Object2D} parent Parent object were it was added / removed.
+     * OVERLOAD UPDATE
      *
-     */
-
-    /**
+     *      onUpdate(renderer)
      *
-     * Overloadable Update Event
+     * OVERLOAD POINTER
      *
-     *      onUpdate(renderer) {}
-     *
-     * @param {Renderer} renderer Renderer curretly active.
-     *
-     */
-
-    /**
-     *
-     * Overloadable Pointer Events
-     *
-     *      onPointerDrag(pointer, camera) {}
-     *      onPointerDragStart(pointer, camera) {}
-     *      onPointerDragEnd(pointer, camera) {}
-     *      onPointerEnter(pointer, camera) {}
-     *      onPointerLeave(pointer, camera) {}
-     *      onPointerOver(pointer, camera) {}
-     *      onButtonPressed(pointer, camera) {}
-     *      onDoubleClick(pointer, camera) {}
-     *      onButtonDown(pointer, camera) {}
-     *      onButtonUp(pointer, camera) {}
-     *
-     * @param {Pointer} pointer Pointer object that receives the user input.
-     * @param {Camera} camera Camera where the object is drawn.
+     *      onPointerDrag(renderer)
+     *      onPointerDragStart(renderer)
+     *      onPointerDragEnd(renderer)
+     *      onPointerEnter(renderer)
+     *      onPointerLeave(renderer)
+     *      onPointerOver(renderer)
+     *      onButtonPressed(renderer)
+     *      onDoubleClick(renderer)
+     *      onButtonDown(renderer)
+     *      onButtonUp(renderer)
      *
      */
 
     /** Object is being dragged, default adds delta to object position (follows mouse movement) */
-    onPointerDrag(pointer, camera) {
+    onPointerDrag(renderer) {
+        const pointer = renderer.pointer;
+        const camera = renderer.camera;
+
         // Pointer Start / End
         const pointerStart = pointer.position.clone();
         const pointerEnd = pointer.position.clone().sub(pointer.delta);
@@ -385,7 +374,8 @@ class Object2D extends Thing {
             this.dragStartPosition = pointer.position.clone();
         } else if (pointer.buttonPressed(Pointer.LEFT)) {
             const manhattanDistance = this.dragStartPosition.manhattanDistanceTo(pointerEnd);
-            if (manhattanDistance >= MOUSE_SLOP) {
+            if (manhattanDistance >= MOUSE_SLOP || this.isDragging) {
+                this.isDragging = true;
                 this.position.add(delta);
                 this.matrixNeedsUpdate = true;
             }

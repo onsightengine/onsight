@@ -3002,11 +3002,14 @@ class Renderer {
         canvas.style.width = '100%';
         canvas.style.height = '100%';
         canvas.style.outline = 'none';
-        this.dom = canvas;
-        this.context = this.dom.getContext('2d', { alpha });
+        this.screenContext  = canvas.getContext('bitmaprenderer');
+        const offscreen = new OffscreenCanvas(width, height);
+        this.context = offscreen.getContext('2d', { alpha });
         this.context.imageSmoothingEnabled = imageSmoothingEnabled;
         this.context.imageSmoothingQuality = imageSmoothingQuality;
         this.context.globalCompositeOperation = globalCompositeOperation;
+        this.dom = canvas;
+        this.offscreen = offscreen;
         this.pointerEvents = pointerEvents;
         this.pointer = new Pointer(this, disableContextMenu);
         this.keyboard = new Keyboard(this);
@@ -3018,6 +3021,8 @@ class Renderer {
             for (const entry of entries) {
                 canvas.width = entry.contentRect.width;
                 canvas.height = entry.contentRect.height;
+                offscreen.width = entry.contentRect.width;
+                offscreen.height = entry.contentRect.height;
                 if (renderer.running) renderer.render();
             }
         });
@@ -3082,6 +3087,8 @@ class Renderer {
             }
             camera.updateMatrix(renderer.width / 2.0, renderer.height / 2.0);
             renderer.render(scene, camera);
+            const backBuffer = renderer.offscreen.transferToImageBitmap();
+            renderer.screenContext.transferFromImageBitmap(backBuffer);
             if (typeof onAfterRender === 'function') onAfterRender();
             if (renderer.running) renderer.frame = requestAnimationFrame(loop);
         }
@@ -3388,17 +3395,16 @@ let variables = {
 }
 
 class Style {
-    static extractColor(color, context) {
+    static extractColor(color) {
         function extractCSSVariableName(str) {
             const regex = /--[a-zA-Z0-9-_]+/;
             const match = str.match(regex);
             return match ? match[0] : null;
         }
-        if (typeof color === 'string' && context) {
-            const cssVariable = extractCSSVariableName(color, context);
+        if (typeof color === 'string') {
+            const cssVariable = extractCSSVariableName(color);
             if (cssVariable) {
-                const canvas = context.canvas;
-                const computedStyle = getComputedStyle(canvas);
+                const computedStyle = getComputedStyle(document.body);
                 const computedColor = computedStyle.getPropertyValue(cssVariable);
                 if (computedColor && typeof computedColor === 'string' && computedColor !== '') {
                     if (color.includes('rgb(') || color.includes('rgba(')) {
@@ -3428,7 +3434,7 @@ class ColorStyle extends Style {
     }
     get(context) {
         if (this.needsUpdate || this.cache == null) {
-            this.cache = Style.extractColor(this.color, context) ?? this.fallback;
+            this.cache = Style.extractColor(this.color) ?? this.fallback;
             this.needsUpdate = false;
         }
         return this.cache;
@@ -3830,7 +3836,7 @@ class LinearGradientStyle extends Style {
         if (this.needsUpdate || this.cache == null) {
             const style = context.createLinearGradient(this.start.x, this.start.y, this.end.x, this.end.y);
             for (const colorStop of this.colors) {
-                const finalColor = Style.extractColor(colorStop.color, context) ?? '#ffffff';
+                const finalColor = Style.extractColor(colorStop.color) ?? '#ffffff';
                 style.addColorStop(colorStop.offset, finalColor);
             }
             this.cache = style;

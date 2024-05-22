@@ -23,7 +23,7 @@ class LinearGradientStyle extends Style {
         if (this.needsUpdate || this.cache == null) {
             const style = context.createLinearGradient(this.start.x, this.start.y, this.end.x, this.end.y);
             for (const colorStop of this.colors) {
-                const finalColor = Style.extractColor(colorStop.color, context) ?? '#ffffff';
+                const finalColor = Style.extractColor(colorStop.color) ?? '#ffffff';
                 style.addColorStop(colorStop.offset, finalColor);
             }
             this.cache = style;

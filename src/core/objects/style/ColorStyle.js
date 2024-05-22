@@ -14,7 +14,7 @@ class ColorStyle extends Style {
 
     get(context) {
         if (this.needsUpdate || this.cache == null) {
-            this.cache = Style.extractColor(this.color, context) ?? this.fallback;
+            this.cache = Style.extractColor(this.color) ?? this.fallback;
             this.needsUpdate = false;
         }
         return this.cache;

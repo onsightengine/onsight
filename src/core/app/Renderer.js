@@ -25,6 +25,7 @@ class Renderer {
         width = 1000,
         height = 1000,
     } = {}) {
+        // Visible Canvas
         const canvas = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
         canvas.setAttribute('tabindex', '0');
         canvas.width = width;
@@ -32,15 +33,18 @@ class Renderer {
         canvas.style.width = '100%';
         canvas.style.height = '100%';
         canvas.style.outline = 'none';
+        this.screenContext  = canvas.getContext('bitmaprenderer');
 
-        // Dom
-        this.dom = canvas;
-
-        // Rendering Context (2D)
-        this.context = this.dom.getContext('2d', { alpha });
+        // Offscreen Buffer
+        const offscreen = new OffscreenCanvas(width, height);
+        this.context = offscreen.getContext('2d', { alpha });
         this.context.imageSmoothingEnabled = imageSmoothingEnabled;
         this.context.imageSmoothingQuality = imageSmoothingQuality;
         this.context.globalCompositeOperation = globalCompositeOperation;
+
+        // Dom
+        this.dom = canvas;
+        this.offscreen = offscreen;
 
         // Pointer / Keyboard Input Handlers
         this.pointerEvents = pointerEvents;
@@ -62,6 +66,8 @@ class Renderer {
             for (const entry of entries) {
                 canvas.width = entry.contentRect.width;
                 canvas.height = entry.contentRect.height;
+                offscreen.width = entry.contentRect.width;
+                offscreen.height = entry.contentRect.height;
                 if (renderer.running) renderer.render();
             }
         });
@@ -141,14 +147,16 @@ class Renderer {
 
             // Updates
             for (const object of renderer.updatable) {
-                // DEFAULT: renderer.pointer.update();
-                // DEFAULT: renderer.keyboard.update();
+                // INCLUDES: renderer.pointer.update();
+                // INCLUDES: renderer.keyboard.update();
                 if (typeof object.update === 'function') object.update(renderer);
             }
             camera.updateMatrix(renderer.width / 2.0, renderer.height / 2.0);
 
             // Render
             renderer.render(scene, camera);
+            const backBuffer = renderer.offscreen.transferToImageBitmap();
+            renderer.screenContext.transferFromImageBitmap(backBuffer);
 
             if (typeof onAfterRender === 'function') onAfterRender();
             if (renderer.running) renderer.frame = requestAnimationFrame(loop);
@@ -163,7 +171,7 @@ class Renderer {
 
     /******************** RENDER */
 
-    /** Renders a scene (Object2D) using a Camera2D */
+    /** Renders Object2D using a Camera2D */
     render(scene, camera) {
         this.drawCallCount = 0;
         if (scene) this.scene = scene; else scene = this.scene;

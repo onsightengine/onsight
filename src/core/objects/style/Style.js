@@ -1,16 +1,15 @@
 class Style {
 
-    static extractColor(color, context) {
+    static extractColor(color) {
         function extractCSSVariableName(str) {
             const regex = /--[a-zA-Z0-9-_]+/;
             const match = str.match(regex);
             return match ? match[0] : null;
         }
-        if (typeof color === 'string' && context) {
-            const cssVariable = extractCSSVariableName(color, context);
+        if (typeof color === 'string') {
+            const cssVariable = extractCSSVariableName(color);
             if (cssVariable) {
-                const canvas = context.canvas;
-                const computedStyle = getComputedStyle(canvas);
+                const computedStyle = getComputedStyle(document.body);
                 const computedColor = computedStyle.getPropertyValue(cssVariable);
                 if (computedColor && typeof computedColor === 'string' && computedColor !== '') {
                     if (color.includes('rgb(') || color.includes('rgba(')) {

@@ -1703,7 +1703,7 @@ class Object2D extends Thing {
                 const localPositionEnd = parent.inverseGlobalMatrix.transformPoint(worldPositionEnd);
                 const delta = localPositionStart.clone().sub(localPositionEnd);
                 this.position.copy(this.dragStartPosition).sub(delta);
-                this.matrixNeedsUpdate = true;
+                this.updateMatrix(true);
             }
         }
     }

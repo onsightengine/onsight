@@ -355,8 +355,19 @@ class ResizeHelper extends Box {
             updateObjects(renderer);
         };
 
+        // Override set position to update objects
+        this.setPosition = function(x, y) {
+            if (typeof x === 'object' && x.x && x.y) self.position.copy(x);
+            else self.position.set(x, y);
+            self.updateMatrix();
+            updateObjects(null, false /* lerp? */);
+            return self;
+        }
+
         // Update object's position based on the scaled relative position
-        function updateObjects(renderer) {
+        let lastRenderer = null;
+        function updateObjects(renderer, lerp = true) {
+            if (renderer) lastRenderer = renderer; else renderer = lastRenderer;
             for (const object of objects) {
                 const initialPosition = initialTransforms[object.uuid].position;
                 const initialRotation = initialTransforms[object.uuid].rotation;
@@ -377,8 +388,8 @@ class ResizeHelper extends Box {
                 _position.copy(rotatedPosition).add(self.position);
 
                 // Lerp?
-                if (self.isDragging) {
-                    object.position.smoothstep(_position, renderer.deltaTime * 30); // delta time ~ 0.0167 (1 / 60)
+                if (lerp && self.isDragging) {
+                    object.position.smoothstep(_position, renderer.deltaTime * 30); // dt ~ 0.0167 (1 / 60)
                 } else {
                     object.position.copy(_position);
                 }
@@ -392,14 +403,15 @@ class ResizeHelper extends Box {
                     object.rotation += self.rotation;
                 }
 
-                // Needs Update
-                object.matrixNeedsUpdate = true;
+                // Update Matrix
+                object.updateMatrix();
             }
         }
 
         // Update
         this.onUpdate = function(renderer) {
             const camera = renderer.camera;
+            const showResizers = !self.isDragging;
 
             // Background
             if (self.bgBox) {
@@ -414,14 +426,14 @@ class ResizeHelper extends Box {
                 rotater.position.copy(topCenterWorldOffset);
                 rotater.scale.set((1 / self.scale.x) / camera.scale, (1 / self.scale.y) / camera.scale);
                 rotater.updateMatrix();
-                rotater.visible = !self.isDragging;
+                rotater.visible = showResizers;
 
             }
             if (rotateLine) {
                 rotateLine.from.copy(topCenterWorldOffset);
                 rotateLine.to.copy(topCenterWorld);
                 rotateLine.updateMatrix();
-                rotateLine.visible = !self.isDragging;
+                rotateLine.visible = showResizers;
             }
 
             // Corner Resizers
@@ -430,7 +442,7 @@ class ResizeHelper extends Box {
                 resizer.position.set(x, y);
                 resizer.scale.set((1 / self.scale.x) / camera.scale, (1 / self.scale.y) / camera.scale);
                 resizer.updateMatrix();
-                resizer.visible = !self.isDragging;
+                resizer.visible = showResizers;
             }
             updateCornerResizer(topLeft, -halfSize.x, -halfSize.y);
             updateCornerResizer(topRight, +halfSize.x, -halfSize.y);
@@ -460,7 +472,7 @@ class ResizeHelper extends Box {
                     }
                 }
                 resizer.updateMatrix();
-                resizer.visible = !self.isDragging;
+                resizer.visible = showResizers;
             }
             updateSideResizer(leftResizer, -halfSize.x, 0, 'v');
             updateSideResizer(rightResizer, +halfSize.x, 0, 'v');

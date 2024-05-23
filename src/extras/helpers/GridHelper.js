@@ -78,7 +78,7 @@ class GridHelper extends Object2D {
         const closestWorldPosition = transformMatrix.transformPoint(new Vector2(closestX, closestY));
 
         // Set the object's position to the closest grid intersection
-        object.position.copy(closestWorldPosition);
+        object.setPosition(closestWorldPosition.x, closestWorldPosition.y);
         object.updateMatrix(true);
     }
 
@@ -159,9 +159,7 @@ class GridHelper extends Object2D {
 
     onUpdate(renderer) {
         const object = renderer.dragObject;
-        if (object && object.isDragging) {
-            this.alignToGrid(object);
-        }
+        if (object && object.isDragging) this.alignToGrid(object);
     }
 
 }

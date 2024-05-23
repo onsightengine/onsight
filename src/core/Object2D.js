@@ -384,7 +384,7 @@ class Object2D extends Thing {
 
                 // Update Position
                 this.position.copy(this.dragStartPosition).sub(delta);
-                this.matrixNeedsUpdate = true;
+                this.updateMatrix(true);
             }
         }
     }

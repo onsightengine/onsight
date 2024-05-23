@@ -29,19 +29,22 @@
         center.selectable = false;
         scene.add(center);
 
-        const box = new SALT.Box();
-        box.setPosition(-100, 0);
-        box.fillStyle.color = '#ff0000';
-        scene.add(box);
+        const box1 = new SALT.Box();
+        box1.setPosition(-100, 0);
+        box1.fillStyle.color = '#ff0000';
+        scene.add(box1);
 
-        // for (let i = 0; i < 50; i++) {
-        //     const box = new SALT.Box().setPosition((Math.random() * 1000) - 500, (Math.random() * 1000) - 500);
-        //     box.fillStyle.color = `rgb(0, ${Math.floor(Math.random()*256)},${Math.floor(Math.random()*256)})`;
-        //     // box.draggable = false;
-        //     // box.focusable = false;
-        //     // box.selectable = false;
-        //     scene.add(box);
-        // }
+        const box2 = new SALT.Box();
+        box2.setPosition(+100, 0);
+        box2.fillStyle.color = '#00ff00';
+        // box2.origin.set(25, 25);
+        box2.selectable = false;
+        scene.add(box2);
+
+        const box3 = new SALT.Box();
+        box3.setPosition(0, -150);
+        box3.fillStyle.color = '#0000ff';
+        scene.add(box3);
 
         // Grid Helper
         const grid = new SALT.GridHelper();
@@ -60,9 +63,9 @@
         const cameraControls = new SALT.CameraControls(camera);
         renderer.addUpdate(cameraControls);
 
-        // // Select Controls
-        // const selectControls = new SALT.SelectControls();
-        // renderer.addUpdate(selectControls);
+        // Select Controls
+        const selectControls = new SALT.SelectControls();
+        renderer.addUpdate(selectControls);
 
         // Start
         const debug = new SALT.Debug();

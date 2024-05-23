@@ -357,26 +357,33 @@ class Object2D extends Thing {
         const pointer = renderer.pointer;
         const camera = renderer.camera;
 
-        // Pointer Start / End
-        const pointerStart = pointer.position.clone();
-        const pointerEnd = pointer.position.clone().sub(pointer.delta);
+        // Button Just Pressed?
+        if (pointer.buttonJustPressed(Pointer.LEFT)) {
+            this.pointerStartPosition = pointer.position.clone();
+            this.dragStartPosition = this.position.clone();
+        }
 
-        // Local (Parent Space) Start / End
-        const parent = this.parent ?? this;
-        const worldPositionStart = camera.inverseMatrix.transformPoint(pointerStart);
-        const localPositionStart = parent.inverseGlobalMatrix.transformPoint(worldPositionStart);
-        const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
-        const localPositionEnd = parent.inverseGlobalMatrix.transformPoint(worldPositionEnd);
-        const delta = localPositionStart.clone().sub(localPositionEnd);
+        // Pointer Start / End
+        const pointerStart = this.pointerStartPosition.clone();
+        const pointerEnd = pointer.position.clone();
 
         // Adjust Position
-        if (pointer.buttonJustPressed(Pointer.LEFT)) {
-            this.dragStartPosition = pointer.position.clone();
-        } else if (pointer.buttonPressed(Pointer.LEFT)) {
-            const manhattanDistance = this.dragStartPosition.manhattanDistanceTo(pointerEnd);
+        if (pointer.buttonPressed(Pointer.LEFT)) {
+            const manhattanDistance = pointerStart.manhattanDistanceTo(pointerEnd);
             if (manhattanDistance >= MOUSE_SLOP || this.isDragging) {
+                // Mark as Dragging
                 this.isDragging = true;
-                this.position.add(delta);
+
+                // Local (Parent Space) Start / End
+                const parent = this.parent ?? this;
+                const worldPositionStart = camera.inverseMatrix.transformPoint(pointerStart);
+                const localPositionStart = parent.inverseGlobalMatrix.transformPoint(worldPositionStart);
+                const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
+                const localPositionEnd = parent.inverseGlobalMatrix.transformPoint(worldPositionEnd);
+                const delta = localPositionStart.clone().sub(localPositionEnd);
+
+                // Update Position
+                this.position.copy(this.dragStartPosition).sub(delta);
                 this.matrixNeedsUpdate = true;
             }
         }

@@ -1206,6 +1206,7 @@ class Pointer {
         this.delta = new Vector2(0, 0);
         this.wheel = 0;
         this.doubleClicked = new Array(5);
+        this.downAt = new Vector2(0, 0);
         this.pointerInside = false;
         this.dragging = false;
         for (let i = 0; i < 5; i++) {
@@ -1685,21 +1686,23 @@ class Object2D extends Thing {
     onPointerDrag(renderer) {
         const pointer = renderer.pointer;
         const camera = renderer.camera;
-        const pointerStart = pointer.position.clone();
-        const pointerEnd = pointer.position.clone().sub(pointer.delta);
-        const parent = this.parent ?? this;
-        const worldPositionStart = camera.inverseMatrix.transformPoint(pointerStart);
-        const localPositionStart = parent.inverseGlobalMatrix.transformPoint(worldPositionStart);
-        const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
-        const localPositionEnd = parent.inverseGlobalMatrix.transformPoint(worldPositionEnd);
-        const delta = localPositionStart.clone().sub(localPositionEnd);
         if (pointer.buttonJustPressed(Pointer.LEFT)) {
-            this.dragStartPosition = pointer.position.clone();
-        } else if (pointer.buttonPressed(Pointer.LEFT)) {
-            const manhattanDistance = this.dragStartPosition.manhattanDistanceTo(pointerEnd);
+            this.pointerStartPosition = pointer.position.clone();
+            this.dragStartPosition = this.position.clone();
+        }
+        const pointerStart = this.pointerStartPosition.clone();
+        const pointerEnd = pointer.position.clone();
+        if (pointer.buttonPressed(Pointer.LEFT)) {
+            const manhattanDistance = pointerStart.manhattanDistanceTo(pointerEnd);
             if (manhattanDistance >= MOUSE_SLOP || this.isDragging) {
                 this.isDragging = true;
-                this.position.add(delta);
+                const parent = this.parent ?? this;
+                const worldPositionStart = camera.inverseMatrix.transformPoint(pointerStart);
+                const localPositionStart = parent.inverseGlobalMatrix.transformPoint(worldPositionStart);
+                const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
+                const localPositionEnd = parent.inverseGlobalMatrix.transformPoint(worldPositionEnd);
+                const delta = localPositionStart.clone().sub(localPositionEnd);
+                this.position.copy(this.dragStartPosition).sub(delta);
                 this.matrixNeedsUpdate = true;
             }
         }

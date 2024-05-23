@@ -1206,6 +1206,7 @@ class Pointer {
         this.delta = new Vector2(0, 0);
         this.wheel = 0;
         this.doubleClicked = new Array(5);
+        this.downAt = new Vector2(0, 0);
         this.pointerInside = false;
         this.dragging = false;
         for (let i = 0; i < 5; i++) {
@@ -1685,21 +1686,23 @@ class Object2D extends Thing {
     onPointerDrag(renderer) {
         const pointer = renderer.pointer;
         const camera = renderer.camera;
-        const pointerStart = pointer.position.clone();
-        const pointerEnd = pointer.position.clone().sub(pointer.delta);
-        const parent = this.parent ?? this;
-        const worldPositionStart = camera.inverseMatrix.transformPoint(pointerStart);
-        const localPositionStart = parent.inverseGlobalMatrix.transformPoint(worldPositionStart);
-        const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
-        const localPositionEnd = parent.inverseGlobalMatrix.transformPoint(worldPositionEnd);
-        const delta = localPositionStart.clone().sub(localPositionEnd);
         if (pointer.buttonJustPressed(Pointer.LEFT)) {
-            this.dragStartPosition = pointer.position.clone();
-        } else if (pointer.buttonPressed(Pointer.LEFT)) {
-            const manhattanDistance = this.dragStartPosition.manhattanDistanceTo(pointerEnd);
+            this.pointerStartPosition = pointer.position.clone();
+            this.dragStartPosition = this.position.clone();
+        }
+        const pointerStart = this.pointerStartPosition.clone();
+        const pointerEnd = pointer.position.clone();
+        if (pointer.buttonPressed(Pointer.LEFT)) {
+            const manhattanDistance = pointerStart.manhattanDistanceTo(pointerEnd);
             if (manhattanDistance >= MOUSE_SLOP || this.isDragging) {
                 this.isDragging = true;
-                this.position.add(delta);
+                const parent = this.parent ?? this;
+                const worldPositionStart = camera.inverseMatrix.transformPoint(pointerStart);
+                const localPositionStart = parent.inverseGlobalMatrix.transformPoint(worldPositionStart);
+                const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
+                const localPositionEnd = parent.inverseGlobalMatrix.transformPoint(worldPositionEnd);
+                const delta = localPositionStart.clone().sub(localPositionEnd);
+                this.position.copy(this.dragStartPosition).sub(delta);
                 this.matrixNeedsUpdate = true;
             }
         }
@@ -4559,9 +4562,6 @@ class GridHelper extends Object2D {
         this.selectable = false;
         this.gridX = gridSizeX;
         this.gridY = gridSizeY;
-        this.scaleX = 1;
-        this.scaleY = 1;
-        this.rotation = 0;
         this.cache = null;
         this.gridScale = 1;
         this.patternCanvas = document.createElement('canvas');
@@ -4578,12 +4578,32 @@ class GridHelper extends Object2D {
         this.#gridY = size;
         this.cache = null;
     }
+    alignToGrid(object) {
+        const objectPosition = object.getWorldPosition();
+        const gridPosition = this.position;
+        const gridRotation = this.rotation;
+        const gridScale = this.scale;
+        const inverseMatrix = new Matrix2()
+            .translate(-gridPosition.x, -gridPosition.y)
+            .rotate(-gridRotation)
+            .scale(1 / gridScale.x, 1 / gridScale.y);
+        const localPosition = inverseMatrix.transformPoint(objectPosition.clone());
+        const closestX = Math.round(localPosition.x / this.gridX) * this.gridX;
+        const closestY = Math.round(localPosition.y / this.gridY) * this.gridY;
+        const transformMatrix = new Matrix2()
+            .scale(gridScale.x, gridScale.y)
+            .rotate(gridRotation)
+            .translate(gridPosition.x, gridPosition.y);
+        const closestWorldPosition = transformMatrix.transformPoint(new Vector2(closestX, closestY));
+        object.position.copy(closestWorldPosition);
+        object.updateMatrix(true);
+    }
     draw(renderer) {
         const context = renderer.context;
         const camera = renderer.camera;
         context.save();
         _matrix.copy(camera.matrix);
-        _matrix.multiply(_scale.identity().scale(this.scaleX, this.scaleY));
+        _matrix.multiply(_scale.identity().scale(this.scale.x, this.scale.y));
         _matrix.multiply(_rotate.identity().rotate(this.rotation));
         _matrix.getInverse(_inverse);
         _matrix.setContextTransform(context);
@@ -4639,6 +4659,12 @@ class GridHelper extends Object2D {
         context.moveTo(-this.gridX, this.gridY / 2);
         context.lineTo(+this.gridX, this.gridY / 2);
         context.stroke();
+    }
+    onUpdate(renderer) {
+        const object = renderer.dragObject;
+        if (object && object.isDragging) {
+            this.alignToGrid(object);
+        }
     }
 }
 

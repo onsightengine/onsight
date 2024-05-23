@@ -32,9 +32,6 @@ class GridHelper extends Object2D {
 
         this.gridX = gridSizeX;
         this.gridY = gridSizeY;
-        this.scaleX = 1;
-        this.scaleY = 1;
-        this.rotation = 0;
 
         // INTERNAL
         this.cache = null;
@@ -56,14 +53,43 @@ class GridHelper extends Object2D {
         this.cache = null;
     }
 
+    alignToGrid(object) {
+        const objectPosition = object.getWorldPosition();
+        const gridPosition = this.position;
+        const gridRotation = this.rotation;
+        const gridScale = this.scale;
+
+        // Matrix to transform the object's position to the grid space
+        const inverseMatrix = new Matrix2()
+            .translate(-gridPosition.x, -gridPosition.y)
+            .rotate(-gridRotation)
+            .scale(1 / gridScale.x, 1 / gridScale.y);
+        const localPosition = inverseMatrix.transformPoint(objectPosition.clone());
+
+        // Calculate the closest grid intersection
+        const closestX = Math.round(localPosition.x / this.gridX) * this.gridX;
+        const closestY = Math.round(localPosition.y / this.gridY) * this.gridY;
+
+        // Transform the closest grid intersection back to world space
+        const transformMatrix = new Matrix2()
+            .scale(gridScale.x, gridScale.y)
+            .rotate(gridRotation)
+            .translate(gridPosition.x, gridPosition.y);
+        const closestWorldPosition = transformMatrix.transformPoint(new Vector2(closestX, closestY));
+
+        // Set the object's position to the closest grid intersection
+        object.position.copy(closestWorldPosition);
+        object.updateMatrix(true);
+    }
+
     draw(renderer) {
         const context = renderer.context;
         const camera = renderer.camera;
         context.save();
 
-        // Camera Matrix + Rotation
+        // Camera Matrix + Scale + Rotation
         _matrix.copy(camera.matrix);
-        _matrix.multiply(_scale.identity().scale(this.scaleX, this.scaleY));
+        _matrix.multiply(_scale.identity().scale(this.scale.x, this.scale.y));
         _matrix.multiply(_rotate.identity().rotate(this.rotation));
         _matrix.getInverse(_inverse);
         _matrix.setContextTransform(context);
@@ -129,6 +155,13 @@ class GridHelper extends Object2D {
         context.moveTo(-this.gridX, this.gridY / 2);
         context.lineTo(+this.gridX, this.gridY / 2);
         context.stroke();
+    }
+
+    onUpdate(renderer) {
+        const object = renderer.dragObject;
+        if (object && object.isDragging) {
+            this.alignToGrid(object);
+        }
     }
 
 }

@@ -60,9 +60,9 @@
         const cameraControls = new SALT.CameraControls(camera);
         renderer.addUpdate(cameraControls);
 
-        // Select Controls
-        const selectControls = new SALT.SelectControls();
-        renderer.addUpdate(selectControls);
+        // // Select Controls
+        // const selectControls = new SALT.SelectControls();
+        // renderer.addUpdate(selectControls);
 
         // Start
         const debug = new SALT.Debug();
@@ -85,8 +85,8 @@
         const folder1 = gui.addFolder();
         folder1.add(params, 'sizeX').step(5).onChange(() => { grid.gridX = params.sizeX; });
         folder1.add(params, 'sizeY').step(5).onChange(() => { grid.gridY = params.sizeY; });
-        folder1.add(params, 'scaleX', 0, 10, 0.2, 1).onChange(() => { grid.scaleX = params.scaleX; });
-        folder1.add(params, 'scaleY', 0, 10, 0.2, 1).onChange(() => { grid.scaleY = params.scaleY; });
+        folder1.add(params, 'scaleX', 0, 10, 0.2, 1).onChange(() => { grid.scale.x = params.scaleX; });
+        folder1.add(params, 'scaleY', 0, 10, 0.2, 1).onChange(() => { grid.scale.y = params.scaleY; });
         folder1.add(params, 'rotation', 0, 360, 5, 1, '°').onChange(() => { grid.rotation = params.rotation * (Math.PI / 180); });
 
     </script>

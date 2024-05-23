@@ -6,7 +6,7 @@ import {
 import { ArrayUtils } from '../../utils/ArrayUtils.js';
 import { Keyboard } from '../../core/input/Keyboard.js';
 import { Pointer } from '../../core/input/Pointer.js';
-import { ResizeTool } from '../helpers/ResizeTool.js';
+import { ResizeHelper } from '../helpers/ResizeHelper.js';
 import { RubberBandBox } from '../helpers/RubberBandBox.js';
 import { Vector2 } from '../../math/Vector2.js';
 
@@ -119,13 +119,13 @@ class SelectControls {
             // Select Object
             } else if (shortClick && mouseTravel <= MOUSE_SLOP) {
                 const underMouse = scene.getWorldPointIntersections(_cameraPoint);
-                const withoutResizeTool = ArrayUtils.filterThings(underMouse, { isHelper: undefined });
+                const withoutResizeHelper = ArrayUtils.filterThings(underMouse, { isHelper: undefined });
                 // Clear Previous Selection
-                if (withoutResizeTool.length === 0) {
+                if (withoutResizeHelper.length === 0) {
                     newSelection = [];
                 // New Selected Object
-                } else if (withoutResizeTool.length > 0) {
-                    const object = withoutResizeTool[0];
+                } else if (withoutResizeHelper.length > 0) {
+                    const object = withoutResizeHelper[0];
                     if (object.selectable && ArrayUtils.compareThingArrays(object, this.selection) === false) {
                         newSelection = [ object ];
                     }
@@ -146,7 +146,7 @@ class SelectControls {
             }
             // Create New Tool?
             if (newSelection.length > 0) {
-                this.resizeTool = new ResizeTool(newSelection);
+                this.resizeTool = new ResizeHelper(newSelection);
 
                 const commonAncestor = findCommonMostAncestor(newSelection);
                 commonAncestor.add(this.resizeTool);

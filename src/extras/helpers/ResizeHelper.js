@@ -21,21 +21,21 @@ const _botLeft = new Vector2();
 const _botRight = new Vector2();
 const _objectMatrix = new Matrix2();
 
-class ResizeTool extends Box {
+class ResizeHelper extends Box {
 
     static ALL = 0;
     static RESIZE = 1;
     static ROTATE = 2;
 
-    constructor(objects, radius = 5, tools = ResizeTool.ALL) {
-        if (!objects) return console.error(`ResizeTool(): Missing 'objects' argument`);
+    constructor(objects, radius = 5, tools = ResizeHelper.ALL) {
+        if (!objects) return console.error(`ResizeHelper(): Missing 'objects' argument`);
         objects = Array.isArray(objects) ? objects : [ objects ];
-        if (objects.length === 0) return console.error(`ResizeTool(): Objects array is empty`);
+        if (objects.length === 0) return console.error(`ResizeHelper(): Objects array is empty`);
 
         super();
         this.isHelper = true;
 
-        this.name = 'Resize Tool';
+        this.name = 'Resize Helper';
         this.fillStyle = null;
         this.strokeStyle = null;
 
@@ -140,7 +140,7 @@ class ResizeTool extends Box {
         let rotater, rotateLine;
 
         // Corners / Sides
-        if (tools === ResizeTool.ALL || tools === ResizeTool.RESIZE) {
+        if (tools === ResizeHelper.ALL || tools === ResizeHelper.RESIZE) {
             function createResizer(name, x, y, type = 'box', addRotation, alpha) {
                 let resizer;
                 switch (type) {
@@ -295,7 +295,7 @@ class ResizeTool extends Box {
         }
 
         // Rotate Tool
-        if (tools === ResizeTool.ALL || tools === ResizeTool.ROTATE) {
+        if (tools === ResizeHelper.ALL || tools === ResizeHelper.ROTATE) {
             // Circle
             rotater = new Circle();
             rotater.draggable = true;
@@ -470,4 +470,4 @@ class ResizeTool extends Box {
 
 }
 
-export { ResizeTool };
+export { ResizeHelper };

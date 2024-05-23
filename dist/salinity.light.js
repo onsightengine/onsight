@@ -3111,7 +3111,7 @@ class Renderer {
             if (b.layer === a.layer) return b.level - a.level;
             return b.layer - a.layer;
         });
-        camera.setViewport(context.canvas.width, context.canvas.height);
+        camera.setViewport(this.width, this.height);
         for (const object of objects) {
             object.inViewport = camera.intersectsViewport(object.getWorldBoundingBox());
         }

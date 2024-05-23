@@ -189,7 +189,7 @@ class Renderer {
         });
 
         // Viewport Frustum Culling
-        camera.setViewport(context.canvas.width, context.canvas.height);
+        camera.setViewport(this.width, this.height);
         for (const object of objects) {
             object.inViewport = camera.intersectsViewport(object.getWorldBoundingBox());
         }

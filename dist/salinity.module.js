@@ -1456,10 +1456,10 @@ class Thing {
     }
 }
 
-const _topLeft$3 = new Vector2();
-const _topRight$3 = new Vector2();
-const _botLeft$3 = new Vector2();
-const _botRight$3 = new Vector2();
+const _topLeft$4 = new Vector2();
+const _topRight$4 = new Vector2();
+const _botLeft$4 = new Vector2();
+const _botRight$4 = new Vector2();
 class Object2D extends Thing {
     constructor(name = 'Object') {
         super(name);
@@ -1608,11 +1608,11 @@ class Object2D extends Thing {
         const box = this.boundingBox;
         if (Number.isFinite(box.min.x) === false || Number.isFinite(box.min.y) === false) return box;
         if (Number.isFinite(box.max.x) === false || Number.isFinite(box.max.y) === false) return box;
-        this.globalMatrix.applyToVector(_topLeft$3.copy(box.min));
-        this.globalMatrix.applyToVector(_topRight$3.copy(box.max.x, box.min.y));
-        this.globalMatrix.applyToVector(_botLeft$3.copy(box.min.x, box.max.y));
-        this.globalMatrix.applyToVector(_botRight$3.copy(box.max));
-        return new Box2().setFromPoints(_topLeft$3, _topRight$3, _botLeft$3, _botRight$3);
+        this.globalMatrix.applyToVector(_topLeft$4.copy(box.min));
+        this.globalMatrix.applyToVector(_topRight$4.copy(box.max.x, box.min.y));
+        this.globalMatrix.applyToVector(_botLeft$4.copy(box.min.x, box.max.y));
+        this.globalMatrix.applyToVector(_botRight$4.copy(box.max));
+        return new Box2().setFromPoints(_topLeft$4, _topRight$4, _botLeft$4, _botRight$4);
     }
     localToWorld(vector) {
         return this.globalMatrix.transformPoint(vector);
@@ -2822,10 +2822,10 @@ function appPointerMove(event) {
 }
 
 const _cameraView = new Box2();
-const _topLeft$2 = new Vector2();
-const _topRight$2 = new Vector2();
-const _botLeft$2 = new Vector2();
-const _botRight$2 = new Vector2();
+const _topLeft$3 = new Vector2();
+const _topRight$3 = new Vector2();
+const _botLeft$3 = new Vector2();
+const _botRight$3 = new Vector2();
 const _translate = new Matrix2();
 const _rotate = new Matrix2();
 const _scale$1 = new Matrix2();
@@ -2842,11 +2842,11 @@ class Camera2D extends Thing {
         this.viewport = new Box2(new Vector2(0, 0), new Vector2(1, 1));
     }
     intersectsViewport(box) {
-        this.matrix.applyToVector(_topLeft$2.copy(box.min));
-        this.matrix.applyToVector(_topRight$2.copy(box.max.x, box.min.y));
-        this.matrix.applyToVector(_botLeft$2.copy(box.min.x, box.max.y));
-        this.matrix.applyToVector(_botRight$2.copy(box.max));
-        _cameraView.setFromPoints(_topLeft$2, _topRight$2, _botLeft$2, _botRight$2);
+        this.matrix.applyToVector(_topLeft$3.copy(box.min));
+        this.matrix.applyToVector(_topRight$3.copy(box.max.x, box.min.y));
+        this.matrix.applyToVector(_botLeft$3.copy(box.min.x, box.max.y));
+        this.matrix.applyToVector(_botRight$3.copy(box.max));
+        _cameraView.setFromPoints(_topLeft$3, _topRight$3, _botLeft$3, _botRight$3);
         return this.viewport.intersectsBox(_cameraView);
     }
     updateMatrix(offsetX, offsetY) {
@@ -2980,10 +2980,10 @@ class Keyboard {
 }
 
 const _origin = new Vector2();
-const _topLeft$1 = new Vector2();
-const _topRight$1 = new Vector2();
-const _botLeft$1 = new Vector2();
-const _botRight$1 = new Vector2();
+const _topLeft$2 = new Vector2();
+const _topRight$2 = new Vector2();
+const _botLeft$2 = new Vector2();
+const _botRight$2 = new Vector2();
 class Renderer {
     constructor({
         alpha = true,
@@ -3111,7 +3111,7 @@ class Renderer {
             if (b.layer === a.layer) return b.level - a.level;
             return b.layer - a.layer;
         });
-        camera.setViewport(context.canvas.width, context.canvas.height);
+        camera.setViewport(this.width, this.height);
         for (const object of objects) {
             object.inViewport = camera.intersectsViewport(object.getWorldBoundingBox());
         }
@@ -3156,15 +3156,15 @@ class Renderer {
         context.strokeStyle = '#65e5ff';
         camera.matrix.setContextTransform(context);
         const box = object.boundingBox;
-        object.globalMatrix.applyToVector(_topLeft$1.copy(box.min));
-        object.globalMatrix.applyToVector(_topRight$1.copy(box.max.x, box.min.y));
-        object.globalMatrix.applyToVector(_botLeft$1.copy(box.min.x, box.max.y));
-        object.globalMatrix.applyToVector(_botRight$1.copy(box.max));
+        object.globalMatrix.applyToVector(_topLeft$2.copy(box.min));
+        object.globalMatrix.applyToVector(_topRight$2.copy(box.max.x, box.min.y));
+        object.globalMatrix.applyToVector(_botLeft$2.copy(box.min.x, box.max.y));
+        object.globalMatrix.applyToVector(_botRight$2.copy(box.max));
         context.beginPath();
-        context.moveTo(_topLeft$1.x, _topLeft$1.y);
-        context.lineTo(_topRight$1.x, _topRight$1.y);
-        context.lineTo(_botRight$1.x, _botRight$1.y);
-        context.lineTo(_botLeft$1.x, _botLeft$1.y);
+        context.moveTo(_topLeft$2.x, _topLeft$2.y);
+        context.lineTo(_topRight$2.x, _topRight$2.y);
+        context.lineTo(_botRight$2.x, _botRight$2.y);
+        context.lineTo(_botLeft$2.x, _botLeft$2.y);
         context.closePath();
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.shadowBlur = 1;
@@ -3996,22 +3996,22 @@ class CameraControls {
 
 const CURSOR_ROTATE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWw6c3BhY2U9InByZXNlcnZlIiBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlLWxpbmVqb2luOnJvdW5kO3N0cm9rZS1taXRlcmxpbWl0OjI7Ij48cGF0aCBkPSJNMjEuMjQ3LDUuODY3YzAuNDE3LC0wLjQ1MiAxLjAzNiwtMC42NjYgMS42NDcsLTAuNTYzYzAuNjQ0LDAuMTA5IDEuMTgsMC41NTMgMS40MDcsMS4xNjRsMS44MjQsNC45MDFjMC4yMjcsMC42MTEgMC4xMTEsMS4yOTggLTAuMzA1LDEuODAxYy0wLjQxNiwwLjUwMyAtMS4wNjksMC43NDUgLTEuNzEzLDAuNjM2bC01LjE1NCwtMC44NzRjLTAuNjQ0LC0wLjEwOSAtMS4xOCwtMC41NTMgLTEuNDA3LC0xLjE2NWMtMC4xNzksLTAuNDgxIC0wLjE0NSwtMS4wMDggMC4wOCwtMS40NTVjLTAuNTIxLC0wLjE0OCAtMS4wNjQsLTAuMjI1IC0xLjYxNSwtMC4yMjVjLTMuMjY0LDAgLTUuOTEzLDIuNjUgLTUuOTEzLDUuOTEzYy0wLDMuMjYzIDIuNjQ5LDUuOTEzIDUuOTEzLDUuOTEzYzEuNjQsMCAzLjIwNiwtMC42ODEgNC4zMjQsLTEuODhjMC42ODgsLTAuNzM4IDEuODQ0LC0wLjc3OCAyLjU4MiwtMC4wOWwxLjM0NiwxLjI1NWMwLjczNywwLjY4OCAwLjc3OCwxLjg0MyAwLjA5LDIuNTgxYy0yLjE1OCwyLjMxNCAtNS4xNzksMy42MjcgLTguMzQyLDMuNjI3Yy02LjI5NSwwIC0xMS40MDYsLTUuMTExIC0xMS40MDYsLTExLjQwNmMtMCwtNi4yOTUgNS4xMTEsLTExLjQwNiAxMS40MDYsLTExLjQwNmMxLjgzOCwtMCAzLjYzMSwwLjQ0MyA1LjIzNiwxLjI3M1oiIHN0eWxlPSJmaWxsOiNmZmY7Ii8+PHBhdGggZD0iTTE5LjgzNSw5Ljc2N2wtMC45MDUsMS4wOTNjLTAuMDk3LDAuMTE3IC0wLjEyNCwwLjI3NyAtMC4wNzEsMC40MTljMC4wNTMsMC4xNDMgMC4xNzgsMC4yNDYgMC4zMjgsMC4yNzJsNS4xNTQsMC44NzRjMC4xNTEsMC4wMjYgMC4zMDMsLTAuMDMxIDAuNCwtMC4xNDhjMC4wOTcsLTAuMTE3IDAuMTI0LC0wLjI3NyAwLjA3MSwtMC40MmwtMS44MjMsLTQuOWMtMC4wNTMsLTAuMTQzIC0wLjE3OCwtMC4yNDYgLTAuMzI4LC0wLjI3MWMtMC4xNSwtMC4wMjYgLTAuMzAyLDAuMDMxIC0wLjM5OSwwLjE0OGwtMC42OTksMC44NDRjLTEuNjMyLC0xLjA5MSAtMy41NjIsLTEuNjgzIC01LjU1MiwtMS42ODNjLTUuNTIyLC0wIC0xMC4wMDYsNC40ODMgLTEwLjAwNiwxMC4wMDVjMCw1LjUyMiA0LjQ4NCwxMC4wMDUgMTAuMDA2LDEwLjAwNWMyLjc3NSwwIDUuNDI1LC0xLjE1MiA3LjMxNywtMy4xODFjMC4xNjEsLTAuMTcyIDAuMTUxLC0wLjQ0MiAtMC4wMjEsLTAuNjAybC0xLjM0NSwtMS4yNTVjLTAuMTcyLC0wLjE2IC0wLjQ0MiwtMC4xNTEgLTAuNjAyLDAuMDIxYy0xLjM4MywxLjQ4MyAtMy4zMjEsMi4zMjYgLTUuMzQ5LDIuMzI2Yy00LjAzNywtMCAtNy4zMTQsLTMuMjc3IC03LjMxNCwtNy4zMTRjMCwtNC4wMzcgMy4yNzcsLTcuMzE0IDcuMzE0LC03LjMxNGMxLjM2LDAgMi42ODIsMC4zNzkgMy44MjQsMS4wODFaIi8+PC9zdmc+';
 const _position = new Vector2();
-const _topLeft = new Vector2();
-const _topRight = new Vector2();
-const _botLeft = new Vector2();
-const _botRight = new Vector2();
+const _topLeft$1 = new Vector2();
+const _topRight$1 = new Vector2();
+const _botLeft$1 = new Vector2();
+const _botRight$1 = new Vector2();
 const _objectMatrix = new Matrix2();
-class ResizeTool extends Box {
+class ResizeHelper extends Box {
     static ALL = 0;
     static RESIZE = 1;
     static ROTATE = 2;
-    constructor(objects, radius = 5, tools = ResizeTool.ALL) {
-        if (!objects) return console.error(`ResizeTool(): Missing 'objects' argument`);
+    constructor(objects, radius = 5, tools = ResizeHelper.ALL) {
+        if (!objects) return console.error(`ResizeHelper(): Missing 'objects' argument`);
         objects = Array.isArray(objects) ? objects : [ objects ];
-        if (objects.length === 0) return console.error(`ResizeTool(): Objects array is empty`);
+        if (objects.length === 0) return console.error(`ResizeHelper(): Objects array is empty`);
         super();
         this.isHelper = true;
-        this.name = 'Resize Tool';
+        this.name = 'Resize Helper';
         this.fillStyle = null;
         this.strokeStyle = null;
         this.pointerEvents = true;
@@ -4051,11 +4051,11 @@ class ResizeTool extends Box {
                 const unRotatedPosition = unRotateMatrix.transformPoint(object.position);
                 _objectMatrix.compose(unRotatedPosition.x, unRotatedPosition.y, object.scale.x, object.scale.y, object.origin.x, object.origin.y, 0);
                 const box = object.boundingBox;
-                _objectMatrix.applyToVector(_topLeft.copy(box.min));
-                _objectMatrix.applyToVector(_topRight.copy(box.max.x, box.min.y));
-                _objectMatrix.applyToVector(_botLeft.copy(box.min.x, box.max.y));
-                _objectMatrix.applyToVector(_botRight.copy(box.max));
-                const unrotatedBox = new Box2().setFromPoints(_topLeft, _topRight, _botLeft, _botRight);
+                _objectMatrix.applyToVector(_topLeft$1.copy(box.min));
+                _objectMatrix.applyToVector(_topRight$1.copy(box.max.x, box.min.y));
+                _objectMatrix.applyToVector(_botLeft$1.copy(box.min.x, box.max.y));
+                _objectMatrix.applyToVector(_botRight$1.copy(box.max));
+                const unrotatedBox = new Box2().setFromPoints(_topLeft$1, _topRight$1, _botLeft$1, _botRight$1);
                 worldBox.union(unrotatedBox);
             }
             const rotatedCenter = worldBox.getCenter();
@@ -4081,7 +4081,7 @@ class ResizeTool extends Box {
         let topLeft, topRight, bottomLeft, bottomRight;
         let topResizer, rightResizer, bottomResizer, leftResizer;
         let rotater, rotateLine;
-        if (tools === ResizeTool.ALL || tools === ResizeTool.RESIZE) {
+        if (tools === ResizeHelper.ALL || tools === ResizeHelper.RESIZE) {
             function createResizer(name, x, y, type = 'box', addRotation, alpha) {
                 let resizer;
                 switch (type) {
@@ -4219,7 +4219,7 @@ class ResizeTool extends Box {
             this.add(bottomRight, bottomLeft, topLeft, topRight);
             this.add(rightResizer, bottomResizer, leftResizer, topResizer);
         }
-        if (tools === ResizeTool.ALL || tools === ResizeTool.ROTATE) {
+        if (tools === ResizeHelper.ALL || tools === ResizeHelper.ROTATE) {
             rotater = new Circle();
             rotater.draggable = true;
             rotater.focusable = false;
@@ -4477,11 +4477,11 @@ class SelectControls {
                 this.rubberBandBox = null;
             } else if (shortClick && mouseTravel <= MOUSE_SLOP) {
                 const underMouse = scene.getWorldPointIntersections(_cameraPoint);
-                const withoutResizeTool = ArrayUtils.filterThings(underMouse, { isHelper: undefined });
-                if (withoutResizeTool.length === 0) {
+                const withoutResizeHelper = ArrayUtils.filterThings(underMouse, { isHelper: undefined });
+                if (withoutResizeHelper.length === 0) {
                     newSelection = [];
-                } else if (withoutResizeTool.length > 0) {
-                    const object = withoutResizeTool[0];
+                } else if (withoutResizeHelper.length > 0) {
+                    const object = withoutResizeHelper[0];
                     if (object.selectable && ArrayUtils.compareThingArrays(object, this.selection) === false) {
                         newSelection = [ object ];
                     }
@@ -4497,7 +4497,7 @@ class SelectControls {
                 this.resizeTool = null;
             }
             if (newSelection.length > 0) {
-                this.resizeTool = new ResizeTool(newSelection);
+                this.resizeTool = new ResizeHelper(newSelection);
                 const commonAncestor = findCommonMostAncestor(newSelection);
                 commonAncestor.add(this.resizeTool);
                 this.resizeTool.onUpdate(renderer);
@@ -4532,6 +4532,89 @@ function findCommonMostAncestor(objects) {
         }
     }
     return ancestors[0][minLength - 1];
+}
+
+const _bounds = new Box2();
+const _topLeft = new Vector2();
+const _topRight = new Vector2();
+const _botLeft = new Vector2();
+const _botRight = new Vector2();
+class GridHelper extends Object2D {
+    constructor(gridSize = 50) {
+        super();
+        this.isHelper = true;
+        this.name = 'Grid Helper';
+        this.pointerEvents = false;
+        this.draggable = false;
+        this.focusable = false;
+        this.selectable = false;
+        this.gridSize = gridSize;
+        this.patternCanvas = document.createElement('canvas');
+        this.patternContext = this.patternCanvas.getContext('2d');
+        this.drawPattern();
+        this.cache = null;
+        this.gridScale = 1;
+    }
+    draw(renderer) {
+        const context = renderer.context;
+        const camera = renderer.camera;
+        const gridSize = this.gridSize;
+        context.save();
+        camera.matrix.setContextTransform(context);
+        camera.inverseMatrix.applyToVector(_topLeft.set(0, 0));
+        camera.inverseMatrix.applyToVector(_topRight.set(renderer.width, 0));
+        camera.inverseMatrix.applyToVector(_botLeft.set(0, renderer.height));
+        camera.inverseMatrix.applyToVector(_botRight.set(renderer.width, renderer.height));
+        _bounds.setFromPoints(_topLeft, _topRight, _botLeft, _botRight);
+        const visibleWidth = _bounds.getSize().x;
+        const visibleHeight = _bounds.getSize().y;
+        const gridCountX = Math.ceil(visibleWidth / gridSize) + 1;
+        const gridCountY = Math.ceil(visibleHeight / gridSize) + 1;
+        const startX = Math.floor(_bounds.min.x / gridSize) * gridSize;
+        const startY = Math.floor(_bounds.min.y / gridSize) * gridSize;
+        if (camera.scale <= 1) {
+            if (this.gridScale !== camera.scale) this.drawPattern(camera.scale);
+            if (!this.cache) this.cache = context.createPattern(this.patternCanvas, 'repeat');
+            context.fillStyle = this.cache;
+            context.fillRect(startX, startY, gridCountX * gridSize, gridCountY * gridSize);
+        } else {
+            context.beginPath();
+            for (let i = 0; i <= gridCountX; i++) {
+                const x = startX + i * gridSize;
+                context.moveTo(x, _bounds.min.y);
+                context.lineTo(x, _bounds.max.y);
+            }
+            for (let j = 0; j <= gridCountY; j++) {
+                const y = startY + j * gridSize;
+                context.moveTo(_bounds.min.x, y);
+                context.lineTo(_bounds.max.x, y);
+            }
+            context.setTransform(1, 0, 0, 1, 0, 0);
+            context.strokeStyle = `rgba(128, 128, 128, 1)`;
+            context.lineWidth = 1;
+            context.stroke();
+        }
+        context.restore();
+    }
+    drawPattern(scale = 1) {
+        this.cache = null;
+        this.gridScale = scale;
+        const context = this.patternContext;
+        const gridSize = this.gridSize;
+        this.patternCanvas.width = gridSize;
+        this.patternCanvas.height = gridSize;
+        context.setTransform(1, 0, 0, 1, 0, 0);
+        context.clearRect(0, 0, this.patternCanvas.width, this.patternCanvas.height);
+        context.strokeStyle = `rgba(128, 128, 128, ${Math.min(1, scale)})`;
+        context.lineWidth = 1;
+        context.translate(gridSize / 2, gridSize / 2);
+        context.beginPath();
+        context.moveTo(gridSize / 2, -gridSize);
+        context.lineTo(gridSize / 2, +gridSize);
+        context.moveTo(-gridSize, gridSize / 2);
+        context.lineTo(+gridSize, gridSize / 2);
+        context.stroke();
+    }
 }
 
 let _singleton = null;
@@ -4892,4 +4975,4 @@ function getVariable(variable) {
     return ((value === '') ? undefined : value);
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, DomElement, Entity, EventManager, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, OUTLINE_THICKNESS, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeTool, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Sprite, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, DomElement, Entity, EventManager, GridHelper, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, OUTLINE_THICKNESS, Object2D, Palette, Pointer, Project, RadialGradientStyle, Renderer, ResizeHelper, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Sprite, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, WORLD_TYPES, World };

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <title>Salinity • Playground</title>
+    <meta charset='UTF-8' />
+    <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1' />
+    <meta name='viewport' content='width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0'>
+    <link rel='icon' type='image/png' href='../files/logo/salinity256.png' />
+    <link rel='stylesheet' href='./main.css' />
+</head>
+<body>
+
+    <div id='container' style='position:absolute; width:100%; height:100%; top:0px; left:0px; overflow: hidden;'></div>
+
+    <script src='./imports.js'></script>
+
+    <script type='module'>
+
+        import * as SALT from 'salt';
+        import * as SUEY from 'suey';
+
+        const scene = new SALT.Object2D();
+
+        // Objects
+        const center = new SALT.Circle(10);
+        center.setPosition(0, 0);
+        center.fillStyle.color = '#ff00ff';
+        center.draggable = false;
+        center.selectable = false;
+        scene.add(center);
+
+        const box = new SALT.Box();
+        box.setPosition(-100, 0);
+        box.fillStyle.color = '#ff0000';
+        scene.add(box);
+
+        // for (let i = 0; i < 50; i++) {
+        //     const box = new SALT.Box().setPosition((Math.random() * 1000) - 500, (Math.random() * 1000) - 500);
+        //     box.fillStyle.color = `rgb(0, ${Math.floor(Math.random()*256)},${Math.floor(Math.random()*256)})`;
+        //     // box.draggable = false;
+        //     // box.focusable = false;
+        //     // box.selectable = false;
+        //     scene.add(box);
+        // }
+
+        // Grid Helper
+        const grid = new SALT.GridHelper();
+        scene.add(grid);
+
+        // Renderer
+        const renderer = new SALT.Renderer({ width: window.innerWidth, height: window.innerHeight });
+        const container = document.getElementById('container');
+        container.appendChild(renderer.dom);
+
+        // Camera
+        const camera = new SALT.Camera2D();
+        camera.position.copy(new SALT.Vector2(renderer.width / 2.0, renderer.height / 2.0));
+
+        // Camera Controls
+        const cameraControls = new SALT.CameraControls(camera);
+        renderer.addUpdate(cameraControls);
+
+        // Select Controls
+        const selectControls = new SALT.SelectControls();
+        renderer.addUpdate(selectControls);
+
+        // Start
+        const debug = new SALT.Debug();
+        const onBeforeRender = () => { debug.startFrame(renderer); };
+        const onAfterRender = () => { debug.endFrame(renderer); };
+        renderer.start(scene, camera, onBeforeRender, onAfterRender);
+
+        /////
+
+        const params = {
+            sizeX: 50,
+            sizeY: 50,
+            scaleX: 1,
+            scaleY: 1,
+            rotation: 0,
+        };
+
+        const gui = new SUEY.Gooey();
+
+        const folder1 = gui.addFolder();
+        folder1.add(params, 'sizeX').step(5).onChange(() => { grid.gridX = params.sizeX; });
+        folder1.add(params, 'sizeY').step(5).onChange(() => { grid.gridY = params.sizeY; });
+        folder1.add(params, 'scaleX', 0, 10, 0.2, 1).onChange(() => { grid.scaleX = params.scaleX; });
+        folder1.add(params, 'scaleY', 0, 10, 0.2, 1).onChange(() => { grid.scaleY = params.scaleY; });
+        folder1.add(params, 'rotation', 0, 360, 5, 1, '°').onChange(() => { grid.rotation = params.rotation * (Math.PI / 180); });
+
+    </script>
+
+</body>
+</html>

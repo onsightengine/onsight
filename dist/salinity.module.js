@@ -1008,7 +1008,7 @@ class Matrix2 {
         if (rot !== 0) {
             const c = Math.cos(rot);
             const s = Math.sin(rot);
-            this.multiply(_rotate$1.set(c, s, -s, c, 0, 0));
+            this.multiply(_rotate$2.set(c, s, -s, c, 0, 0));
         }
         this.multiply(_origin$1.set(1, 0, 0, 1, -ox, -oy));
         if (sx !== 1 || sy !== 1) this.scale(sx, sy);
@@ -1141,7 +1141,7 @@ class Matrix2 {
     }
 }
 const _translate$1 = new Matrix2();
-const _rotate$1 = new Matrix2();
+const _rotate$2 = new Matrix2();
 const _skew = new Matrix2();
 const _origin$1 = new Matrix2();
 
@@ -2827,8 +2827,8 @@ const _topRight$3 = new Vector2();
 const _botLeft$3 = new Vector2();
 const _botRight$3 = new Vector2();
 const _translate = new Matrix2();
-const _rotate = new Matrix2();
-const _scale$1 = new Matrix2();
+const _rotate$1 = new Matrix2();
+const _scale$2 = new Matrix2();
 class Camera2D extends Thing {
     constructor() {
         super('Camera2D');
@@ -2855,10 +2855,10 @@ class Camera2D extends Thing {
         this.matrix.multiply(_translate.set(1, 0, 0, 1, +offsetX, +offsetY));
         const c = Math.cos(this.rotation);
         const s = Math.sin(this.rotation);
-        this.matrix.multiply(_rotate.set(c, s, -s, c, 0, 0));
+        this.matrix.multiply(_rotate$1.set(c, s, -s, c, 0, 0));
         this.matrix.multiply(_translate.set(1, 0, 0, 1, -offsetX, -offsetY));
         this.matrix.multiply(_translate.set(1, 0, 0, 1, this.position.x, this.position.y));
-        this.matrix.multiply(_scale$1.set(this.scale, 0, 0, this.scale, 0, 0));
+        this.matrix.multiply(_scale$2.set(this.scale, 0, 0, this.scale, 0, 0));
         this.matrix.getInverse(this.inverseMatrix);
         this.matrixNeedsUpdate = false;
     }
@@ -3611,7 +3611,7 @@ class DomElement extends Object2D {
 const _globalPoint = new Vector2();
 const _globalFrom = new Vector2();
 const _globalTo = new Vector2();
-const _scale = new Vector2();
+const _scale$1 = new Vector2();
 class Line extends Object2D {
     #cameraScale = 1;
     constructor() {
@@ -3653,8 +3653,8 @@ class Line extends Object2D {
                 return { x: percentX, y: percentY };
             }
             const xyPercent = getPercentageOfDistance(this.from, this.to);
-            this.globalMatrix.getScale(_scale);
-            const scalePercent = (Math.abs(_scale.x * xyPercent.y) + Math.abs(_scale.y * xyPercent.x)) / (xyPercent.x + xyPercent.y);
+            this.globalMatrix.getScale(_scale$1);
+            const scalePercent = (Math.abs(_scale$1.x * xyPercent.y) + Math.abs(_scale$1.y * xyPercent.x)) / (xyPercent.x + xyPercent.y);
             scaledLineWidth = MathUtils.sanity(this.lineWidth * scalePercent);
         }
         const buffer = (scaledLineWidth / 2) + (this.mouseBuffer / this.#cameraScale);
@@ -4011,13 +4011,14 @@ class ResizeHelper extends Box {
         if (objects.length === 0) return console.error(`ResizeHelper(): Objects array is empty`);
         super();
         this.isHelper = true;
+        this.type = 'ResizeHelper';
         this.name = 'Resize Helper';
-        this.fillStyle = null;
-        this.strokeStyle = null;
         this.pointerEvents = true;
         this.draggable = true;
         this.focusable = true;
         this.selectable = false;
+        this.fillStyle = null;
+        this.strokeStyle = null;
         let topLayer = 0;
         let bottomLayer = 0;
         for (const object of objects) {
@@ -4255,11 +4256,11 @@ class ResizeHelper extends Box {
                 updateObjects();
             };
             rotateLine = new Line();
-            rotateLine.lineWidth = OUTLINE_THICKNESS;
             rotateLine.draggable = false;
             rotateLine.focusable = false;
             rotateLine.selectable = false;
             rotateLine.layer = topLayer + 1;
+            rotateLine.lineWidth = OUTLINE_THICKNESS;
             rotateLine.constantWidth = true;
             rotateLine.strokeStyle.color = '--highlight';
             this.add(rotater, rotateLine);
@@ -4366,17 +4367,18 @@ class RubberBandBox extends Box {
     constructor() {
         super();
         this.isHelper = true;
+        this.type = 'RubberBandBox';
         this.name = 'Rubber Band Box';
+        this.pointerEvents = false;
+        this.draggable = false;
+        this.focusable = false;
+        this.selectable = false;
         this.fillStyle.color = 'rgba(--icon, 0.5)';
         this.fillStyle.fallback = 'rgba(0, 170, 204, 0.5)';
         this.strokeStyle.color = 'rgb(--icon-light)';
         this.strokeStyle.fallback = 'rgba(101, 229, 255)';
         this.lineWidth = OUTLINE_THICKNESS;
         this.constantWidth = true;
-        this.pointerEvents = false;
-        this.draggable = false;
-        this.focusable = false;
-        this.selectable = false;
     }
     intersected(scene) {
         const objects = [];
@@ -4539,53 +4541,77 @@ const _topLeft = new Vector2();
 const _topRight = new Vector2();
 const _botLeft = new Vector2();
 const _botRight = new Vector2();
+const _matrix = new Matrix2();
+const _inverse = new Matrix2();
+const _rotate = new Matrix2();
+const _scale = new Matrix2();
 class GridHelper extends Object2D {
-    constructor(gridSize = 50) {
+    #gridX = 50;
+    #gridY = 50;
+    constructor(gridSizeX = 50, gridSizeY = gridSizeX) {
         super();
         this.isHelper = true;
+        this.type = 'GridHelper';
         this.name = 'Grid Helper';
         this.pointerEvents = false;
         this.draggable = false;
         this.focusable = false;
         this.selectable = false;
-        this.gridSize = gridSize;
+        this.gridX = gridSizeX;
+        this.gridY = gridSizeY;
+        this.scaleX = 1;
+        this.scaleY = 1;
+        this.rotation = 0;
+        this.cache = null;
+        this.gridScale = 1;
         this.patternCanvas = document.createElement('canvas');
         this.patternContext = this.patternCanvas.getContext('2d');
         this.drawPattern();
+    }
+    get gridX() { return this.#gridX; }
+    set gridX(size) {
+        this.#gridX = size;
         this.cache = null;
-        this.gridScale = 1;
+    }
+    get gridY() { return this.#gridY; }
+    set gridY(size) {
+        this.#gridY = size;
+        this.cache = null;
     }
     draw(renderer) {
         const context = renderer.context;
         const camera = renderer.camera;
-        const gridSize = this.gridSize;
         context.save();
-        camera.matrix.setContextTransform(context);
-        camera.inverseMatrix.applyToVector(_topLeft.set(0, 0));
-        camera.inverseMatrix.applyToVector(_topRight.set(renderer.width, 0));
-        camera.inverseMatrix.applyToVector(_botLeft.set(0, renderer.height));
-        camera.inverseMatrix.applyToVector(_botRight.set(renderer.width, renderer.height));
+        _matrix.copy(camera.matrix);
+        _matrix.multiply(_scale.identity().scale(this.scaleX, this.scaleY));
+        _matrix.multiply(_rotate.identity().rotate(this.rotation));
+        _matrix.getInverse(_inverse);
+        _matrix.setContextTransform(context);
+        _inverse.applyToVector(_topLeft.set(0, 0));
+        _inverse.applyToVector(_topRight.set(renderer.width, 0));
+        _inverse.applyToVector(_botLeft.set(0, renderer.height));
+        _inverse.applyToVector(_botRight.set(renderer.width, renderer.height));
         _bounds.setFromPoints(_topLeft, _topRight, _botLeft, _botRight);
         const visibleWidth = _bounds.getSize().x;
         const visibleHeight = _bounds.getSize().y;
-        const gridCountX = Math.ceil(visibleWidth / gridSize) + 1;
-        const gridCountY = Math.ceil(visibleHeight / gridSize) + 1;
-        const startX = Math.floor(_bounds.min.x / gridSize) * gridSize;
-        const startY = Math.floor(_bounds.min.y / gridSize) * gridSize;
-        if (camera.scale <= 1) {
-            if (this.gridScale !== camera.scale) this.drawPattern(camera.scale);
+        const gridCountX = Math.ceil(visibleWidth / this.gridX) + 1;
+        const gridCountY = Math.ceil(visibleHeight / this.gridY) + 1;
+        const startX = Math.floor(_bounds.min.x / this.gridX) * this.gridX;
+        const startY = Math.floor(_bounds.min.y / this.gridY) * this.gridY;
+        if (camera.scale <= 1.5) {
+            if (this.gridScale !== camera.scale || !this.cache) this.drawPattern(camera.scale);
             if (!this.cache) this.cache = context.createPattern(this.patternCanvas, 'repeat');
             context.fillStyle = this.cache;
-            context.fillRect(startX, startY, gridCountX * gridSize, gridCountY * gridSize);
+            context.fillRect(startX, startY, gridCountX * this.gridX, gridCountY * this.gridY);
         } else {
             context.beginPath();
             for (let i = 0; i <= gridCountX; i++) {
-                const x = startX + i * gridSize;
+                const x = startX + i * this.gridX;
                 context.moveTo(x, _bounds.min.y);
                 context.lineTo(x, _bounds.max.y);
             }
             for (let j = 0; j <= gridCountY; j++) {
-                const y = startY + j * gridSize;
+                const y = startY + j * this.gridY;
                 context.moveTo(_bounds.min.x, y);
                 context.lineTo(_bounds.max.x, y);
             }
@@ -4600,19 +4626,18 @@ class GridHelper extends Object2D {
         this.cache = null;
         this.gridScale = scale;
         const context = this.patternContext;
-        const gridSize = this.gridSize;
-        this.patternCanvas.width = gridSize;
-        this.patternCanvas.height = gridSize;
+        this.patternCanvas.width = this.gridX;
+        this.patternCanvas.height = this.gridY;
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.clearRect(0, 0, this.patternCanvas.width, this.patternCanvas.height);
+        context.translate(this.gridX / 2, this.gridY / 2);
         context.strokeStyle = `rgba(128, 128, 128, ${Math.min(1, scale)})`;
         context.lineWidth = 1;
-        context.translate(gridSize / 2, gridSize / 2);
         context.beginPath();
-        context.moveTo(gridSize / 2, -gridSize);
-        context.lineTo(gridSize / 2, +gridSize);
-        context.moveTo(-gridSize, gridSize / 2);
-        context.lineTo(+gridSize, gridSize / 2);
+        context.moveTo(this.gridX / 2, -this.gridY);
+        context.lineTo(this.gridX / 2, +this.gridY);
+        context.moveTo(-this.gridX, this.gridY / 2);
+        context.lineTo(+this.gridX, this.gridY / 2);
         context.stroke();
     }
 }

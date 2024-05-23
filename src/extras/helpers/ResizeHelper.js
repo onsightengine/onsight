@@ -34,15 +34,16 @@ class ResizeHelper extends Box {
 
         super();
         this.isHelper = true;
-
+        this.type = 'ResizeHelper';
         this.name = 'Resize Helper';
-        this.fillStyle = null;
-        this.strokeStyle = null;
 
         this.pointerEvents = true;
         this.draggable = true;
         this.focusable = true;
         this.selectable = false;
+
+        this.fillStyle = null;
+        this.strokeStyle = null;
 
         // Layer
         let topLayer = 0;
@@ -333,11 +334,11 @@ class ResizeHelper extends Box {
             };
             // Line
             rotateLine = new Line();
-            rotateLine.lineWidth = OUTLINE_THICKNESS;
             rotateLine.draggable = false;
             rotateLine.focusable = false;
             rotateLine.selectable = false;
             rotateLine.layer = topLayer + 1;
+            rotateLine.lineWidth = OUTLINE_THICKNESS;
             rotateLine.constantWidth = true;
             rotateLine.strokeStyle.color = '--highlight';
             this.add(rotater, rotateLine);

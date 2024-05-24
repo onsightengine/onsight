@@ -4467,11 +4467,11 @@ class SelectControls {
             if (this._wantsRubberBand) {
                 if (this.rubberBandBox == null) {
                     if (mouseTravel >= MOUSE_SLOP) {
-                        renderer.setDragObject(this.rubberBandBox);
                         const rubberBandBox = new RubberBandBox();
                         scene.traverse((child) => { rubberBandBox.layer = Math.max(rubberBandBox.layer, child.layer + 1); });
                         scene.add(rubberBandBox);
                         this.rubberBandBox = rubberBandBox;
+                        renderer.setDragObject(this.rubberBandBox);
                     }
                 }
                 if (this.rubberBandBox) {
@@ -4483,6 +4483,7 @@ class SelectControls {
                     _size.subVectors(viewportStart, viewportEnd).abs().divideScalar(2);
                     this.rubberBandBox.box.min.set(-_size.x, -_size.y);
                     this.rubberBandBox.box.max.set(+_size.x, +_size.y);
+                    this.rubberBandBox.computeBoundingBox();
                     this.rubberBandBox.rotation = -camera.rotation;
                     this.rubberBandBox.scale.set(1 / camera.scale, 1 / camera.scale);
                     this.rubberBandBox.updateMatrix(true);

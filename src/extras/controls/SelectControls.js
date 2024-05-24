@@ -126,6 +126,7 @@ class SelectControls {
             // Stop Rubber Band
             this._wantsRubberBand = false;
             if (this.rubberBandBox) {
+                if (renderer.dragObject === this.rubberBandBox) renderer.setDragObject(null);
                 this.rubberBandBox.destroy();
                 this.rubberBandBox = null;
             // Select Object

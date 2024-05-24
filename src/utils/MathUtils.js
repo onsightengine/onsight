@@ -1,36 +1,36 @@
 // ANGLES
-//  radiansToDegrees()      Converts radians to degrees
-//  degreesToRadians()      Converts degrees to radians
-//  equalizeAngle0to360()   Clamps degrees in between 0 and 360
+//  radiansToDegrees()          Converts radians to degrees
+//  degreesToRadians()          Converts degrees to radians
+//  equalizeAngle0to360()       Clamps degrees in between 0 and 360
 // COMMON
-//  clamp()                 Clamps a number between min and max
-//  roundTo()               Returns a number rounded to 'decimalPlaces'
+//  clamp()                     Clamps a number between min and max
+//  roundTo()                   Returns a number rounded to 'decimalPlaces'
 // EASING
-//  damp()                  Time based linear interpolation
-//  lerp()                  Linear interpolation
-//  smoothstep()            Sigmoid-like interpolation
-//  smootherstep()          Perlin smoothstep
+//  damp()                      Time based linear interpolation
+//  lerp()                      Linear interpolation
+//  smoothstep()                Sigmoid-like interpolation
+//  smootherstep()              Perlin smoothstep
 // FUZZY
-//  fuzzyFloat()            Compares two numbers to see if they're roughly the same
-//  fuzzyVector()           Compares two Vector / Quaternion
+//  fuzzyFloat()                Compares two numbers to see if they're roughly the same
+//  fuzzyVector()               Compares two Vector / Quaternion
 // GEOMETRY
-//  isPowerOfTwo()          Checks if a number is power of 2
+//  isPowerOfTwo()              Checks if a number is power of 2
 // NUMBERS
-//  addCommas()             Formats a number into a string with commas added for large numbers
-//  countDecimals()         Counts significant decimal places
-//  isNumber()              Checks if 'number' is a valid number
-//  noZero()                Ensures number is not equal to zero
-//  sanity()                Ensures number is a Number
+//  addCommas()                 Formats a number into a string with commas added for large numbers
+//  countDecimals()             Counts significant decimal places
+//  isNumber()                  Checks if 'number' is a valid number
+//  noZero()                    Ensures number is not equal to zero
+//  sanity()                    Ensures number is a Number
 // POLYGONS
-//  lineCollision()         Check if two lines are intersecting
-//  lineRectCollision()     Checks if a line is intersecting a rectangle
-//  triangleArea()          Computes the area of a triangle defined by 3 points
+//  lineCollision()             Check if two lines are intersecting
+//  lineRectCollision()         Checks if a line is intersecting a rectangle
+//  triangleArea()              Computes the area of a triangle defined by 3 points
 // RANDOM
-//  randomFloat()           Random float from min (inclusive) to max (exclusive)
-//  randomInt()             Random integer from min (inclusive) to max (exclusive)
+//  randomFloat()               Random float from min (inclusive) to max (exclusive)
+//  randomInt()                 Random integer from min (inclusive) to max (exclusive)
 // UUID
-//  randomUUID()            Returns randomized UUID
-//  toUUIDArray()           Converts object list or object array to UUID array
+//  randomUUID()                Returns randomized UUID
+//  toUUIDArray()               Converts object list or object array to UUID array
 
 import { Vector3 } from '../math/Vector3.js';
 

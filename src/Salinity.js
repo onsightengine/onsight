@@ -79,6 +79,7 @@ export { Vector3 } from './math/Vector3.js';
 
 export { ArrayUtils } from './utils/ArrayUtils.js';
 export { MathUtils } from './utils/MathUtils.js';
+export { PolyUtils } from './utils/PolyUtils.js';
 export { SysUtils } from './utils/SysUtils.js';
 
 /******************** SINGLE IMPORT ********************/

@@ -56,12 +56,8 @@ class ResizeHelper extends Box {
         this.layer = topLayer;
 
         // // Background
-        // const bgBox = new Box();
+        // const bgBox = Object.assign(new Box(), { pointerEvents: false, draggable: false, focusable: false, selectable: false });
         // bgBox.isHelper = true;
-        // bgBox.pointerEvents = false;
-        // bgBox.draggable = false;
-        // bgBox.focusable = false;
-        // bgBox.selectable = false;
         // bgBox.layer = bottomLayer;
         // bgBox.fillStyle.color = 'rgba(--icon-dark, 0.35)';
         // bgBox.fillStyle.fallback = 'rgba(0, 85, 102, 0.35)';

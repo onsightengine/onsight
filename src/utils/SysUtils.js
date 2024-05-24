@@ -1,14 +1,14 @@
 // CHECKS
-//  isObject()              Checks if a variable is an object (and not null / array / function)
+//  isObject()                  Checks if a variable is an object (and not null / array / function)
 // FILE SYSTEM
-//  save()                  Saves an URL object to the host system
+//  save()                      Saves an URL object to the host system
 // PLATFORM
-//  detectOS()              Attempts to detect current operating system
-//  fullscreen()            Go fullscreen on DOM 'element'
-//  metaKeyOS()             Returns character string of shortcut key depending on OS
+//  detectOS()                  Attempts to detect current operating system
+//  fullscreen()                Go fullscreen on DOM 'element'
+//  metaKeyOS()                 Returns character string of shortcut key depending on OS
 // WAIT
-//  sleep()                 Pauses app for specified milliseconds
-//  waitForObject()         Wait for getter to return an object that exists, then call a function
+//  sleep()                     Pauses app for specified milliseconds
+//  waitForObject()             Wait for getter to return an object that exists, then call a function
 
 class SysUtils {
 

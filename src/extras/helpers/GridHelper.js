@@ -11,6 +11,7 @@ const _botRight = new Vector2();
 
 const _matrix = new Matrix2();
 const _inverse = new Matrix2();
+const _translate = new Matrix2();
 const _rotate = new Matrix2();
 const _scale = new Matrix2();
 
@@ -23,7 +24,6 @@ class GridHelper extends Object2D {
         super();
         this.isHelper = true;
         this.type = 'GridHelper';
-        this.name = 'Grid Helper';
 
         this.pointerEvents = false;
         this.draggable = false;
@@ -54,12 +54,15 @@ class GridHelper extends Object2D {
     }
 
     alignToGrid(object) {
+        if (!object.parent) return;
+
         // Matrix to transform the object's position to the grid space
+        const worldPosition = object.getWorldPosition()
         const inverseMatrix = new Matrix2()
             .translate(-this.position.x, -this.position.y)
             .rotate(-this.rotation)
             .scale(1 / this.scale.x, 1 / this.scale.y);
-        const gridPosition = inverseMatrix.transformPoint(object.getWorldPosition());
+        const gridPosition = inverseMatrix.transformPoint(worldPosition);
 
         // Calculate the closest grid intersection
         const closestX = Math.round(gridPosition.x / this.gridX) * this.gridX;
@@ -73,12 +76,8 @@ class GridHelper extends Object2D {
         const closestWorldPosition = transformMatrix.transformPoint(new Vector2(closestX, closestY));
 
         // Set the object's position to the closest grid intersection in it's local parent space
-        if (object.parent) {
-            const localPosition = object.parent.inverseGlobalMatrix.transformPoint(closestWorldPosition);
-            object.setPosition(localPosition.x, localPosition.y);
-        } else {
-            object.setPosition(closestWorldPosition.x, closestWorldPosition.y);
-        }
+        const localPosition = object.parent.inverseGlobalMatrix.transformPoint(closestWorldPosition);
+        object.setPosition(localPosition.x, localPosition.y);
     }
 
     draw(renderer) {

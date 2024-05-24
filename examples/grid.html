@@ -46,6 +46,22 @@
         box3.fillStyle.color = '#0000ff';
         scene.add(box3);
 
+        const rainbowBox = new SALT.Box();
+        rainbowBox.setPosition(-100, 200);
+        rainbowBox.radius = 25;
+        rainbowBox.fillStyle = new SALT.LinearGradientStyle();
+        rainbowBox.fillStyle.start.set(-50, -50);
+        rainbowBox.fillStyle.end.set(50, 50);
+        rainbowBox.fillStyle.addColorStop(0, '#ff0000');
+        rainbowBox.fillStyle.addColorStop(0.5, '#00ff00');
+        rainbowBox.fillStyle.addColorStop(1, '#0000ff');
+        scene.add(rainbowBox);
+
+        const circle = new SALT.Circle();
+        circle.setPosition(100, 0);
+        circle.radius = 50;
+        rainbowBox.add(circle);
+
         // Grid Helper
         const grid = new SALT.GridHelper();
         scene.add(grid);

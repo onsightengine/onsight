@@ -1004,7 +1004,7 @@ class Matrix2 {
     }
     compose(px, py, sx, sy, ox, oy, rot) {
         this.identity();
-        this.multiply(_translate$1.set(1, 0, 0, 1, px, py));
+        this.multiply(_translate$2.set(1, 0, 0, 1, px, py));
         if (rot !== 0) {
             const c = Math.cos(rot);
             const s = Math.sin(rot);
@@ -1140,7 +1140,7 @@ class Matrix2 {
         return this;
     }
 }
-const _translate$1 = new Matrix2();
+const _translate$2 = new Matrix2();
 const _rotate$2 = new Matrix2();
 const _skew = new Matrix2();
 const _origin$1 = new Matrix2();
@@ -1463,8 +1463,8 @@ const _topRight$4 = new Vector2();
 const _botLeft$4 = new Vector2();
 const _botRight$4 = new Vector2();
 class Object2D extends Thing {
-    constructor(name = 'Object') {
-        super(name);
+    constructor() {
+        super();
         this.type = 'Object2D';
         this.children = [];
         this.parent = null;
@@ -1665,8 +1665,7 @@ class Object2D extends Thing {
         return this.globalMatrix.getScale();
     }
     setPosition(x, y) {
-        if (typeof x === 'object' && x.x && x.y) this.position.copy(x);
-        else this.position.set(x, y);
+        this.position.copy(x, y);
         this.updateMatrix(true);
         return this;
     }
@@ -1705,7 +1704,7 @@ class Object2D extends Thing {
                 const localPositionEnd = parent.inverseGlobalMatrix.transformPoint(worldPositionEnd);
                 const delta = localPositionStart.clone().sub(localPositionEnd);
                 _position$1.copy(this.dragStartPosition).sub(delta);
-                this.position.copy(_position$1.x, _position$1.y);
+                this.position.copy(_position$1);
                 this.matrixNeedsUpdate = true;
             }
         }
@@ -2832,7 +2831,7 @@ const _topLeft$3 = new Vector2();
 const _topRight$3 = new Vector2();
 const _botLeft$3 = new Vector2();
 const _botRight$3 = new Vector2();
-const _translate = new Matrix2();
+const _translate$1 = new Matrix2();
 const _rotate$1 = new Matrix2();
 const _scale$2 = new Matrix2();
 class Camera2D extends Thing {
@@ -2858,12 +2857,12 @@ class Camera2D extends Thing {
     updateMatrix(offsetX, offsetY) {
         if (!this.matrixNeedsUpdate) return;
         this.matrix.identity();
-        this.matrix.multiply(_translate.set(1, 0, 0, 1, +offsetX, +offsetY));
+        this.matrix.multiply(_translate$1.set(1, 0, 0, 1, +offsetX, +offsetY));
         const c = Math.cos(this.rotation);
         const s = Math.sin(this.rotation);
         this.matrix.multiply(_rotate$1.set(c, s, -s, c, 0, 0));
-        this.matrix.multiply(_translate.set(1, 0, 0, 1, -offsetX, -offsetY));
-        this.matrix.multiply(_translate.set(1, 0, 0, 1, this.position.x, this.position.y));
+        this.matrix.multiply(_translate$1.set(1, 0, 0, 1, -offsetX, -offsetY));
+        this.matrix.multiply(_translate$1.set(1, 0, 0, 1, this.position.x, this.position.y));
         this.matrix.multiply(_scale$2.set(this.scale, 0, 0, this.scale, 0, 0));
         this.matrix.getInverse(this.inverseMatrix);
         this.matrixNeedsUpdate = false;
@@ -3530,7 +3529,7 @@ class Circle extends Object2D {
         this.computeBoundingBox();
     }
     computeBoundingBox() {
-        const radius = this.radius;
+        const radius = this.#radius;
         this.boundingBox.min.set(-radius, -radius);
         this.boundingBox.max.set(+radius, +radius);
         return this.boundingBox;
@@ -4007,6 +4006,7 @@ const _topRight$1 = new Vector2();
 const _botLeft$1 = new Vector2();
 const _botRight$1 = new Vector2();
 const _objectMatrix = new Matrix2();
+const dragger = Object.assign(new Circle(10), { selectable: false, focusable: false });
 class ResizeHelper extends Box {
     static ALL = 0;
     static RESIZE = 1;
@@ -4018,7 +4018,6 @@ class ResizeHelper extends Box {
         super();
         this.isHelper = true;
         this.type = 'ResizeHelper';
-        this.name = 'Resize Helper';
         this.pointerEvents = true;
         this.draggable = true;
         this.focusable = true;
@@ -4159,29 +4158,46 @@ class ResizeHelper extends Box {
                     }
                     return closestCursor;
                 };
-                let startBox;
-                let startDragPosition, startDragRotation, startDragScale;
+                let startDragPosition, startDragRotation, startDragScale;;
+                let startBox, worldPositionStart;
                 resizer['onPointerDragStart'] = function(renderer) {
+                    resizer.isDragging = false;
+                    self.parent.add(dragger);
+                    dragger['onPointerDragEnd'] = function(renderer) { self.parent.remove(dragger); };
+                    dragger['onPointerDrag'] = function(renderer) {
+                        Object2D.prototype.onPointerDrag.call(this, renderer);
+                        updateResizer(renderer);
+                    };
+                    dragger.setPosition = function(x, y) {
+                        Object2D.prototype.setPosition.call(this, x, y);
+                        updateResizer();
+                        return dragger;
+                    };
+                    const worldPosition = resizer.getWorldPosition();
+                    const parentPosition = self.parent.inverseGlobalMatrix.transformPoint(worldPosition);
+                    dragger.position.copy(parentPosition);
+                    dragger.cursor = resizer.cursor;
+                    dragger.fillStyle = null;
+                    dragger.strokeStyle = null;
+                    dragger.level = Infinity;
+                    dragger.pointerStartPosition = renderer.pointer.position.clone();
+                    dragger.dragStartPosition = dragger.position.clone();
+                    worldPositionStart = worldPosition.clone();
+                    renderer.dragObject = dragger;
                     startBox = self.boundingBox.clone();
                     startDragPosition = self.position.clone();
                     startDragRotation = self.rotation;
                     startDragScale = self.scale.clone();
                 };
-                resizer.onPointerDrag = function(renderer) {
-                    Object2D.prototype.onPointerDrag.call(this, renderer);
-                    updateResizer();
-                };
-                resizer.setPosition = function(x, y) {
-                    Object2D.prototype.setPosition.call(this, x, y);
-                    return self;
-                };
-                function updateResizer() {
-                    if (!resizer.restingPosition) return;
-                    const delta = resizer.restingPosition.clone().sub(resizer.position).multiply(self.scale);
+                function updateResizer(renderer) {
+                    const localPositionStart = self.inverseGlobalMatrix.transformPoint(worldPositionStart);
+                    const worldPositionEnd = dragger.getWorldPosition();
+                    const localPositionEnd = self.inverseGlobalMatrix.transformPoint(worldPositionEnd);
+                    const delta = localPositionStart.clone().sub(localPositionEnd).multiply(self.scale);
                     if (x === 0) delta.x = 0;
                     if (y === 0) delta.y = 0;
                     delta.multiplyScalar(0.5);
-                    const size = self.boundingBox.getSize();
+                    const size = startBox.getSize();
                     const scaleX = MathUtils.sanity((x === 0) ? 0 : 2 / size.x);
                     const scaleY = MathUtils.sanity((y === 0) ? 0 : 2 / size.y);
                     const scale = new Vector2(scaleX, scaleY);
@@ -4218,7 +4234,7 @@ class ResizeHelper extends Box {
                         object.scale.x = MathUtils.noZero(MathUtils.sanity(object.scale.x));
                         object.scale.y = MathUtils.noZero(MathUtils.sanity(object.scale.y));
                     }
-                    updateObjects();
+                    updateObjects(renderer, false );
                 }
                 return resizer;
             }
@@ -4234,10 +4250,7 @@ class ResizeHelper extends Box {
             this.add(rightResizer, bottomResizer, leftResizer, topResizer);
         }
         if (tools === ResizeHelper.ALL || tools === ResizeHelper.ROTATE) {
-            rotater = new Circle();
-            rotater.draggable = true;
-            rotater.focusable = false;
-            rotater.selectable = false;
+            rotater = Object.assign(new Circle(), { draggable: true, focusable: false, selectable: false });
             rotater.radius = radius + 1;
             rotater.buffer = 3;
             rotater.layer = topLayer + 2;
@@ -4266,12 +4279,9 @@ class ResizeHelper extends Box {
                 const sign = Math.sign(cross);
                 self.rotation += (angle * sign);
                 self.updateMatrix(true);
-                updateObjects();
+                updateObjects(renderer, false );
             };
-            rotateLine = new Line();
-            rotateLine.draggable = false;
-            rotateLine.focusable = false;
-            rotateLine.selectable = false;
+            rotateLine = Object.assign(new Line(), { draggable: false, focusable: false, selectable: false });
             rotateLine.layer = topLayer + 1;
             rotateLine.lineWidth = OUTLINE_THICKNESS;
             rotateLine.constantWidth = true;
@@ -4280,10 +4290,10 @@ class ResizeHelper extends Box {
         }
         this.onPointerDrag = function(renderer) {
             Object2D.prototype.onPointerDrag.call(this, renderer);
-            updateObjects(renderer);
+            updateObjects(renderer, true );
         };
         this.onPointerDragEnd = function(renderer) {
-            updateObjects(renderer);
+            updateObjects(renderer, false );
         };
         this.setPosition = function(x, y) {
             Object2D.prototype.setPosition.call(this, x, y);
@@ -4292,6 +4302,7 @@ class ResizeHelper extends Box {
         };
         let lastRenderer = null;
         function updateObjects(renderer = lastRenderer, lerp = true) {
+            if (!renderer && !lastRenderer) return;
             if (renderer) lastRenderer = renderer;
             for (const object of objects) {
                 const initialPosition = initialTransforms[object.uuid].position;
@@ -4317,7 +4328,7 @@ class ResizeHelper extends Box {
                     object.rotation *= -1;
                     object.rotation += self.rotation;
                 }
-                object.updateMatrix();
+                object.traverse((child) => { child.updateMatrix(true); });
             }
             self.onUpdate(renderer);
         }
@@ -4343,36 +4354,23 @@ class ResizeHelper extends Box {
                 rotateLine.updateMatrix(true);
                 rotateLine.visible = showResizers;
             }
-            function updateCornerResizer(resizer, x, y) {
+            function updateResizer(resizer, x, y, type) {
                 if (!resizer) return;
                 resizer.position.set(x, y);
-                resizer.scale.set((1 / self.scale.x) / camera.scale, (1 / self.scale.y) / camera.scale);
-                if (!resizer.restingPosition) resizer.restingPosition = resizer.position.clone();
+                if      (type === 'v') { resizer.from.set(0, -halfSize.y); resizer.to.set(0, +halfSize.y); }
+                else if (type === 'h') { resizer.from.set(-halfSize.x, 0); resizer.to.set(+halfSize.x, 0); }
+                else { resizer.scale.set((1 / self.scale.x) / camera.scale, (1 / self.scale.y) / camera.scale); }
                 resizer.updateMatrix(true);
                 resizer.visible = showResizers;
             }
-            updateCornerResizer(topLeft, -halfSize.x, -halfSize.y);
-            updateCornerResizer(topRight, +halfSize.x, -halfSize.y);
-            updateCornerResizer(bottomLeft, -halfSize.x, +halfSize.y);
-            updateCornerResizer(bottomRight, +halfSize.x, +halfSize.y);
-            function updateSideResizer(resizer, x, y, type = 'v') {
-                if (!resizer) return;
-                resizer.position.set(x, y);
-                if (!resizer.restingPosition) resizer.restingPosition = resizer.position.clone();
-                if (type === 'v') {
-                    resizer.from.set(0, -halfSize.y);
-                    resizer.to.set(0, +halfSize.y);
-                } else {
-                    resizer.from.set(-halfSize.x, 0);
-                    resizer.to.set(+halfSize.x, 0);
-                }
-                resizer.updateMatrix(true);
-                resizer.visible = showResizers;
-            }
-            updateSideResizer(leftResizer, -halfSize.x, 0, 'v');
-            updateSideResizer(rightResizer, +halfSize.x, 0, 'v');
-            updateSideResizer(topResizer, 0, -halfSize.y, 'h');
-            updateSideResizer(bottomResizer, 0, +halfSize.y, 'h');
+            updateResizer(topLeft, -halfSize.x, -halfSize.y);
+            updateResizer(topRight, +halfSize.x, -halfSize.y);
+            updateResizer(bottomLeft, -halfSize.x, +halfSize.y);
+            updateResizer(bottomRight, +halfSize.x, +halfSize.y);
+            updateResizer(leftResizer, -halfSize.x, 0, 'v');
+            updateResizer(rightResizer, +halfSize.x, 0, 'v');
+            updateResizer(topResizer, 0, -halfSize.y, 'h');
+            updateResizer(bottomResizer, 0, +halfSize.y, 'h');
         };
     }
 }
@@ -4382,7 +4380,6 @@ class RubberBandBox extends Box {
         super();
         this.isHelper = true;
         this.type = 'RubberBandBox';
-        this.name = 'Rubber Band Box';
         this.pointerEvents = false;
         this.draggable = false;
         this.focusable = false;
@@ -4557,6 +4554,7 @@ const _botLeft = new Vector2();
 const _botRight = new Vector2();
 const _matrix = new Matrix2();
 const _inverse = new Matrix2();
+const _translate = new Matrix2();
 const _rotate = new Matrix2();
 const _scale = new Matrix2();
 class GridHelper extends Object2D {
@@ -4566,7 +4564,6 @@ class GridHelper extends Object2D {
         super();
         this.isHelper = true;
         this.type = 'GridHelper';
-        this.name = 'Grid Helper';
         this.pointerEvents = false;
         this.draggable = false;
         this.focusable = false;
@@ -4590,11 +4587,13 @@ class GridHelper extends Object2D {
         this.cache = null;
     }
     alignToGrid(object) {
+        if (!object.parent) return;
+        const worldPosition = object.getWorldPosition();
         const inverseMatrix = new Matrix2()
             .translate(-this.position.x, -this.position.y)
             .rotate(-this.rotation)
             .scale(1 / this.scale.x, 1 / this.scale.y);
-        const gridPosition = inverseMatrix.transformPoint(object.getWorldPosition());
+        const gridPosition = inverseMatrix.transformPoint(worldPosition);
         const closestX = Math.round(gridPosition.x / this.gridX) * this.gridX;
         const closestY = Math.round(gridPosition.y / this.gridY) * this.gridY;
         const transformMatrix = new Matrix2()
@@ -4602,12 +4601,8 @@ class GridHelper extends Object2D {
             .rotate(this.rotation)
             .translate(this.position.x, this.position.y);
         const closestWorldPosition = transformMatrix.transformPoint(new Vector2(closestX, closestY));
-        if (object.parent) {
-            const localPosition = object.parent.inverseGlobalMatrix.transformPoint(closestWorldPosition);
-            object.setPosition(localPosition.x, localPosition.y);
-        } else {
-            object.setPosition(closestWorldPosition.x, closestWorldPosition.y);
-        }
+        const localPosition = object.parent.inverseGlobalMatrix.transformPoint(closestWorldPosition);
+        object.setPosition(localPosition.x, localPosition.y);
     }
     draw(renderer) {
         const context = renderer.context;

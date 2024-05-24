@@ -24,7 +24,7 @@ class Circle extends Object2D {
     }
 
     computeBoundingBox() {
-        const radius = this.radius;
+        const radius = this.#radius;
         this.boundingBox.min.set(-radius, -radius);
         this.boundingBox.max.set(+radius, +radius);
         return this.boundingBox;

@@ -21,6 +21,8 @@ const _botLeft = new Vector2();
 const _botRight = new Vector2();
 const _objectMatrix = new Matrix2();
 
+const dragger = Object.assign(new Circle(10), { selectable: false, focusable: false });
+
 class ResizeHelper extends Box {
 
     static ALL = 0;
@@ -35,7 +37,6 @@ class ResizeHelper extends Box {
         super();
         this.isHelper = true;
         this.type = 'ResizeHelper';
-        this.name = 'Resize Helper';
 
         this.pointerEvents = true;
         this.draggable = true;
@@ -212,33 +213,53 @@ class ResizeHelper extends Box {
                     }
                     return closestCursor;
                 };
-                let startBox;
-                let startDragPosition, startDragRotation, startDragScale;
+                let startDragPosition, startDragRotation, startDragScale;;
+                let startBox, worldPositionStart;
                 resizer['onPointerDragStart'] = function(renderer) {
+                    // Setup Dragger
+                    resizer.isDragging = false;
+                    self.parent.add(dragger);
+                    dragger['onPointerDragEnd'] = function(renderer) { self.parent.remove(dragger); };
+                    dragger['onPointerDrag'] = function(renderer) {
+                        Object2D.prototype.onPointerDrag.call(this, renderer);
+                        updateResizer(renderer);
+                    }
+                    dragger.setPosition = function(x, y) {
+                        Object2D.prototype.setPosition.call(this, x, y);
+                        updateResizer();
+                        return dragger;
+                    }
+                    // Convert resizer world position to parent local position
+                    const worldPosition = resizer.getWorldPosition();
+                    const parentPosition = self.parent.inverseGlobalMatrix.transformPoint(worldPosition);
+                    dragger.position.copy(parentPosition);
+                    // Prepare Drag
+                    dragger.cursor = resizer.cursor;
+                    dragger.fillStyle = null;
+                    dragger.strokeStyle = null;
+                    dragger.level = Infinity;
+                    dragger.pointerStartPosition = renderer.pointer.position.clone();
+                    dragger.dragStartPosition = dragger.position.clone();
+                    worldPositionStart = worldPosition.clone();
+                    renderer.dragObject = dragger;
+                    // Starting Transform
                     startBox = self.boundingBox.clone();
                     startDragPosition = self.position.clone();
                     startDragRotation = self.rotation;
                     startDragScale = self.scale.clone();
-                }
-                resizer.onPointerDrag = function(renderer) {
-                    Object2D.prototype.onPointerDrag.call(this, renderer);
-                    updateResizer();
                 };
-                // Override set position to update objects
-                resizer.setPosition = function(x, y) {
-                    Object2D.prototype.setPosition.call(this, x, y);
-                    // updateResizer();
-                    return self;
-                }
-                function updateResizer() {
-                    if (!resizer.restingPosition) return;
-                    const delta = resizer.restingPosition.clone().sub(resizer.position).multiply(self.scale);
+                function updateResizer(renderer) {
+                    // Transform Delta
+                    const localPositionStart = self.inverseGlobalMatrix.transformPoint(worldPositionStart);
+                    const worldPositionEnd = dragger.getWorldPosition();
+                    const localPositionEnd = self.inverseGlobalMatrix.transformPoint(worldPositionEnd);
+                    const delta = localPositionStart.clone().sub(localPositionEnd).multiply(self.scale);
 
                     // Scale by Delta
                     if (x === 0) delta.x = 0;
                     if (y === 0) delta.y = 0;
                     delta.multiplyScalar(0.5);
-                    const size = self.boundingBox.getSize();
+                    const size = startBox.getSize();
                     const scaleX = MathUtils.sanity((x === 0) ? 0 : 2 / size.x);
                     const scaleY = MathUtils.sanity((y === 0) ? 0 : 2 / size.y);
                     const scale = new Vector2(scaleX, scaleY);
@@ -287,7 +308,7 @@ class ResizeHelper extends Box {
                         object.scale.x = MathUtils.noZero(MathUtils.sanity(object.scale.x));
                         object.scale.y = MathUtils.noZero(MathUtils.sanity(object.scale.y));
                     }
-                    updateObjects();
+                    updateObjects(renderer, false /* lerp */);
                 }
                 return resizer;
             }
@@ -306,10 +327,7 @@ class ResizeHelper extends Box {
         // Rotate Tool
         if (tools === ResizeHelper.ALL || tools === ResizeHelper.ROTATE) {
             // Circle
-            rotater = new Circle();
-            rotater.draggable = true;
-            rotater.focusable = false;
-            rotater.selectable = false;
+            rotater = Object.assign(new Circle(), { draggable: true, focusable: false, selectable: false });
             rotater.radius = radius + 1;
             rotater.buffer = 3;
             rotater.layer = topLayer + 2;
@@ -338,13 +356,10 @@ class ResizeHelper extends Box {
                 const sign = Math.sign(cross);
                 self.rotation += (angle * sign);
                 self.updateMatrix(true);
-                updateObjects();
+                updateObjects(renderer, false /* lerp */);
             };
             // Line
-            rotateLine = new Line();
-            rotateLine.draggable = false;
-            rotateLine.focusable = false;
-            rotateLine.selectable = false;
+            rotateLine = Object.assign(new Line(), { draggable: false, focusable: false, selectable: false });
             rotateLine.layer = topLayer + 1;
             rotateLine.lineWidth = OUTLINE_THICKNESS;
             rotateLine.constantWidth = true;
@@ -355,24 +370,25 @@ class ResizeHelper extends Box {
         // Update positions on Drag
         this.onPointerDrag = function(renderer) {
             Object2D.prototype.onPointerDrag.call(this, renderer);
-            updateObjects(renderer);
+            updateObjects(renderer, true /* lerp */);
         };
 
         // Update positions on Drag End
         this.onPointerDragEnd = function(renderer) {
-            updateObjects(renderer);
+            updateObjects(renderer, false /* lerp */);
         };
 
-        // Override set position to update objects
+        // Override set position to update objects during snap to grid
         this.setPosition = function(x, y) {
             Object2D.prototype.setPosition.call(this, x, y);
-            updateObjects(null, false /* lerp? */);
+            updateObjects(null, false /* lerp */);
             return self;
         }
 
         // Update object's position based on the scaled relative position
         let lastRenderer = null;
         function updateObjects(renderer = lastRenderer, lerp = true) {
+            if (!renderer && !lastRenderer) return;
             if (renderer) lastRenderer = renderer;
             for (const object of objects) {
                 const initialPosition = initialTransforms[object.uuid].position;
@@ -410,7 +426,7 @@ class ResizeHelper extends Box {
                 }
 
                 // Update Matrix
-                object.updateMatrix();
+                object.traverse((child) => { child.updateMatrix(true); });
             }
             self.onUpdate(renderer);
         }
@@ -445,38 +461,23 @@ class ResizeHelper extends Box {
             }
 
             // Corner Resizers
-            function updateCornerResizer(resizer, x, y) {
+            function updateResizer(resizer, x, y, type) {
                 if (!resizer) return;
                 resizer.position.set(x, y);
-                resizer.scale.set((1 / self.scale.x) / camera.scale, (1 / self.scale.y) / camera.scale);
-                if (!resizer.restingPosition) resizer.restingPosition = resizer.position.clone();
+                if      (type === 'v') { resizer.from.set(0, -halfSize.y); resizer.to.set(0, +halfSize.y); }
+                else if (type === 'h') { resizer.from.set(-halfSize.x, 0); resizer.to.set(+halfSize.x, 0); }
+                else { resizer.scale.set((1 / self.scale.x) / camera.scale, (1 / self.scale.y) / camera.scale); }
                 resizer.updateMatrix(true);
                 resizer.visible = showResizers;
             }
-            updateCornerResizer(topLeft, -halfSize.x, -halfSize.y);
-            updateCornerResizer(topRight, +halfSize.x, -halfSize.y);
-            updateCornerResizer(bottomLeft, -halfSize.x, +halfSize.y);
-            updateCornerResizer(bottomRight, +halfSize.x, +halfSize.y);
-
-            // Side Resizers
-            function updateSideResizer(resizer, x, y, type = 'v') {
-                if (!resizer) return;
-                resizer.position.set(x, y);
-                if (!resizer.restingPosition) resizer.restingPosition = resizer.position.clone();
-                if (type === 'v') {
-                    resizer.from.set(0, -halfSize.y);
-                    resizer.to.set(0, +halfSize.y);
-                } else {
-                    resizer.from.set(-halfSize.x, 0);
-                    resizer.to.set(+halfSize.x, 0);
-                }
-                resizer.updateMatrix(true);
-                resizer.visible = showResizers;
-            }
-            updateSideResizer(leftResizer, -halfSize.x, 0, 'v');
-            updateSideResizer(rightResizer, +halfSize.x, 0, 'v');
-            updateSideResizer(topResizer, 0, -halfSize.y, 'h');
-            updateSideResizer(bottomResizer, 0, +halfSize.y, 'h');
+            updateResizer(topLeft, -halfSize.x, -halfSize.y);
+            updateResizer(topRight, +halfSize.x, -halfSize.y);
+            updateResizer(bottomLeft, -halfSize.x, +halfSize.y);
+            updateResizer(bottomRight, +halfSize.x, +halfSize.y);
+            updateResizer(leftResizer, -halfSize.x, 0, 'v');
+            updateResizer(rightResizer, +halfSize.x, 0, 'v');
+            updateResizer(topResizer, 0, -halfSize.y, 'h');
+            updateResizer(bottomResizer, 0, +halfSize.y, 'h');
         };
     }
 

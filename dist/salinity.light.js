@@ -1463,8 +1463,8 @@ const _topRight$2 = new Vector2();
 const _botLeft$2 = new Vector2();
 const _botRight$2 = new Vector2();
 class Object2D extends Thing {
-    constructor(name = 'Object') {
-        super(name);
+    constructor() {
+        super();
         this.type = 'Object2D';
         this.children = [];
         this.parent = null;
@@ -1665,8 +1665,7 @@ class Object2D extends Thing {
         return this.globalMatrix.getScale();
     }
     setPosition(x, y) {
-        if (typeof x === 'object' && x.x && x.y) this.position.copy(x);
-        else this.position.set(x, y);
+        this.position.copy(x, y);
         this.updateMatrix(true);
         return this;
     }
@@ -1705,7 +1704,7 @@ class Object2D extends Thing {
                 const localPositionEnd = parent.inverseGlobalMatrix.transformPoint(worldPositionEnd);
                 const delta = localPositionStart.clone().sub(localPositionEnd);
                 _position.copy(this.dragStartPosition).sub(delta);
-                this.position.copy(_position.x, _position.y);
+                this.position.copy(_position);
                 this.matrixNeedsUpdate = true;
             }
         }
@@ -3530,7 +3529,7 @@ class Circle extends Object2D {
         this.computeBoundingBox();
     }
     computeBoundingBox() {
-        const radius = this.radius;
+        const radius = this.#radius;
         this.boundingBox.min.set(-radius, -radius);
         this.boundingBox.max.set(+radius, +radius);
         return this.boundingBox;

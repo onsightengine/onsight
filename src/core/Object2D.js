@@ -23,8 +23,8 @@ const _botRight = new Vector2();
 
 class Object2D extends Thing {
 
-    constructor(name = 'Object') {
-        super(name);
+    constructor() {
+        super();
         this.type = 'Object2D';
 
         // Hierarchy
@@ -290,8 +290,7 @@ class Object2D extends Thing {
     }
 
     setPosition(x, y) {
-        if (typeof x === 'object' && x.x && x.y) this.position.copy(x);
-        else this.position.set(x, y);
+        this.position.copy(x, y);
         this.updateMatrix(true);
         return this;
     }
@@ -386,7 +385,7 @@ class Object2D extends Thing {
 
                 // Update Position
                 _position.copy(this.dragStartPosition).sub(delta);
-                this.position.copy(_position.x, _position.y);
+                this.position.copy(_position);
                 this.matrixNeedsUpdate = true;
             }
         }

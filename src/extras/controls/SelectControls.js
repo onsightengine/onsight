@@ -151,7 +151,7 @@ class SelectControls {
                 const commonAncestor = findCommonMostAncestor(newSelection);
                 commonAncestor.add(this.resizeTool);
 
-                this.resizeTool.onUpdate(renderer);
+                if (typeof this.resizeTool.onUpdate === 'function') this.resizeTool.onUpdate(renderer);
                 if (this.rubberBandBox == null) {
                     renderer.dragObject = this.resizeTool;
                 }

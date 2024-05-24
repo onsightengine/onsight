@@ -15,6 +15,7 @@ import { Pointer } from './input/Pointer.js';
 import { Thing } from './Thing.js';
 import { Vector2 } from '../math/Vector2.js';
 
+const _position = new Vector2();
 const _topLeft = new Vector2();
 const _topRight = new Vector2();
 const _botLeft = new Vector2();
@@ -291,6 +292,7 @@ class Object2D extends Thing {
     setPosition(x, y) {
         if (typeof x === 'object' && x.x && x.y) this.position.copy(x);
         else this.position.set(x, y);
+        this.updateMatrix(true);
         return this;
     }
 
@@ -383,8 +385,9 @@ class Object2D extends Thing {
                 const delta = localPositionStart.clone().sub(localPositionEnd);
 
                 // Update Position
-                this.position.copy(this.dragStartPosition).sub(delta);
-                this.updateMatrix(true);
+                _position.copy(this.dragStartPosition).sub(delta);
+                this.position.copy(_position.x, _position.y);
+                this.matrixNeedsUpdate = true;
             }
         }
     }

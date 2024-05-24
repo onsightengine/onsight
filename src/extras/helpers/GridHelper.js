@@ -54,32 +54,31 @@ class GridHelper extends Object2D {
     }
 
     alignToGrid(object) {
-        const objectPosition = object.getWorldPosition();
-        const gridPosition = this.position;
-        const gridRotation = this.rotation;
-        const gridScale = this.scale;
-
         // Matrix to transform the object's position to the grid space
         const inverseMatrix = new Matrix2()
-            .translate(-gridPosition.x, -gridPosition.y)
-            .rotate(-gridRotation)
-            .scale(1 / gridScale.x, 1 / gridScale.y);
-        const localPosition = inverseMatrix.transformPoint(objectPosition.clone());
+            .translate(-this.position.x, -this.position.y)
+            .rotate(-this.rotation)
+            .scale(1 / this.scale.x, 1 / this.scale.y);
+        const gridPosition = inverseMatrix.transformPoint(object.getWorldPosition());
 
         // Calculate the closest grid intersection
-        const closestX = Math.round(localPosition.x / this.gridX) * this.gridX;
-        const closestY = Math.round(localPosition.y / this.gridY) * this.gridY;
+        const closestX = Math.round(gridPosition.x / this.gridX) * this.gridX;
+        const closestY = Math.round(gridPosition.y / this.gridY) * this.gridY;
 
         // Transform the closest grid intersection back to world space
         const transformMatrix = new Matrix2()
-            .scale(gridScale.x, gridScale.y)
-            .rotate(gridRotation)
-            .translate(gridPosition.x, gridPosition.y);
+            .scale(this.scale.x, this.scale.y)
+            .rotate(this.rotation)
+            .translate(this.position.x, this.position.y);
         const closestWorldPosition = transformMatrix.transformPoint(new Vector2(closestX, closestY));
 
-        // Set the object's position to the closest grid intersection
-        object.setPosition(closestWorldPosition.x, closestWorldPosition.y);
-        object.updateMatrix(true);
+        // Set the object's position to the closest grid intersection in it's local parent space
+        if (object.parent) {
+            const localPosition = object.parent.inverseGlobalMatrix.transformPoint(closestWorldPosition);
+            object.setPosition(localPosition.x, localPosition.y);
+        } else {
+            object.setPosition(closestWorldPosition.x, closestWorldPosition.y);
+        }
     }
 
     draw(renderer) {

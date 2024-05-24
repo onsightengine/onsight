@@ -1457,6 +1457,7 @@ class Thing {
     }
 }
 
+const _position = new Vector2();
 const _topLeft$2 = new Vector2();
 const _topRight$2 = new Vector2();
 const _botLeft$2 = new Vector2();
@@ -1666,6 +1667,7 @@ class Object2D extends Thing {
     setPosition(x, y) {
         if (typeof x === 'object' && x.x && x.y) this.position.copy(x);
         else this.position.set(x, y);
+        this.updateMatrix(true);
         return this;
     }
     updateMatrix(force = false) {
@@ -1702,8 +1704,9 @@ class Object2D extends Thing {
                 const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
                 const localPositionEnd = parent.inverseGlobalMatrix.transformPoint(worldPositionEnd);
                 const delta = localPositionStart.clone().sub(localPositionEnd);
-                this.position.copy(this.dragStartPosition).sub(delta);
-                this.updateMatrix(true);
+                _position.copy(this.dragStartPosition).sub(delta);
+                this.position.copy(_position.x, _position.y);
+                this.matrixNeedsUpdate = true;
             }
         }
     }

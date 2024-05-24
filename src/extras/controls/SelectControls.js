@@ -89,7 +89,7 @@ class SelectControls {
                 // Create Rubber Band Box?
                 if (this.rubberBandBox == null) {
                     if (mouseTravel >= MOUSE_SLOP) {
-                        renderer.dragObject = this.rubberBandBox;
+                        renderer.setDragObject(this.rubberBandBox);
                         const rubberBandBox = new RubberBandBox();
                         scene.traverse((child) => { rubberBandBox.layer = Math.max(rubberBandBox.layer, child.layer + 1); });
                         scene.add(rubberBandBox);
@@ -98,10 +98,21 @@ class SelectControls {
                 }
                 // Update Rubber Band Box
                 if (this.rubberBandBox) {
-                    _center.addVectors(this._mouseStart, this._mouseNow).divideScalar(2);
+                    // Center
+                    const viewportStart = camera.matrix.transformPoint(this._mouseStart);
+                    const viewportEnd = camera.matrix.transformPoint(this._mouseNow);
+                    _center.addVectors(viewportStart, viewportEnd).divideScalar(2);
+                    camera.inverseMatrix.applyToVector(_center);
                     this.rubberBandBox.position.copy(_center);
-                    _size.subVectors(this._mouseStart, this._mouseNow).abs().divideScalar(2);
-                    this.rubberBandBox.box.set(new Vector2(-_size.x, -_size.y), new Vector2(+_size.x, +_size.y));
+                    // Size
+                    _size.subVectors(viewportStart, viewportEnd).abs().divideScalar(2);
+                    this.rubberBandBox.box.min.set(-_size.x, -_size.y);
+                    this.rubberBandBox.box.max.set(+_size.x, +_size.y);
+                    // Transform
+                    this.rubberBandBox.rotation = -camera.rotation;
+                    this.rubberBandBox.scale.set(1 / camera.scale, 1 / camera.scale);
+                    this.rubberBandBox.updateMatrix(true);
+                    // Selection
                     newSelection = ArrayUtils.combineThingArrays(this.rubberBandBox.intersected(scene), this._existingSelection);
                 }
             }
@@ -147,14 +158,12 @@ class SelectControls {
             // Create New Tool?
             if (newSelection.length > 0) {
                 this.resizeTool = new ResizeHelper(newSelection);
-
+                // Add to Common Parent
                 const commonAncestor = findCommonMostAncestor(newSelection);
                 commonAncestor.add(this.resizeTool);
-
+                // Update, Start Drag
                 if (typeof this.resizeTool.onUpdate === 'function') this.resizeTool.onUpdate(renderer);
-                if (this.rubberBandBox == null) {
-                    renderer.dragObject = this.resizeTool;
-                }
+                if (this.rubberBandBox == null) renderer.setDragObject(this.resizeTool);
             }
             // Save Selection
             this.selection = [ ...newSelection ];

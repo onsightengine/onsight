@@ -216,8 +216,12 @@ class ResizeHelper extends Box {
                 let startDragPosition, startDragRotation, startDragScale;;
                 let startBox, worldPositionStart;
                 resizer['onPointerDragStart'] = function(renderer) {
+                    // Starting Transform
+                    startBox = self.boundingBox.clone();
+                    startDragPosition = self.position.clone();
+                    startDragRotation = self.rotation;
+                    startDragScale = self.scale.clone();
                     // Setup Dragger
-                    resizer.isDragging = false;
                     self.parent.add(dragger);
                     dragger['onPointerDragEnd'] = function(renderer) { self.parent.remove(dragger); };
                     dragger['onPointerDrag'] = function(renderer) {
@@ -241,12 +245,7 @@ class ResizeHelper extends Box {
                     dragger.pointerStartPosition = renderer.pointer.position.clone();
                     dragger.dragStartPosition = dragger.position.clone();
                     worldPositionStart = worldPosition.clone();
-                    renderer.dragObject = dragger;
-                    // Starting Transform
-                    startBox = self.boundingBox.clone();
-                    startDragPosition = self.position.clone();
-                    startDragRotation = self.rotation;
-                    startDragScale = self.scale.clone();
+                    renderer.setDragObject(dragger);
                 };
                 function updateResizer(renderer) {
                     // Transform Delta

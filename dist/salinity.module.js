@@ -2895,7 +2895,7 @@ class EventManager {
                         if (pointer.buttonJustPressed(Pointer.LEFT)) {
                             if (typeof object.onButtonDown === 'function') object.onButtonDown(renderer);
                             if (object.draggable) {
-                                renderer.dragObject = object;
+                                renderer.setDragObject(object);
                                 if (typeof object.onPointerDragStart === 'function') object.onPointerDragStart(renderer);
                             }
                         }
@@ -2908,8 +2908,7 @@ class EventManager {
             }
             if (renderer.dragObject === object) {
                 if (pointer.buttonJustReleased(Pointer.LEFT)) {
-                    renderer.dragObject = null;
-                    object.isDragging = false;
+                    renderer.setDragObject(null);
                     if (object.pointerEvents && typeof object.onPointerDragEnd === 'function') {
                         object.onPointerDragEnd(renderer);
                     }
@@ -3102,6 +3101,10 @@ class Renderer {
     stop() {
         this.running = false;
         cancelAnimationFrame(this.frame);
+    }
+    setDragObject(object) {
+        if (this.dragObject) this.dragObject.isDragging = false;
+        this.dragObject = object;
     }
     render(scene, camera) {
         this.drawCallCount = 0;
@@ -4161,7 +4164,10 @@ class ResizeHelper extends Box {
                 let startDragPosition, startDragRotation, startDragScale;;
                 let startBox, worldPositionStart;
                 resizer['onPointerDragStart'] = function(renderer) {
-                    resizer.isDragging = false;
+                    startBox = self.boundingBox.clone();
+                    startDragPosition = self.position.clone();
+                    startDragRotation = self.rotation;
+                    startDragScale = self.scale.clone();
                     self.parent.add(dragger);
                     dragger['onPointerDragEnd'] = function(renderer) { self.parent.remove(dragger); };
                     dragger['onPointerDrag'] = function(renderer) {
@@ -4183,11 +4189,7 @@ class ResizeHelper extends Box {
                     dragger.pointerStartPosition = renderer.pointer.position.clone();
                     dragger.dragStartPosition = dragger.position.clone();
                     worldPositionStart = worldPosition.clone();
-                    renderer.dragObject = dragger;
-                    startBox = self.boundingBox.clone();
-                    startDragPosition = self.position.clone();
-                    startDragRotation = self.rotation;
-                    startDragScale = self.scale.clone();
+                    renderer.setDragObject(dragger);
                 };
                 function updateResizer(renderer) {
                     const localPositionStart = self.inverseGlobalMatrix.transformPoint(worldPositionStart);
@@ -4465,7 +4467,7 @@ class SelectControls {
             if (this._wantsRubberBand) {
                 if (this.rubberBandBox == null) {
                     if (mouseTravel >= MOUSE_SLOP) {
-                        renderer.dragObject = this.rubberBandBox;
+                        renderer.setDragObject(this.rubberBandBox);
                         const rubberBandBox = new RubberBandBox();
                         scene.traverse((child) => { rubberBandBox.layer = Math.max(rubberBandBox.layer, child.layer + 1); });
                         scene.add(rubberBandBox);
@@ -4473,10 +4475,17 @@ class SelectControls {
                     }
                 }
                 if (this.rubberBandBox) {
-                    _center.addVectors(this._mouseStart, this._mouseNow).divideScalar(2);
+                    const viewportStart = camera.matrix.transformPoint(this._mouseStart);
+                    const viewportEnd = camera.matrix.transformPoint(this._mouseNow);
+                    _center.addVectors(viewportStart, viewportEnd).divideScalar(2);
+                    camera.inverseMatrix.applyToVector(_center);
                     this.rubberBandBox.position.copy(_center);
-                    _size.subVectors(this._mouseStart, this._mouseNow).abs().divideScalar(2);
-                    this.rubberBandBox.box.set(new Vector2(-_size.x, -_size.y), new Vector2(+_size.x, +_size.y));
+                    _size.subVectors(viewportStart, viewportEnd).abs().divideScalar(2);
+                    this.rubberBandBox.box.min.set(-_size.x, -_size.y);
+                    this.rubberBandBox.box.max.set(+_size.x, +_size.y);
+                    this.rubberBandBox.rotation = -camera.rotation;
+                    this.rubberBandBox.scale.set(1 / camera.scale, 1 / camera.scale);
+                    this.rubberBandBox.updateMatrix(true);
                     newSelection = ArrayUtils.combineThingArrays(this.rubberBandBox.intersected(scene), this._existingSelection);
                 }
             }
@@ -4514,9 +4523,7 @@ class SelectControls {
                 const commonAncestor = findCommonMostAncestor(newSelection);
                 commonAncestor.add(this.resizeTool);
                 if (typeof this.resizeTool.onUpdate === 'function') this.resizeTool.onUpdate(renderer);
-                if (this.rubberBandBox == null) {
-                    renderer.dragObject = this.resizeTool;
-                }
+                if (this.rubberBandBox == null) renderer.setDragObject(this.resizeTool);
             }
             this.selection = [ ...newSelection ];
         }

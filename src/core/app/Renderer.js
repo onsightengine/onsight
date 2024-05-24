@@ -169,6 +169,13 @@ class Renderer {
         cancelAnimationFrame(this.frame);
     }
 
+    /******************** EVENTS */
+
+    setDragObject(object) {
+        if (this.dragObject) this.dragObject.isDragging = false;
+        this.dragObject = object;
+    }
+
     /******************** RENDER */
 
     /** Renders Object2D using a Camera2D */

@@ -2895,7 +2895,7 @@ class EventManager {
                         if (pointer.buttonJustPressed(Pointer.LEFT)) {
                             if (typeof object.onButtonDown === 'function') object.onButtonDown(renderer);
                             if (object.draggable) {
-                                renderer.dragObject = object;
+                                renderer.setDragObject(object);
                                 if (typeof object.onPointerDragStart === 'function') object.onPointerDragStart(renderer);
                             }
                         }
@@ -2908,8 +2908,7 @@ class EventManager {
             }
             if (renderer.dragObject === object) {
                 if (pointer.buttonJustReleased(Pointer.LEFT)) {
-                    renderer.dragObject = null;
-                    object.isDragging = false;
+                    renderer.setDragObject(null);
                     if (object.pointerEvents && typeof object.onPointerDragEnd === 'function') {
                         object.onPointerDragEnd(renderer);
                     }
@@ -3102,6 +3101,10 @@ class Renderer {
     stop() {
         this.running = false;
         cancelAnimationFrame(this.frame);
+    }
+    setDragObject(object) {
+        if (this.dragObject) this.dragObject.isDragging = false;
+        this.dragObject = object;
     }
     render(scene, camera) {
         this.drawCallCount = 0;

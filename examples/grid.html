@@ -91,6 +91,22 @@
 
         /////
 
+        const tooltip = new SALT.TooltipHelper();
+        scene.add(tooltip);
+
+        const mouseWatch = {
+            update: function(renderer) {
+
+                if (renderer.pointer.wheel !== 0) {
+                    tooltip.popup('Test');
+                }
+
+            }
+        }
+        renderer.addUpdate(mouseWatch);
+
+        /////
+
         const params = {
             sizeX: 50,
             sizeY: 50,

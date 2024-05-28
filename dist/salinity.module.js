@@ -3157,8 +3157,9 @@ class Renderer {
         context.strokeStyle = '#ffffff';
         camera.matrix.setContextTransform(context);
         object.globalMatrix.applyToVector(_origin.copy(object.origin));
+        const originRadius = Math.max(3 / camera.scale, 0.00001);
         context.beginPath();
-        context.arc(_origin.x, _origin.y, 3 / camera.scale, 0, 2 * Math.PI);
+        context.arc(_origin.x, _origin.y, originRadius, 0, 2 * Math.PI);
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.stroke();
         context.strokeStyle = '#65e5ff';
@@ -4768,6 +4769,46 @@ class GridHelper extends Object2D {
     }
 }
 
+class TooltipHelper extends Box {
+    constructor() {
+        super();
+        this.isHelper = true;
+        this.type = 'TooltipHelper';
+        this.pointerEvents = false;
+        this.draggable = false;
+        this.focusable = false;
+        this.selectable = false;
+        this.layer = +Infinity;
+        this.visible = false;
+        this.box.min.set(-35, -15);
+        this.box.max.set(+35, +15);
+        this.radius = 8;
+        this.fillStyle.color = '--background-dark';
+        this.strokeStyle.color = '--icon-light';
+        this.lineWidth = 2;
+        this.timer = 0;
+    }
+    popup(text) {
+        this.timer = performance.now();
+    }
+    style(renderer) {
+        renderer.context.shadowBlur = 1;
+        renderer.context.shadowColor = '#65e5ff';
+    }
+    onUpdate(renderer) {
+        this.visible = (performance.now() - this.timer < 1000);
+        if (this.visible) {
+            const camera = renderer.camera;
+            const pointer = renderer.pointer;
+            const position = camera.inverseMatrix.transformPoint(pointer.position);
+            this.position.copy(position);
+            this.rotation = -camera.rotation;
+            this.scale.set(1 / camera.scale, 1 / camera.scale);
+            this.updateMatrix(true);
+        }
+    }
+}
+
 let _singleton = null;
 class Debug {
     #startInternal;
@@ -5126,4 +5167,4 @@ function getVariable(variable) {
     return ((value === '') ? undefined : value);
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, DomElement, Entity, EventManager, GridHelper, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, OUTLINE_THICKNESS, Object2D, Palette, Pointer, PolyUtils, Project, RadialGradientStyle, Renderer, ResizeHelper, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Sprite, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, DomElement, Entity, EventManager, GridHelper, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, OUTLINE_THICKNESS, Object2D, Palette, Pointer, PolyUtils, Project, RadialGradientStyle, Renderer, ResizeHelper, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Sprite, Stage, Style, SysUtils, Text, Thing, TooltipHelper, VERSION, Vector2, Vector3, WORLD_TYPES, World };

@@ -252,8 +252,9 @@ class Renderer {
         context.strokeStyle = '#ffffff';
         camera.matrix.setContextTransform(context);
         object.globalMatrix.applyToVector(_origin.copy(object.origin));
+        const originRadius = Math.max(3 / camera.scale, 0.00001);
         context.beginPath();
-        context.arc(_origin.x, _origin.y, 3 / camera.scale, 0, 2 * Math.PI);
+        context.arc(_origin.x, _origin.y, originRadius, 0, 2 * Math.PI);
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.stroke();
         // Bounding Box

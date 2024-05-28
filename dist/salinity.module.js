@@ -4672,11 +4672,13 @@ class GridHelper extends Object2D {
     }
     get gridX() { return this.#gridX; }
     set gridX(size) {
+        if (!isFinite(size) || size < 1) size = 1;
         this.#gridX = size;
         this.cache = null;
     }
     get gridY() { return this.#gridY; }
     set gridY(size) {
+        if (!isFinite(size) || size < 1) size = 1;
         this.#gridY = size;
         this.cache = null;
     }

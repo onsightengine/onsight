@@ -187,9 +187,9 @@ class Renderer {
         const renderer = this;
         const context = this.context;
 
-        // Gather, Sort Objects
+        // Gather / Sort Visible Objects
         const objects = [];
-        scene.traverse((child) => { if (child.visible) objects.push(child); });
+        scene.traverseVisible((child) => { if (child.visible) objects.push(child); });
         objects.sort((a, b) => {
             if (b.layer === a.layer) return b.level - a.level;
             return b.layer - a.layer;

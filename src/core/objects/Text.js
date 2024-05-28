@@ -7,7 +7,7 @@ class Text extends Object2D {
 
     #needsBounds = true;
 
-    constructor(text = '', font = '16px Arial') {
+    constructor(text = '', font = '14px Roboto, Helvetica, Arial, sans-serif') {
         super();
         this.type = 'Text';
 
@@ -22,9 +22,10 @@ class Text extends Object2D {
         this.textBaseline = 'middle';   // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/textBaseline
     }
 
-    computeBoundingBox(context) {
+    computeBoundingBox(renderer) {
         this.#needsBounds = true;
-        if (context) {
+        if (renderer) {
+            const context = renderer.context;
             context.font = this.font;
             context.textAlign = this.textAlign;
             context.textBaseline = this.textBaseline;
@@ -42,7 +43,7 @@ class Text extends Object2D {
     }
 
     draw(renderer) {
-        if (this.#needsBounds) this.computeBoundingBox(renderer.context);
+        if (this.#needsBounds) this.computeBoundingBox(renderer);
         const context = renderer.context;
         context.font = this.font;
         context.textAlign = this.textAlign;
@@ -52,7 +53,7 @@ class Text extends Object2D {
             context.fillText(this.text, 0, 0);
         }
         if (this.strokeStyle) {
-            context.lineWidth = this.lineWidth;;
+            context.lineWidth = this.lineWidth;
             context.strokeStyle = this.strokeStyle.get(context);
             context.strokeText(this.text, 0, 0);
         }

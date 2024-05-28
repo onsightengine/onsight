@@ -96,11 +96,11 @@
 
         const mouseWatch = {
             update: function(renderer) {
-
                 if (renderer.pointer.wheel !== 0) {
-                    tooltip.popup('Test');
+                    let scale = renderer.camera.scale * 100;
+                    scale = scale.toFixed((scale < 50) ? ((scale < 5) ? 2 : 1) : 0);
+                    tooltip.popup(` ${scale}% `);
                 }
-
             }
         }
         renderer.addUpdate(mouseWatch);

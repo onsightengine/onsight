@@ -66,7 +66,7 @@ class Box extends Object2D {
             context.fill();
         }
         if (this.strokeStyle) {
-            context.lineWidth = this.lineWidth;;
+            context.lineWidth = this.lineWidth;
             context.strokeStyle = this.strokeStyle.get(context);
             context.save();
             context.setTransform(1, 0, 0, 1, 0, 0);

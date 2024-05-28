@@ -209,7 +209,7 @@ class ResizeHelper extends Box {
                     }
                     return closestCursor;
                 };
-                let startDragPosition, startDragRotation, startDragScale;;
+                let startDragPosition, startDragRotation, startDragScale;
                 let startBox, worldPositionStart;
                 resizer['onPointerDragStart'] = function(renderer) {
                     // Starting Transform

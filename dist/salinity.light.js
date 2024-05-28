@@ -1566,8 +1566,7 @@ class Object2D extends Thing {
 		const parent = this.parent;
         if (!parent) return false;
 		if (typeof callback === 'function' && callback(parent)) return true;
-		parent.traverseAncestors(callback);
-        return false;
+		return parent.traverseAncestors(callback);
 	}
     clear() {
         return this.remove(...this.children);
@@ -1577,7 +1576,7 @@ class Object2D extends Thing {
         this.removeFromParent();
         return this;
     }
-    computeBoundingBox() {
+    computeBoundingBox(renderer) {
         return this.boundingBox;
     }
     isInside(point) {
@@ -3114,7 +3113,7 @@ class Renderer {
         const renderer = this;
         const context = this.context;
         const objects = [];
-        scene.traverse((child) => { if (child.visible) objects.push(child); });
+        scene.traverseVisible((child) => { if (child.visible) objects.push(child); });
         objects.sort((a, b) => {
             if (b.layer === a.layer) return b.level - a.level;
             return b.layer - a.layer;
@@ -3505,7 +3504,7 @@ class Box extends Object2D {
             context.fill();
         }
         if (this.strokeStyle) {
-            context.lineWidth = this.lineWidth;;
+            context.lineWidth = this.lineWidth;
             context.strokeStyle = this.strokeStyle.get(context);
             context.save();
             context.setTransform(1, 0, 0, 1, 0, 0);
@@ -3550,7 +3549,7 @@ class Circle extends Object2D {
             context.fill();
         }
         if (this.strokeStyle) {
-            context.lineWidth = this.lineWidth;;
+            context.lineWidth = this.lineWidth;
             context.strokeStyle = this.strokeStyle.get(context);
             if (this.constantWidth) {
                 context.save();
@@ -3748,7 +3747,7 @@ class Sprite extends Box {
 
 class Text extends Object2D {
     #needsBounds = true;
-    constructor(text = '', font = '16px Arial') {
+    constructor(text = '', font = '14px Roboto, Helvetica, Arial, sans-serif') {
         super();
         this.type = 'Text';
         this.text = text;
@@ -3759,9 +3758,10 @@ class Text extends Object2D {
         this.textAlign = 'center';
         this.textBaseline = 'middle';
     }
-    computeBoundingBox(context) {
+    computeBoundingBox(renderer) {
         this.#needsBounds = true;
-        if (context) {
+        if (renderer) {
+            const context = renderer.context;
             context.font = this.font;
             context.textAlign = this.textAlign;
             context.textBaseline = this.textBaseline;
@@ -3777,7 +3777,7 @@ class Text extends Object2D {
         return this.boundingBox.containsPoint(point);
     }
     draw(renderer) {
-        if (this.#needsBounds) this.computeBoundingBox(renderer.context);
+        if (this.#needsBounds) this.computeBoundingBox(renderer);
         const context = renderer.context;
         context.font = this.font;
         context.textAlign = this.textAlign;
@@ -3787,7 +3787,7 @@ class Text extends Object2D {
             context.fillText(this.text, 0, 0);
         }
         if (this.strokeStyle) {
-            context.lineWidth = this.lineWidth;;
+            context.lineWidth = this.lineWidth;
             context.strokeStyle = this.strokeStyle.get(context);
             context.strokeText(this.text, 0, 0);
         }

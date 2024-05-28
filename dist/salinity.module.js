@@ -1457,7 +1457,7 @@ class Thing {
     }
 }
 
-const _position$1 = new Vector2();
+const _position$2 = new Vector2();
 const _topLeft$5 = new Vector2();
 const _topRight$5 = new Vector2();
 const _botLeft$5 = new Vector2();
@@ -1566,8 +1566,7 @@ class Object2D extends Thing {
 		const parent = this.parent;
         if (!parent) return false;
 		if (typeof callback === 'function' && callback(parent)) return true;
-		parent.traverseAncestors(callback);
-        return false;
+		return parent.traverseAncestors(callback);
 	}
     clear() {
         return this.remove(...this.children);
@@ -1577,7 +1576,7 @@ class Object2D extends Thing {
         this.removeFromParent();
         return this;
     }
-    computeBoundingBox() {
+    computeBoundingBox(renderer) {
         return this.boundingBox;
     }
     isInside(point) {
@@ -1703,8 +1702,8 @@ class Object2D extends Thing {
                 const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
                 const localPositionEnd = parent.inverseGlobalMatrix.transformPoint(worldPositionEnd);
                 const delta = localPositionStart.clone().sub(localPositionEnd);
-                _position$1.copy(this.dragStartPosition).sub(delta);
-                this.position.copy(_position$1);
+                _position$2.copy(this.dragStartPosition).sub(delta);
+                this.position.copy(_position$2);
                 this.matrixNeedsUpdate = true;
             }
         }
@@ -3114,7 +3113,7 @@ class Renderer {
         const renderer = this;
         const context = this.context;
         const objects = [];
-        scene.traverse((child) => { if (child.visible) objects.push(child); });
+        scene.traverseVisible((child) => { if (child.visible) objects.push(child); });
         objects.sort((a, b) => {
             if (b.layer === a.layer) return b.level - a.level;
             return b.layer - a.layer;
@@ -3505,7 +3504,7 @@ class Box extends Object2D {
             context.fill();
         }
         if (this.strokeStyle) {
-            context.lineWidth = this.lineWidth;;
+            context.lineWidth = this.lineWidth;
             context.strokeStyle = this.strokeStyle.get(context);
             context.save();
             context.setTransform(1, 0, 0, 1, 0, 0);
@@ -3550,7 +3549,7 @@ class Circle extends Object2D {
             context.fill();
         }
         if (this.strokeStyle) {
-            context.lineWidth = this.lineWidth;;
+            context.lineWidth = this.lineWidth;
             context.strokeStyle = this.strokeStyle.get(context);
             if (this.constantWidth) {
                 context.save();
@@ -3748,7 +3747,7 @@ class Sprite extends Box {
 
 class Text extends Object2D {
     #needsBounds = true;
-    constructor(text = '', font = '16px Arial') {
+    constructor(text = '', font = '14px Roboto, Helvetica, Arial, sans-serif') {
         super();
         this.type = 'Text';
         this.text = text;
@@ -3759,9 +3758,10 @@ class Text extends Object2D {
         this.textAlign = 'center';
         this.textBaseline = 'middle';
     }
-    computeBoundingBox(context) {
+    computeBoundingBox(renderer) {
         this.#needsBounds = true;
-        if (context) {
+        if (renderer) {
+            const context = renderer.context;
             context.font = this.font;
             context.textAlign = this.textAlign;
             context.textBaseline = this.textBaseline;
@@ -3777,7 +3777,7 @@ class Text extends Object2D {
         return this.boundingBox.containsPoint(point);
     }
     draw(renderer) {
-        if (this.#needsBounds) this.computeBoundingBox(renderer.context);
+        if (this.#needsBounds) this.computeBoundingBox(renderer);
         const context = renderer.context;
         context.font = this.font;
         context.textAlign = this.textAlign;
@@ -3787,7 +3787,7 @@ class Text extends Object2D {
             context.fillText(this.text, 0, 0);
         }
         if (this.strokeStyle) {
-            context.lineWidth = this.lineWidth;;
+            context.lineWidth = this.lineWidth;
             context.strokeStyle = this.strokeStyle.get(context);
             context.strokeText(this.text, 0, 0);
         }
@@ -4035,7 +4035,7 @@ class CameraControls {
 }
 
 const CURSOR_ROTATE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWw6c3BhY2U9InByZXNlcnZlIiBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlLWxpbmVqb2luOnJvdW5kO3N0cm9rZS1taXRlcmxpbWl0OjI7Ij48cGF0aCBkPSJNMjEuMjQ3LDUuODY3YzAuNDE3LC0wLjQ1MiAxLjAzNiwtMC42NjYgMS42NDcsLTAuNTYzYzAuNjQ0LDAuMTA5IDEuMTgsMC41NTMgMS40MDcsMS4xNjRsMS44MjQsNC45MDFjMC4yMjcsMC42MTEgMC4xMTEsMS4yOTggLTAuMzA1LDEuODAxYy0wLjQxNiwwLjUwMyAtMS4wNjksMC43NDUgLTEuNzEzLDAuNjM2bC01LjE1NCwtMC44NzRjLTAuNjQ0LC0wLjEwOSAtMS4xOCwtMC41NTMgLTEuNDA3LC0xLjE2NWMtMC4xNzksLTAuNDgxIC0wLjE0NSwtMS4wMDggMC4wOCwtMS40NTVjLTAuNTIxLC0wLjE0OCAtMS4wNjQsLTAuMjI1IC0xLjYxNSwtMC4yMjVjLTMuMjY0LDAgLTUuOTEzLDIuNjUgLTUuOTEzLDUuOTEzYy0wLDMuMjYzIDIuNjQ5LDUuOTEzIDUuOTEzLDUuOTEzYzEuNjQsMCAzLjIwNiwtMC42ODEgNC4zMjQsLTEuODhjMC42ODgsLTAuNzM4IDEuODQ0LC0wLjc3OCAyLjU4MiwtMC4wOWwxLjM0NiwxLjI1NWMwLjczNywwLjY4OCAwLjc3OCwxLjg0MyAwLjA5LDIuNTgxYy0yLjE1OCwyLjMxNCAtNS4xNzksMy42MjcgLTguMzQyLDMuNjI3Yy02LjI5NSwwIC0xMS40MDYsLTUuMTExIC0xMS40MDYsLTExLjQwNmMtMCwtNi4yOTUgNS4xMTEsLTExLjQwNiAxMS40MDYsLTExLjQwNmMxLjgzOCwtMCAzLjYzMSwwLjQ0MyA1LjIzNiwxLjI3M1oiIHN0eWxlPSJmaWxsOiNmZmY7Ii8+PHBhdGggZD0iTTE5LjgzNSw5Ljc2N2wtMC45MDUsMS4wOTNjLTAuMDk3LDAuMTE3IC0wLjEyNCwwLjI3NyAtMC4wNzEsMC40MTljMC4wNTMsMC4xNDMgMC4xNzgsMC4yNDYgMC4zMjgsMC4yNzJsNS4xNTQsMC44NzRjMC4xNTEsMC4wMjYgMC4zMDMsLTAuMDMxIDAuNCwtMC4xNDhjMC4wOTcsLTAuMTE3IDAuMTI0LC0wLjI3NyAwLjA3MSwtMC40MmwtMS44MjMsLTQuOWMtMC4wNTMsLTAuMTQzIC0wLjE3OCwtMC4yNDYgLTAuMzI4LC0wLjI3MWMtMC4xNSwtMC4wMjYgLTAuMzAyLDAuMDMxIC0wLjM5OSwwLjE0OGwtMC42OTksMC44NDRjLTEuNjMyLC0xLjA5MSAtMy41NjIsLTEuNjgzIC01LjU1MiwtMS42ODNjLTUuNTIyLC0wIC0xMC4wMDYsNC40ODMgLTEwLjAwNiwxMC4wMDVjMCw1LjUyMiA0LjQ4NCwxMC4wMDUgMTAuMDA2LDEwLjAwNWMyLjc3NSwwIDUuNDI1LC0xLjE1MiA3LjMxNywtMy4xODFjMC4xNjEsLTAuMTcyIDAuMTUxLC0wLjQ0MiAtMC4wMjEsLTAuNjAybC0xLjM0NSwtMS4yNTVjLTAuMTcyLC0wLjE2IC0wLjQ0MiwtMC4xNTEgLTAuNjAyLDAuMDIxYy0xLjM4MywxLjQ4MyAtMy4zMjEsMi4zMjYgLTUuMzQ5LDIuMzI2Yy00LjAzNywtMCAtNy4zMTQsLTMuMjc3IC03LjMxNCwtNy4zMTRjMCwtNC4wMzcgMy4yNzcsLTcuMzE0IDcuMzE0LC03LjMxNGMxLjM2LDAgMi42ODIsMC4zNzkgMy44MjQsMS4wODFaIi8+PC9zdmc+';
-const _position = new Vector2();
+const _position$1 = new Vector2();
 const _topLeft$2 = new Vector2();
 const _topRight$2 = new Vector2();
 const _botLeft$2 = new Vector2();
@@ -4193,7 +4193,7 @@ class ResizeHelper extends Box {
                     }
                     return closestCursor;
                 };
-                let startDragPosition, startDragRotation, startDragScale;;
+                let startDragPosition, startDragRotation, startDragScale;
                 let startBox, worldPositionStart;
                 resizer['onPointerDragStart'] = function(renderer) {
                     startBox = self.boundingBox.clone();
@@ -4349,11 +4349,11 @@ class ResizeHelper extends Box {
                 const rotateAngle = (object.rotation - initialRotation) + startRotation;
                 const rotationMatrix = new Matrix2().rotate(rotateAngle);
                 const rotatedPosition = rotationMatrix.transformPoint(scaledPosition);
-                _position.copy(rotatedPosition).add(self.position);
+                _position$1.copy(rotatedPosition).add(self.position);
                 if (lerp && self.isDragging) {
-                    object.position.smoothstep(_position, renderer.deltaTime * 30);
+                    object.position.smoothstep(_position$1, renderer.deltaTime * 30);
                 } else {
-                    object.position.copy(_position);
+                    object.position.copy(_position$1);
                 }
                 const wasSame = Math.sign(object.scale.x) === Math.sign(object.scale.y);
                 const isSame =  Math.sign(initialScale.x) === Math.sign(initialScale.y);
@@ -4769,6 +4769,11 @@ class GridHelper extends Object2D {
     }
 }
 
+const DURATION = 2000;
+const FADEOUT = 1000;
+const TIME_OFFSET = 100000;
+const _minimum = new Box2(new Vector2(-30, -12), new Vector2(30, 12));
+const _position = new Vector2();
 class TooltipHelper extends Box {
     constructor() {
         super();
@@ -4780,28 +4785,68 @@ class TooltipHelper extends Box {
         this.selectable = false;
         this.layer = +Infinity;
         this.visible = false;
-        this.box.min.set(-35, -15);
-        this.box.max.set(+35, +15);
-        this.radius = 8;
+        this.box.min.set(-40, -14);
+        this.box.max.set(+40, +14);
+        this.radius = 7;
         this.fillStyle.color = '--background-dark';
-        this.strokeStyle.color = '--icon-light';
+        this.strokeStyle.color = '--icon';
         this.lineWidth = 2;
-        this.timer = 0;
+        const displayText = Object.assign(new Text(), { pointerEvents: false, draggable: false, focusable: false, selectable: false });
+        displayText.layer = +Infinity;
+        displayText.fillStyle.color = '--highlight';
+        this.add(displayText);
+        this.displayText = displayText;
+        const outline = Object.assign(new Box(), { pointerEvents: false, draggable: false, focusable: false, selectable: false });
+        outline.layer = +Infinity;
+        outline.fillStyle.color = `--shadow`;
+        outline.opacity = 0.65;
+        outline.strokeStyle = null;
+        outline.radius = 10;
+        this.add(outline);
+        this.outline = outline;
+        this.initialPosition = new Vector2();
+        this.offset = new Vector2();
+        this.shouldFade = false;
+        this.startTime = 0;
     }
-    popup(text) {
-        this.timer = performance.now();
-    }
-    style(renderer) {
-        renderer.context.shadowBlur = 1;
-        renderer.context.shadowColor = '#65e5ff';
+    popup(text = '', fade = true) {
+        this.displayText.text = String(text);
+        this.shouldFade = fade;
+        this.startTime = performance.now() + TIME_OFFSET;
     }
     onUpdate(renderer) {
-        this.visible = (performance.now() - this.timer < 1000);
-        if (this.visible) {
-            const camera = renderer.camera;
-            const pointer = renderer.pointer;
-            const position = camera.inverseMatrix.transformPoint(pointer.position);
-            this.position.copy(position);
+        const camera = renderer.camera;
+        const pointer = renderer.pointer;
+        const timePassed = (performance.now() + TIME_OFFSET) - this.startTime;
+        const expired = timePassed > (this.shouldFade ? DURATION : DURATION - FADEOUT);
+        if (expired) {
+            this.visible = false;
+        } else {
+            if (!this.visible) {
+                this.displayText.computeBoundingBox(renderer);
+                this.box.copy(this.displayText.boundingBox);
+                this.box.min.x -= 10;
+                this.box.max.x += 10;
+                this.box.min.y -= 8;
+                this.box.max.y += 4;
+                this.box.union(_minimum);
+                this.offset.x = ((this.box.max.x - this.box.min.x) / 2) + 25;
+                this.offset.y = ((this.box.max.y - this.box.min.y) / 2) + 25;
+                _position.set(pointer.position.x + this.offset.x, pointer.position.y - this.offset.y);
+                camera.inverseMatrix.applyToVector(_position);
+                this.position.copy(_position);
+                this.opacity = 1;
+                this.visible = true;
+                this.displayText.level = this.level + 1;
+                this.outline.level = this.level - 1;
+                this.outline.box.copy(this.box);
+                this.outline.box.expandByScalar(3);
+            } else {
+                _position.set(pointer.position.x + this.offset.x, pointer.position.y - this.offset.y);
+                camera.inverseMatrix.applyToVector(_position);
+                this.position.smoothstep(_position, renderer.deltaTime * 60);
+                this.opacity = (timePassed >= DURATION - FADEOUT) ? Math.max(0, 1 - (timePassed - (DURATION - FADEOUT)) / FADEOUT) : 1;
+            }
             this.rotation = -camera.rotation;
             this.scale.set(1 / camera.scale, 1 / camera.scale);
             this.updateMatrix(true);

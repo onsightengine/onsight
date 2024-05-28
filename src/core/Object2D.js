@@ -132,7 +132,7 @@ class Object2D extends Thing {
         return undefined;
     }
 
-    /** Traverse an object and it's children, recursively. Return 'true 'in callback to stop traversing. */
+    /** Traverse an object and it's children, recursively. Return 'true' in callback to stop traversing. */
     traverse(callback) {
         if (typeof callback === 'function' && callback(this)) return true;
         for (const child of this.children) {
@@ -141,7 +141,7 @@ class Object2D extends Thing {
         return false;
     }
 
-    /** Traverse visible objects, recursively. Return 'true 'in callback to stop traversing. */
+    /** Traverse visible objects, recursively. Return 'true' in callback to stop traversing. */
     traverseVisible(callback) {
         if (!this.visible) return false;
         if (typeof callback === 'function' && callback(this)) return true;
@@ -151,13 +151,12 @@ class Object2D extends Thing {
         return false;
     }
 
-    /** Traverse an objects parents, recursively. Return 'true 'in callback to stop traversing. */
+    /** Traverse an objects parents, recursively. Return 'true' in callback to stop traversing. */
     traverseAncestors(callback) {
 		const parent = this.parent;
         if (!parent) return false;
 		if (typeof callback === 'function' && callback(parent)) return true;
-		parent.traverseAncestors(callback);
-        return false;
+		return parent.traverseAncestors(callback);
 	}
 
     /******************** DESTROY */
@@ -174,7 +173,7 @@ class Object2D extends Thing {
 
     /******************** BOUNDING BOX */
 
-    computeBoundingBox() {
+    computeBoundingBox(renderer) {
         //
         // OVERLOAD
         //

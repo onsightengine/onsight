@@ -43,7 +43,7 @@ class Circle extends Object2D {
             context.fill();
         }
         if (this.strokeStyle) {
-            context.lineWidth = this.lineWidth;;
+            context.lineWidth = this.lineWidth;
             context.strokeStyle = this.strokeStyle.get(context);
             if (this.constantWidth) {
                 context.save();

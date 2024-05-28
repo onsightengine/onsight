@@ -3,8 +3,8 @@ import { Box2 } from '../../math/Box2.js';
 import { Text } from '../../core/objects/Text.js';
 import { Vector2 } from '../../math/Vector2.js';
 
-const DURATION = 2000;
-const FADEOUT = 1000;
+const DURATION = 1500;
+const FADEOUT = 500;
 const TIME_OFFSET = 100000;
 
 const _minimum = new Box2(new Vector2(-30, -12), new Vector2(30, 12));
@@ -55,12 +55,14 @@ class TooltipHelper extends Box {
         this.offset = new Vector2();
         this.shouldFade = false;
         this.startTime = 0;
+        this.wasChanged = false;
     }
 
     popup(text = '', fade = true) {
         this.displayText.text = String(text);
         this.shouldFade = fade;
         this.startTime = performance.now() + TIME_OFFSET;
+        this.wasChanged = true;
     }
 
     onUpdate(renderer) {
@@ -72,8 +74,10 @@ class TooltipHelper extends Box {
         if (expired) {
             this.visible = false;
         } else {
+            this.visible = true;
             // Position
-            if (!this.visible) {
+            if (this.wasChanged) {
+                this.wasChanged = false;
                 // Calculate Size
                 this.displayText.computeBoundingBox(renderer);
                 this.box.copy(this.displayText.boundingBox);

@@ -96,10 +96,15 @@
 
         const mouseWatch = {
             update: function(renderer) {
+                // Zoom Level
                 if (renderer.pointer.wheel !== 0) {
                     let scale = renderer.camera.scale * 100;
                     scale = scale.toFixed((scale < 50) ? ((scale < 5) ? 2 : 1) : 0);
                     tooltip.popup(` ${scale}% `);
+                } else if (renderer.dragObject) {
+                    let x = parseFloat((renderer.dragObject.position.x).toFixed(3)).toString();
+                    let y = parseFloat((renderer.dragObject.position.y).toFixed(3)).toString();
+                    tooltip.popup(`X: ${x}\nY: ${y}`);
                 }
             }
         }

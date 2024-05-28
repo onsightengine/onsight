@@ -13,6 +13,7 @@ class Text extends Object2D {
 
         this.text = text;
         this.font = font;
+        this.lineHeight = 1.2;
 
         this.strokeStyle = null;
         this.lineWidth = 1;
@@ -29,10 +30,26 @@ class Text extends Object2D {
             context.font = this.font;
             context.textAlign = this.textAlign;
             context.textBaseline = this.textBaseline;
+            // Split Text into Lines
+            const lines = this.text.split('\n');
+            const fontSize = parseInt(this.font.match(/\d+/), 10);
+            const lineHeight = fontSize * this.lineHeight;
+            // Find Maximum Width
+            let maxWidth = 0;
+            lines.forEach((line) => {
+                const textMetrics = context.measureText(line);
+                const textWidth = textMetrics.width;
+                maxWidth = Math.max(maxWidth, textWidth);
+            });
+            // Find Total Height
             const textMetrics = context.measureText(this.text);
-            const textWidth = textMetrics.width;
             const textHeight = Math.max(textMetrics.actualBoundingBoxAscent, textMetrics.actualBoundingBoxDescent) * 2.0;
-            this.boundingBox.set(new Vector2(textWidth / -2, textHeight / -2), new Vector2(textWidth / 2, textHeight / 2));
+            const totalHeight = (lines.length * textHeight) + ((lines.length - 1) * ((textHeight * this.lineHeight) - textHeight));
+            // Set Bounding Box
+            this.boundingBox.set(
+                new Vector2(maxWidth / -2, totalHeight / -2),
+                new Vector2(maxWidth / 2, totalHeight / 2)
+            );
             this.#needsBounds = false;
         }
         return this.boundingBox;
@@ -48,15 +65,26 @@ class Text extends Object2D {
         context.font = this.font;
         context.textAlign = this.textAlign;
         context.textBaseline = this.textBaseline;
-        if (this.fillStyle) {
-            context.fillStyle = this.fillStyle.get(context);
-            context.fillText(this.text, 0, 0);
-        }
-        if (this.strokeStyle) {
-            context.lineWidth = this.lineWidth;
-            context.strokeStyle = this.strokeStyle.get(context);
-            context.strokeText(this.text, 0, 0);
-        }
+
+        // Split the text into Lines
+        const lines = this.text.split('\n');
+        const fontSize = parseInt(this.font.match(/\d+/), 10);
+        const lineHeight = fontSize * this.lineHeight;
+        const offset = ((lines.length - 1) * lineHeight) / 2;
+
+        // Draw Each Line
+        lines.forEach((line, index) => {
+            const y = (index * lineHeight) - offset;
+            if (this.fillStyle) {
+                context.fillStyle = this.fillStyle.get(context);
+                context.fillText(line, 0, y);
+            }
+            if (this.strokeStyle) {
+                context.lineWidth = this.lineWidth;
+                context.strokeStyle = this.strokeStyle.get(context);
+                context.strokeText(line, 0, y);
+            }
+        });
     }
 
 }

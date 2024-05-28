@@ -3752,11 +3752,25 @@ class Text extends Object2D {
         this.type = 'Text';
         this.text = text;
         this.font = font;
+        this.lineHeight = 1.2;
         this.strokeStyle = null;
         this.lineWidth = 1;
         this.fillStyle = new ColorStyle('#000000');
         this.textAlign = 'center';
         this.textBaseline = 'middle';
+    }
+    computeBoundingBoxOG(renderer) {
+        const context = renderer.context;
+        context.font = this.font;
+        context.textAlign = this.textAlign;
+        context.textBaseline = this.textBaseline;
+        const textMetrics = context.measureText(this.text);
+        const textWidth = textMetrics.width;
+        const textHeight = Math.max(textMetrics.actualBoundingBoxAscent, textMetrics.actualBoundingBoxDescent) * 2.0;
+        this.boundingBox.set(
+            new Vector2(textWidth / -2, textHeight / -2),
+            new Vector2(textWidth / 2, textHeight / 2)
+        );
     }
     computeBoundingBox(renderer) {
         this.#needsBounds = true;
@@ -3765,14 +3779,26 @@ class Text extends Object2D {
             context.font = this.font;
             context.textAlign = this.textAlign;
             context.textBaseline = this.textBaseline;
+            const lines = this.text.split('\n');
+            const fontSize = parseInt(this.font.match(/\d+/), 10);
+            const lineHeight = fontSize * this.lineHeight;
+            let maxWidth = 0;
+            lines.forEach((line) => {
+                const textMetrics = context.measureText(line);
+                const textWidth = textMetrics.width;
+                maxWidth = Math.max(maxWidth, textWidth);
+            });
             const textMetrics = context.measureText(this.text);
-            const textWidth = textMetrics.width;
             const textHeight = Math.max(textMetrics.actualBoundingBoxAscent, textMetrics.actualBoundingBoxDescent) * 2.0;
-            this.boundingBox.set(new Vector2(textWidth / -2, textHeight / -2), new Vector2(textWidth / 2, textHeight / 2));
+            const totalHeight = (lines.length * textHeight) + ((lines.length - 1) * ((textHeight * this.lineHeight) - textHeight));
+            this.boundingBox.set(
+                new Vector2(maxWidth / -2, totalHeight / -2),
+                new Vector2(maxWidth / 2, totalHeight / 2)
+            );
             this.#needsBounds = false;
         }
         return this.boundingBox;
-    }
+      }
     isInside(point) {
         return this.boundingBox.containsPoint(point);
     }
@@ -3782,15 +3808,22 @@ class Text extends Object2D {
         context.font = this.font;
         context.textAlign = this.textAlign;
         context.textBaseline = this.textBaseline;
-        if (this.fillStyle) {
-            context.fillStyle = this.fillStyle.get(context);
-            context.fillText(this.text, 0, 0);
-        }
-        if (this.strokeStyle) {
-            context.lineWidth = this.lineWidth;
-            context.strokeStyle = this.strokeStyle.get(context);
-            context.strokeText(this.text, 0, 0);
-        }
+        const lines = this.text.split('\n');
+        const fontSize = parseInt(this.font.match(/\d+/), 10);
+        const lineHeight = fontSize * this.lineHeight;
+        const offset = ((lines.length - 1) * lineHeight) / 2;
+        lines.forEach((line, index) => {
+            const y = (index * lineHeight) - offset;
+            if (this.fillStyle) {
+                context.fillStyle = this.fillStyle.get(context);
+                context.fillText(line, 0, y);
+            }
+            if (this.strokeStyle) {
+                context.lineWidth = this.lineWidth;
+                context.strokeStyle = this.strokeStyle.get(context);
+                context.strokeText(line, 0, y);
+            }
+        });
     }
 }
 
@@ -4769,8 +4802,8 @@ class GridHelper extends Object2D {
     }
 }
 
-const DURATION = 2000;
-const FADEOUT = 1000;
+const DURATION = 1500;
+const FADEOUT = 500;
 const TIME_OFFSET = 100000;
 const _minimum = new Box2(new Vector2(-30, -12), new Vector2(30, 12));
 const _position = new Vector2();
@@ -4808,11 +4841,13 @@ class TooltipHelper extends Box {
         this.offset = new Vector2();
         this.shouldFade = false;
         this.startTime = 0;
+        this.wasChanged = false;
     }
     popup(text = '', fade = true) {
         this.displayText.text = String(text);
         this.shouldFade = fade;
         this.startTime = performance.now() + TIME_OFFSET;
+        this.wasChanged = true;
     }
     onUpdate(renderer) {
         const camera = renderer.camera;
@@ -4822,7 +4857,9 @@ class TooltipHelper extends Box {
         if (expired) {
             this.visible = false;
         } else {
-            if (!this.visible) {
+            this.visible = true;
+            if (this.wasChanged) {
+                this.wasChanged = false;
                 this.displayText.computeBoundingBox(renderer);
                 this.box.copy(this.displayText.boundingBox);
                 this.box.min.x -= 10;

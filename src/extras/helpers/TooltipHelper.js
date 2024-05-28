@@ -51,16 +51,19 @@ class TooltipHelper extends Box {
         this.outline = outline;
 
         // INTERNAL
+        this.duration = DURATION;
         this.initialPosition = new Vector2();
         this.offset = new Vector2();
-        this.shouldFade = false;
         this.startTime = 0;
         this.wasChanged = false;
     }
 
-    popup(text = '', fade = true) {
+    popup(text = '', align = 'center', duration, fadeOut) {
+        this.duration = duration ?? DURATION;
+        this.fadeOut = (fadeOut != null) ? fadeOut : FADEOUT;
         this.displayText.text = String(text);
-        this.shouldFade = fade;
+        this.displayText.textAlign = align;
+
         this.startTime = performance.now() + TIME_OFFSET;
         this.wasChanged = true;
     }
@@ -69,7 +72,7 @@ class TooltipHelper extends Box {
         const camera = renderer.camera;
         const pointer = renderer.pointer;
         const timePassed = (performance.now() + TIME_OFFSET) - this.startTime;
-        const expired = timePassed > (this.shouldFade ? DURATION : DURATION - FADEOUT);
+        const expired = timePassed > this.duration;
 
         if (expired) {
             this.visible = false;
@@ -104,7 +107,7 @@ class TooltipHelper extends Box {
                 _position.set(pointer.position.x + this.offset.x, pointer.position.y - this.offset.y);
                 camera.inverseMatrix.applyToVector(_position);
                 this.position.smoothstep(_position, renderer.deltaTime * 60);
-                this.opacity = (timePassed >= DURATION - FADEOUT) ? Math.max(0, 1 - (timePassed - (DURATION - FADEOUT)) / FADEOUT) : 1;
+                this.opacity = (timePassed >= this.duration - this.fadeOut) ? Math.max(0, 1 - (timePassed - (this.duration - this.fadeOut)) / this.fadeOut) : 1;
             }
 
             // Transform

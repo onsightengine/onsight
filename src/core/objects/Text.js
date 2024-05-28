@@ -72,17 +72,27 @@ class Text extends Object2D {
         const lineHeight = fontSize * this.lineHeight;
         const offset = ((lines.length - 1) * lineHeight) / 2;
 
+        // Calculate the x-coordinate based on textAlign
+        let x = 0;
+        if (this.textAlign === 'center') {
+            x = 0;
+        } else if (this.textAlign === 'left') {
+            x = this.boundingBox.min.x;
+        } else if (this.textAlign === 'right') {
+            x = this.boundingBox.max.x;
+        }
+
         // Draw Each Line
         lines.forEach((line, index) => {
             const y = (index * lineHeight) - offset;
             if (this.fillStyle) {
                 context.fillStyle = this.fillStyle.get(context);
-                context.fillText(line, 0, y);
+                context.fillText(line, x, y);
             }
             if (this.strokeStyle) {
                 context.lineWidth = this.lineWidth;
                 context.strokeStyle = this.strokeStyle.get(context);
-                context.strokeText(line, 0, y);
+                context.strokeText(line, x, y);
             }
         });
     }

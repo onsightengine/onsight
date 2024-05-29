@@ -139,6 +139,7 @@
 
         const params = {
             snapToGrid: true,
+            showOnTop: false,
             sizeX: 50,
             sizeY: 50,
             scaleX: 1,
@@ -149,7 +150,8 @@
         const gui = new SUEY.Gooey();
 
         const folder1 = gui.addFolder();
-        folder1.add(params, 'snapToGrid').onChange(() => { grid.snap = params.snap; });
+        folder1.add(params, 'snapToGrid').onChange(() => { grid.snap = params.snapToGrid; });
+        folder1.add(params, 'showOnTop').onChange(() => { grid.onTop = params.showOnTop; });
         folder1.add(params, 'sizeX').min(1).step(5).onChange(() => { grid.gridX = params.sizeX; });
         folder1.add(params, 'sizeY').min(1).step(5).onChange(() => { grid.gridY = params.sizeY; });
         folder1.add(params, 'scaleX', 0, 10, 0.2, 1).onChange(() => { grid.scale.x = params.scaleX; });

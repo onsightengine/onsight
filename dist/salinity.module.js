@@ -4702,6 +4702,7 @@ class GridHelper extends Object2D {
         this.gridX = gridSizeX;
         this.gridY = gridSizeY;
         this.snap = true;
+        this.onTop = false;
         this.cache = null;
         this.gridScale = 1;
         this.patternCanvas = document.createElement('canvas');
@@ -4801,6 +4802,8 @@ class GridHelper extends Object2D {
         context.stroke();
     }
     onUpdate(renderer) {
+        this.layer = (this.onTop) ? +Infinity : -Infinity;
+        this.level = -1;
         if (!this.snap) return;
         const object = renderer.dragObject;
         if (object && object.isDragging) this.alignToGrid(object);

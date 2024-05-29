@@ -3460,6 +3460,7 @@ class ColorStyle extends Style {
     }
 }
 
+const _mouseBox = new Box2();
 class Box extends Object2D {
     #box = new Box2();
     constructor() {
@@ -3471,6 +3472,7 @@ class Box extends Object2D {
         this.lineWidth = 1;
         this.radius = 0;
         this.constantWidth = false;
+        this.mouseBuffer = 0;
     }
     computeBoundingBox() {
         this.boundingBox.copy(this.box);
@@ -3478,7 +3480,9 @@ class Box extends Object2D {
         return this.boundingBox;
     }
     isInside(point) {
-        return this.box.containsPoint(point);
+        _mouseBox.copy(this.box);
+        _mouseBox.expandByScalar(this.mouseBuffer);
+        return _mouseBox.containsPoint(point);
     }
     draw(renderer) {
         if (this.box.equals(this.#box) === false) {
@@ -3535,7 +3539,7 @@ class Circle extends Object2D {
         this.strokeStyle = new ColorStyle('#000000');
         this.lineWidth = 1;
         this.constantWidth = false;
-        this.buffer = 0;
+        this.mouseBuffer = 0;
     }
     get radius() { return this.#radius; }
     set radius(value) {
@@ -3549,7 +3553,7 @@ class Circle extends Object2D {
         return this.boundingBox;
     }
     isInside(point) {
-        return point.length() <= (this.#radius + this.buffer);
+        return point.length() <= (this.#radius + this.mouseBuffer);
     }
     draw(renderer) {
         const context = renderer.context;

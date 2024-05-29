@@ -159,6 +159,7 @@ class ResizeHelper extends Box {
                 resizer.draggable = true;
                 resizer.focusable = false;
                 resizer.selectable = false;
+                resizer.mouseBuffer = 5;
                 resizer.layer = topLayer + 1;
                 resizer.opacity = alpha;
                 resizer.constantWidth = true;
@@ -327,7 +328,7 @@ class ResizeHelper extends Box {
             rotater.type = 'Rotater';
             rotater.resizeTool = self;
             rotater.radius = radius + 1;
-            rotater.buffer = 3;
+            rotater.mouseBuffer = 5;
             rotater.layer = topLayer + 2;
             rotater.lineWidth = OUTLINE_THICKNESS;
             rotater.constantWidth = true;
@@ -340,7 +341,7 @@ class ResizeHelper extends Box {
             rotater.cursor = `url('${CURSOR_ROTATE}') 16 16, auto`;
             let rotaterAngle = 0;
             rotater['onPointerDragStart'] = function(renderer) {
-                rotaterAngle = rotater.rotation;
+                rotaterAngle = self.rotation;
             };
             rotater.onPointerDrag = function(renderer) {
                 Object2D.prototype.onPointerDrag.call(this, renderer);
@@ -367,7 +368,7 @@ class ResizeHelper extends Box {
             // Override set position to update objects during snap to grid
             rotater.setRotation = function(rad) {
                 Object2D.prototype.setRotation.call(this, rad);
-                self.rotation = rotater.rotation;
+                self.rotation = rad;
                 updateObjects(null, false /* lerp */);
                 return self;
             }
@@ -459,7 +460,8 @@ class ResizeHelper extends Box {
             const topCenterWorldOffset = new Vector2(0, -halfSize.y - handleOffset);
             if (rotater) {
                 rotater.position.copy(topCenterWorldOffset);
-                rotater.scale.set((1 / self.scale.x) / camera.scale, (1 / self.scale.y) / camera.scale);
+                rotater.rotation = 0;
+                rotater.scale.set(1 / self.scale.x, 1 / self.scale.y).divideScalar(camera.scale);
                 rotater.updateMatrix(true);
                 rotater.visible = showResizers;
 

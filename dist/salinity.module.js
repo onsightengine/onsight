@@ -3460,6 +3460,7 @@ class ColorStyle extends Style {
     }
 }
 
+const _mouseBox = new Box2();
 class Box extends Object2D {
     #box = new Box2();
     constructor() {
@@ -3471,6 +3472,7 @@ class Box extends Object2D {
         this.lineWidth = 1;
         this.radius = 0;
         this.constantWidth = false;
+        this.mouseBuffer = 0;
     }
     computeBoundingBox() {
         this.boundingBox.copy(this.box);
@@ -3478,7 +3480,9 @@ class Box extends Object2D {
         return this.boundingBox;
     }
     isInside(point) {
-        return this.box.containsPoint(point);
+        _mouseBox.copy(this.box);
+        _mouseBox.expandByScalar(this.mouseBuffer);
+        return _mouseBox.containsPoint(point);
     }
     draw(renderer) {
         if (this.box.equals(this.#box) === false) {
@@ -3535,7 +3539,7 @@ class Circle extends Object2D {
         this.strokeStyle = new ColorStyle('#000000');
         this.lineWidth = 1;
         this.constantWidth = false;
-        this.buffer = 0;
+        this.mouseBuffer = 0;
     }
     get radius() { return this.#radius; }
     set radius(value) {
@@ -3549,7 +3553,7 @@ class Circle extends Object2D {
         return this.boundingBox;
     }
     isInside(point) {
-        return point.length() <= (this.#radius + this.buffer);
+        return point.length() <= (this.#radius + this.mouseBuffer);
     }
     draw(renderer) {
         const context = renderer.context;
@@ -4187,6 +4191,7 @@ class ResizeHelper extends Box {
                 resizer.draggable = true;
                 resizer.focusable = false;
                 resizer.selectable = false;
+                resizer.mouseBuffer = 5;
                 resizer.layer = topLayer + 1;
                 resizer.opacity = alpha;
                 resizer.constantWidth = true;
@@ -4333,7 +4338,7 @@ class ResizeHelper extends Box {
             rotater.type = 'Rotater';
             rotater.resizeTool = self;
             rotater.radius = radius + 1;
-            rotater.buffer = 3;
+            rotater.mouseBuffer = 5;
             rotater.layer = topLayer + 2;
             rotater.lineWidth = OUTLINE_THICKNESS;
             rotater.constantWidth = true;
@@ -4346,7 +4351,7 @@ class ResizeHelper extends Box {
             rotater.cursor = `url('${CURSOR_ROTATE}') 16 16, auto`;
             let rotaterAngle = 0;
             rotater['onPointerDragStart'] = function(renderer) {
-                rotaterAngle = rotater.rotation;
+                rotaterAngle = self.rotation;
             };
             rotater.onPointerDrag = function(renderer) {
                 Object2D.prototype.onPointerDrag.call(this, renderer);
@@ -4372,7 +4377,7 @@ class ResizeHelper extends Box {
             };
             rotater.setRotation = function(rad) {
                 Object2D.prototype.setRotation.call(this, rad);
-                self.rotation = rotater.rotation;
+                self.rotation = rad;
                 updateObjects(null, false );
                 return self;
             };
@@ -4439,7 +4444,8 @@ class ResizeHelper extends Box {
             const topCenterWorldOffset = new Vector2(0, -halfSize.y - handleOffset);
             if (rotater) {
                 rotater.position.copy(topCenterWorldOffset);
-                rotater.scale.set((1 / self.scale.x) / camera.scale, (1 / self.scale.y) / camera.scale);
+                rotater.rotation = 0;
+                rotater.scale.set(1 / self.scale.x, 1 / self.scale.y).divideScalar(camera.scale);
                 rotater.updateMatrix(true);
                 rotater.visible = showResizers;
             }

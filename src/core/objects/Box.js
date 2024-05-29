@@ -3,6 +3,8 @@ import { ColorStyle } from './style/ColorStyle.js';
 import { Object2D } from '../Object2D.js';
 import { Vector2 } from '../../math/Vector2.js';
 
+const _mouseBox = new Box2();
+
 class Box extends Object2D {
 
     #box = new Box2();
@@ -17,6 +19,7 @@ class Box extends Object2D {
         this.lineWidth = 1;
         this.radius = 0;
         this.constantWidth = false;
+        this.mouseBuffer = 0;
     }
 
     computeBoundingBox() {
@@ -26,7 +29,9 @@ class Box extends Object2D {
     }
 
     isInside(point) {
-        return this.box.containsPoint(point);
+        _mouseBox.copy(this.box);
+        _mouseBox.expandByScalar(this.mouseBuffer);
+        return _mouseBox.containsPoint(point);
     }
 
     draw(renderer) {

@@ -14,7 +14,7 @@ class Circle extends Object2D {
         this.strokeStyle = new ColorStyle('#000000');
         this.lineWidth = 1;
         this.constantWidth = false;
-        this.buffer = 0;
+        this.mouseBuffer = 0;
     }
 
     get radius() { return this.#radius; }
@@ -31,7 +31,7 @@ class Circle extends Object2D {
     }
 
     isInside(point) {
-        return point.length() <= (this.#radius + this.buffer);
+        return point.length() <= (this.#radius + this.mouseBuffer);
     }
 
     draw(renderer) {

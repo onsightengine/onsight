@@ -70,9 +70,10 @@ class EventManager {
         // Update Cursor
         function setCursor(object) {
             if (object.cursor) {
-                if (typeof object.cursor === 'function') currentCursor = object.cursor(camera);
-                else currentCursor = object.cursor;
-            } else { currentCursor = 'default' }
+                currentCursor = (typeof object.cursor === 'function') ? object.cursor(camera) : object.cursor;
+            } else {
+                currentCursor = 'move';
+            }
         }
         document.body.style.cursor = currentCursor ?? 'default';
     }

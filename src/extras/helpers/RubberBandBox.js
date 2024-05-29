@@ -16,6 +16,7 @@ class RubberBandBox extends Box {
         super();
         this.isHelper = true;
         this.type = 'RubberBandBox';
+        this.cursor = 'pointer';
 
         this.pointerEvents = false;
         this.draggable = false;

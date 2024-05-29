@@ -294,6 +294,18 @@ class Object2D extends Thing {
         return this;
     }
 
+    setRotation(rad) {
+        this.rotation = rad;
+        this.updateMatrix(true);
+        return this;
+    }
+
+    setScale(x, y) {
+        this.scale.copy(x, y);
+        this.updateMatrix(true);
+        return this;
+    }
+
     /** Update the transformation matrix of the object */
     updateMatrix(force = false) {
         if (force || this.matrixAutoUpdate || this.matrixNeedsUpdate) {

@@ -1668,6 +1668,16 @@ class Object2D extends Thing {
         this.updateMatrix(true);
         return this;
     }
+    setRotation(rad) {
+        this.rotation = rad;
+        this.updateMatrix(true);
+        return this;
+    }
+    setScale(x, y) {
+        this.scale.copy(x, y);
+        this.updateMatrix(true);
+        return this;
+    }
     updateMatrix(force = false) {
         if (force || this.matrixAutoUpdate || this.matrixNeedsUpdate) {
             this.globalOpacity = this.opacity * ((this.parent) ? this.parent.globalOpacity : 1);
@@ -2921,9 +2931,10 @@ class EventManager {
         }
         function setCursor(object) {
             if (object.cursor) {
-                if (typeof object.cursor === 'function') currentCursor = object.cursor(camera);
-                else currentCursor = object.cursor;
-            } else { currentCursor = 'default'; }
+                currentCursor = (typeof object.cursor === 'function') ? object.cursor(camera) : object.cursor;
+            } else {
+                currentCursor = 'move';
+            }
         }
         document.body.style.cursor = currentCursor ?? 'default';
     }
@@ -4328,6 +4339,10 @@ class ResizeHelper extends Box {
             rotater.fillStyle.addColorStop(1, '--icon-dark');
             rotater.strokeStyle.color = '--highlight';
             rotater.cursor = `url('${CURSOR_ROTATE}') 16 16, auto`;
+            let rotaterAngle = 0;
+            rotater['onPointerDragStart'] = function(renderer) {
+                rotaterAngle = rotater.rotation;
+            };
             rotater.onPointerDrag = function(renderer) {
                 Object2D.prototype.onPointerDrag.call(this, renderer);
                 if (this.isDragging) {
@@ -4344,12 +4359,17 @@ class ResizeHelper extends Box {
                     const angle = localPositionEnd.angleBetween(localPositionStart);
                     const cross = localPositionEnd.cross(localPositionStart);
                     const sign = Math.sign(cross);
-                    self.rotation += (angle * sign);
-                    while (self.rotation < Math.PI * -2) { self.rotation += Math.PI * 2; }
-                    while (self.rotation > Math.PI * +2) { self.rotation -= Math.PI * 2; }
-                    self.updateMatrix(true);
-                    updateObjects(renderer, false );
+                    rotaterAngle += (angle * sign);
+                    while (rotaterAngle < Math.PI * -2) { rotaterAngle += Math.PI * 2; }
+                    while (rotaterAngle > Math.PI * +2) { rotaterAngle -= Math.PI * 2; }
+                    rotater.setRotation(rotaterAngle);
                 }
+            };
+            rotater.setRotation = function(rad) {
+                Object2D.prototype.setRotation.call(this, rad);
+                self.rotation = rotater.rotation;
+                updateObjects(null, false );
+                return self;
             };
             rotateLine = Object.assign(new Line(), { draggable: false, focusable: false, selectable: false });
             rotateLine.layer = topLayer + 1;
@@ -4454,6 +4474,7 @@ class RubberBandBox extends Box {
         super();
         this.isHelper = true;
         this.type = 'RubberBandBox';
+        this.cursor = 'pointer';
         this.pointerEvents = false;
         this.draggable = false;
         this.focusable = false;
@@ -4678,6 +4699,7 @@ function findCommonMostAncestor(objects) {
     return ancestors[0][minLength - 1];
 }
 
+const NEAREST_ANGLE = 5;
 const _bounds = new Box2();
 const _topLeft = new Vector2();
 const _topRight = new Vector2();
@@ -4738,6 +4760,15 @@ class GridHelper extends Object2D {
         const closestWorldPosition = transformMatrix.transformPoint(new Vector2(closestX, closestY));
         const localPosition = object.parent.inverseGlobalMatrix.transformPoint(closestWorldPosition);
         object.setPosition(localPosition.x, localPosition.y);
+    }
+    alignToRotation(object) {
+        const angle = this.rotation;
+        const scaleX = this.scale.x;
+        const scaleY = this.scale.y;
+        const horizontalAngle = MathUtils.radiansToDegrees(Math.atan((scaleY * Math.tan(angle)) / scaleX));
+        const verticalAngle = MathUtils.radiansToDegrees((Math.PI / 2) - Math.atan((scaleY / scaleX) * (1 / Math.tan(angle))));
+        const alignedAngle = roundToNearestWithTwoRotations(MathUtils.radiansToDegrees(object.rotation), NEAREST_ANGLE, horizontalAngle, verticalAngle);
+        object.setRotation(MathUtils.degreesToRadians(alignedAngle));
     }
     draw(renderer) {
         const context = renderer.context;
@@ -4806,8 +4837,22 @@ class GridHelper extends Object2D {
         this.level = -1;
         if (!this.snap) return;
         const object = renderer.dragObject;
-        if (object && object.isDragging) this.alignToGrid(object);
+        if (object && object.isDragging) {
+            this.alignToGrid(object);
+            this.alignToRotation(object);
+        }
     }
+}
+function roundToNearestWithTwoRotations(angle, nearest, startRotation1, startRotation2) {
+    const relativeAngle1 = angle - startRotation1;
+    const roundedRelativeAngle1 = Math.round(relativeAngle1 / nearest) * nearest;
+    const roundedAngle1 = startRotation1 + roundedRelativeAngle1;
+    const relativeAngle2 = angle - startRotation2;
+    const roundedRelativeAngle2 = Math.round(relativeAngle2 / nearest) * nearest;
+    const roundedAngle2 = startRotation2 + roundedRelativeAngle2;
+    const diff1 = Math.abs(angle - roundedAngle1);
+    const diff2 = Math.abs(angle - roundedAngle2);
+    return diff1 < diff2 ? roundedAngle1 : roundedAngle2;
 }
 
 const DURATION = 1500;

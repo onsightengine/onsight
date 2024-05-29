@@ -1668,6 +1668,16 @@ class Object2D extends Thing {
         this.updateMatrix(true);
         return this;
     }
+    setRotation(rad) {
+        this.rotation = rad;
+        this.updateMatrix(true);
+        return this;
+    }
+    setScale(x, y) {
+        this.scale.copy(x, y);
+        this.updateMatrix(true);
+        return this;
+    }
     updateMatrix(force = false) {
         if (force || this.matrixAutoUpdate || this.matrixNeedsUpdate) {
             this.globalOpacity = this.opacity * ((this.parent) ? this.parent.globalOpacity : 1);
@@ -2921,9 +2931,10 @@ class EventManager {
         }
         function setCursor(object) {
             if (object.cursor) {
-                if (typeof object.cursor === 'function') currentCursor = object.cursor(camera);
-                else currentCursor = object.cursor;
-            } else { currentCursor = 'default'; }
+                currentCursor = (typeof object.cursor === 'function') ? object.cursor(camera) : object.cursor;
+            } else {
+                currentCursor = 'move';
+            }
         }
         document.body.style.cursor = currentCursor ?? 'default';
     }

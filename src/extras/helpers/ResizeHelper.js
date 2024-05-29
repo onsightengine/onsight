@@ -338,6 +338,10 @@ class ResizeHelper extends Box {
             rotater.fillStyle.addColorStop(1, '--icon-dark');
             rotater.strokeStyle.color = '--highlight';
             rotater.cursor = `url('${CURSOR_ROTATE}') 16 16, auto`;
+            let rotaterAngle = 0;
+            rotater['onPointerDragStart'] = function(renderer) {
+                rotaterAngle = rotater.rotation;
+            };
             rotater.onPointerDrag = function(renderer) {
                 Object2D.prototype.onPointerDrag.call(this, renderer);
                 if (this.isDragging) {
@@ -354,13 +358,19 @@ class ResizeHelper extends Box {
                     const angle = localPositionEnd.angleBetween(localPositionStart);
                     const cross = localPositionEnd.cross(localPositionStart);
                     const sign = Math.sign(cross);
-                    self.rotation += (angle * sign);
-                    while (self.rotation < Math.PI * -2) { self.rotation += Math.PI * 2; }
-                    while (self.rotation > Math.PI * +2) { self.rotation -= Math.PI * 2; }
-                    self.updateMatrix(true);
-                    updateObjects(renderer, false /* lerp */);
+                    rotaterAngle += (angle * sign);
+                    while (rotaterAngle < Math.PI * -2) { rotaterAngle += Math.PI * 2; }
+                    while (rotaterAngle > Math.PI * +2) { rotaterAngle -= Math.PI * 2; }
+                    rotater.setRotation(rotaterAngle);
                 }
             };
+            // Override set position to update objects during snap to grid
+            rotater.setRotation = function(rad) {
+                Object2D.prototype.setRotation.call(this, rad);
+                self.rotation = rotater.rotation;
+                updateObjects(null, false /* lerp */);
+                return self;
+            }
             // Line
             rotateLine = Object.assign(new Line(), { draggable: false, focusable: false, selectable: false });
             rotateLine.layer = topLayer + 1;
@@ -370,13 +380,11 @@ class ResizeHelper extends Box {
             this.add(rotater, rotateLine);
         }
 
-        // Update positions on Drag
+        // Overrides to update positions on Drag
         this.onPointerDrag = function(renderer) {
             Object2D.prototype.onPointerDrag.call(this, renderer);
             updateObjects(renderer, true /* lerp */);
         };
-
-        // Update positions on Drag End
         this.onPointerDragEnd = function(renderer) {
             updateObjects(renderer, false /* lerp */);
         };

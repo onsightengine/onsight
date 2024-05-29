@@ -1,7 +1,10 @@
 import { Box2 } from '../../math/Box2.js';
+import { MathUtils } from '../../utils/MathUtils.js';
 import { Matrix2 } from '../../math/Matrix2.js';
 import { Object2D } from '../../core/Object2D.js';
 import { Vector2 } from '../../math/Vector2.js';
+
+const NEAREST_ANGLE = 5;
 
 const _bounds = new Box2();
 const _topLeft = new Vector2();
@@ -84,6 +87,16 @@ class GridHelper extends Object2D {
         object.setPosition(localPosition.x, localPosition.y);
     }
 
+    alignToRotation(object) {
+        const angle = this.rotation;
+        const scaleX = this.scale.x;
+        const scaleY = this.scale.y;
+        const horizontalAngle = MathUtils.radiansToDegrees(Math.atan((scaleY * Math.tan(angle)) / scaleX));
+        const verticalAngle = MathUtils.radiansToDegrees((Math.PI / 2) - Math.atan((scaleY / scaleX) * (1 / Math.tan(angle))));
+        const alignedAngle = roundToNearestWithTwoRotations(MathUtils.radiansToDegrees(object.rotation), NEAREST_ANGLE, horizontalAngle, verticalAngle);
+        object.setRotation(MathUtils.degreesToRadians(alignedAngle));
+    }
+
     draw(renderer) {
         const context = renderer.context;
         const camera = renderer.camera;
@@ -164,9 +177,28 @@ class GridHelper extends Object2D {
         this.level = -1;
         if (!this.snap) return;
         const object = renderer.dragObject;
-        if (object && object.isDragging) this.alignToGrid(object);
+        if (object && object.isDragging) {
+            this.alignToGrid(object);
+            this.alignToRotation(object);
+        }
     }
 
 }
 
 export { GridHelper };
+
+/******************** INTERNAL ********************/
+
+function roundToNearestWithTwoRotations(angle, nearest, startRotation1, startRotation2) {
+    const relativeAngle1 = angle - startRotation1;
+    const roundedRelativeAngle1 = Math.round(relativeAngle1 / nearest) * nearest;
+    const roundedAngle1 = startRotation1 + roundedRelativeAngle1;
+
+    const relativeAngle2 = angle - startRotation2;
+    const roundedRelativeAngle2 = Math.round(relativeAngle2 / nearest) * nearest;
+    const roundedAngle2 = startRotation2 + roundedRelativeAngle2;
+
+    const diff1 = Math.abs(angle - roundedAngle1);
+    const diff2 = Math.abs(angle - roundedAngle2);
+    return diff1 < diff2 ? roundedAngle1 : roundedAngle2;
+}

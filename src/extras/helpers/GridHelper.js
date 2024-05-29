@@ -175,11 +175,14 @@ class GridHelper extends Object2D {
     onUpdate(renderer) {
         this.layer = (this.onTop) ? +Infinity : -Infinity;
         this.level = -1;
-        if (!this.snap) return;
         const object = renderer.dragObject;
         if (object && object.isDragging) {
-            this.alignToGrid(object);
-            this.alignToRotation(object);
+            if (this.snap) {
+                this.alignToGrid(object);
+            }
+            if (renderer.keyboard.modifierPressed() !== this.snap) {
+                this.alignToRotation(object);
+            }
         }
     }
 

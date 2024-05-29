@@ -2,6 +2,9 @@ import { Box2 } from '../../math/Box2.js';
 import { Pointer } from '../../core/input/Pointer.js';
 import { Vector2 } from '../../math/Vector2.js';
 
+const ZOOM_MAX = 25;
+const ZOOM_MIN = 0.01;
+
 class CameraControls {
 
     constructor(camera) {
@@ -48,9 +51,14 @@ class CameraControls {
 
         // Scale
         if (this.allowScale && pointer.wheel !== 0) {
-            const scaleFactor = pointer.wheel * 0.0015 * camera.scale;
+            // Amount to Zoom
+            let scaleFactor = pointer.wheel * 0.0015 * camera.scale;
+            if (pointer.wheel < 0) scaleFactor = Math.max(scaleFactor, camera.scale - ZOOM_MAX);
+            if (pointer.wheel > 0) scaleFactor = Math.min(scaleFactor, camera.scale - ZOOM_MIN);
+            // Zoom on Target Position
             const pointerPos = camera.inverseMatrix.transformPoint(pointer.position);
             camera.scale -= scaleFactor;
+            camera.scale = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, camera.scale));
             camera.position.add(pointerPos.multiplyScalar(scaleFactor));
             camera.matrixNeedsUpdate = true;
         }

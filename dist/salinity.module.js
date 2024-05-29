@@ -3955,6 +3955,8 @@ if (typeof window !== 'undefined') {
     else window.__SALINITY__ = VERSION;
 }
 
+const ZOOM_MAX = 25;
+const ZOOM_MIN = 0.01;
 class CameraControls {
     constructor(camera) {
         this.camera = camera;
@@ -3988,9 +3990,12 @@ class CameraControls {
             }
         }
         if (this.allowScale && pointer.wheel !== 0) {
-            const scaleFactor = pointer.wheel * 0.0015 * camera.scale;
+            let scaleFactor = pointer.wheel * 0.0015 * camera.scale;
+            if (pointer.wheel < 0) scaleFactor = Math.max(scaleFactor, camera.scale - ZOOM_MAX);
+            if (pointer.wheel > 0) scaleFactor = Math.min(scaleFactor, camera.scale - ZOOM_MIN);
             const pointerPos = camera.inverseMatrix.transformPoint(pointer.position);
             camera.scale -= scaleFactor;
+            camera.scale = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, camera.scale));
             camera.position.add(pointerPos.multiplyScalar(scaleFactor));
             camera.matrixNeedsUpdate = true;
         }
@@ -4835,11 +4840,14 @@ class GridHelper extends Object2D {
     onUpdate(renderer) {
         this.layer = (this.onTop) ? +Infinity : -Infinity;
         this.level = -1;
-        if (!this.snap) return;
         const object = renderer.dragObject;
         if (object && object.isDragging) {
-            this.alignToGrid(object);
-            this.alignToRotation(object);
+            if (this.snap) {
+                this.alignToGrid(object);
+            }
+            if (renderer.keyboard.modifierPressed() !== this.snap) {
+                this.alignToRotation(object);
+            }
         }
     }
 }

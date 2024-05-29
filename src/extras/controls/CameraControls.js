@@ -48,7 +48,7 @@ class CameraControls {
 
         // Scale
         if (this.allowScale && pointer.wheel !== 0) {
-            const scaleFactor = pointer.wheel * 0.001 * camera.scale;
+            const scaleFactor = pointer.wheel * 0.0015 * camera.scale;
             const pointerPos = camera.inverseMatrix.transformPoint(pointer.position);
             camera.scale -= scaleFactor;
             camera.position.add(pointerPos.multiplyScalar(scaleFactor));

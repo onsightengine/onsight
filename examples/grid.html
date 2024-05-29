@@ -94,9 +94,36 @@
                     scale = scale.toFixed((scale < 50) ? ((scale < 5) ? 2 : 1) : 0);
                     tooltip.popup(` ${scale}% `, 'center');
                 } else if (renderer.dragObject && renderer.dragObject.isDragging) {
-                    let x = parseFloat((renderer.dragObject.position.x).toFixed(3)).toString();
-                    let y = parseFloat((renderer.dragObject.position.y).toFixed(3)).toString();
-                    tooltip.popup(`X: ${x}\nY: ${y}`, 'left', 10, 0);
+                    let tooltipText = '';
+                    const object = renderer.dragObject;
+                    if (object.type === 'Resizer') {
+                        const resizeTool = object.resizeTool;
+                        if (resizeTool) {
+                            const toolSize = resizeTool.boundingBox.getSize();
+                            let w = (toolSize.x * resizeTool.scale.x).toFixed(3);
+                            let h = (toolSize.y * resizeTool.scale.y).toFixed(3);
+                            w = parseFloat(w).toString(); // remove trailing zeros
+                            h = parseFloat(h).toString(); // remove trailing zeros
+                            tooltipText = `W: ${w}\nH: ${h}`;
+                        }
+                    } else if (object.type === 'Rotater') {
+                        const resizeTool = object.resizeTool;
+                        if (resizeTool) {
+                            let angle = SALT.MathUtils.radiansToDegrees(resizeTool.rotation);
+                            angle = angle.toFixed(3);
+                            angle = parseFloat(angle).toString();
+                            tooltipText = `${angle}°`;
+                        }
+                    } else /* show object 'Position' */ {
+                        let x = (object.position.x).toFixed(3);
+                        let y = (object.position.y).toFixed(3);
+                        x = parseFloat(x).toString(); // remove trailing zeros
+                        y = parseFloat(y).toString(); // remove trailing zeros
+                        tooltipText = `X: ${x}\nY: ${y}`;
+                    }
+                    if (tooltipText !== '') {
+                        tooltip.popup(tooltipText, 'left' /* align */, 10 /* duration */, 0 /* fadeOut */);
+                    }
                 }
             }
         }
@@ -111,6 +138,7 @@
         /////
 
         const params = {
+            snapToGrid: true,
             sizeX: 50,
             sizeY: 50,
             scaleX: 1,
@@ -121,6 +149,7 @@
         const gui = new SUEY.Gooey();
 
         const folder1 = gui.addFolder();
+        folder1.add(params, 'snapToGrid').onChange(() => { grid.snap = params.snap; });
         folder1.add(params, 'sizeX').min(1).step(5).onChange(() => { grid.gridX = params.sizeX; });
         folder1.add(params, 'sizeY').min(1).step(5).onChange(() => { grid.gridY = params.sizeY; });
         folder1.add(params, 'scaleX', 0, 10, 0.2, 1).onChange(() => { grid.scale.x = params.scaleX; });

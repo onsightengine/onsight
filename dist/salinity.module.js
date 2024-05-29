@@ -3977,7 +3977,7 @@ class CameraControls {
             }
         }
         if (this.allowScale && pointer.wheel !== 0) {
-            const scaleFactor = pointer.wheel * 0.001 * camera.scale;
+            const scaleFactor = pointer.wheel * 0.0015 * camera.scale;
             const pointerPos = camera.inverseMatrix.transformPoint(pointer.position);
             camera.scale -= scaleFactor;
             camera.position.add(pointerPos.multiplyScalar(scaleFactor));
@@ -4069,7 +4069,7 @@ const _topRight$2 = new Vector2();
 const _botLeft$2 = new Vector2();
 const _botRight$2 = new Vector2();
 const _objectMatrix = new Matrix2();
-const dragger = Object.assign(new Circle(10), { selectable: false, focusable: false });
+const dragger = Object.assign(new Circle(10), { type: 'Resizer', selectable: false, focusable: false });
 class ResizeHelper extends Box {
     static ALL = 0;
     static RESIZE = 1;
@@ -4229,6 +4229,7 @@ class ResizeHelper extends Box {
                     startDragRotation = self.rotation;
                     startDragScale = self.scale.clone();
                     self.parent.add(dragger);
+                    dragger.resizeTool = self;
                     dragger['onPointerDragEnd'] = function(renderer) { self.parent.remove(dragger); };
                     dragger['onPointerDrag'] = function(renderer) {
                         Object2D.prototype.onPointerDrag.call(this, renderer);
@@ -4313,6 +4314,8 @@ class ResizeHelper extends Box {
         }
         if (tools === ResizeHelper.ALL || tools === ResizeHelper.ROTATE) {
             rotater = Object.assign(new Circle(), { draggable: true, focusable: false, selectable: false });
+            rotater.type = 'Rotater';
+            rotater.resizeTool = self;
             rotater.radius = radius + 1;
             rotater.buffer = 3;
             rotater.layer = topLayer + 2;
@@ -4326,22 +4329,27 @@ class ResizeHelper extends Box {
             rotater.strokeStyle.color = '--highlight';
             rotater.cursor = `url('${CURSOR_ROTATE}') 16 16, auto`;
             rotater.onPointerDrag = function(renderer) {
-                const pointer = renderer.pointer;
-                const camera = renderer.camera;
-                const pointerStart = pointer.position.clone();
-                const pointerEnd = pointer.position.clone().sub(pointer.delta);
-                const worldPositionStart = camera.inverseMatrix.transformPoint(pointerStart);
-                const localPositionStart = self.inverseGlobalMatrix.transformPoint(worldPositionStart);
-                const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
-                const localPositionEnd = self.inverseGlobalMatrix.transformPoint(worldPositionEnd);
-                localPositionStart.sub(self.origin).multiply(self.scale);
-                localPositionEnd.sub(self.origin).multiply(self.scale);
-                const angle = localPositionEnd.angleBetween(localPositionStart);
-                const cross = localPositionEnd.cross(localPositionStart);
-                const sign = Math.sign(cross);
-                self.rotation += (angle * sign);
-                self.updateMatrix(true);
-                updateObjects(renderer, false );
+                Object2D.prototype.onPointerDrag.call(this, renderer);
+                if (this.isDragging) {
+                    const pointer = renderer.pointer;
+                    const camera = renderer.camera;
+                    const pointerStart = pointer.position.clone();
+                    const pointerEnd = pointer.position.clone().sub(pointer.delta);
+                    const worldPositionStart = camera.inverseMatrix.transformPoint(pointerStart);
+                    const localPositionStart = self.inverseGlobalMatrix.transformPoint(worldPositionStart);
+                    const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
+                    const localPositionEnd = self.inverseGlobalMatrix.transformPoint(worldPositionEnd);
+                    localPositionStart.sub(self.origin).multiply(self.scale);
+                    localPositionEnd.sub(self.origin).multiply(self.scale);
+                    const angle = localPositionEnd.angleBetween(localPositionStart);
+                    const cross = localPositionEnd.cross(localPositionStart);
+                    const sign = Math.sign(cross);
+                    self.rotation += (angle * sign);
+                    while (self.rotation < Math.PI * -2) { self.rotation += Math.PI * 2; }
+                    while (self.rotation > Math.PI * +2) { self.rotation -= Math.PI * 2; }
+                    self.updateMatrix(true);
+                    updateObjects(renderer, false );
+                }
             };
             rotateLine = Object.assign(new Line(), { draggable: false, focusable: false, selectable: false });
             rotateLine.layer = topLayer + 1;
@@ -4693,6 +4701,7 @@ class GridHelper extends Object2D {
         this.selectable = false;
         this.gridX = gridSizeX;
         this.gridY = gridSizeY;
+        this.snap = true;
         this.cache = null;
         this.gridScale = 1;
         this.patternCanvas = document.createElement('canvas');
@@ -4792,6 +4801,7 @@ class GridHelper extends Object2D {
         context.stroke();
     }
     onUpdate(renderer) {
+        if (!this.snap) return;
         const object = renderer.dragObject;
         if (object && object.isDragging) this.alignToGrid(object);
     }

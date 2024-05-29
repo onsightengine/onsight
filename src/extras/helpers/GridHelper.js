@@ -32,6 +32,7 @@ class GridHelper extends Object2D {
 
         this.gridX = gridSizeX;
         this.gridY = gridSizeY;
+        this.snap = true;
 
         // INTERNAL
         this.cache = null;
@@ -158,6 +159,7 @@ class GridHelper extends Object2D {
     }
 
     onUpdate(renderer) {
+        if (!this.snap) return;
         const object = renderer.dragObject;
         if (object && object.isDragging) this.alignToGrid(object);
     }

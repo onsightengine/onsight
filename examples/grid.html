@@ -60,6 +60,11 @@
         const circle = new SALT.Circle();
         circle.setPosition(100, 0);
         circle.radius = 50;
+        circle.fillStyle = new SALT.LinearGradientStyle();
+        circle.fillStyle.start.set(-50, -50);
+        circle.fillStyle.end.set(50, 50);
+        circle.fillStyle.addColorStop(0, '#222222');
+        circle.fillStyle.addColorStop(1, '#cccccc');
         rainbowBox.add(circle);
 
         // Renderer
@@ -97,19 +102,19 @@
                     let tooltipText = '';
                     const object = renderer.dragObject;
                     if (object.type === 'Resizer') {
-                        const resizeTool = object.resizeTool;
-                        if (resizeTool) {
-                            const toolSize = resizeTool.boundingBox.getSize();
-                            let w = (toolSize.x * resizeTool.scale.x).toFixed(3);
-                            let h = (toolSize.y * resizeTool.scale.y).toFixed(3);
+                        const resizeHelper = object.resizeHelper;
+                        if (resizeHelper) {
+                            const toolSize = resizeHelper.boundingBox.getSize();
+                            let w = (toolSize.x * resizeHelper.scale.x).toFixed(3);
+                            let h = (toolSize.y * resizeHelper.scale.y).toFixed(3);
                             w = parseFloat(w).toString(); // remove trailing zeros
                             h = parseFloat(h).toString(); // remove trailing zeros
                             tooltipText = `W: ${w}\nH: ${h}`;
                         }
                     } else if (object.type === 'Rotater') {
-                        const resizeTool = object.resizeTool;
-                        if (resizeTool) {
-                            let angle = SALT.MathUtils.radiansToDegrees(resizeTool.rotation);
+                        const resizeHelper = object.resizeHelper;
+                        if (resizeHelper) {
+                            let angle = SALT.MathUtils.radiansToDegrees(resizeHelper.rotation);
                             angle = angle.toFixed(3);
                             angle = parseFloat(angle).toString();
                             tooltipText = `${angle}°`;

@@ -68,6 +68,7 @@ class Object2D extends Thing {
         this.inViewport = true;                     // object within viewport frustum?
         this.isSelected = false;                    // object is selected?
         this.isDragging = false;                    // object is being dragged?
+        this.lateUpdate = false;                    // object wants to be updated last?
     }
 
     /******************** CHILDREN */

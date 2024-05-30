@@ -207,10 +207,16 @@ class Renderer {
         }
 
         // Update Object / Matrix
+        function updateObject(object) {
+            object.updateMatrix();
+            if (typeof object.onUpdate === 'function') object.onUpdate(renderer);
+        }
+        const lateUpdate = [];
         scene.traverse((child) => {
-            child.updateMatrix();
-            if (typeof child.onUpdate === 'function') child.onUpdate(renderer);
+            if (child.lateUpdate) lateUpdate.push(child);
+            else updateObject(child);
         });
+        for (const object of lateUpdate) { updateObject(object); }
 
         // Reset Transform, Clear Canvas
         context.setTransform(1, 0, 0, 1, 0, 0);

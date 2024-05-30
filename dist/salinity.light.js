@@ -1492,6 +1492,7 @@ class Object2D extends Thing {
         this.inViewport = true;
         this.isSelected = false;
         this.isDragging = false;
+        this.lateUpdate = false;
     }
     add(...objects) {
         if (!objects) return this;
@@ -3136,10 +3137,16 @@ class Renderer {
         if (this.pointerEvents) {
             EventManager.pointerEvents(renderer, objects);
         }
+        function updateObject(object) {
+            object.updateMatrix();
+            if (typeof object.onUpdate === 'function') object.onUpdate(renderer);
+        }
+        const lateUpdate = [];
         scene.traverse((child) => {
-            child.updateMatrix();
-            if (typeof child.onUpdate === 'function') child.onUpdate(renderer);
+            if (child.lateUpdate) lateUpdate.push(child);
+            else updateObject(child);
         });
+        for (const object of lateUpdate) { updateObject(object); }
         context.setTransform(1, 0, 0, 1, 0, 0);
         if (this.autoClear) context.clearRect(0, 0, this.width, this.height);
         for (let i = objects.length - 1; i >= 0; i--) {

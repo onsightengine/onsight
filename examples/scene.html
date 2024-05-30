@@ -173,10 +173,10 @@
         const gooeyUpdater = {
             update: function() {
                 if (selectControls.selection && selectControls.selection.length > 0) {
-                    const resizeTool = selectControls.resizeTool;
-                    params.selectPosition = [ resizeTool.position.x, resizeTool.position.y ];
-                    params.selectRotation = resizeTool.rotation * (180 / Math.PI);
-                    params.selectScale = [ resizeTool.scale.x, resizeTool.scale.y ];
+                    const resizeHelper = selectControls.resizeHelper;
+                    params.selectPosition = [ resizeHelper.position.x, resizeHelper.position.y ];
+                    params.selectRotation = resizeHelper.rotation * (180 / Math.PI);
+                    params.selectScale = [ resizeHelper.scale.x, resizeHelper.scale.y ];
                     selectPosition.updateDisplay();
                     selectRotation.updateDisplay();
                     selectScale.updateDisplay();

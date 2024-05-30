@@ -18,7 +18,7 @@ class SelectControls {
 
     constructor() {
         this.selection = [];
-        this.resizeTool = null;
+        this.resizeHelper = null;
         this.rubberBandBox = null;
         this.downTimer = 0;
 
@@ -152,20 +152,20 @@ class SelectControls {
             scene.traverse((child) => { child.isSelected = false; });
             newSelection.forEach((object) => { object.isSelected = true; });
             // Clear Old Tool
-            if (this.resizeTool) {
-                this.resizeTool.objects = [];
-                this.resizeTool.destroy();
-                this.resizeTool = null;
+            if (this.resizeHelper) {
+                this.resizeHelper.objects = [];
+                this.resizeHelper.destroy();
+                this.resizeHelper = null;
             }
             // Create New Tool?
             if (newSelection.length > 0) {
-                this.resizeTool = new ResizeHelper(newSelection);
+                this.resizeHelper = new ResizeHelper(newSelection);
                 // Add to Common Parent
                 const commonAncestor = findCommonMostAncestor(newSelection);
-                commonAncestor.add(this.resizeTool);
+                commonAncestor.add(this.resizeHelper);
                 // Update, Start Drag
-                if (typeof this.resizeTool.onUpdate === 'function') this.resizeTool.onUpdate(renderer);
-                if (this.rubberBandBox == null) renderer.setDragObject(this.resizeTool);
+                if (typeof this.resizeHelper.onUpdate === 'function') this.resizeHelper.onUpdate(renderer);
+                if (this.rubberBandBox == null) renderer.setDragObject(this.resizeHelper);
             }
             // Save Selection
             this.selection = [ ...newSelection ];

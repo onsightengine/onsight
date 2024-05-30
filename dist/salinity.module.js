@@ -1492,6 +1492,7 @@ class Object2D extends Thing {
         this.inViewport = true;
         this.isSelected = false;
         this.isDragging = false;
+        this.lateUpdate = false;
     }
     add(...objects) {
         if (!objects) return this;
@@ -3136,10 +3137,16 @@ class Renderer {
         if (this.pointerEvents) {
             EventManager.pointerEvents(renderer, objects);
         }
+        function updateObject(object) {
+            object.updateMatrix();
+            if (typeof object.onUpdate === 'function') object.onUpdate(renderer);
+        }
+        const lateUpdate = [];
         scene.traverse((child) => {
-            child.updateMatrix();
-            if (typeof child.onUpdate === 'function') child.onUpdate(renderer);
+            if (child.lateUpdate) lateUpdate.push(child);
+            else updateObject(child);
         });
+        for (const object of lateUpdate) { updateObject(object); }
         context.setTransform(1, 0, 0, 1, 0, 0);
         if (this.autoClear) context.clearRect(0, 0, this.width, this.height);
         for (let i = objects.length - 1; i >= 0; i--) {
@@ -4106,6 +4113,7 @@ class ResizeHelper extends Box {
         this.draggable = true;
         this.focusable = true;
         this.selectable = false;
+        this.lateUpdate = true;
         this.fillStyle = null;
         this.strokeStyle = null;
         let topLayer = 0;
@@ -4251,7 +4259,7 @@ class ResizeHelper extends Box {
                     startDragRotation = self.rotation;
                     startDragScale = self.scale.clone();
                     self.parent.add(dragger);
-                    dragger.resizeTool = self;
+                    dragger.resizeHelper = self;
                     dragger['onPointerDragEnd'] = function(renderer) { self.parent.remove(dragger); };
                     dragger['onPointerDrag'] = function(renderer) {
                         Object2D.prototype.onPointerDrag.call(this, renderer);
@@ -4337,7 +4345,7 @@ class ResizeHelper extends Box {
         if (tools === ResizeHelper.ALL || tools === ResizeHelper.ROTATE) {
             rotater = Object.assign(new Circle(), { draggable: true, focusable: false, selectable: false });
             rotater.type = 'Rotater';
-            rotater.resizeTool = self;
+            rotater.resizeHelper = self;
             rotater.radius = radius + 1;
             rotater.mouseBuffer = 5;
             rotater.layer = topLayer + 2;
@@ -4595,7 +4603,7 @@ const _size = new Vector2();
 class SelectControls {
     constructor() {
         this.selection = [];
-        this.resizeTool = null;
+        this.resizeHelper = null;
         this.rubberBandBox = null;
         this.downTimer = 0;
         this._existingSelection = [];
@@ -4696,17 +4704,17 @@ class SelectControls {
         if (ArrayUtils.compareThingArrays(this.selection, newSelection) === false) {
             scene.traverse((child) => { child.isSelected = false; });
             newSelection.forEach((object) => { object.isSelected = true; });
-            if (this.resizeTool) {
-                this.resizeTool.objects = [];
-                this.resizeTool.destroy();
-                this.resizeTool = null;
+            if (this.resizeHelper) {
+                this.resizeHelper.objects = [];
+                this.resizeHelper.destroy();
+                this.resizeHelper = null;
             }
             if (newSelection.length > 0) {
-                this.resizeTool = new ResizeHelper(newSelection);
+                this.resizeHelper = new ResizeHelper(newSelection);
                 const commonAncestor = findCommonMostAncestor(newSelection);
-                commonAncestor.add(this.resizeTool);
-                if (typeof this.resizeTool.onUpdate === 'function') this.resizeTool.onUpdate(renderer);
-                if (this.rubberBandBox == null) renderer.setDragObject(this.resizeTool);
+                commonAncestor.add(this.resizeHelper);
+                if (typeof this.resizeHelper.onUpdate === 'function') this.resizeHelper.onUpdate(renderer);
+                if (this.rubberBandBox == null) renderer.setDragObject(this.resizeHelper);
             }
             this.selection = [ ...newSelection ];
         }

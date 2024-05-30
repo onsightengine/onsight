@@ -43,6 +43,7 @@ class ResizeHelper extends Box {
         this.draggable = true;
         this.focusable = true;
         this.selectable = false;
+        this.lateUpdate = true;
 
         this.fillStyle = null;
         this.strokeStyle = null;
@@ -221,7 +222,7 @@ class ResizeHelper extends Box {
                     startDragScale = self.scale.clone();
                     // Setup Dragger
                     self.parent.add(dragger);
-                    dragger.resizeTool = self;
+                    dragger.resizeHelper = self;
                     dragger['onPointerDragEnd'] = function(renderer) { self.parent.remove(dragger); };
                     dragger['onPointerDrag'] = function(renderer) {
                         Object2D.prototype.onPointerDrag.call(this, renderer);
@@ -327,7 +328,7 @@ class ResizeHelper extends Box {
             // Circle
             rotater = Object.assign(new Circle(), { draggable: true, focusable: false, selectable: false });
             rotater.type = 'Rotater';
-            rotater.resizeTool = self;
+            rotater.resizeHelper = self;
             rotater.radius = radius + 1;
             rotater.mouseBuffer = 5;
             rotater.layer = topLayer + 2;

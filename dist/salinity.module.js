@@ -4455,16 +4455,19 @@ class ResizeHelper extends Box {
             if (!renderer) return;
             const camera = renderer.camera;
             const showResizers = !self.isDragging;
+            const worldPosition = self.globalMatrix.getPosition();
+            const worldRotation = self.globalMatrix.getRotation();
+            const worldScale = self.globalMatrix.getScale();
             if (self.bgBox) {
                 self.bgBox.box.set(new Vector2(-halfSize.x, -halfSize.y), new Vector2(+halfSize.x, +halfSize.y));
             }
-            const handleOffset = ((radius * 4) / Math.abs(self.scale.y)) / camera.scale;
+            const handleOffset = ((radius * 4) / Math.abs(worldScale.y)) / camera.scale;
             const topCenterWorld = new Vector2(0, -halfSize.y);
             const topCenterWorldOffset = new Vector2(0, -halfSize.y - handleOffset);
             if (rotater) {
                 rotater.position.copy(topCenterWorldOffset);
                 rotater.rotation = 0;
-                rotater.scale.set(1 / self.scale.x, 1 / self.scale.y).divideScalar(camera.scale);
+                rotater.scale.set(1 / worldScale.x, 1 / worldScale.y).divideScalar(camera.scale);
                 rotater.updateMatrix(true);
                 rotater.visible = showResizers;
             }
@@ -4482,11 +4485,9 @@ class ResizeHelper extends Box {
             }
             if (rotateLine) {
                 rotateLine.from.set(0, 0);
-                rotateLine.to.copy(0, (radius * 4) * -1.5);
-                _rotateMatrix.identity().scale(1 / self.scale.x, 1 / self.scale.y);
-                _rotateMatrix.rotate(-self.rotation);
-                _rotateMatrix.scale(1 / camera.scale, 1 / camera.scale);
-                _rotateMatrix.applyToVector(rotateLine.to);
+                rotateLine.to.copy(0, (radius * 4) * -1.5).add(worldPosition);
+                self.inverseGlobalMatrix.applyToVector(rotateLine.to);
+                rotateLine.to.divideScalar(camera.scale);
                 rotateLine.updateMatrix(true);
                 rotateLine.visible = rotater.isDragging;
             }
@@ -4495,7 +4496,7 @@ class ResizeHelper extends Box {
                 resizer.position.set(x, y);
                 if      (type === 'v') { resizer.from.set(0, -halfSize.y); resizer.to.set(0, +halfSize.y); }
                 else if (type === 'h') { resizer.from.set(-halfSize.x, 0); resizer.to.set(+halfSize.x, 0); }
-                else { resizer.scale.set((1 / self.scale.x) / camera.scale, (1 / self.scale.y) / camera.scale); }
+                else { resizer.scale.set((1 / worldScale.x) / camera.scale, (1 / worldScale.y) / camera.scale); }
                 resizer.updateMatrix(true);
                 resizer.visible = showResizers;
             }

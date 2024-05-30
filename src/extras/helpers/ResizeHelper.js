@@ -20,6 +20,7 @@ const _topRight = new Vector2();
 const _botLeft = new Vector2();
 const _botRight = new Vector2();
 const _objectMatrix = new Matrix2();
+const _rotateMatrix = new Matrix2();
 
 const dragger = Object.assign(new Circle(10), { type: 'Resizer', selectable: false, focusable: false });
 
@@ -135,7 +136,7 @@ class ResizeHelper extends Box {
         // Resizers
         let topLeft, topRight, bottomLeft, bottomRight;
         let topResizer, rightResizer, bottomResizer, leftResizer;
-        let rotater, rotateLine;
+        let rotater, topLine, centerLine, rotateLine;
 
         // Corners / Sides
         if (tools === ResizeHelper.ALL || tools === ResizeHelper.RESIZE) {
@@ -372,13 +373,26 @@ class ResizeHelper extends Box {
                 updateObjects(null, false /* lerp */);
                 return self;
             }
-            // Line
+            // Top Line
+            topLine = Object.assign(new Line(), { draggable: false, focusable: false, selectable: false });
+            topLine.layer = topLayer + 1;
+            topLine.lineWidth = OUTLINE_THICKNESS;
+            topLine.constantWidth = true;
+            topLine.strokeStyle.color = '--highlight';
+            // Center Line
+            centerLine = Object.assign(new Line(), { draggable: false, focusable: false, selectable: false });
+            centerLine.layer = topLayer + 1;
+            centerLine.lineWidth = OUTLINE_THICKNESS;
+            centerLine.constantWidth = true;
+            centerLine.strokeStyle.color = '--highlight';
+            // Rotate Line
             rotateLine = Object.assign(new Line(), { draggable: false, focusable: false, selectable: false });
             rotateLine.layer = topLayer + 1;
             rotateLine.lineWidth = OUTLINE_THICKNESS;
             rotateLine.constantWidth = true;
             rotateLine.strokeStyle.color = '--highlight';
-            this.add(rotater, rotateLine);
+            // Add to Rotater
+            this.add(rotater, topLine, centerLine, rotateLine);
         }
 
         // Overrides to update positions on Drag
@@ -466,11 +480,27 @@ class ResizeHelper extends Box {
                 rotater.visible = showResizers;
 
             }
+            if (topLine) {
+                topLine.from.copy(topCenterWorldOffset);
+                topLine.to.copy(topCenterWorld);
+                topLine.updateMatrix(true);
+                topLine.visible = showResizers;
+            }
+            if (centerLine) {
+                centerLine.from.set(0, 0);
+                centerLine.to.copy(0, handleOffset * -1.5);
+                centerLine.updateMatrix(true);
+                centerLine.visible = rotater.isDragging;
+            }
             if (rotateLine) {
-                rotateLine.from.copy(topCenterWorldOffset);
-                rotateLine.to.copy(topCenterWorld);
+                rotateLine.from.set(0, 0);
+                rotateLine.to.copy(0, (radius * 4) * -1.5);
+                _rotateMatrix.identity().scale(1 / self.scale.x, 1 / self.scale.y);
+                _rotateMatrix.rotate(-self.rotation);
+                _rotateMatrix.scale(1 / camera.scale, 1 / camera.scale);
+                _rotateMatrix.applyToVector(rotateLine.to);
                 rotateLine.updateMatrix(true);
-                rotateLine.visible = showResizers;
+                rotateLine.visible = rotater.isDragging;
             }
 
             // Corner Resizers

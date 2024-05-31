@@ -30,13 +30,13 @@
         scene.add(center);
 
         const box1 = new SALT.Box();
-        box1.setPosition(-100, 0);
+        box1.setPosition(-150, 50);
         box1.fillStyle.color = '#ff0000';
         scene.add(box1);
 
         const box2 = new SALT.Box();
-        box2.setPosition(+100, 0);
-        box2.fillStyle.color = '#00ff00';
+        box2.setPosition(200, 0);
+        box2.fillStyle.color = '#00aa00';
         box2.selectable = false;
         scene.add(box2);
 
@@ -46,9 +46,17 @@
         scene.add(box3);
 
         const box4 = new SALT.Box();
-        box4.setPosition(-200, -150);
+        box4.setPosition(-350, -50);
         box4.fillStyle.color = '#ff00ff';
         scene.add(box4);
+
+        const line2 = new SALT.Line();
+        line2.strokeStyle.color = '#00aa00';
+        line2.lineWidth = 10;
+        line2.mouseBuffer = 0;
+        line2.from.set(-150, -150);
+        line2.to.set(50, 50);
+        scene.add(line2);
 
         const rainbowBox = new SALT.Box();
         rainbowBox.setPosition(-100, 200);

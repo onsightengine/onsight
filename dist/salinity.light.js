@@ -75,6 +75,7 @@ var pkg = {
 const VERSION = pkg.version;
 const APP_SIZE = 1000;
 const MOUSE_CLICK_TIME = 350;
+const MOUSE_DOUBLE_TIME = 500;
 const MOUSE_SLOP = 2;
 const OUTLINE_THICKNESS = 2;
 const APP_EVENTS = [
@@ -1010,7 +1011,7 @@ class Matrix2 {
             const s = Math.sin(rot);
             this.multiply(_rotate$1.set(c, s, -s, c, 0, 0));
         }
-        this.multiply(_origin.set(1, 0, 0, 1, -ox, -oy));
+        if (ox !== 0 || oy !== 0) this.multiply(_origin.set(1, 0, 0, 1, -ox, -oy));
         if (sx !== 1 || sy !== 1) this.scale(sx, sy);
         return this;
     }
@@ -1200,6 +1201,7 @@ class Pointer {
         this._wheel = 0;
         this._wheelUpdated = false;
         this._doubleClicked = new Array(5);
+        this._clickTime = new Array(5);
         this.keys = new Array(5);
         this.position = new Vector2(0, 0);
         this.delta = new Vector2(0, 0);
@@ -1242,6 +1244,7 @@ class Pointer {
         element.on('pointerdown', (event) => {
             element.dom.setPointerCapture(event.pointerId);
             updateKey(event.button, Key.DOWN);
+            self._clickTime[event.button] = performance.now();
         });
         element.on('pointerup', (event) => {
             element.dom.releasePointerCapture(event.pointerId);
@@ -1254,7 +1257,9 @@ class Pointer {
             self._wheelUpdated = true;
         });
         element.on('dragstart', (event) => { updateKey(event.button, Key.UP); });
-        element.on('dblclick', (event) => { self._doubleClicked[event.button] = true; });
+        element.on('dblclick', (event) => {
+            self._doubleClicked[event.button] = (performance.now() - self._clickTime[event.button]) < MOUSE_DOUBLE_TIME;
+        });
     }
     buttonPressed(button, id = -1) {
         if (this.#locked && this.#locked !== id) return false;
@@ -1262,7 +1267,7 @@ class Pointer {
     }
     buttonDoubleClicked(button, id = -1) {
         if (this.#locked && this.#locked !== id) return false;
-        return this.doubleClicked[button]
+        return this.doubleClicked[button];
     }
     buttonJustPressed(button, id = -1) {
         if (this.#locked && this.#locked !== id) return false;
@@ -3964,4 +3969,4 @@ if (typeof window !== 'undefined') {
     else window.__SALINITY__ = VERSION;
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, Circle, Clock, ColorStyle, DomElement, Entity, EventManager, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, OUTLINE_THICKNESS, Object2D, Palette, Pointer, PolyUtils, Project, RadialGradientStyle, Renderer, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, Sprite, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, Circle, Clock, ColorStyle, DomElement, Entity, EventManager, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_DOUBLE_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, OUTLINE_THICKNESS, Object2D, Palette, Pointer, PolyUtils, Project, RadialGradientStyle, Renderer, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, Sprite, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, WORLD_TYPES, World };

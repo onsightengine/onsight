@@ -1,3 +1,6 @@
+import {
+    MOUSE_DOUBLE_TIME,
+} from '../../constants.js';
 import { Key } from './Key.js';
 import { Vector2 } from '../../math/Vector2.js';
 
@@ -28,6 +31,7 @@ class Pointer {
         this._wheel = 0;
         this._wheelUpdated = false;
         this._doubleClicked = new Array(5);
+        this._clickTime = new Array(5);
 
         this.keys = new Array(5);               // pointer buttons states
         this.position = new Vector2(0, 0);      // position inside of the window (coordinates in window space)
@@ -78,12 +82,11 @@ class Pointer {
         });
         element.on('pointerdown', (event) => {
             element.dom.setPointerCapture(event.pointerId);
-            // element.dom.requestPointerLock();
             updateKey(event.button, Key.DOWN);
+            self._clickTime[event.button] = performance.now();
         });
         element.on('pointerup', (event) => {
             element.dom.releasePointerCapture(event.pointerId);
-            // if (document.pointerLockElement === element.dom) document.exitPointerLock();
             updateKey(event.button, Key.UP);
         });
         element.on('pointerenter', () => { self.pointerInside = true; });
@@ -99,7 +102,9 @@ class Pointer {
         element.on('dragstart', (event) => { updateKey(event.button, Key.UP); });
 
         // Double Click
-        element.on('dblclick', (event) => { self._doubleClicked[event.button] = true; });
+        element.on('dblclick', (event) => {
+            self._doubleClicked[event.button] = (performance.now() - self._clickTime[event.button]) < MOUSE_DOUBLE_TIME;
+        });
     }
 
     buttonPressed(button, id = -1) {
@@ -109,7 +114,7 @@ class Pointer {
 
     buttonDoubleClicked(button, id = -1) {
         if (this.#locked && this.#locked !== id) return false;
-        return this.doubleClicked[button]
+        return this.doubleClicked[button];
     }
 
     buttonJustPressed(button, id = -1) {

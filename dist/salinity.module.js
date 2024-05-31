@@ -75,6 +75,7 @@ var pkg = {
 const VERSION = pkg.version;
 const APP_SIZE = 1000;
 const MOUSE_CLICK_TIME = 350;
+const MOUSE_DOUBLE_TIME = 500;
 const MOUSE_SLOP = 2;
 const OUTLINE_THICKNESS = 2;
 const APP_EVENTS = [
@@ -1010,7 +1011,7 @@ class Matrix2 {
             const s = Math.sin(rot);
             this.multiply(_rotate$2.set(c, s, -s, c, 0, 0));
         }
-        this.multiply(_origin.set(1, 0, 0, 1, -ox, -oy));
+        if (ox !== 0 || oy !== 0) this.multiply(_origin.set(1, 0, 0, 1, -ox, -oy));
         if (sx !== 1 || sy !== 1) this.scale(sx, sy);
         return this;
     }
@@ -1200,6 +1201,7 @@ class Pointer {
         this._wheel = 0;
         this._wheelUpdated = false;
         this._doubleClicked = new Array(5);
+        this._clickTime = new Array(5);
         this.keys = new Array(5);
         this.position = new Vector2(0, 0);
         this.delta = new Vector2(0, 0);
@@ -1242,6 +1244,7 @@ class Pointer {
         element.on('pointerdown', (event) => {
             element.dom.setPointerCapture(event.pointerId);
             updateKey(event.button, Key.DOWN);
+            self._clickTime[event.button] = performance.now();
         });
         element.on('pointerup', (event) => {
             element.dom.releasePointerCapture(event.pointerId);
@@ -1254,7 +1257,9 @@ class Pointer {
             self._wheelUpdated = true;
         });
         element.on('dragstart', (event) => { updateKey(event.button, Key.UP); });
-        element.on('dblclick', (event) => { self._doubleClicked[event.button] = true; });
+        element.on('dblclick', (event) => {
+            self._doubleClicked[event.button] = (performance.now() - self._clickTime[event.button]) < MOUSE_DOUBLE_TIME;
+        });
     }
     buttonPressed(button, id = -1) {
         if (this.#locked && this.#locked !== id) return false;
@@ -1262,7 +1267,7 @@ class Pointer {
     }
     buttonDoubleClicked(button, id = -1) {
         if (this.#locked && this.#locked !== id) return false;
-        return this.doubleClicked[button]
+        return this.doubleClicked[button];
     }
     buttonJustPressed(button, id = -1) {
         if (this.#locked && this.#locked !== id) return false;
@@ -4121,6 +4126,18 @@ class ResizeHelper extends Box {
             bottomLayer = Math.max(bottomLayer, object.layer - 1);
         }
         this.layer = topLayer;
+        const background = Object.assign(new Box(), { pointerEvents: false, draggable: false, focusable: false, selectable: false });
+        background.isHelper = true;
+        background.layer = bottomLayer;
+        background.fillStyle.color = 'rgba(--icon-dark, 0.35)';
+        background.fillStyle.fallback = 'rgba(0, 85, 102, 0.35)';
+        background.strokeStyle.color = 'rgba(--icon-dark, 0.35)';
+        background.strokeStyle.fallback = 'rgba(0, 85, 102, 0.35)';
+        background.lineWidth = 2;
+        background.constantWidth = true;
+        background.visible = false;
+        this.add(background);
+        this.background = background;
         const self = this;
         this.objects = objects;
         const initialTransforms = {};
@@ -4172,11 +4189,14 @@ class ResizeHelper extends Box {
         this.position.copy(center);
         this.box.set(new Vector2(-halfSize.x, -halfSize.y), new Vector2(+halfSize.x, +halfSize.y));
         this.computeBoundingBox();
+        this.updateMatrix(true);
         const startPosition = this.position.clone();
         const startRotation = this.rotation;
         const startScale = this.scale.clone();
-        const startOrigin = new Vector2();
+        this.origin = new Vector2();
         if (objects.length === 1) {
+            objects[0].globalMatrix.applyToVector(this.origin);
+            this.inverseGlobalMatrix.applyToVector(this.origin);
         }
         let topLeft, topRight, bottomLeft, bottomRight;
         let topResizer, rightResizer, bottomResizer, leftResizer;
@@ -4296,7 +4316,7 @@ class ResizeHelper extends Box {
                     const scaleX = MathUtils.sanity((x === 0) ? 0 : 2 / size.x);
                     const scaleY = MathUtils.sanity((y === 0) ? 0 : 2 / size.y);
                     const scale = new Vector2(scaleX, scaleY);
-                    const positionOffset = startOrigin.clone();
+                    const positionOffset = startBox.getCenter();
                     positionOffset.multiply(delta).multiply(scale).multiply(x, y);
                     const rotationMatrix = new Matrix2().rotate(startDragRotation);
                     const rotatedDelta = rotationMatrix.transformPoint(delta);
@@ -4375,8 +4395,8 @@ class ResizeHelper extends Box {
                     const localPositionStart = self.inverseGlobalMatrix.transformPoint(worldPositionStart);
                     const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
                     const localPositionEnd = self.inverseGlobalMatrix.transformPoint(worldPositionEnd);
-                    localPositionStart.sub(startOrigin).multiply(self.scale);
-                    localPositionEnd.sub(startOrigin).multiply(self.scale);
+                    localPositionStart.sub(self.origin).multiply(self.scale);
+                    localPositionEnd.sub(self.origin).multiply(self.scale);
                     const angle = localPositionEnd.angleBetween(localPositionStart);
                     const cross = localPositionEnd.cross(localPositionStart);
                     const sign = Math.sign(cross);
@@ -4430,9 +4450,8 @@ class ResizeHelper extends Box {
                 const initialRotation = initialTransforms[object.uuid].rotation;
                 const initialScale = initialTransforms[object.uuid].scale;
                 object.rotation = initialRotation + (self.rotation - startRotation);
-                const origin = new Vector2();
                 const relativePosition = initialPosition.clone().sub(startPosition);
-                const scaledPosition = relativePosition.clone().sub(origin).multiply(self.scale).add(origin);
+                const scaledPosition = relativePosition.clone().multiply(self.scale);
                 const rotateAngle = (object.rotation - initialRotation) + startRotation;
                 const rotationMatrix = new Matrix2().rotate(rotateAngle);
                 const rotatedPosition = rotationMatrix.transformPoint(scaledPosition);
@@ -4460,8 +4479,10 @@ class ResizeHelper extends Box {
             const worldPosition = self.globalMatrix.getPosition();
             const worldRotation = self.globalMatrix.getRotation();
             const worldScale = self.globalMatrix.getScale();
-            if (self.bgBox) {
-                self.bgBox.box.set(new Vector2(-halfSize.x, -halfSize.y), new Vector2(+halfSize.x, +halfSize.y));
+            if (self.background) {
+                self.background.box.set(new Vector2(-halfSize.x, -halfSize.y), new Vector2(+halfSize.x, +halfSize.y));
+                self.background.updateMatrix(true);
+                self.background.visible = true;
             }
             const handleOffset = ((radius * 4) / Math.abs(worldScale.y)) / camera.scale;
             const topCenterWorld = new Vector2(0, -halfSize.y);
@@ -4829,6 +4850,13 @@ class GridHelper extends Object2D {
     alignToGrid(object) {
         if (!object.parent) return;
         const worldPosition = object.getWorldPosition();
+        const originOffset = new Vector2();
+        if (object.type === 'ResizeHelper') {
+            const worldOrigin = object.globalMatrix.transformPoint(object.origin);
+            const parentOrigin = object.parent.inverseGlobalMatrix.transformPoint(worldOrigin);
+            originOffset.copy(parentOrigin).sub(object.position);
+            worldPosition.copy(worldOrigin);
+        }
         const inverseMatrix = new Matrix2()
             .translate(-this.position.x, -this.position.y)
             .rotate(-this.rotation)
@@ -4842,6 +4870,7 @@ class GridHelper extends Object2D {
             .translate(this.position.x, this.position.y);
         const closestWorldPosition = transformMatrix.transformPoint(new Vector2(closestX, closestY));
         const parentPosition = object.parent.inverseGlobalMatrix.transformPoint(closestWorldPosition);
+        parentPosition.sub(originOffset);
         object.setPosition(parentPosition.x, parentPosition.y);
     }
     alignToRotation(object) {
@@ -4928,7 +4957,8 @@ class GridHelper extends Object2D {
                 if (this.snap) {
                     this.alignToGrid(object);
                     if (object.type === 'ResizeHelper') {
-                        this.cross.position.copy(object.globalMatrix.getPosition());
+                        const originPosition = object.globalMatrix.transformPoint(object.origin);
+                        this.cross.position.copy(originPosition);
                         this.inverseGlobalMatrix.applyToVector(this.cross.position);
                         this.cross.updateMatrix(true);
                         this.cross.level = -1;
@@ -5402,4 +5432,4 @@ function getVariable(variable) {
     return ((value === '') ? undefined : value);
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, DomElement, Entity, EventManager, GridHelper, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, OUTLINE_THICKNESS, Object2D, Palette, Pointer, PolyUtils, Project, RadialGradientStyle, Renderer, ResizeHelper, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Sprite, Stage, Style, SysUtils, Text, Thing, TooltipHelper, VERSION, Vector2, Vector3, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, DomElement, Entity, EventManager, GridHelper, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_DOUBLE_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, OUTLINE_THICKNESS, Object2D, Palette, Pointer, PolyUtils, Project, RadialGradientStyle, Renderer, ResizeHelper, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Sprite, Stage, Style, SysUtils, Text, Thing, TooltipHelper, VERSION, Vector2, Vector3, WORLD_TYPES, World };

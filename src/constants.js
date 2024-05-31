@@ -4,6 +4,7 @@ export const VERSION = pkg.version;
 export const APP_SIZE = 1000;
 
 export const MOUSE_CLICK_TIME = 350;    // milliseconds
+export const MOUSE_DOUBLE_TIME = 500;   // milliseconds
 export const MOUSE_SLOP = 2;            // pixels
 export const OUTLINE_THICKNESS = 2;     // pixels
 

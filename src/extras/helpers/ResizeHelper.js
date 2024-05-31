@@ -57,14 +57,19 @@ class ResizeHelper extends Box {
         }
         this.layer = topLayer;
 
-        // // Background
-        // const bgBox = Object.assign(new Box(), { pointerEvents: false, draggable: false, focusable: false, selectable: false });
-        // bgBox.isHelper = true;
-        // bgBox.layer = bottomLayer;
-        // bgBox.fillStyle.color = 'rgba(--icon-dark, 0.35)';
-        // bgBox.fillStyle.fallback = 'rgba(0, 85, 102, 0.35)';
-        // this.add(bgBox);
-        // this.bgBox = bgBox;
+        // Background
+        const background = Object.assign(new Box(), { pointerEvents: false, draggable: false, focusable: false, selectable: false });
+        background.isHelper = true;
+        background.layer = bottomLayer;
+        background.fillStyle.color = 'rgba(--icon-dark, 0.35)';
+        background.fillStyle.fallback = 'rgba(0, 85, 102, 0.35)';
+        background.strokeStyle.color = 'rgba(--icon-dark, 0.35)';
+        background.strokeStyle.fallback = 'rgba(0, 85, 102, 0.35)';
+        background.lineWidth = 2;
+        background.constantWidth = true;
+        background.visible = false;
+        this.add(background);
+        this.background = background;
 
         // Self
         const self = this;
@@ -132,14 +137,17 @@ class ResizeHelper extends Box {
         this.position.copy(center);
         this.box.set(new Vector2(-halfSize.x, -halfSize.y), new Vector2(+halfSize.x, +halfSize.y));
         this.computeBoundingBox();
+        this.updateMatrix(true);
 
         const startPosition = this.position.clone();
         const startRotation = this.rotation;
         const startScale = this.scale.clone();
-        const startOrigin = new Vector2();
 
+        // Origin
+        this.origin = new Vector2();
         if (objects.length === 1) {
-            // startOrigin.copy(objects[0].origin).multiplyScalar(-1);
+            objects[0].globalMatrix.applyToVector(this.origin);
+            this.inverseGlobalMatrix.applyToVector(this.origin);
         }
 
         // Resizers
@@ -272,7 +280,7 @@ class ResizeHelper extends Box {
                     const scale = new Vector2(scaleX, scaleY);
 
                     // Calculate offset between tool's true center and the center of the bounding box
-                    const positionOffset = startOrigin.clone();
+                    const positionOffset = startBox.getCenter();
                     positionOffset.multiply(delta).multiply(scale).multiply(x, y);
 
                     // Apply the rotation to the delta & position offset
@@ -364,8 +372,8 @@ class ResizeHelper extends Box {
                     const localPositionStart = self.inverseGlobalMatrix.transformPoint(worldPositionStart);
                     const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
                     const localPositionEnd = self.inverseGlobalMatrix.transformPoint(worldPositionEnd);
-                    localPositionStart.sub(startOrigin).multiply(self.scale);
-                    localPositionEnd.sub(startOrigin).multiply(self.scale);
+                    localPositionStart.sub(self.origin).multiply(self.scale);
+                    localPositionEnd.sub(self.origin).multiply(self.scale);
                     const angle = localPositionEnd.angleBetween(localPositionStart);
                     const cross = localPositionEnd.cross(localPositionStart);
                     const sign = Math.sign(cross);
@@ -373,6 +381,11 @@ class ResizeHelper extends Box {
                     while (rotaterAngle < Math.PI * -2) { rotaterAngle += Math.PI * 2; }
                     while (rotaterAngle > Math.PI * +2) { rotaterAngle -= Math.PI * 2; }
                     rotater.setRotation(rotaterAngle);
+
+                    //
+                    // TODO: Change position on rotation with origin
+                    //
+
                 }
             };
             // Override set position to update objects during snap to grid
@@ -433,12 +446,13 @@ class ResizeHelper extends Box {
                 // Rotation
                 object.rotation = initialRotation + (self.rotation - startRotation);
 
-                // Origin
-                const origin = new Vector2();//object.origin.clone();
+                // // Origin
+                // // const origin = new Vector2();
 
                 // Position
                 const relativePosition = initialPosition.clone().sub(startPosition);
-                const scaledPosition = relativePosition.clone().sub(origin).multiply(self.scale).add(origin);
+                // // const scaledPosition = relativePosition.clone().sub(origin).multiply(self.scale).add(origin);
+                const scaledPosition = relativePosition.clone().multiply(self.scale);
                 const rotateAngle = (object.rotation - initialRotation) + startRotation;
                 const rotationMatrix = new Matrix2().rotate(rotateAngle);
                 const rotatedPosition = rotationMatrix.transformPoint(scaledPosition);
@@ -446,7 +460,7 @@ class ResizeHelper extends Box {
 
                 // Lerp?
                 if (lerp && self.isDragging) {
-                    object.position.smoothstep(_position, renderer.deltaTime * 30); // dt ~ 0.0167 (1 / 60)
+                    object.position.smoothstep(_position, renderer.deltaTime * 30); // delta time ~ 0.0167 (1 / 60)
                 } else {
                     object.position.copy(_position);
                 }
@@ -476,8 +490,10 @@ class ResizeHelper extends Box {
             const worldScale = self.globalMatrix.getScale();
 
             // Background
-            if (self.bgBox) {
-                self.bgBox.box.set(new Vector2(-halfSize.x, -halfSize.y), new Vector2(+halfSize.x, +halfSize.y));
+            if (self.background) {
+                self.background.box.set(new Vector2(-halfSize.x, -halfSize.y), new Vector2(+halfSize.x, +halfSize.y));
+                self.background.updateMatrix(true);
+                self.background.visible = true;
             }
 
             // Rotate Tool

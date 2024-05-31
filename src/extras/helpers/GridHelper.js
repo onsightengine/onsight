@@ -5,6 +5,7 @@ import { Object2D } from '../../core/Object2D.js';
 import { Vector2 } from '../../math/Vector2.js';
 
 const NEAREST_ANGLE = 5;
+const SIZE_OF_CROSS = 15;
 
 const _bounds = new Box2();
 const _topLeft = new Vector2();
@@ -25,6 +26,7 @@ class GridHelper extends Object2D {
 
     constructor(gridSizeX = 50, gridSizeY = gridSizeX) {
         super();
+        const self = this;
         this.isHelper = true;
         this.type = 'GridHelper';
 
@@ -37,6 +39,43 @@ class GridHelper extends Object2D {
         this.gridY = gridSizeY;
         this.snap = true;
         this.onTop = false;
+
+        // Grid Center Cross
+        const cross = Object.assign(new Object2D(), { pointerEvents: false, draggable: false, focusable: false, selectable: false });
+        cross.layer = +Infinity;
+        cross.visible = false;
+        cross.draw = function (renderer) {
+            const context = renderer.context;
+            // Transform Order: Rotation, Scale, Position to allow Skew
+            const worldPosition = cross.getWorldPosition();
+            renderer.camera.matrix.setContextTransform(context);
+            new Matrix2().translate(worldPosition.x, worldPosition.y).tranformContext(context);
+            new Matrix2().scale(self.scale.x, self.scale.y).tranformContext(context);
+            new Matrix2().rotate(self.rotation).tranformContext(context);
+            // Swap X/Y Scale due to Rotation
+            function degreesToYAxisAlignment(degrees) {
+                const normalizedDegrees = ((degrees + 180) % 360 + 360) % 360 - 180;
+                const absoluteDegrees = Math.abs(normalizedDegrees);
+                return absoluteDegrees / 90;
+            }
+            const lerp = degreesToYAxisAlignment(MathUtils.radiansToDegrees(self.rotation))
+            const scale = self.scale.clone();
+            scale.x = ((1 - lerp) * self.scale.x) + (lerp * self.scale.y);
+            scale.y = ((1 - lerp) * self.scale.y) + (lerp * self.scale.x);
+            const sizeX = (SIZE_OF_CROSS / renderer.camera.scale) / scale.x;
+            const sizeY = (SIZE_OF_CROSS / renderer.camera.scale) / scale.y;
+            // Stroke
+            context.beginPath();
+            context.moveTo(-sizeX, 0); context.lineTo(+sizeX, 0);
+            context.moveTo(0, -sizeY); context.lineTo(0, +sizeY);
+            context.save();
+            context.setTransform(1, 0, 0, 1, 0, 0);
+            context.strokeStyle = '#ffffff'; context.lineWidth = 5; context.lineCap = 'round'; context.stroke();
+            context.strokeStyle = '#000000'; context.lineWidth = 2; context.lineCap = 'butt'; context.stroke();
+            context.restore();
+        };
+        this.cross = cross;
+        this.add(cross);
 
         // INTERNAL
         this.cache = null;
@@ -177,12 +216,26 @@ class GridHelper extends Object2D {
         this.level = -1;
         const object = renderer.dragObject;
         if (object && object.isDragging) {
-            if (this.snap) {
-                this.alignToGrid(object);
+            // Align Rotation
+            if (object.type === 'Rotater') {
+                if (renderer.keyboard.modifierPressed() !== this.snap) {
+                    this.alignToRotation(object);
+                }
+            // Align Position
+            } else {
+                if (this.snap) {
+                    if (object.type === 'ResizeHelper') {
+                        this.cross.position.copy(object.globalMatrix.getPosition());
+                        this.inverseGlobalMatrix.applyToVector(this.cross.position);
+                        this.cross.updateMatrix(true);
+                        this.cross.level = -1;
+                        this.cross.visible = true;
+                    }
+                    this.alignToGrid(object);
+                }
             }
-            if (renderer.keyboard.modifierPressed() !== this.snap) {
-                this.alignToRotation(object);
-            }
+        } else {
+            this.cross.visible = false;
         }
     }
 

@@ -37,7 +37,6 @@
         const box2 = new SALT.Box();
         box2.setPosition(+100, 0);
         box2.fillStyle.color = '#00ff00';
-        // box2.origin.set(25, 25);
         box2.selectable = false;
         scene.add(box2);
 
@@ -45,6 +44,12 @@
         box3.setPosition(0, -150);
         box3.fillStyle.color = '#0000ff';
         scene.add(box3);
+
+        const box4 = new SALT.Box();
+        box4.setPosition(-200, -150);
+        box4.fillStyle.color = '#ff00ff';
+        box4.origin.set(25, 25);
+        scene.add(box4);
 
         const rainbowBox = new SALT.Box();
         rainbowBox.setPosition(-100, 200);
@@ -157,10 +162,10 @@
         const folder1 = gui.addFolder();
         folder1.add(params, 'snapToGrid').onChange(() => { grid.snap = params.snapToGrid; });
         folder1.add(params, 'showOnTop').onChange(() => { grid.onTop = params.showOnTop; });
-        folder1.add(params, 'sizeX').min(1).step(5).onChange(() => { grid.gridX = params.sizeX; });
-        folder1.add(params, 'sizeY').min(1).step(5).onChange(() => { grid.gridY = params.sizeY; });
-        folder1.add(params, 'scaleX', 0, 10, 0.2, 1).onChange(() => { grid.scale.x = params.scaleX; });
-        folder1.add(params, 'scaleY', 0, 10, 0.2, 1).onChange(() => { grid.scale.y = params.scaleY; });
+        folder1.add(params, 'sizeX').step(5).onChange(() => { grid.gridX = Math.max(params.sizeX, 1); });
+        folder1.add(params, 'sizeY').step(5).onChange(() => { grid.gridY = Math.max(params.sizeY, 1); });
+        folder1.add(params, 'scaleX', 0, 10, 0.2, 1).onChange(() => { grid.scale.x = Math.max(params.scaleX, 0.1); });
+        folder1.add(params, 'scaleY', 0, 10, 0.2, 1).onChange(() => { grid.scale.y = Math.max(params.scaleY, 0.1); });
         folder1.add(params, 'rotation', 0, 360, 5, 1, '°').onChange(() => { grid.rotation = params.rotation * (Math.PI / 180); });
 
     </script>

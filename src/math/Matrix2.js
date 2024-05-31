@@ -170,17 +170,12 @@ class Matrix2 {
         return Math.atan2(this.m[1], this.m[0]);
     }
 
-    getShear(target = new Vector2()) {
-        // Extract scale and rotation from the matrix
+    getSkew(target = new Vector2()) {
         const scaleX = Math.sqrt(this.m[0] * this.m[0] + this.m[1] * this.m[1]);
         const scaleY = Math.sqrt(this.m[2] * this.m[2] + this.m[3] * this.m[3]);
-        const rotation = Math.atan2(this.m[1], this.m[0]);
-
-        // Calculate shearX and shearY
-        const shearX = Math.atan2(this.m[0] * this.m[2] + this.m[1] * this.m[3], scaleX * scaleY);
-        const shearY = Math.atan2(-this.m[0] * this.m[3] + this.m[1] * this.m[2], scaleX * scaleY) - rotation;
-
-        target.set(shearX, shearY);
+        const skewX = Math.atan2(-this.m[2] / scaleY, this.m[0] / scaleX);
+        const skewY = Math.atan2( this.m[1] / scaleX, this.m[3] / scaleY);
+        target.set(skewX, skewY);
         return target;
     }
 

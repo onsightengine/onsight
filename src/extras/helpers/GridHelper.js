@@ -103,7 +103,8 @@ class GridHelper extends Object2D {
         if (!object.parent) return;
 
         // Matrix to transform the object's position to the grid space
-        const worldPosition = object.getWorldPosition()
+        const worldPosition = object.getWorldPosition();
+
         const inverseMatrix = new Matrix2()
             .translate(-this.position.x, -this.position.y)
             .rotate(-this.rotation)
@@ -122,8 +123,8 @@ class GridHelper extends Object2D {
         const closestWorldPosition = transformMatrix.transformPoint(new Vector2(closestX, closestY));
 
         // Set the object's position to the closest grid intersection in it's local parent space
-        const localPosition = object.parent.inverseGlobalMatrix.transformPoint(closestWorldPosition);
-        object.setPosition(localPosition.x, localPosition.y);
+        const parentPosition = object.parent.inverseGlobalMatrix.transformPoint(closestWorldPosition);
+        object.setPosition(parentPosition.x, parentPosition.y);
     }
 
     alignToRotation(object) {
@@ -224,6 +225,7 @@ class GridHelper extends Object2D {
             // Align Position
             } else {
                 if (this.snap) {
+                    this.alignToGrid(object);
                     if (object.type === 'ResizeHelper') {
                         this.cross.position.copy(object.globalMatrix.getPosition());
                         this.inverseGlobalMatrix.applyToVector(this.cross.position);
@@ -231,7 +233,6 @@ class GridHelper extends Object2D {
                         this.cross.level = -1;
                         this.cross.visible = true;
                     }
-                    this.alignToGrid(object);
                 }
             }
         } else {

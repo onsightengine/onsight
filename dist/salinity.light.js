@@ -1010,7 +1010,7 @@ class Matrix2 {
             const s = Math.sin(rot);
             this.multiply(_rotate$1.set(c, s, -s, c, 0, 0));
         }
-        this.multiply(_origin$1.set(1, 0, 0, 1, -ox, -oy));
+        this.multiply(_origin.set(1, 0, 0, 1, -ox, -oy));
         if (sx !== 1 || sy !== 1) this.scale(sx, sy);
         return this;
     }
@@ -1142,7 +1142,7 @@ class Matrix2 {
 const _translate$1 = new Matrix2();
 const _rotate$1 = new Matrix2();
 const _skew = new Matrix2();
-const _origin$1 = new Matrix2();
+const _origin = new Matrix2();
 
 class Key {
     static DOWN = -1;
@@ -1475,7 +1475,6 @@ class Object2D extends Thing {
         this.position = new Vector2(0, 0);
         this.scale = new Vector2(1, 1);
         this.rotation = 0.0;
-        this.origin = new Vector2(0, 0);
         this.matrix = new Matrix2();
         this.globalMatrix = new Matrix2();
         this.inverseGlobalMatrix = new Matrix2();
@@ -1683,7 +1682,7 @@ class Object2D extends Thing {
             this.globalOpacity = this.opacity * ((this.parent) ? this.parent.globalOpacity : 1);
             this.scale.x = MathUtils.noZero(MathUtils.sanity(this.scale.x));
             this.scale.y = MathUtils.noZero(MathUtils.sanity(this.scale.y));
-            this.matrix.compose(this.position.x, this.position.y, this.scale.x, this.scale.y, this.origin.x, this.origin.y, this.rotation);
+            this.matrix.compose(this.position.x, this.position.y, this.scale.x, this.scale.y, 0, 0, this.rotation);
             this.globalMatrix.copy(this.matrix);
             if (this.parent) this.globalMatrix.premultiply(this.parent.globalMatrix);
             this.globalMatrix.getInverse(this.inverseGlobalMatrix);
@@ -2695,7 +2694,7 @@ class App {
         for (const name of names) {
             const events = this.events[name];
             if (typeof events !== 'object') return;
-            uuids = (original.length === 0) ? Object.keys(events) : [...original];
+            uuids = (original.length === 0) ? Object.keys(events) : [ ...original ];
             for (const uuid of uuids) {
                 delete events[uuid];
             }
@@ -2993,7 +2992,7 @@ class Keyboard {
     }
 }
 
-const _origin = new Vector2();
+const _center = new Vector2();
 const _topLeft = new Vector2();
 const _topRight = new Vector2();
 const _botLeft = new Vector2();
@@ -3172,10 +3171,10 @@ class Renderer {
         context.lineWidth = OUTLINE_THICKNESS;
         context.strokeStyle = '#ffffff';
         camera.matrix.setContextTransform(context);
-        object.globalMatrix.applyToVector(_origin.copy(object.origin));
-        const originRadius = Math.max(3 / camera.scale, 0.00001);
+        object.globalMatrix.applyToVector(_center.set(0, 0));
+        const centerRadius = Math.max(3 / camera.scale, 0.00001);
         context.beginPath();
-        context.arc(_origin.x, _origin.y, originRadius, 0, 2 * Math.PI);
+        context.arc(_center.x, _center.y, centerRadius, 0, 2 * Math.PI);
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.stroke();
         context.strokeStyle = '#65e5ff';
@@ -3672,9 +3671,9 @@ class Line extends Object2D {
         if (this.constantWidth) {
             scaledLineWidth = this.lineWidth / this.#cameraScale;
         } else {
-            function getPercentageOfDistance(origin, destination) {
-                const dx = destination.x - origin.x;
-                const dy = destination.y - origin.y;
+            function getPercentageOfDistance(start, destination) {
+                const dx = destination.x - start.x;
+                const dy = destination.y - start.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 if (distance === 0) { return { x: 0, y: 0 }; }
                 const percentX = dx / distance;

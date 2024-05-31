@@ -17,7 +17,6 @@ class Sprite extends Box {
             const halfHeight = self.image.naturalHeight / 2;
             self.box.min.set(-halfWidth, -halfHeight);
             self.box.max.set(+halfWidth, +halfHeight);
-            // self.origin.copy(self.box.getCenter());
             self.computeBoundingBox();
         };
         this.image.src = src;

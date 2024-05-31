@@ -7,7 +7,7 @@ import { Keyboard } from '../input/Keyboard.js';
 import { Pointer } from '../input/Pointer.js';
 import { Vector2 } from '../../math/Vector2.js';
 
-const _origin = new Vector2();
+const _center = new Vector2();
 const _topLeft = new Vector2();
 const _topRight = new Vector2();
 const _botLeft = new Vector2();
@@ -254,13 +254,13 @@ class Renderer {
         const context = this.context;
         context.globalAlpha = 1;
         context.lineWidth = OUTLINE_THICKNESS;
-        // Origin
+        // Center
         context.strokeStyle = '#ffffff';
         camera.matrix.setContextTransform(context);
-        object.globalMatrix.applyToVector(_origin.copy(object.origin));
-        const originRadius = Math.max(3 / camera.scale, 0.00001);
+        object.globalMatrix.applyToVector(_center.set(0, 0));
+        const centerRadius = Math.max(3 / camera.scale, 0.00001);
         context.beginPath();
-        context.arc(_origin.x, _origin.y, originRadius, 0, 2 * Math.PI);
+        context.arc(_center.x, _center.y, centerRadius, 0, 2 * Math.PI);
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.stroke();
         // Bounding Box

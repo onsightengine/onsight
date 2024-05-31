@@ -1010,7 +1010,7 @@ class Matrix2 {
             const s = Math.sin(rot);
             this.multiply(_rotate$2.set(c, s, -s, c, 0, 0));
         }
-        this.multiply(_origin$1.set(1, 0, 0, 1, -ox, -oy));
+        this.multiply(_origin.set(1, 0, 0, 1, -ox, -oy));
         if (sx !== 1 || sy !== 1) this.scale(sx, sy);
         return this;
     }
@@ -1142,7 +1142,7 @@ class Matrix2 {
 const _translate$2 = new Matrix2();
 const _rotate$2 = new Matrix2();
 const _skew = new Matrix2();
-const _origin$1 = new Matrix2();
+const _origin = new Matrix2();
 
 class Key {
     static DOWN = -1;
@@ -1475,7 +1475,6 @@ class Object2D extends Thing {
         this.position = new Vector2(0, 0);
         this.scale = new Vector2(1, 1);
         this.rotation = 0.0;
-        this.origin = new Vector2(0, 0);
         this.matrix = new Matrix2();
         this.globalMatrix = new Matrix2();
         this.inverseGlobalMatrix = new Matrix2();
@@ -1683,7 +1682,7 @@ class Object2D extends Thing {
             this.globalOpacity = this.opacity * ((this.parent) ? this.parent.globalOpacity : 1);
             this.scale.x = MathUtils.noZero(MathUtils.sanity(this.scale.x));
             this.scale.y = MathUtils.noZero(MathUtils.sanity(this.scale.y));
-            this.matrix.compose(this.position.x, this.position.y, this.scale.x, this.scale.y, this.origin.x, this.origin.y, this.rotation);
+            this.matrix.compose(this.position.x, this.position.y, this.scale.x, this.scale.y, 0, 0, this.rotation);
             this.globalMatrix.copy(this.matrix);
             if (this.parent) this.globalMatrix.premultiply(this.parent.globalMatrix);
             this.globalMatrix.getInverse(this.inverseGlobalMatrix);
@@ -2695,7 +2694,7 @@ class App {
         for (const name of names) {
             const events = this.events[name];
             if (typeof events !== 'object') return;
-            uuids = (original.length === 0) ? Object.keys(events) : [...original];
+            uuids = (original.length === 0) ? Object.keys(events) : [ ...original ];
             for (const uuid of uuids) {
                 delete events[uuid];
             }
@@ -2993,7 +2992,7 @@ class Keyboard {
     }
 }
 
-const _origin = new Vector2();
+const _center$1 = new Vector2();
 const _topLeft$3 = new Vector2();
 const _topRight$3 = new Vector2();
 const _botLeft$3 = new Vector2();
@@ -3172,10 +3171,10 @@ class Renderer {
         context.lineWidth = OUTLINE_THICKNESS;
         context.strokeStyle = '#ffffff';
         camera.matrix.setContextTransform(context);
-        object.globalMatrix.applyToVector(_origin.copy(object.origin));
-        const originRadius = Math.max(3 / camera.scale, 0.00001);
+        object.globalMatrix.applyToVector(_center$1.set(0, 0));
+        const centerRadius = Math.max(3 / camera.scale, 0.00001);
         context.beginPath();
-        context.arc(_origin.x, _origin.y, originRadius, 0, 2 * Math.PI);
+        context.arc(_center$1.x, _center$1.y, centerRadius, 0, 2 * Math.PI);
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.stroke();
         context.strokeStyle = '#65e5ff';
@@ -3672,9 +3671,9 @@ class Line extends Object2D {
         if (this.constantWidth) {
             scaledLineWidth = this.lineWidth / this.#cameraScale;
         } else {
-            function getPercentageOfDistance(origin, destination) {
-                const dx = destination.x - origin.x;
-                const dy = destination.y - origin.y;
+            function getPercentageOfDistance(start, destination) {
+                const dx = destination.x - start.x;
+                const dy = destination.y - start.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 if (distance === 0) { return { x: 0, y: 0 }; }
                 const percentX = dx / distance;
@@ -4123,6 +4122,7 @@ class ResizeHelper extends Box {
         }
         this.layer = topLayer;
         const self = this;
+        this.objects = objects;
         const initialTransforms = {};
         for (const object of objects) {
             initialTransforms[object.uuid] = {
@@ -4146,7 +4146,7 @@ class ResizeHelper extends Box {
             const unRotateMatrix = new Matrix2().rotate(-this.rotation);
             for (const object of objects) {
                 const unRotatedPosition = unRotateMatrix.transformPoint(object.position);
-                _objectMatrix.compose(unRotatedPosition.x, unRotatedPosition.y, object.scale.x, object.scale.y, object.origin.x, object.origin.y, 0);
+                _objectMatrix.compose(unRotatedPosition.x, unRotatedPosition.y, object.scale.x, object.scale.y, 0, 0, 0);
                 const box = object.boundingBox;
                 _objectMatrix.applyToVector(_topLeft$2.copy(box.min));
                 _objectMatrix.applyToVector(_topRight$2.copy(box.max.x, box.min.y));
@@ -4175,9 +4175,12 @@ class ResizeHelper extends Box {
         const startPosition = this.position.clone();
         const startRotation = this.rotation;
         const startScale = this.scale.clone();
+        const startOrigin = new Vector2();
+        if (objects.length === 1) {
+        }
         let topLeft, topRight, bottomLeft, bottomRight;
         let topResizer, rightResizer, bottomResizer, leftResizer;
-        let rotater, topLine, centerLine, rotateLine;
+        let rotater, topLine, zeroLine, rotateLine;
         if (tools === ResizeHelper.ALL || tools === ResizeHelper.RESIZE) {
             function createResizer(name, x, y, type = 'box', addRotation, alpha) {
                 let resizer;
@@ -4293,7 +4296,7 @@ class ResizeHelper extends Box {
                     const scaleX = MathUtils.sanity((x === 0) ? 0 : 2 / size.x);
                     const scaleY = MathUtils.sanity((y === 0) ? 0 : 2 / size.y);
                     const scale = new Vector2(scaleX, scaleY);
-                    const positionOffset = startBox.getCenter();
+                    const positionOffset = startOrigin.clone();
                     positionOffset.multiply(delta).multiply(scale).multiply(x, y);
                     const rotationMatrix = new Matrix2().rotate(startDragRotation);
                     const rotatedDelta = rotationMatrix.transformPoint(delta);
@@ -4372,8 +4375,8 @@ class ResizeHelper extends Box {
                     const localPositionStart = self.inverseGlobalMatrix.transformPoint(worldPositionStart);
                     const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
                     const localPositionEnd = self.inverseGlobalMatrix.transformPoint(worldPositionEnd);
-                    localPositionStart.sub(self.origin).multiply(self.scale);
-                    localPositionEnd.sub(self.origin).multiply(self.scale);
+                    localPositionStart.sub(startOrigin).multiply(self.scale);
+                    localPositionEnd.sub(startOrigin).multiply(self.scale);
                     const angle = localPositionEnd.angleBetween(localPositionStart);
                     const cross = localPositionEnd.cross(localPositionStart);
                     const sign = Math.sign(cross);
@@ -4394,17 +4397,17 @@ class ResizeHelper extends Box {
             topLine.lineWidth = OUTLINE_THICKNESS;
             topLine.constantWidth = true;
             topLine.strokeStyle.color = '--highlight';
-            centerLine = Object.assign(new Line(), { draggable: false, focusable: false, selectable: false });
-            centerLine.layer = topLayer + 1;
-            centerLine.lineWidth = OUTLINE_THICKNESS;
-            centerLine.constantWidth = true;
-            centerLine.strokeStyle.color = '--highlight';
+            zeroLine = Object.assign(new Line(), { draggable: false, focusable: false, selectable: false });
+            zeroLine.layer = topLayer + 1;
+            zeroLine.lineWidth = OUTLINE_THICKNESS;
+            zeroLine.constantWidth = true;
+            zeroLine.strokeStyle.color = '--highlight';
             rotateLine = Object.assign(new Line(), { draggable: false, focusable: false, selectable: false });
             rotateLine.layer = topLayer + 1;
             rotateLine.lineWidth = OUTLINE_THICKNESS;
             rotateLine.constantWidth = true;
             rotateLine.strokeStyle.color = '--highlight';
-            this.add(rotater, topLine, centerLine, rotateLine);
+            this.add(rotater, topLine, zeroLine, rotateLine);
         }
         this.onPointerDrag = function(renderer) {
             Object2D.prototype.onPointerDrag.call(this, renderer);
@@ -4427,7 +4430,7 @@ class ResizeHelper extends Box {
                 const initialRotation = initialTransforms[object.uuid].rotation;
                 const initialScale = initialTransforms[object.uuid].scale;
                 object.rotation = initialRotation + (self.rotation - startRotation);
-                const origin = object.origin.clone();
+                const origin = new Vector2();
                 const relativePosition = initialPosition.clone().sub(startPosition);
                 const scaledPosition = relativePosition.clone().sub(origin).multiply(self.scale).add(origin);
                 const rotateAngle = (object.rotation - initialRotation) + startRotation;
@@ -4476,11 +4479,11 @@ class ResizeHelper extends Box {
                 topLine.updateMatrix(true);
                 topLine.visible = showResizers;
             }
-            if (centerLine) {
-                centerLine.from.set(0, 0);
-                centerLine.to.copy(0, handleOffset * -1.5);
-                centerLine.updateMatrix(true);
-                centerLine.visible = rotater.isDragging;
+            if (zeroLine) {
+                zeroLine.from.set(0, 0);
+                zeroLine.to.copy(0, handleOffset * -1.5);
+                zeroLine.updateMatrix(true);
+                zeroLine.visible = rotater.isDragging;
             }
             if (rotateLine) {
                 rotateLine.from.set(0, 0);
@@ -4838,8 +4841,8 @@ class GridHelper extends Object2D {
             .rotate(this.rotation)
             .translate(this.position.x, this.position.y);
         const closestWorldPosition = transformMatrix.transformPoint(new Vector2(closestX, closestY));
-        const localPosition = object.parent.inverseGlobalMatrix.transformPoint(closestWorldPosition);
-        object.setPosition(localPosition.x, localPosition.y);
+        const parentPosition = object.parent.inverseGlobalMatrix.transformPoint(closestWorldPosition);
+        object.setPosition(parentPosition.x, parentPosition.y);
     }
     alignToRotation(object) {
         const angle = this.rotation;
@@ -4923,6 +4926,7 @@ class GridHelper extends Object2D {
                 }
             } else {
                 if (this.snap) {
+                    this.alignToGrid(object);
                     if (object.type === 'ResizeHelper') {
                         this.cross.position.copy(object.globalMatrix.getPosition());
                         this.inverseGlobalMatrix.applyToVector(this.cross.position);
@@ -4930,7 +4934,6 @@ class GridHelper extends Object2D {
                         this.cross.level = -1;
                         this.cross.visible = true;
                     }
-                    this.alignToGrid(object);
                 }
             }
         } else {

@@ -42,7 +42,6 @@ class Object2D extends Thing {
         this.position = new Vector2(0, 0);
         this.scale = new Vector2(1, 1);
         this.rotation = 0.0;
-        this.origin = new Vector2(0, 0);            // point of rotation
 
         // Matrix
         this.matrix = new Matrix2();
@@ -313,7 +312,7 @@ class Object2D extends Thing {
             this.globalOpacity = this.opacity * ((this.parent) ? this.parent.globalOpacity : 1);
             this.scale.x = MathUtils.noZero(MathUtils.sanity(this.scale.x));
             this.scale.y = MathUtils.noZero(MathUtils.sanity(this.scale.y));
-            this.matrix.compose(this.position.x, this.position.y, this.scale.x, this.scale.y, this.origin.x, this.origin.y, this.rotation);
+            this.matrix.compose(this.position.x, this.position.y, this.scale.x, this.scale.y, 0, 0, this.rotation);
             this.globalMatrix.copy(this.matrix);
             if (this.parent) this.globalMatrix.premultiply(this.parent.globalMatrix);
             this.globalMatrix.getInverse(this.inverseGlobalMatrix);

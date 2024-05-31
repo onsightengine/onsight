@@ -48,7 +48,6 @@
         const box4 = new SALT.Box();
         box4.setPosition(-200, -150);
         box4.fillStyle.color = '#ff00ff';
-        box4.origin.set(25, 25);
         scene.add(box4);
 
         const rainbowBox = new SALT.Box();
@@ -125,11 +124,15 @@
                             tooltipText = `${angle}°`;
                         }
                     } else /* show object 'Position' */ {
-                        let x = (object.position.x).toFixed(3);
-                        let y = (object.position.y).toFixed(3);
-                        x = parseFloat(x).toString(); // remove trailing zeros
-                        y = parseFloat(y).toString(); // remove trailing zeros
-                        tooltipText = `X: ${x}\nY: ${y}`;
+                        if (object.type === 'ResizeHelper' && object.objects.length === 1) {
+                            let x = parseFloat((object.objects[0].position.x).toFixed(3)).toString();
+                            let y = parseFloat((object.objects[0].position.y).toFixed(3)).toString();
+                            tooltipText = `X: ${x}\nY: ${y}`;
+                        } else {
+                            let x = parseFloat((object.position.x).toFixed(3)).toString();
+                            let y = parseFloat((object.position.y).toFixed(3)).toString();
+                            tooltipText = `X: ${x}\nY: ${y}`;
+                        }
                     }
                     if (tooltipText !== '') {
                         tooltip.popup(tooltipText, 'left' /* align */, 10 /* duration */, 0 /* fadeOut */);

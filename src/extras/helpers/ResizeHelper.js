@@ -66,8 +66,11 @@ class ResizeHelper extends Box {
         // this.add(bgBox);
         // this.bgBox = bgBox;
 
-        // Initial Object Transforms
+        // Self
         const self = this;
+        this.objects = objects;
+
+        // Initial Object Transforms
         const initialTransforms = {};
         for (const object of objects) {
             initialTransforms[object.uuid] = {
@@ -98,7 +101,7 @@ class ResizeHelper extends Box {
             // Unrotated World Boxes
             for (const object of objects) {
                 const unRotatedPosition = unRotateMatrix.transformPoint(object.position);
-                _objectMatrix.compose(unRotatedPosition.x, unRotatedPosition.y, object.scale.x, object.scale.y, object.origin.x, object.origin.y, 0);
+                _objectMatrix.compose(unRotatedPosition.x, unRotatedPosition.y, object.scale.x, object.scale.y, 0, 0, 0);
                 const box = object.boundingBox;
                 _objectMatrix.applyToVector(_topLeft.copy(box.min));
                 _objectMatrix.applyToVector(_topRight.copy(box.max.x, box.min.y));
@@ -133,11 +136,16 @@ class ResizeHelper extends Box {
         const startPosition = this.position.clone();
         const startRotation = this.rotation;
         const startScale = this.scale.clone();
+        const startOrigin = new Vector2();
+
+        if (objects.length === 1) {
+            // startOrigin.copy(objects[0].origin).multiplyScalar(-1);
+        }
 
         // Resizers
         let topLeft, topRight, bottomLeft, bottomRight;
         let topResizer, rightResizer, bottomResizer, leftResizer;
-        let rotater, topLine, centerLine, rotateLine;
+        let rotater, topLine, zeroLine, rotateLine;
 
         // Corners / Sides
         if (tools === ResizeHelper.ALL || tools === ResizeHelper.RESIZE) {
@@ -264,7 +272,7 @@ class ResizeHelper extends Box {
                     const scale = new Vector2(scaleX, scaleY);
 
                     // Calculate offset between tool's true center and the center of the bounding box
-                    const positionOffset = startBox.getCenter();
+                    const positionOffset = startOrigin.clone();
                     positionOffset.multiply(delta).multiply(scale).multiply(x, y);
 
                     // Apply the rotation to the delta & position offset
@@ -356,8 +364,8 @@ class ResizeHelper extends Box {
                     const localPositionStart = self.inverseGlobalMatrix.transformPoint(worldPositionStart);
                     const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
                     const localPositionEnd = self.inverseGlobalMatrix.transformPoint(worldPositionEnd);
-                    localPositionStart.sub(self.origin).multiply(self.scale);
-                    localPositionEnd.sub(self.origin).multiply(self.scale);
+                    localPositionStart.sub(startOrigin).multiply(self.scale);
+                    localPositionEnd.sub(startOrigin).multiply(self.scale);
                     const angle = localPositionEnd.angleBetween(localPositionStart);
                     const cross = localPositionEnd.cross(localPositionStart);
                     const sign = Math.sign(cross);
@@ -380,20 +388,20 @@ class ResizeHelper extends Box {
             topLine.lineWidth = OUTLINE_THICKNESS;
             topLine.constantWidth = true;
             topLine.strokeStyle.color = '--highlight';
-            // Center Line
-            centerLine = Object.assign(new Line(), { draggable: false, focusable: false, selectable: false });
-            centerLine.layer = topLayer + 1;
-            centerLine.lineWidth = OUTLINE_THICKNESS;
-            centerLine.constantWidth = true;
-            centerLine.strokeStyle.color = '--highlight';
-            // Rotate Line
+            // Zero ° Line
+            zeroLine = Object.assign(new Line(), { draggable: false, focusable: false, selectable: false });
+            zeroLine.layer = topLayer + 1;
+            zeroLine.lineWidth = OUTLINE_THICKNESS;
+            zeroLine.constantWidth = true;
+            zeroLine.strokeStyle.color = '--highlight';
+            // Rotate ° Line
             rotateLine = Object.assign(new Line(), { draggable: false, focusable: false, selectable: false });
             rotateLine.layer = topLayer + 1;
             rotateLine.lineWidth = OUTLINE_THICKNESS;
             rotateLine.constantWidth = true;
             rotateLine.strokeStyle.color = '--highlight';
             // Add to Rotater
-            this.add(rotater, topLine, centerLine, rotateLine);
+            this.add(rotater, topLine, zeroLine, rotateLine);
         }
 
         // Overrides to update positions on Drag
@@ -426,7 +434,7 @@ class ResizeHelper extends Box {
                 object.rotation = initialRotation + (self.rotation - startRotation);
 
                 // Origin
-                const origin = object.origin.clone();
+                const origin = new Vector2();//object.origin.clone();
 
                 // Position
                 const relativePosition = initialPosition.clone().sub(startPosition);
@@ -490,11 +498,11 @@ class ResizeHelper extends Box {
                 topLine.updateMatrix(true);
                 topLine.visible = showResizers;
             }
-            if (centerLine) {
-                centerLine.from.set(0, 0);
-                centerLine.to.copy(0, handleOffset * -1.5);
-                centerLine.updateMatrix(true);
-                centerLine.visible = rotater.isDragging;
+            if (zeroLine) {
+                zeroLine.from.set(0, 0);
+                zeroLine.to.copy(0, handleOffset * -1.5);
+                zeroLine.updateMatrix(true);
+                zeroLine.visible = rotater.isDragging;
             }
             if (rotateLine) {
                 rotateLine.from.set(0, 0);

@@ -55,9 +55,9 @@ class Line extends Object2D {
         if (this.constantWidth) {
             scaledLineWidth = this.lineWidth / this.#cameraScale;
         } else {
-            function getPercentageOfDistance(origin, destination) {
-                const dx = destination.x - origin.x;
-                const dy = destination.y - origin.y;
+            function getPercentageOfDistance(start, destination) {
+                const dx = destination.x - start.x;
+                const dy = destination.y - start.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 if (distance === 0) { return { x: 0, y: 0 }; }
                 const percentX = dx / distance;

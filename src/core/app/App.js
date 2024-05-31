@@ -63,7 +63,7 @@ class App {
         for (const name of names) {
             const events = this.events[name];
             if (typeof events !== 'object') return;
-            uuids = (original.length === 0) ? Object.keys(events) : [...original];
+            uuids = (original.length === 0) ? Object.keys(events) : [ ...original ];
             for (const uuid of uuids) {
                 delete events[uuid];
             }

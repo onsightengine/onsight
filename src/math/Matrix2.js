@@ -88,7 +88,7 @@ class Matrix2 {
         }
 
         // Origin
-        this.multiply(_origin.set(1, 0, 0, 1, -ox, -oy));
+        if (ox !== 0 || oy !== 0) this.multiply(_origin.set(1, 0, 0, 1, -ox, -oy));
 
         // Scale
         if (sx !== 1 || sy !== 1) this.scale(sx, sy);

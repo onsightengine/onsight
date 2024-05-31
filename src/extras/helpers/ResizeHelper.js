@@ -146,7 +146,7 @@ class ResizeHelper extends Box {
         // Origin
         this.origin = new Vector2();
         if (objects.length === 1) {
-            objects[0].globalMatrix.applyToVector(this.origin);
+            objects[0].matrix.applyToVector(this.origin);
             this.inverseGlobalMatrix.applyToVector(this.origin);
         }
 
@@ -357,9 +357,18 @@ class ResizeHelper extends Box {
             rotater.fillStyle.addColorStop(1, '--icon-dark');
             rotater.strokeStyle.color = '--highlight';
             rotater.cursor = `url('${CURSOR_ROTATE}') 16 16, auto`;
-            let rotaterAngle = 0;
+            let rotating = false, rotaterAngle = 0, rotaterStart = 0;
+            let rotationStart = new Vector2();
+            let rotationOrigin = new Vector2();
             rotater['onPointerDragStart'] = function(renderer) {
                 rotaterAngle = self.rotation;
+                rotaterStart = self.rotation;
+                rotationStart = self.globalMatrix.transformPoint(new Vector2(0, 0));
+                rotationOrigin = self.globalMatrix.transformPoint(self.origin);
+                rotating = true;
+            };
+            rotater['onPointerDragEnd'] = function(renderer) {
+                rotating = false;
             };
             rotater.onPointerDrag = function(renderer) {
                 Object2D.prototype.onPointerDrag.call(this, renderer);
@@ -381,17 +390,24 @@ class ResizeHelper extends Box {
                     while (rotaterAngle < Math.PI * -2) { rotaterAngle += Math.PI * 2; }
                     while (rotaterAngle > Math.PI * +2) { rotaterAngle -= Math.PI * 2; }
                     rotater.setRotation(rotaterAngle);
-
-                    //
-                    // TODO: Change position on rotation with origin
-                    //
-
                 }
             };
             // Override set position to update objects during snap to grid
             rotater.setRotation = function(rad) {
                 Object2D.prototype.setRotation.call(this, rad);
+                // Set Rotation
                 self.rotation = rad;
+                // Rotate Around Origin
+                if (rotating) {
+                    const rotateMatrix = new Matrix2().rotate(rad - rotaterStart);
+                    const worldPosition = rotationStart.clone();
+                    worldPosition.sub(rotationOrigin);
+                    rotateMatrix.applyToVector(worldPosition);
+                    worldPosition.add(rotationOrigin);
+                    const parentPosition = self.parent.inverseGlobalMatrix.transformPoint(worldPosition);
+                    self.position.copy(parentPosition);
+                }
+                // Update Objects
                 updateObjects(null, false /* lerp */);
                 return self;
             }
@@ -515,16 +531,17 @@ class ResizeHelper extends Box {
                 topLine.visible = showResizers;
             }
             if (zeroLine) {
-                zeroLine.from.set(0, 0);
-                zeroLine.to.copy(0, handleOffset * -1.5);
+                zeroLine.from.set(self.origin.x, self.origin.y);
+                zeroLine.to.set(self.origin.x, self.origin.y - (handleOffset * 1.5));
                 zeroLine.updateMatrix(true);
                 zeroLine.visible = rotater.isDragging;
             }
             if (rotateLine) {
-                rotateLine.from.set(0, 0);
-                rotateLine.to.copy(0, (radius * 4) * -1.5).add(worldPosition);
+                rotateLine.from.set(self.origin.x, self.origin.y);
+                rotateLine.to.set(0, radius * 4 * -1.5).add(worldPosition);
                 self.inverseGlobalMatrix.applyToVector(rotateLine.to);
                 rotateLine.to.divideScalar(camera.scale);
+                rotateLine.to.add(self.origin);
                 rotateLine.updateMatrix(true);
                 rotateLine.visible = rotater.isDragging;
             }

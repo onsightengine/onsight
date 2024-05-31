@@ -58,6 +58,14 @@
         line2.to.set(50, 50);
         scene.add(line2);
 
+        const line3 = new SALT.Line();
+        line3.strokeStyle.color = '#aaaa00';
+        line3.lineWidth = 10;
+        line3.mouseBuffer = 0;
+        line3.from.set(-50, -150);
+        line3.to.set(150, 50);
+        scene.add(line3);
+
         const rainbowBox = new SALT.Box();
         rainbowBox.setPosition(-100, 200);
         rainbowBox.radius = 25;

@@ -4575,17 +4575,23 @@ class RubberBandBox extends Box {
         this.lineWidth = OUTLINE_THICKNESS;
         this.constantWidth = true;
     }
-    intersected(scene) {
+    intersected(scene, includeChildren = true) {
         const objects = [];
+        const rubberBandBox = this;
         const rubberBandLines = this.getLines(this);
-        for (const object of scene.children) {
+        function checkIntersectObject(object) {
             if (object.visible && object.selectable) {
-                const objectLines = this.getLines(object);
-                if (this.intersectsPolygon(rubberBandLines, objectLines) ||
-                    this.containsPolygon(rubberBandLines, objectLines)) {
+                const objectLines = rubberBandBox.getLines(object);
+                if (rubberBandBox.intersectsPolygon(rubberBandLines, objectLines) ||
+                    rubberBandBox.containsPolygon(rubberBandLines, objectLines)) {
                     objects.push(object);
                 }
             }
+        }
+        if (includeChildren) {
+            scene.traverse((object) => { if (object !== scene) checkIntersectObject(object); });
+        } else {
+            for (const object of scene.children) { checkIntersectObject(object); }
         }
         return objects;
     }
@@ -4719,7 +4725,13 @@ class SelectControls {
                     this.rubberBandBox.rotation = -camera.rotation;
                     this.rubberBandBox.scale.set(1 / camera.scale, 1 / camera.scale);
                     this.rubberBandBox.updateMatrix(true);
-                    newSelection = ArrayUtils.combineThingArrays(this.rubberBandBox.intersected(scene), this._existingSelection);
+                    let intersectedObjects;
+                    if (this._existingSelection.length > 0) {
+                        intersectedObjects = this.rubberBandBox.intersected(this._existingSelection[0].parent, false );
+                    } else {
+                        intersectedObjects = this.rubberBandBox.intersected(scene, true );
+                    }
+                    newSelection = ArrayUtils.combineThingArrays(this._existingSelection, intersectedObjects);
                 }
             }
         }
@@ -4743,6 +4755,16 @@ class SelectControls {
                     }
                 }
             }
+        }
+        if (ArrayUtils.compareThingArrays(this.selection, newSelection) === false) {
+            const siblings = [];
+            if (newSelection.length > 0) {
+                const wantsParent = newSelection[0].parent;
+                for (const object of newSelection) {
+                    if (object.parent === wantsParent) siblings.push(object);
+                }
+            }
+            newSelection = [ ...siblings ];
         }
         if (ArrayUtils.compareThingArrays(this.selection, newSelection) === false) {
             scene.traverse((child) => { child.isSelected = false; });

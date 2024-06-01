@@ -31,17 +31,23 @@ class RubberBandBox extends Box {
         this.constantWidth = true;
     }
 
-    intersected(scene) {
+    intersected(scene, includeChildren = true) {
         const objects = [];
+        const rubberBandBox = this;
         const rubberBandLines = this.getLines(this);
-        for (const object of scene.children) {
+        function checkIntersectObject(object) {
             if (object.visible && object.selectable) {
-                const objectLines = this.getLines(object);
-                if (this.intersectsPolygon(rubberBandLines, objectLines) ||
-                    this.containsPolygon(rubberBandLines, objectLines)) {
+                const objectLines = rubberBandBox.getLines(object);
+                if (rubberBandBox.intersectsPolygon(rubberBandLines, objectLines) ||
+                    rubberBandBox.containsPolygon(rubberBandLines, objectLines)) {
                     objects.push(object);
                 }
             }
+        }
+        if (includeChildren) {
+            scene.traverse((object) => { if (object !== scene) checkIntersectObject(object); });
+        } else {
+            for (const object of scene.children) { checkIntersectObject(object); }
         }
         return objects;
     }

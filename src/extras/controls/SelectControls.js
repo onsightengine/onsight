@@ -114,7 +114,13 @@ class SelectControls {
                     this.rubberBandBox.scale.set(1 / camera.scale, 1 / camera.scale);
                     this.rubberBandBox.updateMatrix(true);
                     // Selection
-                    newSelection = ArrayUtils.combineThingArrays(this.rubberBandBox.intersected(scene), this._existingSelection);
+                    let intersectedObjects;
+                    if (this._existingSelection.length > 0) {
+                        intersectedObjects = this.rubberBandBox.intersected(this._existingSelection[0].parent, false /* includeChildren */);
+                    } else {
+                        intersectedObjects = this.rubberBandBox.intersected(scene, true /* includeChildren */);
+                    }
+                    newSelection = ArrayUtils.combineThingArrays(this._existingSelection, intersectedObjects);
                 }
             }
         }
@@ -146,7 +152,19 @@ class SelectControls {
             }
         }
 
-        // Selection Changed? Update Resize Tool
+        // Selection Changed? Remove objects that don't share parents...
+        if (ArrayUtils.compareThingArrays(this.selection, newSelection) === false) {
+            const siblings = [];
+            if (newSelection.length > 0) {
+                const wantsParent = newSelection[0].parent;
+                for (const object of newSelection) {
+                    if (object.parent === wantsParent) siblings.push(object);
+                }
+            }
+            newSelection = [ ...siblings ];
+        }
+
+        // Selection Still Changed? Update Resize Tool
         if (ArrayUtils.compareThingArrays(this.selection, newSelection) === false) {
             // Mark New Selection
             scene.traverse((child) => { child.isSelected = false; });

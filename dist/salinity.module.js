@@ -4301,7 +4301,6 @@ class ResizeHelper extends Box {
                     dragger.cursor = resizer.cursor;
                     dragger.fillStyle = null;
                     dragger.strokeStyle = null;
-                    dragger.level = Infinity;
                     dragger.pointerStartPosition = renderer.pointer.position.clone();
                     dragger.dragStartPosition = dragger.position.clone();
                     worldPositionStart = worldPosition.clone();
@@ -4319,6 +4318,14 @@ class ResizeHelper extends Box {
                     const size = startBox.getSize();
                     const scaleX = MathUtils.sanity((x === 0) ? 0 : 2 / size.x);
                     const scaleY = MathUtils.sanity((y === 0) ? 0 : 2 / size.y);
+                    if (renderer?.keyboard?.shiftPressed()) {
+                        const aspectRatio = (size.x * startDragScale.x) / (size.y * startDragScale.y);
+                        if (Math.abs(aspectRatio) < Math.abs(delta.x / delta.y)) {
+                            delta.y = delta.x / aspectRatio;
+                        } else {
+                            delta.x = delta.y * aspectRatio;
+                        }
+                    }
                     const scale = new Vector2(scaleX, scaleY);
                     const positionOffset = new Vector2();
                     if (renderer?.keyboard?.ctrlPressed()) {

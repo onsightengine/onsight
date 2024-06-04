@@ -4219,6 +4219,7 @@ class ResizeHelper extends Box {
                         resizer.box.set(new Vector2(-radius, -radius), new Vector2(radius, radius));
                 }
                 resizer.name = name;
+                resizer.type = 'Resizer';
                 resizer.draggable = true;
                 resizer.focusable = false;
                 resizer.selectable = false;
@@ -4316,8 +4317,14 @@ class ResizeHelper extends Box {
                     const scaleX = MathUtils.sanity((x === 0) ? 0 : 2 / size.x);
                     const scaleY = MathUtils.sanity((y === 0) ? 0 : 2 / size.y);
                     const scale = new Vector2(scaleX, scaleY);
-                    const positionOffset = startBox.getCenter();
-                    positionOffset.multiply(delta).multiply(scale).multiply(x, y);
+                    let positionOffset;
+                    if (renderer?.keyboard?.ctrlPressed()) {
+                        positionOffset = size.clone().multiplyScalar(0.5);
+                        positionOffset.multiply(delta).multiply(scale).multiply((x <= 0) ? x : -x, (y <= 0) ? y : -y);
+                    } else {
+                        positionOffset = startBox.getCenter();
+                        positionOffset.multiply(delta).multiply(scale).multiply(x, y);
+                    }
                     const rotationMatrix = new Matrix2().rotate(startDragRotation);
                     const rotatedDelta = rotationMatrix.transformPoint(delta);
                     const rotatedPositionOffset = rotationMatrix.transformPoint(positionOffset);
@@ -4672,17 +4679,26 @@ class SelectControls {
             this._mouseStart.copy(_cameraPoint);
             const underMouse = scene.getWorldPointIntersections(_cameraPoint);
             if (keyboard.ctrlPressed() || keyboard.metaPressed() || keyboard.shiftPressed()) {
-                const selectableOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
-                if (selectableOnly.length > 0) {
-                    const object = selectableOnly[0];
-                    if (object.isSelected) {
-                        newSelection = ArrayUtils.removeThingFromArray(object, newSelection);
+                let resizerClicked = false;
+                if (underMouse.length > 0) {
+                    const topObject = underMouse[0];
+                    resizerClicked = resizerClicked || (topObject.type === 'Resizer');
+                    resizerClicked = resizerClicked || (topObject.type === 'Rotater');
+                }
+                console.log(resizerClicked);
+                if (!resizerClicked) {
+                    const selectableOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
+                    if (selectableOnly.length > 0) {
+                        const object = selectableOnly[0];
+                        if (object.isSelected) {
+                            newSelection = ArrayUtils.removeThingFromArray(object, newSelection);
+                        } else {
+                            newSelection = ArrayUtils.combineThingArrays(newSelection, [ object ]);
+                        }
                     } else {
-                        newSelection = ArrayUtils.combineThingArrays(newSelection, [ object ]);
+                        this._existingSelection = [ ...this.selection ];
+                        this._wantsRubberBand = true;
                     }
-                } else {
-                    this._existingSelection = [ ...this.selection ];
-                    this._wantsRubberBand = true;
                 }
             } else {
                 this.downTimer = performance.now();

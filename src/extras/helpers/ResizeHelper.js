@@ -174,6 +174,7 @@ class ResizeHelper extends Box {
                         resizer.box.set(new Vector2(-radius, -radius), new Vector2(radius, radius));
                 }
                 resizer.name = name;
+                resizer.type = 'Resizer';
                 resizer.draggable = true;
                 resizer.focusable = false;
                 resizer.selectable = false;
@@ -280,8 +281,14 @@ class ResizeHelper extends Box {
                     const scale = new Vector2(scaleX, scaleY);
 
                     // Calculate offset between tool's true center and the center of the bounding box
-                    const positionOffset = startBox.getCenter();
-                    positionOffset.multiply(delta).multiply(scale).multiply(x, y);
+                    let positionOffset;
+                    if (renderer?.keyboard?.ctrlPressed()) {
+                        positionOffset = size.clone().multiplyScalar(0.5);
+                        positionOffset.multiply(delta).multiply(scale).multiply((x <= 0) ? x : -x, (y <= 0) ? y : -y);
+                    } else {
+                        positionOffset = startBox.getCenter();
+                        positionOffset.multiply(delta).multiply(scale).multiply(x, y);
+                    }
 
                     // Apply the rotation to the delta & position offset
                     const rotationMatrix = new Matrix2().rotate(startDragRotation);
@@ -462,12 +469,8 @@ class ResizeHelper extends Box {
                 // Rotation
                 object.rotation = initialRotation + (self.rotation - startRotation);
 
-                // // Origin
-                // // const origin = new Vector2();
-
                 // Position
                 const relativePosition = initialPosition.clone().sub(startPosition);
-                // // const scaledPosition = relativePosition.clone().sub(origin).multiply(self.scale).add(origin);
                 const scaledPosition = relativePosition.clone().multiply(self.scale);
                 const rotateAngle = (object.rotation - initialRotation) + startRotation;
                 const rotationMatrix = new Matrix2().rotate(rotateAngle);

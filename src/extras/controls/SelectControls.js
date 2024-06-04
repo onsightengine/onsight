@@ -47,17 +47,25 @@ class SelectControls {
 
             // Holding Ctrl/Meta/Shift (Toggle Selection)
             if (keyboard.ctrlPressed() || keyboard.metaPressed() || keyboard.shiftPressed()) {
-                const selectableOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
-                if (selectableOnly.length > 0) {
-                    const object = selectableOnly[0];
-                    if (object.isSelected) {
-                        newSelection = ArrayUtils.removeThingFromArray(object, newSelection);
+                let resizerClicked = false;
+                if (underMouse.length > 0) {
+                    const topObject = underMouse[0];
+                    resizerClicked = resizerClicked || (topObject.type === 'Resizer');
+                    resizerClicked = resizerClicked || (topObject.type === 'Rotater');
+                }
+                if (!resizerClicked) {
+                    const selectableOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
+                    if (selectableOnly.length > 0) {
+                        const object = selectableOnly[0];
+                        if (object.isSelected) {
+                            newSelection = ArrayUtils.removeThingFromArray(object, newSelection);
+                        } else {
+                            newSelection = ArrayUtils.combineThingArrays(newSelection, [ object ]);
+                        }
                     } else {
-                        newSelection = ArrayUtils.combineThingArrays(newSelection, [ object ]);
+                        this._existingSelection = [ ...this.selection ];
+                        this._wantsRubberBand = true;
                     }
-                } else {
-                    this._existingSelection = [ ...this.selection ];
-                    this._wantsRubberBand = true;
                 }
 
             // Single Click / Click Timer

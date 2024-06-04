@@ -106,7 +106,7 @@ class GridHelper extends Object2D {
 
         // Offset to Origin Point
         const originOffset = new Vector2();
-        if (object.type === 'ResizeHelper') {
+        if (object.origin) {
             const worldOrigin = object.globalMatrix.transformPoint(object.origin);
             const parentOrigin = object.parent.inverseGlobalMatrix.transformPoint(worldOrigin);
             originOffset.copy(parentOrigin).sub(object.position);
@@ -236,7 +236,7 @@ class GridHelper extends Object2D {
             } else {
                 if (this.snap) {
                     this.alignToGrid(object);
-                    if (object.type === 'ResizeHelper') {
+                    if (object.origin) {
                         const originPosition = object.globalMatrix.transformPoint(object.origin);
                         this.cross.position.copy(originPosition);
                         this.inverseGlobalMatrix.applyToVector(this.cross.position);

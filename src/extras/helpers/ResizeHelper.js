@@ -268,6 +268,8 @@ class ResizeHelper extends Box {
                     renderer.setDragObject(dragger);
                 };
                 function updateResizer(renderer) {
+                    renderer = renderer ?? lastRenderer;
+
                     // Transform Delta
                     const localPositionStart = self.inverseGlobalMatrix.transformPoint(worldPositionStart);
                     const worldPositionEnd = dragger.getWorldPosition();

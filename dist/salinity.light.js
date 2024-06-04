@@ -1598,8 +1598,7 @@ class Object2D extends Thing {
     }
     getWorldPointIntersections(worldPoint) {
         const objects = [];
-        this.traverse((child) => {
-            if (!child.visible) return;
+        this.traverseVisible((child) => {
             const localPoint = child.worldToLocal(worldPoint);
             if (child.isInside(localPoint)) objects.push(child);
         });

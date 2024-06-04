@@ -1598,8 +1598,7 @@ class Object2D extends Thing {
     }
     getWorldPointIntersections(worldPoint) {
         const objects = [];
-        this.traverse((child) => {
-            if (!child.visible) return;
+        this.traverseVisible((child) => {
             const localPoint = child.worldToLocal(worldPoint);
             if (child.isInside(localPoint)) objects.push(child);
         });
@@ -4282,8 +4281,11 @@ class ResizeHelper extends Box {
                     startDragRotation = self.rotation;
                     startDragScale = self.scale.clone();
                     self.parent.add(dragger);
+                    dragger.type = 'Resizer';
                     dragger.resizeHelper = self;
-                    dragger['onPointerDragEnd'] = function(renderer) { self.parent.remove(dragger); };
+                    dragger['onPointerDragEnd'] = function(renderer) {
+                        if (self.parent) self.parent.remove(dragger);
+                    };
                     dragger['onPointerDrag'] = function(renderer) {
                         Object2D.prototype.onPointerDrag.call(this, renderer);
                         updateResizer(renderer);
@@ -4317,12 +4319,15 @@ class ResizeHelper extends Box {
                     const scaleX = MathUtils.sanity((x === 0) ? 0 : 2 / size.x);
                     const scaleY = MathUtils.sanity((y === 0) ? 0 : 2 / size.y);
                     const scale = new Vector2(scaleX, scaleY);
-                    let positionOffset;
+                    const positionOffset = new Vector2();
                     if (renderer?.keyboard?.ctrlPressed()) {
-                        positionOffset = size.clone().multiplyScalar(0.5);
-                        positionOffset.multiply(delta).multiply(scale).multiply((x <= 0) ? x : -x, (y <= 0) ? y : -y);
+                        positionOffset.x = ((self.origin.x - startBox.min.x) / size.x) * -2;
+                        positionOffset.y = ((self.origin.y - startBox.min.y) / size.y) * -2;
+                        if (x > 0) positionOffset.x = -2 - positionOffset.x;
+                        if (y > 0) positionOffset.y = -2 - positionOffset.y;
+                        positionOffset.multiply(delta);
                     } else {
-                        positionOffset = startBox.getCenter();
+                        positionOffset.copy(startBox.getCenter());
                         positionOffset.multiply(delta).multiply(scale).multiply(x, y);
                     }
                     const rotationMatrix = new Matrix2().rotate(startDragRotation);
@@ -4685,7 +4690,6 @@ class SelectControls {
                     resizerClicked = resizerClicked || (topObject.type === 'Resizer');
                     resizerClicked = resizerClicked || (topObject.type === 'Rotater');
                 }
-                console.log(resizerClicked);
                 if (!resizerClicked) {
                     const selectableOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
                     if (selectableOnly.length > 0) {

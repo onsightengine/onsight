@@ -239,8 +239,11 @@ class ResizeHelper extends Box {
                     startDragScale = self.scale.clone();
                     // Setup Dragger
                     self.parent.add(dragger);
+                    dragger.type = 'Resizer';
                     dragger.resizeHelper = self;
-                    dragger['onPointerDragEnd'] = function(renderer) { self.parent.remove(dragger); };
+                    dragger['onPointerDragEnd'] = function(renderer) {
+                        if (self.parent) self.parent.remove(dragger);
+                    };
                     dragger['onPointerDrag'] = function(renderer) {
                         Object2D.prototype.onPointerDrag.call(this, renderer);
                         updateResizer(renderer);
@@ -280,13 +283,16 @@ class ResizeHelper extends Box {
                     const scaleY = MathUtils.sanity((y === 0) ? 0 : 2 / size.y);
                     const scale = new Vector2(scaleX, scaleY);
 
-                    // Calculate offset between tool's true center and the center of the bounding box
-                    let positionOffset;
+                    // Calculate offset between center of the bounding box and origin
+                    const positionOffset = new Vector2();
                     if (renderer?.keyboard?.ctrlPressed()) {
-                        positionOffset = size.clone().multiplyScalar(0.5);
-                        positionOffset.multiply(delta).multiply(scale).multiply((x <= 0) ? x : -x, (y <= 0) ? y : -y);
+                        positionOffset.x = ((self.origin.x - startBox.min.x) / size.x) * -2;
+                        positionOffset.y = ((self.origin.y - startBox.min.y) / size.y) * -2;
+                        if (x > 0) positionOffset.x = -2 - positionOffset.x;
+                        if (y > 0) positionOffset.y = -2 - positionOffset.y;
+                        positionOffset.multiply(delta);
                     } else {
-                        positionOffset = startBox.getCenter();
+                        positionOffset.copy(startBox.getCenter());
                         positionOffset.multiply(delta).multiply(scale).multiply(x, y);
                     }
 

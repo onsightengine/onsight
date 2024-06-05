@@ -3733,7 +3733,41 @@ class Line extends Object2D {
     }
 }
 
+class Pattern extends Box {
+    #box = new Box2();
+    constructor(src) {
+        super();
+        this.type = 'Pattern';
+	    this.image = document.createElement('img');
+	    if (src) this.setImage(src);
+        this.repetition = 'repeat';
+    }
+    setImage(src) {
+        const self = this;
+        this.image.onload = function() {
+            self.box.min.set(0, 0);
+            self.box.max.set(self.image.naturalWidth, self.image.naturalHeight);
+            self.computeBoundingBox();
+        };
+        this.image.src = src;
+    }
+    draw(renderer) {
+        if (this.box.equals(this.#box) === false) {
+            this.computeBoundingBox();
+        }
+        const context = renderer.context;
+        if (this.image.src.length > 0 && this.image.complete) {
+            const width = this.box.max.x - this.box.min.x;
+	        const height = this.box.max.y - this.box.min.y;
+            const pattern = context.createPattern(this.image, this.repetition);
+		    context.fillStyle = pattern;
+		    context.fillRect(this.box.min.x, this.box.min.y, width, height);
+        }
+    }
+}
+
 class Sprite extends Box {
+    #box = new Box2();
     constructor(src) {
         super();
         this.type = 'Sprite';
@@ -3752,6 +3786,9 @@ class Sprite extends Box {
         this.image.src = src;
     }
     draw(renderer) {
+        if (this.box.equals(this.#box) === false) {
+            this.computeBoundingBox();
+        }
         const context = renderer.context;
         if (this.image.src.length > 0 && this.image.complete) {
             const width = this.image.naturalWidth;
@@ -5501,4 +5538,4 @@ function getVariable(variable) {
     return ((value === '') ? undefined : value);
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, DomElement, Entity, EventManager, GridHelper, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_DOUBLE_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, OUTLINE_THICKNESS, Object2D, Palette, Pointer, PolyUtils, Project, RadialGradientStyle, Renderer, ResizeHelper, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Sprite, Stage, Style, SysUtils, Text, Thing, TooltipHelper, VERSION, Vector2, Vector3, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, DomElement, Entity, EventManager, GridHelper, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_DOUBLE_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, OUTLINE_THICKNESS, Object2D, Palette, Pattern, Pointer, PolyUtils, Project, RadialGradientStyle, Renderer, ResizeHelper, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Sprite, Stage, Style, SysUtils, Text, Thing, TooltipHelper, VERSION, Vector2, Vector3, WORLD_TYPES, World };

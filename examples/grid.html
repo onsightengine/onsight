@@ -87,6 +87,15 @@
         circle.fillStyle.addColorStop(1, '#cccccc');
         rainbowBox.add(circle);
 
+        // Pattern
+        const pattern1 = new SALT.Pattern('../files/textures/shapes.png');
+        pattern1.setPosition(-350, 0);
+        setTimeout(() => {
+            pattern1.box.min.set(-200, -200);
+            pattern1.box.max.set(+25, +75);
+        }, 1000);
+        scene.add(pattern1);
+
         // Renderer
         const renderer = new SALT.Renderer({ width: window.innerWidth, height: window.innerHeight });
         const container = document.getElementById('container');

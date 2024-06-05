@@ -1,6 +1,9 @@
 import { Box } from './Box.js';
+import { Box2 } from '../../math/Box2.js';
 
 class Sprite extends Box {
+
+    #box = new Box2();
 
     constructor(src) {
         super();
@@ -23,6 +26,11 @@ class Sprite extends Box {
     }
 
     draw(renderer) {
+        // Check Bounds
+        if (this.box.equals(this.#box) === false) {
+            this.computeBoundingBox();
+        }
+        // Draw
         const context = renderer.context;
         if (this.image.src.length > 0 && this.image.complete) {
             const width = this.image.naturalWidth;

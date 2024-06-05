@@ -46,10 +46,10 @@ export { Box } from './core/objects/Box.js';
 export { Circle } from './core/objects/Circle.js';
 export { DomElement } from './core/objects/DomElement.js';
 export { Line } from './core/objects/Line.js';
+export { Pattern } from './core/objects/Pattern.js';
 export { Sprite } from './core/objects/Sprite.js';
 export { Text } from './core/objects/Text.js';
 // export { MultiLineText } from './core/objects/MultiLineText.js';
-// export { Pattern } from './core/objects/Pattern.js';
 // export { RoundedBox } from './core/objects/RoundedBox.js';
 
 // Objects, Curves

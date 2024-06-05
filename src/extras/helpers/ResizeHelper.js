@@ -275,20 +275,23 @@ class ResizeHelper extends Box {
                     const localPositionEnd = self.inverseGlobalMatrix.transformPoint(worldPositionEnd);
                     const delta = localPositionStart.clone().sub(localPositionEnd).multiply(self.scale);
 
-                    // Scale by Delta
+                    // Calculate Scale
                     if (x === 0) delta.x = 0;
                     if (y === 0) delta.y = 0;
                     delta.multiplyScalar(0.5);
                     const size = startBox.getSize();
                     const scaleX = MathUtils.sanity((x === 0) ? 0 : 2 / size.x);
                     const scaleY = MathUtils.sanity((y === 0) ? 0 : 2 / size.y);
-                    if (renderer?.keyboard?.shiftPressed()) {
-                        // Maintain aspect ratio when Shift key is pressed
+
+                    // Maintain aspect ratio when Shift key is pressed
+                    if (renderer?.keyboard?.shiftPressed() && x !== 0 && y !== 0) {
                         const aspectRatio = (size.x * startDragScale.x) / (size.y * startDragScale.y);
                         if (Math.abs(aspectRatio) < Math.abs(delta.x / delta.y)) {
                             delta.y = delta.x / aspectRatio;
+                            if (x !== y) delta.y *= -1;
                         } else {
                             delta.x = delta.y * aspectRatio;
+                            if (x !== y) delta.x *= -1;
                         }
                     }
                     const scale = new Vector2(scaleX, scaleY);

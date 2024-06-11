@@ -3796,13 +3796,19 @@ class Sprite extends Box {
             }
             maskContext.putImageData(maskData, 0, 0);
             const objects = findObjects(maskData, width, height);
+            self.contours = [];
             objects.forEach((object) => {
-                const contour = traceContour(object, maskData, width, height);
-                self.contours.push(contour);
+                if (object.outerContour.length > 0) {
+                    const simplifiedOuterContour = simplifyContour(object.outerContour, SIMPLIFY);
+                    self.contours.push({ outerContour: simplifiedOuterContour, holes: [] });
+                    object.holes.forEach((hole) => {
+                        if (hole.length > 0) {
+                            const simplifiedHole = simplifyContour(hole, SIMPLIFY);
+                            self.contours[self.contours.length - 1].holes.push(simplifiedHole);
+                        }
+                    });
+                }
             });
-            self.contours = self.contours.map((contour) =>
-                simplifyContour(contour, SIMPLIFY)
-            );
         };
         this.image.src = src;
     }
@@ -3825,14 +3831,24 @@ class Sprite extends Box {
             context.save();
             context.globalAlpha = 1;
             for (const contour of this.contours) {
+                const outerContour = contour.outerContour;
+                const holes = contour.holes;
                 context.beginPath();
-                context.moveTo(contour[0][0] + dx, contour[0][1] + dy);
-                for (let i = 1; i < contour.length - 1; i++) {
-                    context.lineTo(contour[i][0] + dx, contour[i][1] + dy);
+                context.moveTo(outerContour[0][0] + dx, outerContour[0][1] + dy);
+                for (let i = 1; i < outerContour.length - 1; i++) {
+                    context.lineTo(outerContour[i][0] + dx, outerContour[i][1] + dy);
                 }
                 context.closePath();
+                for (const hole of holes) {
+                    const hl = hole.length - 1;
+                    context.moveTo(hole[hl][0] + dx, hole[hl][1] + dy);
+                    for (let i = hl - 1; i > 0; i--) {
+                        context.lineTo(hole[i][0] + dx, hole[i][1] + dy);
+                    }
+                    context.closePath();
+                }
                 context.fillStyle = _pattern;
-                context.fill();
+                context.fill('evenodd');
                 context.strokeStyle = 'red';
                 context.lineWidth = 2;
                 context.stroke();
@@ -3867,15 +3883,42 @@ function findObjects(maskData, width, height) {
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
             if (!visited[y * width + x] && maskData.data[(y * width + x) * 4 + 3] > 0) {
-                const object = [];
-                floodFill(x, y, object, maskData, visited, width, height);
-                objects.push(object);
+                const object = {
+                    outerContour: [],
+                    holes: []
+                };
+                const pixels = [];
+                floodFill(x, y, pixels, maskData, visited, width, height, false );
+                if (pixels.length > 0) {
+                    object.outerContour = traceContour(pixels, maskData, width, height);
+                    findHoles(object, maskData, visited, width, height);
+                    objects.push(object);
+                }
             }
         }
     }
     return objects;
 }
-function floodFill(x, y, object, maskData, visited, width, height) {
+function findHoles(object, maskData, visited, width, height) {
+    const outerContour = object.outerContour;
+    const minX = Math.min(...outerContour.map(point => point[0]));
+    const maxX = Math.max(...outerContour.map(point => point[0]));
+    const minY = Math.min(...outerContour.map(point => point[1]));
+    const maxY = Math.max(...outerContour.map(point => point[1]));
+    for (let y = minY; y <= maxY; y++) {
+        for (let x = minX; x <= maxX; x++) {
+            if (!visited[y * width + x] && maskData.data[(y * width + x) * 4 + 3] === 0) {
+                const hole = [];
+                floodFill(x, y, hole, maskData, visited, width, height, true );
+                if (hole.length > 0) {
+                    const holeContour = traceContour(hole, maskData, width, height, true );
+                    object.holes.push(holeContour);
+                }
+            }
+        }
+    }
+}
+function floodFill(x, y, pixels, maskData, visited, width, height, isHole = false) {
     const queue = [ [ x, y ] ];
     const directions = [
         [  0,  1 ],
@@ -3889,18 +3932,20 @@ function floodFill(x, y, object, maskData, visited, width, height) {
         if (cx < 0 || cx >= width ||
             cy < 0 || cy >= height ||
             visited[index] ||
-            maskData.data[index * 4 + 3] === 0
+            (isHole && maskData.data[index * 4 + 3] !== 0) ||
+            (!isHole && maskData.data[index * 4 + 3] === 0)
         ) continue;
         visited[index] = true;
-        object.push([cx, cy]);
+        pixels.push([ cx, cy ]);
         for (let i = 0; i < 4; i++) {
             const nx = cx + directions[i][0];
             const ny = cy + directions[i][1];
-            queue.push([nx, ny]);
+            queue.push([ nx, ny ]);
         }
     }
 }
-function traceContour(object, maskData, width, height) {
+function traceContour(pixels, maskData, width, height, isHole = false) {
+    if (!pixels || pixels.length === 0) return [];
     const contour = [];
     const directions = [
         [  1,  0 ],
@@ -3908,18 +3953,18 @@ function traceContour(object, maskData, width, height) {
         [ -1,  0 ],
         [  0, -1 ],
     ];
-    let startX = object[0][0];
-    let startY = object[0][1];
+    let startX = pixels[0][0];
+    let startY = pixels[0][1];
     let currentX = startX;
     let currentY = startY;
-    let dir = 0;
+    let dir = isHole ? 2 : 0;
     do {
-        contour.push([currentX, currentY]);
+        contour.push([ currentX, currentY ]);
         for (let i = 0; i < 4; i++) {
             const newDir = (dir + i) % 4;
             const newX = currentX + directions[newDir][0];
             const newY = currentY + directions[newDir][1];
-            if (isOpaque(newX, newY, maskData, width, height)) {
+            if (isHole ? !isOpaque(newX, newY, maskData, width, height) : isOpaque(newX, newY, maskData, width, height)) {
                 currentX = newX;
                 currentY = newY;
                 dir = (newDir + 3) % 4;

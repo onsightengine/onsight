@@ -3878,63 +3878,66 @@ function createCrossHatchPattern(color, lineWidth, spacing) {
     return patternCanvas;
 }
 function findObjects(maskData, width, height) {
-    const objects = [];
     const visited = new Array(width * height).fill(false);
+    for (let x = 0; x < width; x++) floodFill(x, 0, [], maskData, visited, width, height, 'border');
+    for (let x = 0; x < width; x++) floodFill(x, height - 1, [], maskData, visited, width, height, 'border');
+    for (let y = 0; y < height; y++) floodFill(0, y, [], maskData, visited, width, height, 'border');
+    for (let y = 0; y < height; y++) floodFill(width - 1, y, [], maskData, visited, width, height, 'border');
+    const objects = [];
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
             if (!visited[y * width + x] && maskData.data[(y * width + x) * 4 + 3] > 0) {
-                const object = {
-                    outerContour: [],
-                    holes: []
-                };
                 const pixels = [];
-                floodFill(x, y, pixels, maskData, visited, width, height, false );
+                floodFill(x, y, pixels, maskData, visited, width, height, 'object');
                 if (pixels.length > 0) {
-                    object.outerContour = traceContour(pixels, maskData, width, height);
-                    findHoles(object, maskData, visited, width, height);
-                    objects.push(object);
+                    const holes = findHoles(pixels, maskData, visited, width, height);
+                    const outerContour = traceContour(pixels, maskData, width, height);
+                    objects.push({ outerContour, holes });
                 }
             }
         }
     }
     return objects;
 }
-function findHoles(object, maskData, visited, width, height) {
-    const outerContour = object.outerContour;
-    const minX = Math.min(...outerContour.map(point => point[0]));
-    const maxX = Math.max(...outerContour.map(point => point[0]));
-    const minY = Math.min(...outerContour.map(point => point[1]));
-    const maxY = Math.max(...outerContour.map(point => point[1]));
+function findHoles(pixels, maskData, visited, width, height) {
+    const minX = Math.min(...pixels.map(point => point[0]));
+    const maxX = Math.max(...pixels.map(point => point[0]));
+    const minY = Math.min(...pixels.map(point => point[1]));
+    const maxY = Math.max(...pixels.map(point => point[1]));
+    const objectVisited = [ ...visited ];
+    for (const [ x, y ] of pixels) {
+        objectVisited[y * width + x] = true;
+    }
+    for (let x = minX; x <= maxX; x++) floodFill(x, minY, [], maskData, objectVisited, width, height, 'border');
+    for (let x = minX; x <= maxX; x++) floodFill(x, maxY, [], maskData, objectVisited, width, height, 'border');
+    for (let y = minY; y <= maxY; y++) floodFill(minX, y, [], maskData, objectVisited, width, height, 'border');
+    for (let y = minY; y <= maxY; y++) floodFill(maxX, y, [], maskData, objectVisited, width, height, 'border');
+    let holes = [];
     for (let y = minY; y <= maxY; y++) {
         for (let x = minX; x <= maxX; x++) {
-            if (!visited[y * width + x] && maskData.data[(y * width + x) * 4 + 3] === 0) {
+            if (!objectVisited[y * width + x] && maskData.data[(y * width + x) * 4 + 3] === 0) {
                 const hole = [];
-                floodFill(x, y, hole, maskData, visited, width, height, true );
+                floodFill(x, y, hole, maskData, objectVisited, width, height, 'hole');
                 if (hole.length > 0) {
-                    const holeContour = traceContour(hole, maskData, width, height, true );
-                    object.holes.push(holeContour);
+                    holes.push(traceContour(hole, maskData, width, height, true ));
                 }
             }
         }
     }
+    return holes;
 }
-function floodFill(x, y, pixels, maskData, visited, width, height, isHole = false) {
+function floodFill(x, y, pixels, maskData, visited, width, height, type) {
     const queue = [ [ x, y ] ];
-    const directions = [
-        [  0,  1 ],
-        [  1,  0 ],
-        [  0, -1 ],
-        [ -1,  0 ],
-    ];
+    const directions = [ [  0,  1 ], [  1,  0 ], [  0, -1 ], [ -1,  0 ], ];
     while (queue.length > 0) {
         const [ cx, cy ] = queue.shift();
         const index = cy * width + cx;
-        if (cx < 0 || cx >= width ||
-            cy < 0 || cy >= height ||
-            visited[index] ||
-            (isHole && maskData.data[index * 4 + 3] !== 0) ||
-            (!isHole && maskData.data[index * 4 + 3] === 0)
-        ) continue;
+        if (cx < 0 || cx >= width) continue;
+        if (cy < 0 || cy >= height) continue;
+        if (visited[index]) continue;
+        if (type === 'border' && maskData.data[index * 4 + 3] !== 0) continue;
+        if (type === 'object' && maskData.data[index * 4 + 3] === 0) continue;
+        if (type === 'hole') {  }
         visited[index] = true;
         pixels.push([ cx, cy ]);
         for (let i = 0; i < 4; i++) {

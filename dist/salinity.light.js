@@ -3757,8 +3757,194 @@ class Pattern extends Box {
     }
 }
 
-const PATTERN_SPACING = 6;
-const SIMPLIFY_AMOUNT = 2;
+const ALPHA_THRESHOLD = 5;
+class PolyUtils {
+    static isPointInPolygon(point, polygon) {
+        let inside = false;
+        for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+            const xi = polygon[i].x;
+            const yi = polygon[i].y;
+            const xj = polygon[j].x;
+            const yj = polygon[j].y;
+            const intersect = ((yi > point.y) !== (yj > point.y)) && (point.x < (xj - xi) * (point.y - yi) / (yj - yi) + xi);
+            if (intersect) inside = !inside;
+        }
+        return inside;
+    }
+    static isPointInConcavePolygon(point, polygon) {
+        function isLeft(p1, p2, point) {
+            return (p2.x - p1.x) * (point.y - p1.y) - (point.x - p1.x) * (p2.y - p1.y);
+        }
+        let windingNumber = 0;
+        for (let i = 0; i < polygon.length; i++) {
+            const p1 = polygon[i];
+            const p2 = polygon[(i + 1) % polygon.length];
+            if (p1.y <= point.y) {
+                if (p2.y > point.y && isLeft(p1, p2, point) > 0) windingNumber++;
+            } else {
+                if (p2.y <= point.y && isLeft(p1, p2, point) < 0) windingNumber--;
+            }
+        }
+        return windingNumber !== 0;
+    }
+    static findObjects(maskData, simplify = 1.0) {
+        const width = maskData.width;
+        const height = maskData.height;
+        const visited = new Array(width * height).fill(false);
+        for (let x = 0; x < width; x++) PolyUtils.floodFill(x, 0, maskData, visited, 'border');
+        for (let x = 0; x < width; x++) PolyUtils.floodFill(x, height - 1, maskData, visited, 'border');
+        for (let y = 0; y < height; y++) PolyUtils.floodFill(0, y, maskData, visited, 'border');
+        for (let y = 0; y < height; y++) PolyUtils.floodFill(width - 1, y, maskData, visited, 'border');
+        const objects = [];
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const alreadyVisited = visited[y * width + x];
+                const alphaValue = maskData.data[(y * width + x) * 4 + 3];
+                if (!alreadyVisited && alphaValue > ALPHA_THRESHOLD) {
+                    const pixels = PolyUtils.floodFill(x, y, maskData, visited, 'object');
+                    if (pixels.length > 0) {
+                        const holes = PolyUtils.findHoles(pixels, maskData, visited);
+                        const outerContour = PolyUtils.traceContour(pixels, maskData);
+                        objects.push({ outerContour, holes });
+                    }
+                }
+            }
+        }
+        const contours = [];
+        objects.forEach((object) => {
+            if (object.outerContour.length > 0) {
+                const simplifiedOuterContour = PolyUtils.simplifyContour(object.outerContour, simplify);
+                contours.push({ outerContour: simplifiedOuterContour, holes: [] });
+                object.holes.forEach((hole) => {
+                    if (hole.length > 0) {
+                        const simplifiedHole = PolyUtils.simplifyContour(hole, simplify);
+                        contours[contours.length - 1].holes.push(simplifiedHole);
+                    }
+                });
+            }
+        });
+        return contours;
+    }
+    static findHoles(pixels, maskData, visited) {
+        const width = maskData.width;
+        const height = maskData.height;
+        const minX = Math.min(...pixels.map(point => point[0]));
+        const maxX = Math.max(...pixels.map(point => point[0]));
+        const minY = Math.min(...pixels.map(point => point[1]));
+        const maxY = Math.max(...pixels.map(point => point[1]));
+        const objectVisited = [ ...visited ];
+        for (const [ x, y ] of pixels) {
+            objectVisited[y * width + x] = true;
+        }
+        for (let x = minX; x <= maxX; x++) PolyUtils.floodFill(x, minY, maskData, objectVisited, 'border');
+        for (let x = minX; x <= maxX; x++) PolyUtils.floodFill(x, maxY, maskData, objectVisited, 'border');
+        for (let y = minY; y <= maxY; y++) PolyUtils.floodFill(minX, y, maskData, objectVisited, 'border');
+        for (let y = minY; y <= maxY; y++) PolyUtils.floodFill(maxX, y, maskData, objectVisited, 'border');
+        let holes = [];
+        for (let y = minY; y <= maxY; y++) {
+            for (let x = minX; x <= maxX; x++) {
+                const alreadyVisited = objectVisited[y * width + x];
+                const alphaValue = maskData.data[(y * width + x) * 4 + 3];
+                if (!alreadyVisited && alphaValue <= ALPHA_THRESHOLD) {
+                    const hole = PolyUtils.floodFill(x, y, maskData, objectVisited, 'hole');
+                    if (hole.length > 0) holes.push(PolyUtils.traceContour(hole, maskData, true ));
+                }
+            }
+        }
+        return holes;
+    }
+    static floodFill(x, y, maskData, visited, type) {
+        const width = maskData.width;
+        const height = maskData.height;
+        const queue = [ [ x, y ] ];
+        const directions = [ [  0,  1 ], [  1,  0 ], [  0, -1 ], [ -1,  0 ], ];
+        const floodedPixels = [];
+        while (queue.length > 0) {
+            const [ cx, cy ] = queue.shift();
+            const index = cy * width + cx;
+            if (cx < 0 || cx >= width) continue;
+            if (cy < 0 || cy >= height) continue;
+            if (visited[index]) continue;
+            if (type === 'border' && maskData.data[index * 4 + 3] > ALPHA_THRESHOLD) continue;
+            if (type === 'object' && maskData.data[index * 4 + 3] <= ALPHA_THRESHOLD) continue;
+            if (type === 'hole') {  }
+            visited[index] = true;
+            floodedPixels.push([ cx, cy ]);
+            for (let i = 0; i < 4; i++) {
+                const nx = cx + directions[i][0];
+                const ny = cy + directions[i][1];
+                queue.push([ nx, ny ]);
+            }
+        }
+        return floodedPixels;
+    }
+    static traceContour(pixels, maskData, isHole = false) {
+        if (!pixels || pixels.length === 0) return [];
+        const width = maskData.width;
+        const height = maskData.height;
+        const contour = [];
+        const directions = [ [  1,  0 ], [  0,  1 ], [ -1,  0 ], [  0, -1 ], ];
+        let startX = pixels[0][0];
+        let startY = pixels[0][1];
+        let currentX = startX;
+        let currentY = startY;
+        let dir = isHole ? 2 : 0;
+        do {
+            contour.push([ currentX, currentY ]);
+            for (let i = 0; i < 4; i++) {
+                const newDir = (dir + i) % 4;
+                const newX = currentX + directions[newDir][0];
+                const newY = currentY + directions[newDir][1];
+                let opaque = true;
+                opaque = opaque && (newX >= 0 && newX < width && newY >= 0 && newY < height);
+                opaque = opaque && (maskData.data[((newY * width + newX) * 4) + 3] > ALPHA_THRESHOLD);
+                if (isHole ? !opaque : opaque) {
+                    currentX = newX;
+                    currentY = newY;
+                    dir = (newDir + 3) % 4;
+                    break;
+                }
+            }
+        } while (currentX !== startX || currentY !== startY);
+        return contour;
+    }
+    static simplifyContour(contour, epsilon) {
+        function perpendicularDistance(point, lineStart, lineEnd) {
+            const dx = lineEnd[0] - lineStart[0];
+            const dy = lineEnd[1] - lineStart[1];
+            const norm = Math.sqrt(dx * dx + dy * dy);
+            const nx = dy / norm;
+            const ny = -dx / norm;
+            const vx = point[0] - lineStart[0];
+            const vy = point[1] - lineStart[1];
+            return Math.abs(nx * vx + ny * vy);
+        }
+        function simplifySegment(contour, start, end, epsilon, simplified) {
+            let maxDist = 0;
+            let maxIndex = 0;
+            for (let i = start + 1; i < end; i++) {
+                const dist = perpendicularDistance(contour[i], contour[start], contour[end]);
+                if (dist > maxDist) {
+                    maxDist = dist;
+                    maxIndex = i;
+                }
+            }
+            if (maxDist > epsilon) {
+                simplifySegment(contour, start, maxIndex, epsilon, simplified);
+                simplified.push(contour[maxIndex]);
+                simplifySegment(contour, maxIndex, end, epsilon, simplified);
+            }
+        }
+        const simplified = [ contour[0] ];
+        simplifySegment(contour, 0, contour.length - 1, epsilon, simplified);
+        simplified.push(contour[contour.length - 1]);
+        return simplified;
+    }
+}
+
+const PATTERN_COLOR = '#ffffff';
+const PATTERN_SPACING = 5;
+const SIMPLIFY_AMOUNT = 0.2;
 let _pattern;
 class Sprite extends Box {
     #box = new Box2();
@@ -3797,23 +3983,9 @@ class Sprite extends Box {
                 maskPixels[i] = alpha;
             }
             maskContext.putImageData(maskData, 0, 0);
-            const objects = findObjects(maskData, width, height);
-            const contours = [];
-            objects.forEach((object) => {
-                if (object.outerContour.length > 0) {
-                    const simplifiedOuterContour = SIMPLIFY_AMOUNTContour(object.outerContour, SIMPLIFY_AMOUNT);
-                    contours.push({ outerContour: simplifiedOuterContour, holes: [] });
-                    object.holes.forEach((hole) => {
-                        if (hole.length > 0) {
-                            const simplifiedHole = SIMPLIFY_AMOUNTContour(hole, SIMPLIFY_AMOUNT);
-                            contours[contours.length - 1].holes.push(simplifiedHole);
-                        }
-                    });
-                }
-            });
-            self.contours = contours;
+            self.contours = PolyUtils.findObjects(maskData, SIMPLIFY_AMOUNT);
             const path = new Path2D();
-            for (const contour of contours) {
+            for (const contour of self.contours) {
                 const outerContour = contour.outerContour;
                 path.moveTo(outerContour[0][0] - halfWidth, outerContour[0][1] - halfHeight);
                 for (let i = 1; i < outerContour.length - 1; i++) {
@@ -3836,7 +4008,7 @@ class Sprite extends Box {
     draw(renderer) {
         const context = renderer.context;
         const camera = renderer.camera;
-        if (!_pattern) _pattern = context.createPattern(createCrossHatchPattern('#ffffff', 1, PATTERN_SPACING), 'repeat');
+        if (!_pattern) _pattern = context.createPattern(createCrossHatchPattern(PATTERN_COLOR, 0.5, PATTERN_SPACING), 'repeat');
         if (this.box.equals(this.#box) === false) this.computeBoundingBox();
         if (this.image.src.length === 0 || !this.image.complete) return;
         const width = this.image.naturalWidth;
@@ -3853,13 +4025,13 @@ class Sprite extends Box {
             context.save();
             context.globalAlpha = 1;
             const scaledPath = new Path2D();
-            scaledPath.addPath(this.path, new DOMMatrix([camera.scale, 0, 0, camera.scale, 0, 0]));
+            scaledPath.addPath(this.path, new DOMMatrix([ camera.scale, 0, 0, camera.scale, 0, 0 ]));
             context.scale(1 / camera.scale, 1 / camera.scale);
             context.clip(scaledPath);
             context.fillStyle = _pattern;
             context.fillRect(dx * camera.scale, dy * camera.scale, dw * camera.scale, dh * camera.scale);
-            context.strokeStyle = '#ffffff';
-            context.lineWidth = 2;
+            context.strokeStyle = PATTERN_COLOR;
+            context.lineWidth = 1.5;
             context.stroke(scaledPath);
             context.restore();
         } else {
@@ -3876,147 +4048,10 @@ function createCrossHatchPattern(color, lineWidth, spacing) {
     patternContext.strokeStyle = color;
     patternContext.lineWidth = lineWidth;
     patternContext.beginPath();
-    patternContext.moveTo(0, 0); patternContext.lineTo(size, size);
+    patternContext.moveTo(0, 0);    patternContext.lineTo(size, size);
     patternContext.moveTo(size, 0); patternContext.lineTo(0, size);
     patternContext.stroke();
     return patternCanvas;
-}
-function findObjects(maskData, width, height) {
-    const visited = new Array(width * height).fill(false);
-    for (let x = 0; x < width; x++) floodFill(x, 0, [], maskData, visited, width, height, 'border');
-    for (let x = 0; x < width; x++) floodFill(x, height - 1, [], maskData, visited, width, height, 'border');
-    for (let y = 0; y < height; y++) floodFill(0, y, [], maskData, visited, width, height, 'border');
-    for (let y = 0; y < height; y++) floodFill(width - 1, y, [], maskData, visited, width, height, 'border');
-    const objects = [];
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            if (!visited[y * width + x] && maskData.data[(y * width + x) * 4 + 3] > 0) {
-                const pixels = [];
-                floodFill(x, y, pixels, maskData, visited, width, height, 'object');
-                if (pixels.length > 0) {
-                    const holes = findHoles(pixels, maskData, visited, width, height);
-                    const outerContour = traceContour(pixels, maskData, width, height);
-                    objects.push({ outerContour, holes });
-                }
-            }
-        }
-    }
-    return objects;
-}
-function findHoles(pixels, maskData, visited, width, height) {
-    const minX = Math.min(...pixels.map(point => point[0]));
-    const maxX = Math.max(...pixels.map(point => point[0]));
-    const minY = Math.min(...pixels.map(point => point[1]));
-    const maxY = Math.max(...pixels.map(point => point[1]));
-    const objectVisited = [ ...visited ];
-    for (const [ x, y ] of pixels) {
-        objectVisited[y * width + x] = true;
-    }
-    for (let x = minX; x <= maxX; x++) floodFill(x, minY, [], maskData, objectVisited, width, height, 'border');
-    for (let x = minX; x <= maxX; x++) floodFill(x, maxY, [], maskData, objectVisited, width, height, 'border');
-    for (let y = minY; y <= maxY; y++) floodFill(minX, y, [], maskData, objectVisited, width, height, 'border');
-    for (let y = minY; y <= maxY; y++) floodFill(maxX, y, [], maskData, objectVisited, width, height, 'border');
-    let holes = [];
-    for (let y = minY; y <= maxY; y++) {
-        for (let x = minX; x <= maxX; x++) {
-            if (!objectVisited[y * width + x] && maskData.data[(y * width + x) * 4 + 3] === 0) {
-                const hole = [];
-                floodFill(x, y, hole, maskData, objectVisited, width, height, 'hole');
-                if (hole.length > 0) {
-                    holes.push(traceContour(hole, maskData, width, height, true ));
-                }
-            }
-        }
-    }
-    return holes;
-}
-function floodFill(x, y, pixels, maskData, visited, width, height, type) {
-    const queue = [ [ x, y ] ];
-    const directions = [ [  0,  1 ], [  1,  0 ], [  0, -1 ], [ -1,  0 ], ];
-    while (queue.length > 0) {
-        const [ cx, cy ] = queue.shift();
-        const index = cy * width + cx;
-        if (cx < 0 || cx >= width) continue;
-        if (cy < 0 || cy >= height) continue;
-        if (visited[index]) continue;
-        if (type === 'border' && maskData.data[index * 4 + 3] !== 0) continue;
-        if (type === 'object' && maskData.data[index * 4 + 3] === 0) continue;
-        if (type === 'hole') {  }
-        visited[index] = true;
-        pixels.push([ cx, cy ]);
-        for (let i = 0; i < 4; i++) {
-            const nx = cx + directions[i][0];
-            const ny = cy + directions[i][1];
-            queue.push([ nx, ny ]);
-        }
-    }
-}
-function traceContour(pixels, maskData, width, height, isHole = false) {
-    if (!pixels || pixels.length === 0) return [];
-    const contour = [];
-    const directions = [
-        [  1,  0 ],
-        [  0,  1 ],
-        [ -1,  0 ],
-        [  0, -1 ],
-    ];
-    let startX = pixels[0][0];
-    let startY = pixels[0][1];
-    let currentX = startX;
-    let currentY = startY;
-    let dir = isHole ? 2 : 0;
-    do {
-        contour.push([ currentX, currentY ]);
-        for (let i = 0; i < 4; i++) {
-            const newDir = (dir + i) % 4;
-            const newX = currentX + directions[newDir][0];
-            const newY = currentY + directions[newDir][1];
-            if (isHole ? !isOpaque(newX, newY, maskData, width, height) : isOpaque(newX, newY, maskData, width, height)) {
-                currentX = newX;
-                currentY = newY;
-                dir = (newDir + 3) % 4;
-                break;
-            }
-        }
-    } while (currentX !== startX || currentY !== startY);
-    return contour;
-}
-function isOpaque(x, y, maskData, width, height) {
-    if (x < 0 || x >= width || y < 0 || y >= height) return false;
-    const index = (y * width + x) * 4;
-    return maskData.data[index + 3] > 0;
-}
-function SIMPLIFY_AMOUNTContour(contour, epsilon) {
-    const simplified = [ contour[0] ];
-    SIMPLIFY_AMOUNTSegment(contour, 0, contour.length - 1, epsilon, simplified);
-    simplified.push(contour[contour.length - 1]);
-    return simplified;
-}
-function SIMPLIFY_AMOUNTSegment(contour, start, end, epsilon, simplified) {
-    let maxDist = 0;
-    let maxIndex = 0;
-    for (let i = start + 1; i < end; i++) {
-        const dist = perpendicularDistance(contour[i], contour[start], contour[end]);
-        if (dist > maxDist) {
-            maxDist = dist;
-            maxIndex = i;
-        }
-    }
-    if (maxDist > epsilon) {
-        SIMPLIFY_AMOUNTSegment(contour, start, maxIndex, epsilon, simplified);
-        simplified.push(contour[maxIndex]);
-        SIMPLIFY_AMOUNTSegment(contour, maxIndex, end, epsilon, simplified);
-    }
-}
-function perpendicularDistance(point, lineStart, lineEnd) {
-    const dx = lineEnd[0] - lineStart[0];
-    const dy = lineEnd[1] - lineStart[1];
-    const norm = Math.sqrt(dx * dx + dy * dy);
-    const nx = dy / norm;
-    const ny = -dx / norm;
-    const vx = point[0] - lineStart[0];
-    const vy = point[1] - lineStart[1];
-    return Math.abs(nx * vx + ny * vy);
 }
 
 class Text extends Object2D {
@@ -4179,37 +4214,6 @@ class RadialGradientStyle extends Style {
             this.needsUpdate = false;
         }
         return this.cache;
-    }
-}
-
-class PolyUtils {
-    static isPointInPolygon(point, polygon) {
-        let inside = false;
-        for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-            const xi = polygon[i].x;
-            const yi = polygon[i].y;
-            const xj = polygon[j].x;
-            const yj = polygon[j].y;
-            const intersect = ((yi > point.y) !== (yj > point.y)) && (point.x < (xj - xi) * (point.y - yi) / (yj - yi) + xi);
-            if (intersect) inside = !inside;
-        }
-        return inside;
-    }
-    static isPointInConcavePolygon(point, polygon) {
-        function isLeft(p1, p2, point) {
-            return (p2.x - p1.x) * (point.y - p1.y) - (point.x - p1.x) * (p2.y - p1.y);
-        }
-        let windingNumber = 0;
-        for (let i = 0; i < polygon.length; i++) {
-            const p1 = polygon[i];
-            const p2 = polygon[(i + 1) % polygon.length];
-            if (p1.y <= point.y) {
-                if (p2.y > point.y && isLeft(p1, p2, point) > 0) windingNumber++;
-            } else {
-                if (p2.y <= point.y && isLeft(p1, p2, point) < 0) windingNumber--;
-            }
-        }
-        return windingNumber !== 0;
     }
 }
 

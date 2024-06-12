@@ -15,6 +15,7 @@ class Sprite extends Box {
 
 	    this.image = document.createElement('img');
         this.contours = [];
+        this.path = new Path2D();
 
 	    if (src) this.setImage(src);
     }
@@ -56,26 +57,42 @@ class Sprite extends Box {
             // Find objects using flood fill
             const objects = findObjects(maskData, width, height);
 
-            // Clear the existing contours
-            self.contours = [];
-
-            // Process each object
+            // Draw contour for each object
+            const contours = [];
             objects.forEach((object) => {
                 if (object.outerContour.length > 0) {
-                    // Simplify the outer contour using polyline simplification
                     const simplifiedOuterContour = simplifyContour(object.outerContour, SIMPLIFY);
-                    self.contours.push({ outerContour: simplifiedOuterContour, holes: [] });
-
+                    contours.push({ outerContour: simplifiedOuterContour, holes: [] });
                     // Process each hole
                     object.holes.forEach((hole) => {
                         if (hole.length > 0) {
-                            // Simplify the hole contour using polyline simplification
                             const simplifiedHole = simplifyContour(hole, SIMPLIFY);
-                            self.contours[self.contours.length - 1].holes.push(simplifiedHole);
+                            contours[contours.length - 1].holes.push(simplifiedHole);
                         }
                     });
                 }
             });
+            self.contours = contours;
+
+            // Create path from contours
+            const path = new Path2D();
+            for (const contour of contours) {
+                const outerContour = contour.outerContour;
+                path.moveTo(outerContour[0][0] - halfWidth, outerContour[0][1] - halfHeight);
+                for (let i = 1; i < outerContour.length - 1; i++) {
+                    path.lineTo(outerContour[i][0] - halfWidth, outerContour[i][1] - halfHeight);
+                }
+                path.closePath();
+                for (const hole of contour.holes) {
+                    const hl = hole.length - 1;
+                    path.moveTo(hole[hl][0] - halfWidth, hole[hl][1] - halfHeight);
+                    for (let i = hl - 1; i > 0; i--) {
+                        path.lineTo(hole[i][0] - halfWidth, hole[i][1] - halfHeight);
+                    }
+                    path.closePath();
+                }
+            }
+            self.path = path;
         };
         this.image.src = src;
     }
@@ -84,7 +101,7 @@ class Sprite extends Box {
         const context = renderer.context;
 
         // Pattern?
-        if (!_pattern) _pattern = context.createPattern(createCrossHatchPattern('#ffffff', 1, 10), 'repeat');
+        if (!_pattern) _pattern = context.createPattern(createCrossHatchPattern('#ffffff', 1.5, 8), 'repeat');
 
         // Check Bounds
         if (this.box.equals(this.#box) === false) this.computeBoundingBox();
@@ -106,45 +123,20 @@ class Sprite extends Box {
 
         // Transparent Draw
         if (context.globalAlpha < 0.05) {
+            // Fill
             context.save();
             context.globalAlpha = 1;
-
-            for (const contour of this.contours) {
-                const outerContour = contour.outerContour;
-                const holes = contour.holes;
-
-                // Begin a new path for the outer contour and its holes
-                context.beginPath();
-
-                // Draw outer contour
-                context.moveTo(outerContour[0][0] + dx, outerContour[0][1] + dy);
-                for (let i = 1; i < outerContour.length - 1; i++) {
-                    context.lineTo(outerContour[i][0] + dx, outerContour[i][1] + dy);
-                }
-                context.closePath();
-
-                // Draw holes
-                for (const hole of holes) {
-                    const hl = hole.length - 1;
-                    context.moveTo(hole[hl][0] + dx, hole[hl][1] + dy);
-                    for (let i = hl - 1; i > 0; i--) {
-                        context.lineTo(hole[i][0] + dx, hole[i][1] + dy);
-                    }
-                    context.closePath();
-                }
-
-                // Fill the path using the 'evenodd' rule to handle holes
-                context.fillStyle = _pattern;
-                context.fill('evenodd');
-
-                // Stroke the outer contour
-                context.strokeStyle = 'red';
-                context.lineWidth = 2;
-                context.stroke();
-            }
-
+            context.clip(this.path);
+            context.fillStyle = _pattern;
+            context.fillRect(dx, dy, dw, dh);
             context.restore();
-
+            // Stroke
+            context.save();
+            context.globalAlpha = 1;
+            context.strokeStyle = '#ffffff';
+            context.lineWidth = 1.5;
+            context.stroke(this.path);
+            context.restore();
         // Normal Draw
         } else {
             context.drawImage(this.image, sx, sy, sw, sh, dx, dy, dw, dh);

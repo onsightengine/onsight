@@ -3766,6 +3766,7 @@ class Sprite extends Box {
         this.type = 'Sprite';
 	    this.image = document.createElement('img');
         this.contours = [];
+        this.path = new Path2D();
 	    if (src) this.setImage(src);
     }
     setImage(src) {
@@ -3796,25 +3797,44 @@ class Sprite extends Box {
             }
             maskContext.putImageData(maskData, 0, 0);
             const objects = findObjects(maskData, width, height);
-            self.contours = [];
+            const contours = [];
             objects.forEach((object) => {
                 if (object.outerContour.length > 0) {
                     const simplifiedOuterContour = simplifyContour(object.outerContour, SIMPLIFY);
-                    self.contours.push({ outerContour: simplifiedOuterContour, holes: [] });
+                    contours.push({ outerContour: simplifiedOuterContour, holes: [] });
                     object.holes.forEach((hole) => {
                         if (hole.length > 0) {
                             const simplifiedHole = simplifyContour(hole, SIMPLIFY);
-                            self.contours[self.contours.length - 1].holes.push(simplifiedHole);
+                            contours[contours.length - 1].holes.push(simplifiedHole);
                         }
                     });
                 }
             });
+            self.contours = contours;
+            const path = new Path2D();
+            for (const contour of contours) {
+                const outerContour = contour.outerContour;
+                path.moveTo(outerContour[0][0] - halfWidth, outerContour[0][1] - halfHeight);
+                for (let i = 1; i < outerContour.length - 1; i++) {
+                    path.lineTo(outerContour[i][0] - halfWidth, outerContour[i][1] - halfHeight);
+                }
+                path.closePath();
+                for (const hole of contour.holes) {
+                    const hl = hole.length - 1;
+                    path.moveTo(hole[hl][0] - halfWidth, hole[hl][1] - halfHeight);
+                    for (let i = hl - 1; i > 0; i--) {
+                        path.lineTo(hole[i][0] - halfWidth, hole[i][1] - halfHeight);
+                    }
+                    path.closePath();
+                }
+            }
+            self.path = path;
         };
         this.image.src = src;
     }
     draw(renderer) {
         const context = renderer.context;
-        if (!_pattern) _pattern = context.createPattern(createCrossHatchPattern('#ffffff', 1, 10), 'repeat');
+        if (!_pattern) _pattern = context.createPattern(createCrossHatchPattern('#ffffff', 1.5, 8), 'repeat');
         if (this.box.equals(this.#box) === false) this.computeBoundingBox();
         if (this.image.src.length === 0 || !this.image.complete) return;
         const width = this.image.naturalWidth;
@@ -3830,29 +3850,15 @@ class Sprite extends Box {
         if (context.globalAlpha < 0.05) {
             context.save();
             context.globalAlpha = 1;
-            for (const contour of this.contours) {
-                const outerContour = contour.outerContour;
-                const holes = contour.holes;
-                context.beginPath();
-                context.moveTo(outerContour[0][0] + dx, outerContour[0][1] + dy);
-                for (let i = 1; i < outerContour.length - 1; i++) {
-                    context.lineTo(outerContour[i][0] + dx, outerContour[i][1] + dy);
-                }
-                context.closePath();
-                for (const hole of holes) {
-                    const hl = hole.length - 1;
-                    context.moveTo(hole[hl][0] + dx, hole[hl][1] + dy);
-                    for (let i = hl - 1; i > 0; i--) {
-                        context.lineTo(hole[i][0] + dx, hole[i][1] + dy);
-                    }
-                    context.closePath();
-                }
-                context.fillStyle = _pattern;
-                context.fill('evenodd');
-                context.strokeStyle = 'red';
-                context.lineWidth = 2;
-                context.stroke();
-            }
+            context.clip(this.path);
+            context.fillStyle = _pattern;
+            context.fillRect(dx, dy, dw, dh);
+            context.restore();
+            context.save();
+            context.globalAlpha = 1;
+            context.strokeStyle = '#ffffff';
+            context.lineWidth = 1.5;
+            context.stroke(this.path);
             context.restore();
         } else {
             context.drawImage(this.image, sx, sy, sw, sh, dx, dy, dw, dh);

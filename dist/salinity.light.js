@@ -3908,7 +3908,7 @@ class PolyUtils {
         } while (currentX !== startX || currentY !== startY);
         return contour;
     }
-    static simplifyContour(contour, epsilon) {
+    static simplifyContour(contour, tolerance = 1) {
         function perpendicularDistance(point, lineStart, lineEnd) {
             const dx = lineEnd[0] - lineStart[0];
             const dy = lineEnd[1] - lineStart[1];
@@ -3919,7 +3919,7 @@ class PolyUtils {
             const vy = point[1] - lineStart[1];
             return Math.abs(nx * vx + ny * vy);
         }
-        function simplifySegment(contour, start, end, epsilon, simplified) {
+        function simplifySegment(contour, start, end, tolerance, simplified) {
             let maxDist = 0;
             let maxIndex = 0;
             for (let i = start + 1; i < end; i++) {
@@ -3929,15 +3929,19 @@ class PolyUtils {
                     maxIndex = i;
                 }
             }
-            if (maxDist > epsilon) {
-                simplifySegment(contour, start, maxIndex, epsilon, simplified);
+            if (maxDist > tolerance) {
+                simplifySegment(contour, start, maxIndex, tolerance, simplified);
                 simplified.push(contour[maxIndex]);
-                simplifySegment(contour, maxIndex, end, epsilon, simplified);
+                simplifySegment(contour, maxIndex, end, tolerance, simplified);
             }
         }
         const simplified = [ contour[0] ];
-        simplifySegment(contour, 0, contour.length - 1, epsilon, simplified);
+        simplifySegment(contour, 0, contour.length - 1, tolerance, simplified);
         simplified.push(contour[contour.length - 1]);
+        const dx = simplified[simplified.length - 1][0] - simplified[0][0];
+        const dy = simplified[simplified.length - 1][1] - simplified[0][1];
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < tolerance) simplified[simplified.length - 1] = simplified[0];
         return simplified;
     }
 }
@@ -3988,14 +3992,14 @@ class Sprite extends Box {
             for (const contour of self.contours) {
                 const outerContour = contour.outerContour;
                 path.moveTo(outerContour[0][0] - halfWidth, outerContour[0][1] - halfHeight);
-                for (let i = 1; i < outerContour.length - 1; i++) {
+                for (let i = 1; i < outerContour.length; i++) {
                     path.lineTo(outerContour[i][0] - halfWidth, outerContour[i][1] - halfHeight);
                 }
                 path.closePath();
                 for (const hole of contour.holes) {
                     const hl = hole.length - 1;
                     path.moveTo(hole[hl][0] - halfWidth, hole[hl][1] - halfHeight);
-                    for (let i = hl - 1; i > 0; i--) {
+                    for (let i = hl - 1; i >= 0; i--) {
                         path.lineTo(hole[i][0] - halfWidth, hole[i][1] - halfHeight);
                     }
                     path.closePath();

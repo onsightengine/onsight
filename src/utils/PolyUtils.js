@@ -194,7 +194,7 @@ class PolyUtils {
     }
 
     /** Simplify point list (https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm) */
-    static simplifyContour(contour, epsilon) {
+    static simplifyContour(contour, tolerance = 1) {
         function perpendicularDistance(point, lineStart, lineEnd) {
             const dx = lineEnd[0] - lineStart[0];
             const dy = lineEnd[1] - lineStart[1];
@@ -205,7 +205,7 @@ class PolyUtils {
             const vy = point[1] - lineStart[1];
             return Math.abs(nx * vx + ny * vy);
         }
-        function simplifySegment(contour, start, end, epsilon, simplified) {
+        function simplifySegment(contour, start, end, tolerance, simplified) {
             let maxDist = 0;
             let maxIndex = 0;
             for (let i = start + 1; i < end; i++) {
@@ -215,15 +215,22 @@ class PolyUtils {
                     maxIndex = i;
                 }
             }
-            if (maxDist > epsilon) {
-                simplifySegment(contour, start, maxIndex, epsilon, simplified);
+            if (maxDist > tolerance) {
+                simplifySegment(contour, start, maxIndex, tolerance, simplified);
                 simplified.push(contour[maxIndex]);
-                simplifySegment(contour, maxIndex, end, epsilon, simplified);
+                simplifySegment(contour, maxIndex, end, tolerance, simplified);
             }
         }
+        // Simplify polygon points
         const simplified = [ contour[0] ];
-        simplifySegment(contour, 0, contour.length - 1, epsilon, simplified);
+        simplifySegment(contour, 0, contour.length - 1, tolerance, simplified);
         simplified.push(contour[contour.length - 1]);
+        // Check if the distance between the last and first point in simplified is less than tolerance
+        const dx = simplified[simplified.length - 1][0] - simplified[0][0];
+        const dy = simplified[simplified.length - 1][1] - simplified[0][1];
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < tolerance) simplified[simplified.length - 1] = simplified[0];
+        // Return simplified polygon
         return simplified;
     }
 

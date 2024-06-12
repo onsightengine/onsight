@@ -65,14 +65,14 @@ class Sprite extends Box {
             for (const contour of self.contours) {
                 const outerContour = contour.outerContour;
                 path.moveTo(outerContour[0][0] - halfWidth, outerContour[0][1] - halfHeight);
-                for (let i = 1; i < outerContour.length - 1; i++) {
+                for (let i = 1; i < outerContour.length; i++) {
                     path.lineTo(outerContour[i][0] - halfWidth, outerContour[i][1] - halfHeight);
                 }
                 path.closePath();
                 for (const hole of contour.holes) {
                     const hl = hole.length - 1;
                     path.moveTo(hole[hl][0] - halfWidth, hole[hl][1] - halfHeight);
-                    for (let i = hl - 1; i > 0; i--) {
+                    for (let i = hl - 1; i >= 0; i--) {
                         path.lineTo(hole[i][0] - halfWidth, hole[i][1] - halfHeight);
                     }
                     path.closePath();

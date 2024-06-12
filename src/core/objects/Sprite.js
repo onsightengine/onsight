@@ -1,7 +1,8 @@
 import { Box } from './Box.js';
 import { Box2 } from '../../math/Box2.js';
 
-const SIMPLIFY = 2;
+const PATTERN_SPACING = 6;
+const SIMPLIFY_AMOUNT = 2;
 
 let _pattern;
 
@@ -61,12 +62,12 @@ class Sprite extends Box {
             const contours = [];
             objects.forEach((object) => {
                 if (object.outerContour.length > 0) {
-                    const simplifiedOuterContour = simplifyContour(object.outerContour, SIMPLIFY);
+                    const simplifiedOuterContour = SIMPLIFY_AMOUNTContour(object.outerContour, SIMPLIFY_AMOUNT);
                     contours.push({ outerContour: simplifiedOuterContour, holes: [] });
                     // Process each hole
                     object.holes.forEach((hole) => {
                         if (hole.length > 0) {
-                            const simplifiedHole = simplifyContour(hole, SIMPLIFY);
+                            const simplifiedHole = SIMPLIFY_AMOUNTContour(hole, SIMPLIFY_AMOUNT);
                             contours[contours.length - 1].holes.push(simplifiedHole);
                         }
                     });
@@ -99,9 +100,10 @@ class Sprite extends Box {
 
     draw(renderer) {
         const context = renderer.context;
+        const camera = renderer.camera;
 
         // Pattern?
-        if (!_pattern) _pattern = context.createPattern(createCrossHatchPattern('#ffffff', 1.5, 8), 'repeat');
+        if (!_pattern) _pattern = context.createPattern(createCrossHatchPattern('#ffffff', 1, PATTERN_SPACING), 'repeat');
 
         // Check Bounds
         if (this.box.equals(this.#box) === false) this.computeBoundingBox();
@@ -123,19 +125,25 @@ class Sprite extends Box {
 
         // Transparent Draw
         if (context.globalAlpha < 0.05) {
-            // Fill
             context.save();
             context.globalAlpha = 1;
-            context.clip(this.path);
+
+            // Create a new path that is scaled based on the camera scale
+            const scaledPath = new Path2D();
+            scaledPath.addPath(this.path, new DOMMatrix([camera.scale, 0, 0, camera.scale, 0, 0]));
+
+            // Clip using the scaled path
+            context.scale(1 / camera.scale, 1 / camera.scale);
+            context.clip(scaledPath);
+
+            // Fill the pattern
             context.fillStyle = _pattern;
-            context.fillRect(dx, dy, dw, dh);
-            context.restore();
-            // Stroke
-            context.save();
-            context.globalAlpha = 1;
+            context.fillRect(dx * camera.scale, dy * camera.scale, dw * camera.scale, dh * camera.scale);
+
+            // Stroke the scaled path
             context.strokeStyle = '#ffffff';
-            context.lineWidth = 1.5;
-            context.stroke(this.path);
+            context.lineWidth = 2;
+            context.stroke(scaledPath);
             context.restore();
         // Normal Draw
         } else {
@@ -151,26 +159,16 @@ export { Sprite };
 
 function createCrossHatchPattern(color, lineWidth, spacing) {
     const patternCanvas = document.createElement('canvas');
+    const patternContext = patternCanvas.getContext('2d');
     const size = spacing * 2;
     patternCanvas.width = size;
     patternCanvas.height = size;
-
-    const patternContext = patternCanvas.getContext('2d');
     patternContext.strokeStyle = color;
     patternContext.lineWidth = lineWidth;
-
-    // Draw diagonal lines (top-left to bottom-right)
     patternContext.beginPath();
-    patternContext.moveTo(0, 0);
-    patternContext.lineTo(size, size);
+    patternContext.moveTo(0, 0); patternContext.lineTo(size, size);
+    patternContext.moveTo(size, 0); patternContext.lineTo(0, size);
     patternContext.stroke();
-
-    // Draw diagonal lines (bottom-left to top-right)
-    patternContext.beginPath();
-    patternContext.moveTo(0, size);
-    patternContext.lineTo(size, 0);
-    patternContext.stroke();
-
     return patternCanvas;
 }
 
@@ -295,14 +293,14 @@ function isOpaque(x, y, maskData, width, height) {
     return maskData.data[index + 3] > 0;
 }
 
-function simplifyContour(contour, epsilon) {
+function SIMPLIFY_AMOUNTContour(contour, epsilon) {
     const simplified = [ contour[0] ];
-    simplifySegment(contour, 0, contour.length - 1, epsilon, simplified);
+    SIMPLIFY_AMOUNTSegment(contour, 0, contour.length - 1, epsilon, simplified);
     simplified.push(contour[contour.length - 1]);
     return simplified;
 }
 
-function simplifySegment(contour, start, end, epsilon, simplified) {
+function SIMPLIFY_AMOUNTSegment(contour, start, end, epsilon, simplified) {
     let maxDist = 0;
     let maxIndex = 0;
     for (let i = start + 1; i < end; i++) {
@@ -313,9 +311,9 @@ function simplifySegment(contour, start, end, epsilon, simplified) {
         }
     }
     if (maxDist > epsilon) {
-        simplifySegment(contour, start, maxIndex, epsilon, simplified);
+        SIMPLIFY_AMOUNTSegment(contour, start, maxIndex, epsilon, simplified);
         simplified.push(contour[maxIndex]);
-        simplifySegment(contour, maxIndex, end, epsilon, simplified);
+        SIMPLIFY_AMOUNTSegment(contour, maxIndex, end, epsilon, simplified);
     }
 }
 

@@ -10,7 +10,7 @@ class Circle extends Object2D {
         this.type = 'Circle';
 
         this.radius = radius;
-        this.fillStyle = new ColorStyle('#FFFFFF');
+        this.fillStyle = new ColorStyle('#ffffff');
         this.strokeStyle = new ColorStyle('#000000');
         this.lineWidth = 1;
         this.constantWidth = false;

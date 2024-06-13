@@ -14,7 +14,7 @@ class Box extends Object2D {
         this.type = 'Box';
 
         this.box = new Box2(new Vector2(-50, -50), new Vector2(50, 50));
-        this.fillStyle = new ColorStyle('#FFFFFF');
+        this.fillStyle = new ColorStyle('#ffffff');
         this.strokeStyle = new ColorStyle('#000000');
         this.lineWidth = 1;
         this.radius = 0;

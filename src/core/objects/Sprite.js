@@ -1,8 +1,8 @@
 import { Box } from './Box.js';
 import { Box2 } from '../../math/Box2.js';
+import { ColorStyle } from './style/ColorStyle.js';
 import { PolyUtils } from '../../utils/PolyUtils.js';
 
-const PATTERN_COLOR = '#ffffff';
 const PATTERN_SPACING = 5;              // space between diamonds
 const SIMPLIFY_AMOUNT = 0.2;            // 0.1 to 10-ish
 
@@ -17,6 +17,8 @@ class Sprite extends Box {
         this.type = 'Sprite';
 
 	    this.image = document.createElement('img');
+        this.patternStyle = new ColorStyle('--icon');
+
         this.contours = [];
         this.path = new Path2D();
 
@@ -88,7 +90,12 @@ class Sprite extends Box {
         const camera = renderer.camera;
 
         // Pattern?
-        if (!_pattern) _pattern = context.createPattern(createCrossHatchPattern(PATTERN_COLOR, 0.5, PATTERN_SPACING), 'repeat');
+        if (!_pattern) {
+            const color = this.patternStyle.get(context);
+            const lineWidth = 0.5;
+            const spacing = PATTERN_SPACING;
+            _pattern = context.createPattern(createCrossHatchPattern(color, lineWidth, spacing), 'repeat');
+        }
 
         // Check Bounds
         if (this.box.equals(this.#box) === false) this.computeBoundingBox();
@@ -126,7 +133,7 @@ class Sprite extends Box {
             context.fillRect(dx * camera.scale, dy * camera.scale, dw * camera.scale, dh * camera.scale);
 
             // Stroke the scaled path
-            context.strokeStyle = PATTERN_COLOR;
+            context.strokeStyle = this.patternStyle.get(context);
             context.lineWidth = 1.5;
             context.stroke(scaledPath);
             context.restore();

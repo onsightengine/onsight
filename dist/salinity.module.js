@@ -3476,7 +3476,7 @@ class Box extends Object2D {
         super();
         this.type = 'Box';
         this.box = new Box2(new Vector2(-50, -50), new Vector2(50, 50));
-        this.fillStyle = new ColorStyle('#FFFFFF');
+        this.fillStyle = new ColorStyle('#ffffff');
         this.strokeStyle = new ColorStyle('#000000');
         this.lineWidth = 1;
         this.radius = 0;
@@ -3544,7 +3544,7 @@ class Circle extends Object2D {
         super();
         this.type = 'Circle';
         this.radius = radius;
-        this.fillStyle = new ColorStyle('#FFFFFF');
+        this.fillStyle = new ColorStyle('#ffffff');
         this.strokeStyle = new ColorStyle('#000000');
         this.lineWidth = 1;
         this.constantWidth = false;
@@ -3946,7 +3946,6 @@ class PolyUtils {
     }
 }
 
-const PATTERN_COLOR = '#ffffff';
 const PATTERN_SPACING = 5;
 const SIMPLIFY_AMOUNT = 0.2;
 let _pattern;
@@ -3956,6 +3955,7 @@ class Sprite extends Box {
         super();
         this.type = 'Sprite';
 	    this.image = document.createElement('img');
+        this.patternStyle = new ColorStyle('--icon');
         this.contours = [];
         this.path = new Path2D();
 	    if (src) this.setImage(src);
@@ -4012,7 +4012,12 @@ class Sprite extends Box {
     draw(renderer) {
         const context = renderer.context;
         const camera = renderer.camera;
-        if (!_pattern) _pattern = context.createPattern(createCrossHatchPattern(PATTERN_COLOR, 0.5, PATTERN_SPACING), 'repeat');
+        if (!_pattern) {
+            const color = this.patternStyle.get(context);
+            const lineWidth = 0.5;
+            const spacing = PATTERN_SPACING;
+            _pattern = context.createPattern(createCrossHatchPattern(color, lineWidth, spacing), 'repeat');
+        }
         if (this.box.equals(this.#box) === false) this.computeBoundingBox();
         if (this.image.src.length === 0 || !this.image.complete) return;
         const width = this.image.naturalWidth;
@@ -4034,7 +4039,7 @@ class Sprite extends Box {
             context.clip(scaledPath);
             context.fillStyle = _pattern;
             context.fillRect(dx * camera.scale, dy * camera.scale, dw * camera.scale, dh * camera.scale);
-            context.strokeStyle = PATTERN_COLOR;
+            context.strokeStyle = this.patternStyle.get(context);
             context.lineWidth = 1.5;
             context.stroke(scaledPath);
             context.restore();

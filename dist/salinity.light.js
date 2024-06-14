@@ -1003,7 +1003,7 @@ class Matrix2 {
         const m5 = mat.m[1] * this.m[4] + mat.m[3] * this.m[5] + mat.m[5];
         return this.set(m0, m1, m2, m3, m4, m5);
     }
-    compose(px, py, sx, sy, ox, oy, rot) {
+    compose(px, py, sx, sy, rot) {
         this.identity();
         this.multiply(_translate$1.set(1, 0, 0, 1, px, py));
         if (rot !== 0) {
@@ -1011,7 +1011,6 @@ class Matrix2 {
             const s = Math.sin(rot);
             this.multiply(_rotate$1.set(c, s, -s, c, 0, 0));
         }
-        if (ox !== 0 || oy !== 0) this.multiply(_origin.set(1, 0, 0, 1, -ox, -oy));
         if (sx !== 1 || sy !== 1) this.scale(sx, sy);
         return this;
     }
@@ -1686,7 +1685,7 @@ class Object2D extends Thing {
             this.globalOpacity = this.opacity * ((this.parent) ? this.parent.globalOpacity : 1);
             this.scale.x = MathUtils.noZero(MathUtils.sanity(this.scale.x));
             this.scale.y = MathUtils.noZero(MathUtils.sanity(this.scale.y));
-            this.matrix.compose(this.position.x, this.position.y, this.scale.x, this.scale.y, 0, 0, this.rotation);
+            this.matrix.compose(this.position.x, this.position.y, this.scale.x, this.scale.y, this.rotation);
             this.globalMatrix.copy(this.matrix);
             if (this.parent) this.globalMatrix.premultiply(this.parent.globalMatrix);
             this.globalMatrix.getInverse(this.inverseGlobalMatrix);

@@ -69,26 +69,21 @@ class Matrix2 {
      * @param {number} py Position Y
      * @param {number} sx Scale X
      * @param {number} sy Scale Y
-     * @param {number} ox Origin X (applied before scale and after rotation)
-     * @param {number} oy Origin Y (applied before scale and after rotation)
      * @param {number} rot Rotation angle (in radians)
      */
-    compose(px, py, sx, sy, ox, oy, rot) {
+    compose(px, py, sx, sy, rot) {
         // Identity
         this.identity();
 
         // Translation (Position)
         this.multiply(_translate.set(1, 0, 0, 1, px, py));
 
-        // Rotation
+        // Rotation (Clockwise)
         if (rot !== 0) {
             const c = Math.cos(rot);
             const s = Math.sin(rot);
             this.multiply(_rotate.set(c, s, -s, c, 0, 0));
         }
-
-        // Origin
-        if (ox !== 0 || oy !== 0) this.multiply(_origin.set(1, 0, 0, 1, -ox, -oy));
 
         // Scale
         if (sx !== 1 || sy !== 1) this.scale(sx, sy);

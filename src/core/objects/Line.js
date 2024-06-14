@@ -77,8 +77,17 @@ class Line extends Object2D {
         if (lengthSquared === 0) return Math.sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1)) <= buffer;
         // Line okay...
         const t = ((x - x1) * dx + (y - y1) * dy) / lengthSquared;
-        const nearestX = x1 + t * dx;
-        const nearestY = y1 + t * dy;
+        let nearestX, nearestY;
+        if (t < 0) {
+            nearestX = x1;
+            nearestY = y1;
+        } else if (t > 1) {
+            nearestX = x2;
+            nearestY = y2;
+        } else {
+            nearestX = x1 + t * dx;
+            nearestY = y1 + t * dy;
+        }
         const distanceSquared = (x - nearestX) * (x - nearestX) + (y - nearestY) * (y - nearestY);
         return distanceSquared <= buffer * buffer;
     }

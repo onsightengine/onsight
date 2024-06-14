@@ -265,4 +265,3 @@ export { Matrix2 };
 const _translate = new Matrix2();
 const _rotate = new Matrix2();
 const _skew = new Matrix2();
-const _origin = new Matrix2();

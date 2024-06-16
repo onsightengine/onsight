@@ -48,10 +48,10 @@ class GridHelper extends Object2D {
             const context = renderer.context;
             // Transform Order: Rotation, Scale, Position to allow Skew
             const worldPosition = cross.getWorldPosition();
-            renderer.camera.matrix.setContextTransform(context);
-            new Matrix2().translate(worldPosition.x, worldPosition.y).tranformContext(context);
-            new Matrix2().scale(self.scale.x, self.scale.y).tranformContext(context);
-            new Matrix2().rotate(self.rotation).tranformContext(context);
+            renderer.resetTransform();
+            _translate.identity().translate(worldPosition.x, worldPosition.y).transformContext(context);
+            _scale.identity().scale(self.scale.x, self.scale.y).transformContext(context);
+            _rotate.identity().rotate(self.rotation).transformContext(context);
             // Swap X/Y Scale due to Rotation
             function degreesToYAxisAlignment(degrees) {
                 const normalizedDegrees = ((degrees + 180) % 360 + 360) % 360 - 180;
@@ -152,12 +152,44 @@ class GridHelper extends Object2D {
         const camera = renderer.camera;
         context.save();
 
-        // Camera Matrix + Scale + Rotation
-        _matrix.copy(camera.matrix);
+        ///////// Original
+
+        // // Camera Matrix + Scale + Rotation
+        // _matrix.copy(camera.matrix);
+        // _matrix.multiply(_scale.identity().scale(this.scale.x, this.scale.y));
+        // _matrix.multiply(_rotate.identity().rotate(this.rotation));
+        // _matrix.setContextTransform(context);
+        // _matrix.getInverse(_inverse);
+
+        ///////// New 1
+
+        // // Camera Matrix + Scale + Rotation
+        // _matrix.identity();
+        // _matrix.multiply(renderer.resetTransform(false));
+        // _matrix.multiply(_scale.identity().scale(this.scale.x, this.scale.y));
+        // _matrix.multiply(_rotate.identity().rotate(this.rotation));
+        // _matrix.setContextTransform(context);
+        // _matrix.getInverse(_inverse);
+
+        //////// New 2
+
+        // // Camera Matrix + Scale + Rotation
+        _matrix.identity();
+        _matrix.translate(renderer.width / 2, renderer.height / -2);
+
+        const c = Math.cos(camera.rotation);
+        const s = Math.sin(camera.rotation);
+        _matrix.multiply(_rotate.set(c, s, -s, c, 0, 0));
+        _matrix.multiply(_translate.set(1, 0, 0, 1, camera.position.x, - camera.position.y));
+        _matrix.multiply(_scale.set(camera.scale, 0, 0, camera.scale, 0, 0));
+
         _matrix.multiply(_scale.identity().scale(this.scale.x, this.scale.y));
         _matrix.multiply(_rotate.identity().rotate(this.rotation));
-        _matrix.getInverse(_inverse);
+
         _matrix.setContextTransform(context);
+        _matrix.getInverse(_inverse);
+
+        //////////
 
         // Viewport Coordinates
         _inverse.applyToVector(_topLeft.set(0, 0));
@@ -173,8 +205,8 @@ class GridHelper extends Object2D {
         const gridCountY = Math.ceil(visibleHeight / this.gridY) + 1;
 
         // Calculate the starting position of the grid in world coordinates
-        const startX = Math.floor(_bounds.min.x / this.gridX) * this.gridX;
-        const startY = Math.floor(_bounds.min.y / this.gridY) * this.gridY;
+        const startX = (Math.floor(_bounds.min.x / this.gridX) * this.gridX);
+        const startY = (Math.floor(_bounds.min.y / this.gridY) * this.gridY) - renderer.height;
 
         // Draw Pattern
         if (camera.scale <= 1.5) {
@@ -192,8 +224,8 @@ class GridHelper extends Object2D {
             }
             for (let j = 0; j <= gridCountY; j++) {
                 const y = startY + j * this.gridY;
-                context.moveTo(_bounds.min.x, y);
-                context.lineTo(_bounds.max.x, y);
+                context.moveTo(_bounds.min.x, -y);
+                context.lineTo(_bounds.max.x, -y);
             }
             context.setTransform(1, 0, 0, 1, 0, 0);
             context.strokeStyle = `rgba(128, 128, 128, 1)`;
@@ -201,6 +233,24 @@ class GridHelper extends Object2D {
             context.stroke();
         }
         context.restore();
+    }
+
+    drawOld() {
+        // Camera Matrix + Scale + Rotation
+        _matrix.copy(camera.matrix);
+        _matrix.multiply(_scale.identity().scale(this.scale.x, this.scale.y));
+        _matrix.multiply(_rotate.identity().rotate(this.rotation));
+        _matrix.getInverse(_inverse);
+        _matrix.setContextTransform(context);
+
+        // Viewport Coordinates
+        _inverse.applyToVector(_topLeft.set(0, 0));
+        _inverse.applyToVector(_topRight.set(renderer.width, 0));
+        _inverse.applyToVector(_botLeft.set(0, renderer.height));
+        _inverse.applyToVector(_botRight.set(renderer.width, renderer.height));
+        _bounds.setFromPoints(_topLeft, _topRight, _botLeft, _botRight);
+        const visibleWidth = _bounds.getSize().x;
+        const visibleHeight = _bounds.getSize().y;
     }
 
     drawPattern(scale = 1) {

@@ -46,7 +46,7 @@
         scene.add(box3);
 
         const box4 = new SALT.Box();
-        box4.setPosition(-350, -50);
+        box4.setPosition(-300, -100);
         box4.fillStyle.color = '#ff00ff';
         scene.add(box4);
 
@@ -89,10 +89,10 @@
 
         // Pattern
         const pattern1 = new SALT.Pattern('../files/textures/shapes.png');
-        pattern1.setPosition(-350, 0);
+        pattern1.setPosition(-450, 100);
         setTimeout(() => {
-            pattern1.box.min.set(-200, -200);
-            pattern1.box.max.set(+25, +75);
+            pattern1.box.min.set(-100, -100);
+            pattern1.box.max.set(+100, +150);
         }, 1000);
         scene.add(pattern1);
 
@@ -103,7 +103,6 @@
 
         // Camera
         const camera = new SALT.Camera2D();
-        camera.position.copy(new SALT.Vector2(renderer.width / 2.0, renderer.height / 2.0));
 
         // Camera Controls
         const cameraControls = new SALT.CameraControls(camera);

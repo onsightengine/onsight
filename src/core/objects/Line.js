@@ -104,8 +104,8 @@ class Line extends Object2D {
     draw(renderer) {
         const context = renderer.context;
         context.beginPath();
-        context.moveTo(this.from.x, this.from.y);
-        context.lineTo(this.to.x, this.to.y);
+        context.moveTo(this.from.x, - this.from.y);
+        context.lineTo(this.to.x, - this.to.y);
         if (this.constantWidth) {
             context.save();
             context.setTransform(1, 0, 0, 1, 0, 0);

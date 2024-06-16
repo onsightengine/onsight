@@ -229,7 +229,8 @@ class Matrix2 {
      * @param {CanvasRenderingContext2D} context Canvas context to apply this matrix transform.
      */
     setContextTransform(context) {
-        context.setTransform(this.m[0], this.m[1], this.m[2], this.m[3], this.m[4], this.m[5]);
+        context.setTransform(1, 0, 0, 1, 0, 0);
+        this.transformContext(context);
         return this;
     }
 
@@ -237,14 +238,14 @@ class Matrix2 {
      * Transform on top of the current context transformation
      * @param {CanvasRenderingContext2D} context Canvas context to apply this matrix transform.
      */
-    tranformContext(context) {
-        context.transform(this.m[0], this.m[1], this.m[2], this.m[3], this.m[4], this.m[5]);
+    transformContext(context) {
+        context.transform(this.m[0], -this.m[1], -this.m[2], this.m[3], this.m[4], -this.m[5]);
         return this;
     }
 
     /** CSS transform string that can be applied to the transform style of any DOM element */
     cssTransform() {
-        return `matrix(${this.m[0]}, ${this.m[1]}, ${this.m[2]}, ${this.m[3]}, ${this.m[4]}, ${this.m[5]}`;
+        return `matrix(${this.m[0]}, ${-this.m[1]}, ${-this.m[2]}, ${this.m[3]}, ${this.m[4]}, ${-this.m[5]}`;
     }
 
     toArray() {

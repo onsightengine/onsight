@@ -4,6 +4,7 @@ import {
 import { Clock } from './Clock.js';
 import { EventManager } from './EventManager.js';
 import { Keyboard } from '../input/Keyboard.js';
+import { Matrix2 } from '../../math/Matrix2.js';
 import { Pointer } from '../input/Pointer.js';
 import { Vector2 } from '../../math/Vector2.js';
 
@@ -12,6 +13,10 @@ const _topLeft = new Vector2();
 const _topRight = new Vector2();
 const _botLeft = new Vector2();
 const _botRight = new Vector2();
+const _reset = new Matrix2();
+const _screen = new Matrix2();
+const _translate = new Matrix2();
+const _world = new Matrix2();
 
 class Renderer {
 
@@ -151,7 +156,6 @@ class Renderer {
                 // INCLUDES: renderer.keyboard.update();
                 if (typeof object.update === 'function') object.update(renderer);
             }
-            camera.updateMatrix(renderer.width / 2.0, renderer.height / 2.0);
 
             // Render
             renderer.render(scene, camera);
@@ -197,8 +201,9 @@ class Renderer {
 
         // Viewport Frustum Culling
         camera.setViewport(this.width, this.height);
+        camera.updateMatrix();
         for (const object of objects) {
-            object.inViewport = camera.intersectsViewport(object.getWorldBoundingBox());
+            object.inViewport = camera.intersectsViewport(this, object.getWorldBoundingBox());
         }
 
         // Pointer Events
@@ -218,9 +223,11 @@ class Renderer {
         });
         for (const object of lateUpdate) { updateObject(object); }
 
-        // Reset Transform, Clear Canvas
-        context.setTransform(1, 0, 0, 1, 0, 0);
-        if (this.autoClear) context.clearRect(0, 0, this.width, this.height);
+        // Clear Canvas
+        if (this.autoClear) {
+            context.setTransform(1, 0, 0, 1, 0, 0);
+            context.clearRect(0, 0, this.width, this.height);
+        }
 
         // Render Objects Back to Front
         for (let i = objects.length - 1; i >= 0; i--) {
@@ -230,13 +237,13 @@ class Renderer {
 
             // Apply Masks
             for (const mask of object.masks) {
-                camera.matrix.setContextTransform(context);
+                this.resetTransform();
                 mask.transform(renderer);
                 mask.clip(renderer);
             }
 
             // Apply Camera / Object Transforms to Canvas
-            camera.matrix.setContextTransform(context);
+            this.resetTransform();
             object.transform(renderer);
             context.globalAlpha = object.globalOpacity;
 
@@ -254,28 +261,30 @@ class Renderer {
         const context = this.context;
         context.globalAlpha = 1;
         context.lineWidth = OUTLINE_THICKNESS;
+
         // Center
         context.strokeStyle = '#ffffff';
-        camera.matrix.setContextTransform(context);
+        this.resetTransform();
         object.globalMatrix.applyToVector(_center.set(0, 0));
         const centerRadius = Math.max(3 / camera.scale, 0.00001);
         context.beginPath();
-        context.arc(_center.x, _center.y, centerRadius, 0, 2 * Math.PI);
+        context.arc(_center.x, -_center.y, centerRadius, 0, 2 * Math.PI);
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.stroke();
+
         // Bounding Box
         context.strokeStyle = '#65e5ff';
-        camera.matrix.setContextTransform(context);
+        this.resetTransform();
         const box = object.boundingBox;
-        object.globalMatrix.applyToVector(_topLeft.copy(box.min));
-        object.globalMatrix.applyToVector(_topRight.copy(box.max.x, box.min.y));
-        object.globalMatrix.applyToVector(_botLeft.copy(box.min.x, box.max.y));
-        object.globalMatrix.applyToVector(_botRight.copy(box.max));
+        object.globalMatrix.applyToVector(_topLeft.copy(box.min.x, box.max.y));
+        object.globalMatrix.applyToVector(_topRight.copy(box.max.x, box.max.y));
+        object.globalMatrix.applyToVector(_botRight.copy(box.max.x, box.min.y));
+        object.globalMatrix.applyToVector(_botLeft.copy(box.min.x, box.min.y));
         context.beginPath();
-        context.moveTo(_topLeft.x, _topLeft.y);
-        context.lineTo(_topRight.x, _topRight.y);
-        context.lineTo(_botRight.x, _botRight.y);
-        context.lineTo(_botLeft.x, _botLeft.y);
+        context.moveTo(_topLeft.x, -_topLeft.y);
+        context.lineTo(_topRight.x, -_topRight.y);
+        context.lineTo(_botRight.x, -_botRight.y);
+        context.lineTo(_botLeft.x, -_botLeft.y);
         context.closePath();
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.shadowBlur = 1;
@@ -283,6 +292,39 @@ class Renderer {
         context.stroke();
         context.shadowBlur = 0;
         context.shadowColor = 'transparent';
+    }
+
+    /******************** TRANSFORM */
+
+    resetTransform(applyToContext = true) {
+        const offsetX = this.width / 2;
+        const offsetY = this.height / -2;
+        _reset.identity();
+        _reset.translate(offsetX, offsetY);
+        if (this.camera) _reset.multiply(this.camera.matrix);
+        if (applyToContext) _reset.setContextTransform(this.context);
+        return _reset;
+    }
+
+    screenToWorld(x, y) {
+        if (!this.camera) return undefined;
+        const offsetX = this.width / -2;
+        const offsetY = this.height / 2;
+        _world.identity();
+        _world.multiply(this.camera.inverseMatrix);
+        _world.translate(offsetX, offsetY);
+        return _world.transformPoint(x, y);
+    }
+
+    worldToScreen(x, y) {
+        if (!this.camera) return undefined;
+        const offsetX = this.width / 2;
+        const offsetY = this.height / -2;
+        _screen.identity();
+        _screen.translate(offsetX, offsetY);
+        _screen.multiply(this.camera.matrix);
+        return _screen.transformPoint(x, y);
+
     }
 
 }

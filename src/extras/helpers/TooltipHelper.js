@@ -92,8 +92,8 @@ class TooltipHelper extends Box {
                 // Initial Position
                 this.offset.x = ((this.box.max.x - this.box.min.x) / 2) + 25;
                 this.offset.y = ((this.box.max.y - this.box.min.y) / 2) + 25;
-                _position.set(pointer.position.x + this.offset.x, pointer.position.y - this.offset.y);
-                camera.inverseMatrix.applyToVector(_position);
+                _position.set(pointer.position.x + this.offset.x, pointer.position.y + this.offset.y);
+                _position.copy(renderer.screenToWorld(_position));
                 // Setup Display
                 this.position.copy(_position);
                 this.opacity = 1;
@@ -104,8 +104,8 @@ class TooltipHelper extends Box {
                 this.outline.box.expandByScalar(3);
             } else {
                 // Smooth Step Position
-                _position.set(pointer.position.x + this.offset.x, pointer.position.y - this.offset.y);
-                camera.inverseMatrix.applyToVector(_position);
+                _position.set(pointer.position.x + this.offset.x, pointer.position.y + this.offset.y);
+                _position.copy(renderer.screenToWorld(_position));
                 this.position.smoothstep(_position, renderer.deltaTime * 60);
                 this.opacity = (timePassed >= this.duration - this.fadeOut) ? Math.max(0, 1 - (timePassed - (this.duration - this.fadeOut)) / this.fadeOut) : 1;
             }

@@ -44,7 +44,7 @@ class Pattern extends Box {
 	        const height = this.box.max.y - this.box.min.y;
             const pattern = context.createPattern(this.image, this.repetition);
 		    context.fillStyle = pattern;
-		    context.fillRect(this.box.min.x, this.box.min.y, width, height);
+		    context.fillRect(this.box.min.x, - this.box.max.y, width, height);
         }
     }
 

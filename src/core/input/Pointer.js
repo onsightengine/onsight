@@ -25,8 +25,8 @@ class Pointer {
 
         // Raw data
         this._keys = new Array(5);
-        this._position = new Vector2(0, 0);
-        this._positionUpdated = false;
+        this._location = new Vector2(0, 0);
+        this._locationUpdated = false;
         this._delta = new Vector2(0, 0);
         this._wheel = 0;
         this._wheelUpdated = false;
@@ -34,7 +34,8 @@ class Pointer {
         this._clickTime = new Array(5);
 
         this.keys = new Array(5);               // pointer buttons states
-        this.position = new Vector2(0, 0);      // position inside of the window (coordinates in window space)
+        this.position = new Vector2(0, 0);      // position inside of the window (coordinates in world space)
+        this.location = new Vector2(0, 0);      // location inside of the window (coordinates in window space)
         this.delta = new Vector2(0, 0);         // movement since the last update (coordinates in window space)
         this.wheel = 0;                         // scroll wheel movement since the last update
         this.doubleClicked = new Array(5);      // indicates a button of the pointer was double clicked
@@ -51,18 +52,19 @@ class Pointer {
         }
 
         // Updates
-        function updatePosition(x, y) {
+        function updateLocation(x, y) {
             if (element && element.dom) {
                 const rect = element.dom.getBoundingClientRect();
                 x -= rect.left;
                 y -= rect.top;
             }
-            const xDiff = x - self._position.x;
-            const yDiff = y - self._position.y;
+            const xDiff = x - self._location.x;
+            const yDiff = y - self._location.y;
             self._delta.x += xDiff;
             self._delta.y += yDiff;
-            self._position.set(x, y);
-            self._positionUpdated = true;
+            self._location.set(x, y);
+            self._locationUpdated = true;
+            self.position.set(x, -y);
         }
         function updateKey(button, action) {
             if (button >= 0) self._keys[button].update(action);
@@ -78,7 +80,7 @@ class Pointer {
 
         // Pointer
         element.on('pointermove', (event) => {
-            updatePosition(event.clientX, event.clientY);
+            updateLocation(event.clientX, event.clientY);
         });
         element.on('pointerdown', (event) => {
             element.dom.setPointerCapture(event.pointerId);
@@ -166,12 +168,12 @@ class Pointer {
             this.wheel = 0;
         }
 
-        // Pointer Position
-        if (this._positionUpdated) {
+        // Pointer Location
+        if (this._locationUpdated) {
             this.delta.copy(this._delta);
-            this.position.copy(this._position);
+            this.location.copy(this._location);
             this._delta.set(0, 0);
-            this._positionUpdated = false;
+            this._locationUpdated = false;
         } else {
             this.delta.x = 0;
             this.delta.y = 0;

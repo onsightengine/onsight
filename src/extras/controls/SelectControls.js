@@ -37,8 +37,8 @@ class SelectControls {
         if (!camera || !scene || !pointer || !keyboard) return;
         let newSelection = [ ...this.selection ];
 
-        // Pointer in Camera (World) Coordinates
-        camera.inverseMatrix.applyToVector(_cameraPoint.copy(pointer.position));
+        // Pointer in World (camera) Coordinates
+        _cameraPoint.copy(renderer.screenToWorld(pointer.position));
 
         // Button Press
         if (pointer.buttonJustPressed(Pointer.LEFT)) {
@@ -107,10 +107,10 @@ class SelectControls {
                 // Update Rubber Band Box
                 if (this.rubberBandBox) {
                     // Center
-                    const viewportStart = camera.matrix.transformPoint(this._mouseStart);
-                    const viewportEnd = camera.matrix.transformPoint(this._mouseNow);
+                    const viewportStart = renderer.worldToScreen(this._mouseStart);
+                    const viewportEnd = renderer.worldToScreen(this._mouseNow);
                     _center.addVectors(viewportStart, viewportEnd).divideScalar(2);
-                    camera.inverseMatrix.applyToVector(_center);
+                    _center.copy(renderer.screenToWorld(_center));
                     this.rubberBandBox.position.copy(_center);
                     // Size
                     _size.subVectors(viewportStart, viewportEnd).abs().divideScalar(2);

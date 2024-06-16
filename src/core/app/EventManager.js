@@ -1,8 +1,10 @@
+import { Matrix2 } from '../../math/Matrix2.js';
 import { Pointer } from '../input/Pointer.js';
 import { Vector2 } from '../../math/Vector2.js';
 
 const _cameraPoint = new Vector2();
 const _localPoint = new Vector2();
+const _translate = new Matrix2();
 
 class EventManager {
 
@@ -10,8 +12,8 @@ class EventManager {
         const camera = renderer.camera;
         const pointer = renderer.pointer;
 
-        // Pointer in Camera Coordinates
-        camera.inverseMatrix.applyToVector(_cameraPoint.copy(pointer.position));
+        // Pointer in World Coordinates
+        _cameraPoint.copy(renderer.screenToWorld(pointer.position));
 
         // Pointer Events
         let currentCursor = null;

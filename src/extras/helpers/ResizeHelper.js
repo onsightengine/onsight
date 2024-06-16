@@ -4,6 +4,7 @@ import {
 import { Box } from '../../core/objects/Box.js';
 import { Box2 } from '../../math/Box2.js';
 import { Circle } from '../../core/objects/Circle.js';
+import { ColorStyle } from '../../core/objects/style/ColorStyle.js';
 import { Line } from '../../core/objects/Line.js';
 import { LinearGradientStyle } from '../../core/objects/style/LinearGradientStyle.js';
 import { MathUtils } from '../../utils/MathUtils.js';
@@ -157,7 +158,7 @@ class ResizeHelper extends Box {
 
         // Corners / Sides
         if (tools === ResizeHelper.ALL || tools === ResizeHelper.RESIZE) {
-            function createResizer(name, x, y, type = 'box', addRotation, alpha) {
+            function createResizer(name, x, y, type = 'box', addRotation, alpha, color) {
                 let resizer;
                 switch (type) {
                     case 'circle':
@@ -185,11 +186,15 @@ class ResizeHelper extends Box {
                 switch (type) {
                     case 'box':
                     case 'circle':
-                        resizer.fillStyle = new LinearGradientStyle();
-                        resizer.fillStyle.start.set(-radius, -radius);
-                        resizer.fillStyle.end.set(radius, radius);
-                        resizer.fillStyle.addColorStop(0, '--icon-light');
-                        resizer.fillStyle.addColorStop(1, '--icon-dark');
+                        if (color) {
+                            resizer.fillStyle = new ColorStyle(color);
+                        } else {
+                            resizer.fillStyle = new LinearGradientStyle();
+                            resizer.fillStyle.start.set(-radius, -radius);
+                            resizer.fillStyle.end.set(radius, radius);
+                            resizer.fillStyle.addColorStop(0, '--icon-light');
+                            resizer.fillStyle.addColorStop(1, '--icon-dark');
+                        }
                         resizer.strokeStyle.color = '--highlight';
                         resizer.lineWidth = OUTLINE_THICKNESS;
                         break;
@@ -217,6 +222,7 @@ class ResizeHelper extends Box {
                         rotation += (addRotation * (Math.PI / 180));
                     }
                     rotation = (rotation + camera.rotation) * 180 / Math.PI;
+                    rotation = 360 - rotation;
                     const normalizedRotation = MathUtils.equalizeAngle0to360(rotation, true /* degrees? */);
                     let closestCursor = 'default';
                     let minAngleDiff = Infinity;
@@ -353,14 +359,14 @@ class ResizeHelper extends Box {
                 }
                 return resizer;
             }
-            bottomRight = createResizer('Bottom Right', -1, -1, 'box', 45, 1);
-            bottomLeft = createResizer('Bottom Left', 1, -1, 'box', 135, 1);
-            topLeft = createResizer('Top Left', 1, 1, 'box', 225, 1);
-            topRight = createResizer('Top Right', -1, 1, 'box', 315, 1);
+            topRight = createResizer('Top Right', -1, -1, 'box', 45, 1, 'yellow');
+            topLeft = createResizer('Top Left', 1, -1, 'box', 135, 1, 'blue');
+            bottomLeft = createResizer('Bottom Left', 1, 1, 'box', 225, 1, 'green');
+            bottomRight = createResizer('Bottom Right', -1, 1, 'box', 315, 1, 'red');
             rightResizer = createResizer('Right', -1, 0, 'line', 0, 1);
-            bottomResizer = createResizer('Bottom', 0, -1, 'line', 90, 1);
+            topResizer = createResizer('Top', 0, -1, 'line', 90, 1);
             leftResizer = createResizer('Left', 1, 0, 'line', 180, 1);
-            topResizer = createResizer('Top', 0, 1, 'line', 270, 1);
+            bottomResizer = createResizer('Bottom', 0, 1, 'line', 270, 1);
             this.add(bottomRight, bottomLeft, topLeft, topRight);
             this.add(rightResizer, bottomResizer, leftResizer, topResizer);
         }
@@ -402,10 +408,10 @@ class ResizeHelper extends Box {
                     const pointer = renderer.pointer;
                     const camera = renderer.camera;
                     const pointerStart = pointer.position.clone();
-                    const pointerEnd = pointer.position.clone().sub(pointer.delta);
-                    const worldPositionStart = camera.inverseMatrix.transformPoint(pointerStart);
+                    const pointerEnd = pointer.position.clone().sub(pointer.delta.x, pointer.delta.y * -1);
+                    const worldPositionStart = renderer.screenToWorld(pointerStart);
                     const localPositionStart = self.inverseGlobalMatrix.transformPoint(worldPositionStart);
-                    const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
+                    const worldPositionEnd = renderer.screenToWorld(pointerEnd);
                     const localPositionEnd = self.inverseGlobalMatrix.transformPoint(worldPositionEnd);
                     localPositionStart.sub(self.origin).multiply(self.scale);
                     localPositionEnd.sub(self.origin).multiply(self.scale);
@@ -536,8 +542,8 @@ class ResizeHelper extends Box {
 
             // Rotate Tool
             const handleOffset = ((radius * 4) / Math.abs(worldScale.y)) / camera.scale;
-            const topCenterWorld = new Vector2(0, -halfSize.y);
-            const topCenterWorldOffset = new Vector2(0, -halfSize.y - handleOffset);
+            const topCenterWorld = new Vector2(0, halfSize.y);
+            const topCenterWorldOffset = new Vector2(0, halfSize.y + handleOffset);
             if (rotater) {
                 rotater.position.copy(topCenterWorldOffset);
                 rotater.rotation = 0;
@@ -554,13 +560,13 @@ class ResizeHelper extends Box {
             }
             if (zeroLine) {
                 zeroLine.from.set(self.origin.x, self.origin.y);
-                zeroLine.to.set(self.origin.x, self.origin.y - (handleOffset * 1.5));
+                zeroLine.to.set(self.origin.x, self.origin.y + (handleOffset * 1.5));
                 zeroLine.updateMatrix(true);
                 zeroLine.visible = rotater.isDragging;
             }
             if (rotateLine) {
                 rotateLine.from.set(self.origin.x, self.origin.y);
-                rotateLine.to.set(0, radius * 4 * -1.5).add(worldPosition);
+                rotateLine.to.set(0, radius * 4 * 1.5).add(worldPosition);
                 self.inverseGlobalMatrix.applyToVector(rotateLine.to);
                 rotateLine.to.divideScalar(camera.scale);
                 rotateLine.to.add(self.origin);
@@ -578,14 +584,14 @@ class ResizeHelper extends Box {
                 resizer.updateMatrix(true);
                 resizer.visible = showResizers;
             }
-            updateResizer(topLeft, -halfSize.x, -halfSize.y);
-            updateResizer(topRight, +halfSize.x, -halfSize.y);
-            updateResizer(bottomLeft, -halfSize.x, +halfSize.y);
-            updateResizer(bottomRight, +halfSize.x, +halfSize.y);
+            updateResizer(topLeft, -halfSize.x, +halfSize.y);
+            updateResizer(topRight, +halfSize.x, +halfSize.y);
+            updateResizer(bottomLeft, -halfSize.x, -halfSize.y);
+            updateResizer(bottomRight, +halfSize.x, -halfSize.y);
             updateResizer(leftResizer, -halfSize.x, 0, 'v');
             updateResizer(rightResizer, +halfSize.x, 0, 'v');
-            updateResizer(topResizer, 0, -halfSize.y, 'h');
-            updateResizer(bottomResizer, 0, +halfSize.y, 'h');
+            updateResizer(topResizer, 0, +halfSize.y, 'h');
+            updateResizer(bottomResizer, 0, -halfSize.y, 'h');
         };
     }
 

@@ -1,9 +1,12 @@
 import { Box2 } from '../../math/Box2.js';
+import { Matrix2 } from '../../math/Matrix2.js';
 import { Pointer } from '../../core/input/Pointer.js';
 import { Vector2 } from '../../math/Vector2.js';
 
 const ZOOM_MAX = 25;
 const ZOOM_MIN = 0.01;
+
+const _rotate = new Matrix2();
 
 class CameraControls {
 
@@ -38,7 +41,7 @@ class CameraControls {
         // Double Click?
         if (pointer.buttonDoubleClicked(Pointer.LEFT) && camera && renderer.scene) {
             if (!keyboard.modifierPressed()) {
-                const worldPoint = camera.inverseMatrix.transformPoint(pointer.position);
+                const worldPoint = renderer.screenToWorld(pointer.position);
                 const objects = renderer.scene.getWorldPointIntersections(worldPoint);
                 if (objects.length === 0) {
                     this.focusCamera(renderer, renderer.scene, true /* includeChildren? */);
@@ -56,10 +59,10 @@ class CameraControls {
             if (pointer.wheel < 0) scaleFactor = Math.max(scaleFactor, camera.scale - ZOOM_MAX);
             if (pointer.wheel > 0) scaleFactor = Math.min(scaleFactor, camera.scale - ZOOM_MIN);
             // Zoom on Target Position
-            const pointerPos = camera.inverseMatrix.transformPoint(pointer.position);
+            const pointerPos = renderer.screenToWorld(pointer.position);
             camera.scale -= scaleFactor;
             camera.scale = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, camera.scale));
-            camera.position.add(pointerPos.multiplyScalar(scaleFactor));
+            camera.position.add(pointerPos.multiplyScalar(scaleFactor).multiply(1, -1));
             camera.matrixNeedsUpdate = true;
         }
 
@@ -70,7 +73,7 @@ class CameraControls {
                 this.rotationInitial = camera.rotation;
             } else if (pointer.buttonPressed(this.rotateButton)) {
                 const point = pointer.position.clone().sub(this.rotationPoint);
-                camera.rotation = this.rotationInitial + (point.x * 0.01);
+                camera.rotation = this.rotationInitial + (point.x * -0.01);
                 camera.matrixNeedsUpdate = true;
             }
         }
@@ -98,9 +101,8 @@ class CameraControls {
                     this.dragID = pointer.lock();
                     this.dragging = true;
                 }
-                const currentPointerPos = camera.inverseMatrix.transformPoint(pointer.position.clone());
-                const lastPointerPos = camera.inverseMatrix.transformPoint(pointer.position.clone().sub(pointer.delta));
-                const delta = currentPointerPos.clone().sub(lastPointerPos).multiplyScalar(camera.scale);
+                _rotate.identity().rotate(camera.rotation);
+                const delta = _rotate.transformPoint(pointer.delta);
                 camera.position.add(delta);
                 camera.matrixNeedsUpdate = true;
             } else {

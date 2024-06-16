@@ -1005,7 +1005,7 @@ class Matrix2 {
     }
     compose(px, py, sx, sy, rot) {
         this.identity();
-        this.multiply(_translate$1.set(1, 0, 0, 1, px, py));
+        this.multiply(_translate$3.set(1, 0, 0, 1, px, py));
         if (rot !== 0) {
             const c = Math.cos(rot);
             const s = Math.sin(rot);
@@ -1121,15 +1121,16 @@ class Matrix2 {
         return new Vector2(px, py);
     }
     setContextTransform(context) {
-        context.setTransform(this.m[0], this.m[1], this.m[2], this.m[3], this.m[4], this.m[5]);
+        context.setTransform(1, 0, 0, 1, 0, 0);
+        this.transformContext(context);
         return this;
     }
-    tranformContext(context) {
-        context.transform(this.m[0], this.m[1], this.m[2], this.m[3], this.m[4], this.m[5]);
+    transformContext(context) {
+        context.transform(this.m[0], -this.m[1], -this.m[2], this.m[3], this.m[4], -this.m[5]);
         return this;
     }
     cssTransform() {
-        return `matrix(${this.m[0]}, ${this.m[1]}, ${this.m[2]}, ${this.m[3]}, ${this.m[4]}, ${this.m[5]}`;
+        return `matrix(${this.m[0]}, ${-this.m[1]}, ${-this.m[2]}, ${this.m[3]}, ${this.m[4]}, ${-this.m[5]}`;
     }
     toArray() {
         return [ ...this.m ];
@@ -1139,7 +1140,7 @@ class Matrix2 {
         return this;
     }
 }
-const _translate$1 = new Matrix2();
+const _translate$3 = new Matrix2();
 const _rotate$1 = new Matrix2();
 const _skew = new Matrix2();
 
@@ -1193,8 +1194,8 @@ class Pointer {
         }
         const self = this;
         this._keys = new Array(5);
-        this._position = new Vector2(0, 0);
-        this._positionUpdated = false;
+        this._location = new Vector2(0, 0);
+        this._locationUpdated = false;
         this._delta = new Vector2(0, 0);
         this._wheel = 0;
         this._wheelUpdated = false;
@@ -1202,6 +1203,7 @@ class Pointer {
         this._clickTime = new Array(5);
         this.keys = new Array(5);
         this.position = new Vector2(0, 0);
+        this.location = new Vector2(0, 0);
         this.delta = new Vector2(0, 0);
         this.wheel = 0;
         this.doubleClicked = new Array(5);
@@ -1214,18 +1216,19 @@ class Pointer {
             this._keys[i] = new Key();
             this.keys[i] = new Key();
         }
-        function updatePosition(x, y) {
+        function updateLocation(x, y) {
             if (element && element.dom) {
                 const rect = element.dom.getBoundingClientRect();
                 x -= rect.left;
                 y -= rect.top;
             }
-            const xDiff = x - self._position.x;
-            const yDiff = y - self._position.y;
+            const xDiff = x - self._location.x;
+            const yDiff = y - self._location.y;
             self._delta.x += xDiff;
             self._delta.y += yDiff;
-            self._position.set(x, y);
-            self._positionUpdated = true;
+            self._location.set(x, y);
+            self._locationUpdated = true;
+            self.position.set(x, -y);
         }
         function updateKey(button, action) {
             if (button >= 0) self._keys[button].update(action);
@@ -1237,7 +1240,7 @@ class Pointer {
             });
         }
         element.on('pointermove', (event) => {
-            updatePosition(event.clientX, event.clientY);
+            updateLocation(event.clientX, event.clientY);
         });
         element.on('pointerdown', (event) => {
             element.dom.setPointerCapture(event.pointerId);
@@ -1304,11 +1307,11 @@ class Pointer {
         } else {
             this.wheel = 0;
         }
-        if (this._positionUpdated) {
+        if (this._locationUpdated) {
             this.delta.copy(this._delta);
-            this.position.copy(this._position);
+            this.location.copy(this._location);
             this._delta.set(0, 0);
-            this._positionUpdated = false;
+            this._locationUpdated = false;
         } else {
             this.delta.x = 0;
             this.delta.y = 0;
@@ -1460,10 +1463,10 @@ class Thing {
 }
 
 const _position = new Vector2();
-const _topLeft$2 = new Vector2();
-const _topRight$2 = new Vector2();
-const _botLeft$2 = new Vector2();
-const _botRight$2 = new Vector2();
+const _corner1$1 = new Vector2();
+const _corner2$1 = new Vector2();
+const _corner3$1 = new Vector2();
+const _corner4$1 = new Vector2();
 class Object2D extends Thing {
     constructor() {
         super();
@@ -1610,11 +1613,11 @@ class Object2D extends Thing {
         const box = this.boundingBox;
         if (Number.isFinite(box.min.x) === false || Number.isFinite(box.min.y) === false) return box;
         if (Number.isFinite(box.max.x) === false || Number.isFinite(box.max.y) === false) return box;
-        this.globalMatrix.applyToVector(_topLeft$2.copy(box.min));
-        this.globalMatrix.applyToVector(_topRight$2.copy(box.max.x, box.min.y));
-        this.globalMatrix.applyToVector(_botLeft$2.copy(box.min.x, box.max.y));
-        this.globalMatrix.applyToVector(_botRight$2.copy(box.max));
-        return new Box2().setFromPoints(_topLeft$2, _topRight$2, _botLeft$2, _botRight$2);
+        this.globalMatrix.applyToVector(_corner1$1.copy(box.min.x, box.min.y));
+        this.globalMatrix.applyToVector(_corner2$1.copy(box.min.x, box.max.y));
+        this.globalMatrix.applyToVector(_corner3$1.copy(box.max.x, box.min.y));
+        this.globalMatrix.applyToVector(_corner4$1.copy(box.max.x, box.max.y));
+        return new Box2().setFromPoints(_corner1$1, _corner2$1, _corner3$1, _corner4$1);
     }
     localToWorld(vector) {
         return this.globalMatrix.transformPoint(vector);
@@ -1692,7 +1695,7 @@ class Object2D extends Thing {
         }
     }
     transform(renderer) {
-        this.globalMatrix.tranformContext(renderer.context);
+        this.globalMatrix.transformContext(renderer.context);
     }
     onPointerDrag(renderer) {
         const pointer = renderer.pointer;
@@ -1708,9 +1711,9 @@ class Object2D extends Thing {
             if (manhattanDistance >= MOUSE_SLOP || this.isDragging) {
                 this.isDragging = true;
                 const parent = this.parent ?? this;
-                const worldPositionStart = camera.inverseMatrix.transformPoint(pointerStart);
+                const worldPositionStart = renderer.screenToWorld(pointerStart);
                 const localPositionStart = parent.inverseGlobalMatrix.transformPoint(worldPositionStart);
-                const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
+                const worldPositionEnd = renderer.screenToWorld(pointerEnd);
                 const localPositionEnd = parent.inverseGlobalMatrix.transformPoint(worldPositionEnd);
                 const delta = localPositionStart.clone().sub(localPositionEnd);
                 _position.copy(this.dragStartPosition).sub(delta);
@@ -2837,11 +2840,11 @@ function appPointerMove(event) {
 }
 
 const _cameraView = new Box2();
-const _topLeft$1 = new Vector2();
-const _topRight$1 = new Vector2();
-const _botLeft$1 = new Vector2();
-const _botRight$1 = new Vector2();
-const _translate = new Matrix2();
+const _corner1 = new Vector2();
+const _corner2 = new Vector2();
+const _corner3 = new Vector2();
+const _corner4 = new Vector2();
+const _translate$2 = new Matrix2();
 const _rotate = new Matrix2();
 const _scale$1 = new Matrix2();
 class Camera2D extends Thing {
@@ -2854,41 +2857,48 @@ class Camera2D extends Thing {
         this.matrix = new Matrix2();
         this.inverseMatrix = new Matrix2();
         this.matrixNeedsUpdate = true;
-        this.viewport = new Box2(new Vector2(0, 0), new Vector2(1, 1));
+        this.width = 0;
+        this.height = 0;
+        this.viewport = new Box2(new Vector2(0, 0), new Vector2(0, 0));
     }
-    intersectsViewport(box) {
-        this.matrix.applyToVector(_topLeft$1.copy(box.min));
-        this.matrix.applyToVector(_topRight$1.copy(box.max.x, box.min.y));
-        this.matrix.applyToVector(_botLeft$1.copy(box.min.x, box.max.y));
-        this.matrix.applyToVector(_botRight$1.copy(box.max));
-        _cameraView.setFromPoints(_topLeft$1, _topRight$1, _botLeft$1, _botRight$1);
+    intersectsViewport(renderer, box) {
+        _corner1.copy(renderer.worldToScreen(box.min.x, box.min.y));
+        _corner2.copy(renderer.worldToScreen(box.min.x, box.max.y));
+        _corner3.copy(renderer.worldToScreen(box.max.x, box.min.y));
+        _corner4.copy(renderer.worldToScreen(box.max.x, box.max.y));
+        _cameraView.setFromPoints(_corner1, _corner2, _corner3, _corner4);
         return this.viewport.intersectsBox(_cameraView);
     }
-    updateMatrix(offsetX, offsetY) {
-        if (!this.matrixNeedsUpdate) return;
+    updateMatrix(force = false) {
+        if (force !== true && this.matrixNeedsUpdate !== true) return;
         this.matrix.identity();
-        this.matrix.multiply(_translate.set(1, 0, 0, 1, +offsetX, +offsetY));
         const c = Math.cos(this.rotation);
         const s = Math.sin(this.rotation);
         this.matrix.multiply(_rotate.set(c, s, -s, c, 0, 0));
-        this.matrix.multiply(_translate.set(1, 0, 0, 1, -offsetX, -offsetY));
-        this.matrix.multiply(_translate.set(1, 0, 0, 1, this.position.x, this.position.y));
+        this.matrix.multiply(_translate$2.set(1, 0, 0, 1, this.position.x, - this.position.y));
         this.matrix.multiply(_scale$1.set(this.scale, 0, 0, this.scale, 0, 0));
         this.matrix.getInverse(this.inverseMatrix);
         this.matrixNeedsUpdate = false;
     }
-    setViewport(width = 1, height = 1) {
-        this.viewport.max.set(width, height);
+    setViewport(width = 0, height = 0) {
+        if (width !== this.width || height !== this.height) {
+            this.width = width;
+            this.height = height;
+            this.viewport.min.set(0, -height);
+            this.viewport.max.set(width, 0);
+            this.matrixNeedsUpdate = true;
+        }
     }
 }
 
 const _cameraPoint = new Vector2();
 const _localPoint = new Vector2();
+const _translate$1 = new Matrix2();
 class EventManager {
     static pointerEvents(renderer, objects) {
         const camera = renderer.camera;
         const pointer = renderer.pointer;
-        camera.inverseMatrix.applyToVector(_cameraPoint.copy(pointer.position));
+        _cameraPoint.copy(renderer.screenToWorld(pointer.position));
         let currentCursor = null;
         for (const object of objects) {
             if (object.pointerEvents && object.inViewport) {
@@ -2999,6 +3009,10 @@ const _topLeft = new Vector2();
 const _topRight = new Vector2();
 const _botLeft = new Vector2();
 const _botRight = new Vector2();
+const _reset = new Matrix2();
+const _screen = new Matrix2();
+const _translate = new Matrix2();
+const _world = new Matrix2();
 class Renderer {
     constructor({
         alpha = true,
@@ -3100,7 +3114,6 @@ class Renderer {
             for (const object of renderer.updatable) {
                 if (typeof object.update === 'function') object.update(renderer);
             }
-            camera.updateMatrix(renderer.width / 2.0, renderer.height / 2.0);
             renderer.render(scene, camera);
             const backBuffer = renderer.offscreen.transferToImageBitmap();
             renderer.screenContext.transferFromImageBitmap(backBuffer);
@@ -3131,8 +3144,9 @@ class Renderer {
             return b.layer - a.layer;
         });
         camera.setViewport(this.width, this.height);
+        camera.updateMatrix();
         for (const object of objects) {
-            object.inViewport = camera.intersectsViewport(object.getWorldBoundingBox());
+            object.inViewport = camera.intersectsViewport(this, object.getWorldBoundingBox());
         }
         if (this.pointerEvents) {
             EventManager.pointerEvents(renderer, objects);
@@ -3147,18 +3161,20 @@ class Renderer {
             else updateObject(child);
         });
         for (const object of lateUpdate) { updateObject(object); }
-        context.setTransform(1, 0, 0, 1, 0, 0);
-        if (this.autoClear) context.clearRect(0, 0, this.width, this.height);
+        if (this.autoClear) {
+            context.setTransform(1, 0, 0, 1, 0, 0);
+            context.clearRect(0, 0, this.width, this.height);
+        }
         for (let i = objects.length - 1; i >= 0; i--) {
             const object = objects[i];
             if (object.isMask) continue;
             if (object.inViewport !== true) continue;
             for (const mask of object.masks) {
-                camera.matrix.setContextTransform(context);
+                this.resetTransform();
                 mask.transform(renderer);
                 mask.clip(renderer);
             }
-            camera.matrix.setContextTransform(context);
+            this.resetTransform();
             object.transform(renderer);
             context.globalAlpha = object.globalOpacity;
             if (typeof object.style === 'function') { object.style(renderer); }
@@ -3172,25 +3188,25 @@ class Renderer {
         context.globalAlpha = 1;
         context.lineWidth = OUTLINE_THICKNESS;
         context.strokeStyle = '#ffffff';
-        camera.matrix.setContextTransform(context);
+        this.resetTransform();
         object.globalMatrix.applyToVector(_center.set(0, 0));
         const centerRadius = Math.max(3 / camera.scale, 0.00001);
         context.beginPath();
-        context.arc(_center.x, _center.y, centerRadius, 0, 2 * Math.PI);
+        context.arc(_center.x, -_center.y, centerRadius, 0, 2 * Math.PI);
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.stroke();
         context.strokeStyle = '#65e5ff';
-        camera.matrix.setContextTransform(context);
+        this.resetTransform();
         const box = object.boundingBox;
-        object.globalMatrix.applyToVector(_topLeft.copy(box.min));
-        object.globalMatrix.applyToVector(_topRight.copy(box.max.x, box.min.y));
-        object.globalMatrix.applyToVector(_botLeft.copy(box.min.x, box.max.y));
-        object.globalMatrix.applyToVector(_botRight.copy(box.max));
+        object.globalMatrix.applyToVector(_topLeft.copy(box.min.x, box.max.y));
+        object.globalMatrix.applyToVector(_topRight.copy(box.max.x, box.max.y));
+        object.globalMatrix.applyToVector(_botRight.copy(box.max.x, box.min.y));
+        object.globalMatrix.applyToVector(_botLeft.copy(box.min.x, box.min.y));
         context.beginPath();
-        context.moveTo(_topLeft.x, _topLeft.y);
-        context.lineTo(_topRight.x, _topRight.y);
-        context.lineTo(_botRight.x, _botRight.y);
-        context.lineTo(_botLeft.x, _botLeft.y);
+        context.moveTo(_topLeft.x, -_topLeft.y);
+        context.lineTo(_topRight.x, -_topRight.y);
+        context.lineTo(_botRight.x, -_botRight.y);
+        context.lineTo(_botLeft.x, -_botLeft.y);
         context.closePath();
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.shadowBlur = 1;
@@ -3198,6 +3214,33 @@ class Renderer {
         context.stroke();
         context.shadowBlur = 0;
         context.shadowColor = 'transparent';
+    }
+    resetTransform(applyToContext = true) {
+        const offsetX = this.width / 2;
+        const offsetY = this.height / -2;
+        _reset.identity();
+        _reset.translate(offsetX, offsetY);
+        if (this.camera) _reset.multiply(this.camera.matrix);
+        if (applyToContext) _reset.setContextTransform(this.context);
+        return _reset;
+    }
+    screenToWorld(x, y) {
+        if (!this.camera) return undefined;
+        const offsetX = this.width / -2;
+        const offsetY = this.height / 2;
+        _world.identity();
+        _world.multiply(this.camera.inverseMatrix);
+        _world.translate(offsetX, offsetY);
+        return _world.transformPoint(x, y);
+    }
+    worldToScreen(x, y) {
+        if (!this.camera) return undefined;
+        const offsetX = this.width / 2;
+        const offsetY = this.height / -2;
+        _screen.identity();
+        _screen.translate(offsetX, offsetY);
+        _screen.multiply(this.camera.matrix);
+        return _screen.transformPoint(x, y);
     }
 }
 
@@ -3597,14 +3640,14 @@ class DomElement extends Object2D {
 		this.dom.style.transformStyle = 'preserve-3d';
 		this.dom.style.position = 'absolute';
 		this.dom.style.top = '0px';
-		this.dom.style.bottom = '0px';
+		this.dom.style.left = '0px';
 		this.dom.style.transformOrigin = '0px 0px';
 		this.dom.style.overflow = 'none';
 		this.dom.style.zIndex = '1';
 	}
     computeBoundingBox() {
-		this.boundingBox.min.set(0, 0);
-        this.boundingBox.max.copy(this.size);
+		this.boundingBox.min.set(0, -this.size.y);
+        this.boundingBox.max.set(this.size.x, 0);
 		return this.boundingBox;
     }
     isInside(point) {
@@ -3616,6 +3659,9 @@ class DomElement extends Object2D {
 	onRemove() {
 		if (this.parentElement) this.parentElement.removeChild(this.dom);
 	}
+	onUpdate(renderer) {
+		this.dom.style.display = this.inViewport ? '' : 'none';
+	}
 	transform(renderer) {
 		if (this.parentElement == null) {
 			this.parentElement = renderer.dom.parentElement;
@@ -3624,13 +3670,13 @@ class DomElement extends Object2D {
 		if (this.ignoreViewport) {
 			this.dom.style.transform = this.globalMatrix.cssTransform();
 		} else {
-			_projection.copy(renderer.camera.matrix);
+			_projection.copy(renderer.resetTransform(false ));
 			_projection.multiply(this.globalMatrix);
 			this.dom.style.transform = _projection.cssTransform();
 		}
 		this.dom.style.width = `${this.size.x}px`;
 		this.dom.style.height = `${this.size.y}px`;
-		this.dom.style.display = this.visible ? 'absolute' : 'none';
+		this.dom.style.display = this.visible ? '' : 'none';
 	}
 	setSize(width, height) {
 		this.size.set(width, height);
@@ -3718,8 +3764,8 @@ class Line extends Object2D {
     draw(renderer) {
         const context = renderer.context;
         context.beginPath();
-        context.moveTo(this.from.x, this.from.y);
-        context.lineTo(this.to.x, this.to.y);
+        context.moveTo(this.from.x, - this.from.y);
+        context.lineTo(this.to.x, - this.to.y);
         if (this.constantWidth) {
             context.save();
             context.setTransform(1, 0, 0, 1, 0, 0);
@@ -3759,7 +3805,7 @@ class Pattern extends Box {
 	        const height = this.box.max.y - this.box.min.y;
             const pattern = context.createPattern(this.image, this.repetition);
 		    context.fillStyle = pattern;
-		    context.fillRect(this.box.min.x, this.box.min.y, width, height);
+		    context.fillRect(this.box.min.x, - this.box.max.y, width, height);
         }
     }
 }

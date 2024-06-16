@@ -4,10 +4,10 @@ import { Thing } from '../Thing.js';
 import { Vector2 } from '../../math/Vector2.js';
 
 const _cameraView = new Box2();
-const _topLeft = new Vector2();
-const _topRight = new Vector2();
-const _botLeft = new Vector2();
-const _botRight = new Vector2();
+const _corner1 = new Vector2();
+const _corner2 = new Vector2();
+const _corner3 = new Vector2();
+const _corner4 = new Vector2();
 const _translate = new Matrix2();
 const _rotate = new Matrix2();
 const _scale = new Matrix2();
@@ -29,31 +29,31 @@ class Camera2D extends Thing {
         this.matrixNeedsUpdate = true;
 
         // Viewport
-        this.viewport = new Box2(new Vector2(0, 0), new Vector2(1, 1));
+        this.width = 0;
+        this.height = 0;
+        this.viewport = new Box2(new Vector2(0, 0), new Vector2(0, 0));
     }
 
-    intersectsViewport(box) {
-        this.matrix.applyToVector(_topLeft.copy(box.min));
-        this.matrix.applyToVector(_topRight.copy(box.max.x, box.min.y));
-        this.matrix.applyToVector(_botLeft.copy(box.min.x, box.max.y));
-        this.matrix.applyToVector(_botRight.copy(box.max));
-        _cameraView.setFromPoints(_topLeft, _topRight, _botLeft, _botRight);
+    intersectsViewport(renderer, box) {
+        _corner1.copy(renderer.worldToScreen(box.min.x, box.min.y));
+        _corner2.copy(renderer.worldToScreen(box.min.x, box.max.y));
+        _corner3.copy(renderer.worldToScreen(box.max.x, box.min.y));
+        _corner4.copy(renderer.worldToScreen(box.max.x, box.max.y));
+        _cameraView.setFromPoints(_corner1, _corner2, _corner3, _corner4);
         return this.viewport.intersectsBox(_cameraView);
     }
 
-    updateMatrix(offsetX, offsetY) {
-        if (!this.matrixNeedsUpdate) return;
+    updateMatrix(force = false) {
+        if (force !== true && this.matrixNeedsUpdate !== true) return;
         this.matrix.identity();
 
         // Rotate
-        this.matrix.multiply(_translate.set(1, 0, 0, 1, +offsetX, +offsetY));
         const c = Math.cos(this.rotation);
         const s = Math.sin(this.rotation);
         this.matrix.multiply(_rotate.set(c, s, -s, c, 0, 0));
-        this.matrix.multiply(_translate.set(1, 0, 0, 1, -offsetX, -offsetY));
 
         // Translate
-        this.matrix.multiply(_translate.set(1, 0, 0, 1, this.position.x, this.position.y));
+        this.matrix.multiply(_translate.set(1, 0, 0, 1, this.position.x, - this.position.y));
 
         // Scale
         this.matrix.multiply(_scale.set(this.scale, 0, 0, this.scale, 0, 0));
@@ -63,8 +63,14 @@ class Camera2D extends Thing {
         this.matrixNeedsUpdate = false;
     }
 
-    setViewport(width = 1, height = 1) {
-        this.viewport.max.set(width, height);
+    setViewport(width = 0, height = 0) {
+        if (width !== this.width || height !== this.height) {
+            this.width = width;
+            this.height = height;
+            this.viewport.min.set(0, -height);
+            this.viewport.max.set(width, 0);
+            this.matrixNeedsUpdate = true;
+        }
     }
 
 }

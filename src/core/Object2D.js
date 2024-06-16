@@ -1,9 +1,9 @@
 // COORDINATE SYSTEM
-// -x    Ʌ     -y
+// -x    Ʌ     +y
 //       |
 // <-----+------>
 //       |
-//  y    V      x
+// -y    V     +x
 
 import {
     MOUSE_SLOP,
@@ -16,10 +16,10 @@ import { Thing } from './Thing.js';
 import { Vector2 } from '../math/Vector2.js';
 
 const _position = new Vector2();
-const _topLeft = new Vector2();
-const _topRight = new Vector2();
-const _botLeft = new Vector2();
-const _botRight = new Vector2();
+const _corner1 = new Vector2();
+const _corner2 = new Vector2();
+const _corner3 = new Vector2();
+const _corner4 = new Vector2();
 
 class Object2D extends Thing {
 
@@ -220,11 +220,11 @@ class Object2D extends Thing {
         const box = this.boundingBox;
         if (Number.isFinite(box.min.x) === false || Number.isFinite(box.min.y) === false) return box;
         if (Number.isFinite(box.max.x) === false || Number.isFinite(box.max.y) === false) return box;
-        this.globalMatrix.applyToVector(_topLeft.copy(box.min));
-        this.globalMatrix.applyToVector(_topRight.copy(box.max.x, box.min.y));
-        this.globalMatrix.applyToVector(_botLeft.copy(box.min.x, box.max.y));
-        this.globalMatrix.applyToVector(_botRight.copy(box.max));
-        return new Box2().setFromPoints(_topLeft, _topRight, _botLeft, _botRight);
+        this.globalMatrix.applyToVector(_corner1.copy(box.min.x, box.min.y));
+        this.globalMatrix.applyToVector(_corner2.copy(box.min.x, box.max.y));
+        this.globalMatrix.applyToVector(_corner3.copy(box.max.x, box.min.y));
+        this.globalMatrix.applyToVector(_corner4.copy(box.max.x, box.max.y));
+        return new Box2().setFromPoints(_corner1, _corner2, _corner3, _corner4);
     }
 
     localToWorld(vector) {
@@ -332,7 +332,7 @@ class Object2D extends Thing {
 
     /** Apply the transform to the rendering context (camera transform is already applied) */
     transform(renderer) {
-        this.globalMatrix.tranformContext(renderer.context);
+        this.globalMatrix.transformContext(renderer.context);
     }
 
     /******************** EVENTS */
@@ -387,9 +387,9 @@ class Object2D extends Thing {
 
                 // Local (Parent Space) Start / End
                 const parent = this.parent ?? this;
-                const worldPositionStart = camera.inverseMatrix.transformPoint(pointerStart);
+                const worldPositionStart = renderer.screenToWorld(pointerStart);
                 const localPositionStart = parent.inverseGlobalMatrix.transformPoint(worldPositionStart);
-                const worldPositionEnd = camera.inverseMatrix.transformPoint(pointerEnd);
+                const worldPositionEnd = renderer.screenToWorld(pointerEnd);
                 const localPositionEnd = parent.inverseGlobalMatrix.transformPoint(worldPositionEnd);
                 const delta = localPositionStart.clone().sub(localPositionEnd);
 

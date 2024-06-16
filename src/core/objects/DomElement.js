@@ -25,15 +25,15 @@ class DomElement extends Object2D {
 		this.dom.style.transformStyle = 'preserve-3d';
 		this.dom.style.position = 'absolute';
 		this.dom.style.top = '0px';
-		this.dom.style.bottom = '0px';
+		this.dom.style.left = '0px';
 		this.dom.style.transformOrigin = '0px 0px';
 		this.dom.style.overflow = 'none';
 		this.dom.style.zIndex = '1';
 	}
 
     computeBoundingBox() {
-		this.boundingBox.min.set(0, 0);
-        this.boundingBox.max.copy(this.size);
+		this.boundingBox.min.set(0, -this.size.y);
+        this.boundingBox.max.set(this.size.x, 0);
 		return this.boundingBox;
     }
 
@@ -51,6 +51,11 @@ class DomElement extends Object2D {
 		if (this.parentElement) this.parentElement.removeChild(this.dom);
 	}
 
+	onUpdate(renderer) {
+		// Frustum Culling
+		this.dom.style.display = this.inViewport ? '' : 'none';
+	}
+
 	transform(renderer) {
 		// Verify attached to DOM
 		if (this.parentElement == null) {
@@ -62,7 +67,7 @@ class DomElement extends Object2D {
 		if (this.ignoreViewport) {
 			this.dom.style.transform = this.globalMatrix.cssTransform();
 		} else {
-			_projection.copy(renderer.camera.matrix);
+			_projection.copy(renderer.resetTransform(false /* applyToContext */));
 			_projection.multiply(this.globalMatrix);
 			this.dom.style.transform = _projection.cssTransform();
 		}
@@ -72,7 +77,7 @@ class DomElement extends Object2D {
 		this.dom.style.height = `${this.size.y}px`;
 
 		// Set Visibility
-		this.dom.style.display = this.visible ? 'absolute' : 'none';
+		this.dom.style.display = this.visible ? '' : 'none';
 	}
 
 	/******************** SETTINGS */

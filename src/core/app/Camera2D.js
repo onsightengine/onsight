@@ -53,7 +53,7 @@ class Camera2D extends Thing {
         this.matrix.multiply(_rotate.set(c, s, -s, c, 0, 0));
 
         // Translate
-        this.matrix.multiply(_translate.set(1, 0, 0, 1, this.position.x, - this.position.y));
+        this.matrix.multiply(_translate.set(1, 0, 0, 1, this.position.x, -this.position.y));
 
         // Scale
         this.matrix.multiply(_scale.set(this.scale, 0, 0, this.scale, 0, 0));

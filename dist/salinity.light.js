@@ -2875,7 +2875,7 @@ class Camera2D extends Thing {
         const c = Math.cos(this.rotation);
         const s = Math.sin(this.rotation);
         this.matrix.multiply(_rotate.set(c, s, -s, c, 0, 0));
-        this.matrix.multiply(_translate$2.set(1, 0, 0, 1, this.position.x, - this.position.y));
+        this.matrix.multiply(_translate$2.set(1, 0, 0, 1, this.position.x, -this.position.y));
         this.matrix.multiply(_scale$1.set(this.scale, 0, 0, this.scale, 0, 0));
         this.matrix.getInverse(this.inverseMatrix);
         this.matrixNeedsUpdate = false;

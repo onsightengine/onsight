@@ -1463,10 +1463,10 @@ class Thing {
 }
 
 const _position$2 = new Vector2();
-const _corner1$1 = new Vector2();
-const _corner2$1 = new Vector2();
-const _corner3$1 = new Vector2();
-const _corner4$1 = new Vector2();
+const _corner1$2 = new Vector2();
+const _corner2$2 = new Vector2();
+const _corner3$2 = new Vector2();
+const _corner4$2 = new Vector2();
 class Object2D extends Thing {
     constructor() {
         super();
@@ -1613,11 +1613,11 @@ class Object2D extends Thing {
         const box = this.boundingBox;
         if (Number.isFinite(box.min.x) === false || Number.isFinite(box.min.y) === false) return box;
         if (Number.isFinite(box.max.x) === false || Number.isFinite(box.max.y) === false) return box;
-        this.globalMatrix.applyToVector(_corner1$1.copy(box.min.x, box.min.y));
-        this.globalMatrix.applyToVector(_corner2$1.copy(box.min.x, box.max.y));
-        this.globalMatrix.applyToVector(_corner3$1.copy(box.max.x, box.min.y));
-        this.globalMatrix.applyToVector(_corner4$1.copy(box.max.x, box.max.y));
-        return new Box2().setFromPoints(_corner1$1, _corner2$1, _corner3$1, _corner4$1);
+        this.globalMatrix.applyToVector(_corner1$2.copy(box.min.x, box.min.y));
+        this.globalMatrix.applyToVector(_corner2$2.copy(box.min.x, box.max.y));
+        this.globalMatrix.applyToVector(_corner3$2.copy(box.max.x, box.min.y));
+        this.globalMatrix.applyToVector(_corner4$2.copy(box.max.x, box.max.y));
+        return new Box2().setFromPoints(_corner1$2, _corner2$2, _corner3$2, _corner4$2);
     }
     localToWorld(vector) {
         return this.globalMatrix.transformPoint(vector);
@@ -2840,10 +2840,10 @@ function appPointerMove(event) {
 }
 
 const _cameraView = new Box2();
-const _corner1 = new Vector2();
-const _corner2 = new Vector2();
-const _corner3 = new Vector2();
-const _corner4 = new Vector2();
+const _corner1$1 = new Vector2();
+const _corner2$1 = new Vector2();
+const _corner3$1 = new Vector2();
+const _corner4$1 = new Vector2();
 const _translate$3 = new Matrix2();
 const _rotate$2 = new Matrix2();
 const _scale$2 = new Matrix2();
@@ -2862,11 +2862,11 @@ class Camera2D extends Thing {
         this.viewport = new Box2(new Vector2(0, 0), new Vector2(0, 0));
     }
     intersectsViewport(renderer, box) {
-        _corner1.copy(renderer.worldToScreen(box.min.x, box.min.y));
-        _corner2.copy(renderer.worldToScreen(box.min.x, box.max.y));
-        _corner3.copy(renderer.worldToScreen(box.max.x, box.min.y));
-        _corner4.copy(renderer.worldToScreen(box.max.x, box.max.y));
-        _cameraView.setFromPoints(_corner1, _corner2, _corner3, _corner4);
+        _corner1$1.copy(renderer.worldToScreen(box.min.x, box.min.y));
+        _corner2$1.copy(renderer.worldToScreen(box.min.x, box.max.y));
+        _corner3$1.copy(renderer.worldToScreen(box.max.x, box.min.y));
+        _corner4$1.copy(renderer.worldToScreen(box.max.x, box.max.y));
+        _cameraView.setFromPoints(_corner1$1, _corner2$1, _corner3$1, _corner4$1);
         return this.viewport.intersectsBox(_cameraView);
     }
     updateMatrix(force = false) {
@@ -2875,7 +2875,7 @@ class Camera2D extends Thing {
         const c = Math.cos(this.rotation);
         const s = Math.sin(this.rotation);
         this.matrix.multiply(_rotate$2.set(c, s, -s, c, 0, 0));
-        this.matrix.multiply(_translate$3.set(1, 0, 0, 1, this.position.x, - this.position.y));
+        this.matrix.multiply(_translate$3.set(1, 0, 0, 1, this.position.x, -this.position.y));
         this.matrix.multiply(_scale$2.set(this.scale, 0, 0, this.scale, 0, 0));
         this.matrix.getInverse(this.inverseMatrix);
         this.matrixNeedsUpdate = false;
@@ -3005,10 +3005,10 @@ class Keyboard {
 }
 
 const _center$1 = new Vector2();
-const _topLeft$3 = new Vector2();
-const _topRight$3 = new Vector2();
-const _botLeft$3 = new Vector2();
-const _botRight$3 = new Vector2();
+const _topLeft$2 = new Vector2();
+const _topRight$2 = new Vector2();
+const _botLeft$2 = new Vector2();
+const _botRight$2 = new Vector2();
 const _reset = new Matrix2();
 const _screen = new Matrix2();
 const _translate$1 = new Matrix2();
@@ -3198,15 +3198,15 @@ class Renderer {
         context.strokeStyle = '#65e5ff';
         this.resetTransform();
         const box = object.boundingBox;
-        object.globalMatrix.applyToVector(_topLeft$3.copy(box.min.x, box.max.y));
-        object.globalMatrix.applyToVector(_topRight$3.copy(box.max.x, box.max.y));
-        object.globalMatrix.applyToVector(_botRight$3.copy(box.max.x, box.min.y));
-        object.globalMatrix.applyToVector(_botLeft$3.copy(box.min.x, box.min.y));
+        object.globalMatrix.applyToVector(_topLeft$2.copy(box.min.x, box.max.y));
+        object.globalMatrix.applyToVector(_topRight$2.copy(box.max.x, box.max.y));
+        object.globalMatrix.applyToVector(_botRight$2.copy(box.max.x, box.min.y));
+        object.globalMatrix.applyToVector(_botLeft$2.copy(box.min.x, box.min.y));
         context.beginPath();
-        context.moveTo(_topLeft$3.x, -_topLeft$3.y);
-        context.lineTo(_topRight$3.x, -_topRight$3.y);
-        context.lineTo(_botRight$3.x, -_botRight$3.y);
-        context.lineTo(_botLeft$3.x, -_botLeft$3.y);
+        context.moveTo(_topLeft$2.x, -_topLeft$2.y);
+        context.lineTo(_topRight$2.x, -_topRight$2.y);
+        context.lineTo(_botRight$2.x, -_botRight$2.y);
+        context.lineTo(_botLeft$2.x, -_botLeft$2.y);
         context.closePath();
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.shadowBlur = 1;
@@ -4409,10 +4409,10 @@ class CameraControls {
 
 const CURSOR_ROTATE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWw6c3BhY2U9InByZXNlcnZlIiBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlLWxpbmVqb2luOnJvdW5kO3N0cm9rZS1taXRlcmxpbWl0OjI7Ij48cGF0aCBkPSJNMjEuMjQ3LDUuODY3YzAuNDE3LC0wLjQ1MiAxLjAzNiwtMC42NjYgMS42NDcsLTAuNTYzYzAuNjQ0LDAuMTA5IDEuMTgsMC41NTMgMS40MDcsMS4xNjRsMS44MjQsNC45MDFjMC4yMjcsMC42MTEgMC4xMTEsMS4yOTggLTAuMzA1LDEuODAxYy0wLjQxNiwwLjUwMyAtMS4wNjksMC43NDUgLTEuNzEzLDAuNjM2bC01LjE1NCwtMC44NzRjLTAuNjQ0LC0wLjEwOSAtMS4xOCwtMC41NTMgLTEuNDA3LC0xLjE2NWMtMC4xNzksLTAuNDgxIC0wLjE0NSwtMS4wMDggMC4wOCwtMS40NTVjLTAuNTIxLC0wLjE0OCAtMS4wNjQsLTAuMjI1IC0xLjYxNSwtMC4yMjVjLTMuMjY0LDAgLTUuOTEzLDIuNjUgLTUuOTEzLDUuOTEzYy0wLDMuMjYzIDIuNjQ5LDUuOTEzIDUuOTEzLDUuOTEzYzEuNjQsMCAzLjIwNiwtMC42ODEgNC4zMjQsLTEuODhjMC42ODgsLTAuNzM4IDEuODQ0LC0wLjc3OCAyLjU4MiwtMC4wOWwxLjM0NiwxLjI1NWMwLjczNywwLjY4OCAwLjc3OCwxLjg0MyAwLjA5LDIuNTgxYy0yLjE1OCwyLjMxNCAtNS4xNzksMy42MjcgLTguMzQyLDMuNjI3Yy02LjI5NSwwIC0xMS40MDYsLTUuMTExIC0xMS40MDYsLTExLjQwNmMtMCwtNi4yOTUgNS4xMTEsLTExLjQwNiAxMS40MDYsLTExLjQwNmMxLjgzOCwtMCAzLjYzMSwwLjQ0MyA1LjIzNiwxLjI3M1oiIHN0eWxlPSJmaWxsOiNmZmY7Ii8+PHBhdGggZD0iTTE5LjgzNSw5Ljc2N2wtMC45MDUsMS4wOTNjLTAuMDk3LDAuMTE3IC0wLjEyNCwwLjI3NyAtMC4wNzEsMC40MTljMC4wNTMsMC4xNDMgMC4xNzgsMC4yNDYgMC4zMjgsMC4yNzJsNS4xNTQsMC44NzRjMC4xNTEsMC4wMjYgMC4zMDMsLTAuMDMxIDAuNCwtMC4xNDhjMC4wOTcsLTAuMTE3IDAuMTI0LC0wLjI3NyAwLjA3MSwtMC40MmwtMS44MjMsLTQuOWMtMC4wNTMsLTAuMTQzIC0wLjE3OCwtMC4yNDYgLTAuMzI4LC0wLjI3MWMtMC4xNSwtMC4wMjYgLTAuMzAyLDAuMDMxIC0wLjM5OSwwLjE0OGwtMC42OTksMC44NDRjLTEuNjMyLC0xLjA5MSAtMy41NjIsLTEuNjgzIC01LjU1MiwtMS42ODNjLTUuNTIyLC0wIC0xMC4wMDYsNC40ODMgLTEwLjAwNiwxMC4wMDVjMCw1LjUyMiA0LjQ4NCwxMC4wMDUgMTAuMDA2LDEwLjAwNWMyLjc3NSwwIDUuNDI1LC0xLjE1MiA3LjMxNywtMy4xODFjMC4xNjEsLTAuMTcyIDAuMTUxLC0wLjQ0MiAtMC4wMjEsLTAuNjAybC0xLjM0NSwtMS4yNTVjLTAuMTcyLC0wLjE2IC0wLjQ0MiwtMC4xNTEgLTAuNjAyLDAuMDIxYy0xLjM4MywxLjQ4MyAtMy4zMjEsMi4zMjYgLTUuMzQ5LDIuMzI2Yy00LjAzNywtMCAtNy4zMTQsLTMuMjc3IC03LjMxNCwtNy4zMTRjMCwtNC4wMzcgMy4yNzcsLTcuMzE0IDcuMzE0LC03LjMxNGMxLjM2LDAgMi42ODIsMC4zNzkgMy44MjQsMS4wODFaIi8+PC9zdmc+';
 const _position$1 = new Vector2();
-const _topLeft$2 = new Vector2();
-const _topRight$2 = new Vector2();
-const _botLeft$2 = new Vector2();
-const _botRight$2 = new Vector2();
+const _topLeft$1 = new Vector2();
+const _topRight$1 = new Vector2();
+const _botLeft$1 = new Vector2();
+const _botRight$1 = new Vector2();
 const _objectMatrix = new Matrix2();
 const _rotateMatrix = new Matrix2();
 const dragger = Object.assign(new Circle(10), { type: 'Resizer', selectable: false, focusable: false });
@@ -4480,11 +4480,11 @@ class ResizeHelper extends Box {
                 const unRotatedPosition = unRotateMatrix.transformPoint(object.position);
                 _objectMatrix.compose(unRotatedPosition.x, unRotatedPosition.y, object.scale.x, object.scale.y, 0, 0, 0);
                 const box = object.boundingBox;
-                _objectMatrix.applyToVector(_topLeft$2.copy(box.min));
-                _objectMatrix.applyToVector(_topRight$2.copy(box.max.x, box.min.y));
-                _objectMatrix.applyToVector(_botLeft$2.copy(box.min.x, box.max.y));
-                _objectMatrix.applyToVector(_botRight$2.copy(box.max));
-                const unrotatedBox = new Box2().setFromPoints(_topLeft$2, _topRight$2, _botLeft$2, _botRight$2);
+                _objectMatrix.applyToVector(_topLeft$1.copy(box.min));
+                _objectMatrix.applyToVector(_topRight$1.copy(box.max.x, box.min.y));
+                _objectMatrix.applyToVector(_botLeft$1.copy(box.min.x, box.max.y));
+                _objectMatrix.applyToVector(_botRight$1.copy(box.max));
+                const unrotatedBox = new Box2().setFromPoints(_topLeft$1, _topRight$1, _botLeft$1, _botRight$1);
                 worldBox.union(unrotatedBox);
             }
             const rotatedCenter = worldBox.getCenter();
@@ -4897,10 +4897,10 @@ class ResizeHelper extends Box {
     }
 }
 
-const _topLeft$1 = new Vector2();
-const _topRight$1 = new Vector2();
-const _botLeft$1 = new Vector2();
-const _botRight$1 = new Vector2();
+const _topLeft = new Vector2();
+const _topRight = new Vector2();
+const _botLeft = new Vector2();
+const _botRight = new Vector2();
 class RubberBandBox extends Box {
     constructor() {
         super();
@@ -4943,14 +4943,14 @@ class RubberBandBox extends Box {
         const box = object.boundingBox;
         if (Number.isFinite(box.min.x) === false || Number.isFinite(box.min.y) === false) return [];
         if (Number.isFinite(box.max.x) === false || Number.isFinite(box.max.y) === false) return [];
-        object.globalMatrix.applyToVector(_topLeft$1.copy(box.min));
-        object.globalMatrix.applyToVector(_topRight$1.copy(box.max.x, box.min.y));
-        object.globalMatrix.applyToVector(_botLeft$1.copy(box.min.x, box.max.y));
-        object.globalMatrix.applyToVector(_botRight$1.copy(box.max));
-        lines.push({ from: new Vector2(_topLeft$1.x, _topLeft$1.y), to: new Vector2(_topRight$1.x, _topRight$1.y) });
-        lines.push({ from: new Vector2(_topRight$1.x, _topRight$1.y), to: new Vector2(_botRight$1.x, _botRight$1.y) });
-        lines.push({ from: new Vector2(_botRight$1.x, _botRight$1.y), to: new Vector2(_botLeft$1.x, _botLeft$1.y) });
-        lines.push({ from: new Vector2(_botLeft$1.x, _botLeft$1.y), to: new Vector2(_topLeft$1.x, _topLeft$1.y) });
+        object.globalMatrix.applyToVector(_topLeft.copy(box.min));
+        object.globalMatrix.applyToVector(_topRight.copy(box.max.x, box.min.y));
+        object.globalMatrix.applyToVector(_botLeft.copy(box.min.x, box.max.y));
+        object.globalMatrix.applyToVector(_botRight.copy(box.max));
+        lines.push({ from: new Vector2(_topLeft.x, _topLeft.y), to: new Vector2(_topRight.x, _topRight.y) });
+        lines.push({ from: new Vector2(_topRight.x, _topRight.y), to: new Vector2(_botRight.x, _botRight.y) });
+        lines.push({ from: new Vector2(_botRight.x, _botRight.y), to: new Vector2(_botLeft.x, _botLeft.y) });
+        lines.push({ from: new Vector2(_botLeft.x, _botLeft.y), to: new Vector2(_topLeft.x, _topLeft.y) });
         return lines;
     }
     intersectsPolygon(rubberBandLines, objectLines) {
@@ -5164,10 +5164,11 @@ function findCommonMostAncestor(objects) {
 const NEAREST_ANGLE = 5;
 const SIZE_OF_CROSS = 15;
 const _bounds = new Box2();
-const _topLeft = new Vector2();
-const _topRight = new Vector2();
-const _botLeft = new Vector2();
-const _botRight = new Vector2();
+const _corner1 = new Vector2();
+const _corner2 = new Vector2();
+const _corner3 = new Vector2();
+const _corner4 = new Vector2();
+const _start = new Vector2();
 const _matrix = new Matrix2();
 const _inverse = new Matrix2();
 const _translate = new Matrix2();
@@ -5278,65 +5279,30 @@ class GridHelper extends Object2D {
         const context = renderer.context;
         const camera = renderer.camera;
         context.save();
-        _matrix.identity();
-        _matrix.translate(renderer.width / 2, renderer.height / -2);
-        const c = Math.cos(camera.rotation);
-        const s = Math.sin(camera.rotation);
-        _matrix.multiply(_rotate.set(c, s, -s, c, 0, 0));
-        _matrix.multiply(_translate.set(1, 0, 0, 1, camera.position.x, - camera.position.y));
-        _matrix.multiply(_scale.set(camera.scale, 0, 0, camera.scale, 0, 0));
+        _matrix.copy(renderer.resetTransform(false));
         _matrix.multiply(_scale.identity().scale(this.scale.x, this.scale.y));
         _matrix.multiply(_rotate.identity().rotate(this.rotation));
         _matrix.setContextTransform(context);
         _matrix.getInverse(_inverse);
-        _inverse.applyToVector(_topLeft.set(0, 0));
-        _inverse.applyToVector(_topRight.set(renderer.width, 0));
-        _inverse.applyToVector(_botLeft.set(0, renderer.height));
-        _inverse.applyToVector(_botRight.set(renderer.width, renderer.height));
-        _bounds.setFromPoints(_topLeft, _topRight, _botLeft, _botRight);
+        const halfWidth = renderer.width / 2;
+        const halfHeight = renderer.height / 2;
+        _inverse.applyToVector(_corner1.set(-halfWidth, +halfHeight));
+        _inverse.applyToVector(_corner2.set(+halfWidth, +halfHeight));
+        _inverse.applyToVector(_corner3.set(-halfWidth, -halfHeight));
+        _inverse.applyToVector(_corner4.set(+halfWidth, -halfHeight));
+        _bounds.setFromPoints(_corner1, _corner2, _corner3, _corner4);
         const visibleWidth = _bounds.getSize().x;
         const visibleHeight = _bounds.getSize().y;
         const gridCountX = Math.ceil(visibleWidth / this.gridX) + 1;
         const gridCountY = Math.ceil(visibleHeight / this.gridY) + 1;
-        const startX = (Math.floor(_bounds.min.x / this.gridX) * this.gridX);
-        const startY = (Math.floor(_bounds.min.y / this.gridY) * this.gridY) - renderer.height;
-        if (camera.scale <= 1.5) {
+        const startX = ((camera.position.x + halfWidth) / (camera.scale * this.scale.x)) * -1;
+        const startY = ((camera.position.y + halfHeight) / (camera.scale * this.scale.y)) * -1;
+        _start.set(startX, startY);
             if (this.gridScale !== camera.scale || !this.cache) this.drawPattern(camera.scale);
             if (!this.cache) this.cache = context.createPattern(this.patternCanvas, 'repeat');
             context.fillStyle = this.cache;
-            context.fillRect(startX, startY, gridCountX * this.gridX, gridCountY * this.gridY);
-        } else {
-            context.beginPath();
-            for (let i = 0; i <= gridCountX; i++) {
-                const x = startX + i * this.gridX;
-                context.moveTo(x, -_bounds.min.y);
-                context.lineTo(x, -_bounds.max.y);
-            }
-            for (let j = 0; j <= gridCountY; j++) {
-                const y = startY + j * this.gridY;
-                context.moveTo(_bounds.min.x, -y);
-                context.lineTo(_bounds.max.x, -y);
-            }
-            context.setTransform(1, 0, 0, 1, 0, 0);
-            context.strokeStyle = `rgba(128, 128, 128, 1)`;
-            context.lineWidth = 1;
-            context.stroke();
-        }
+            context.fillRect(_start.x, _start.y, gridCountX * this.gridX, gridCountY * this.gridY);
         context.restore();
-    }
-    drawOld() {
-        _matrix.copy(camera.matrix);
-        _matrix.multiply(_scale.identity().scale(this.scale.x, this.scale.y));
-        _matrix.multiply(_rotate.identity().rotate(this.rotation));
-        _matrix.getInverse(_inverse);
-        _matrix.setContextTransform(context);
-        _inverse.applyToVector(_topLeft.set(0, 0));
-        _inverse.applyToVector(_topRight.set(renderer.width, 0));
-        _inverse.applyToVector(_botLeft.set(0, renderer.height));
-        _inverse.applyToVector(_botRight.set(renderer.width, renderer.height));
-        _bounds.setFromPoints(_topLeft, _topRight, _botLeft, _botRight);
-        const visibleWidth = _bounds.getSize().x;
-        const visibleHeight = _bounds.getSize().y;
     }
     drawPattern(scale = 1) {
         this.cache = null;

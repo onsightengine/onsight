@@ -1,5 +1,6 @@
 import { Matrix2 } from '../../math/Matrix2.js';
 import { Object2D } from '../Object2D.js';
+import { Thing } from '../Thing.js';
 import { Vector2 } from '../../math/Vector2.js';
 
 const _projection = new Matrix2();
@@ -88,5 +89,7 @@ class DomElement extends Object2D {
 	}
 
 }
+
+Thing.register('DomElement', DomElement);
 
 export { DomElement };

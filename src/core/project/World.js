@@ -2,6 +2,7 @@ import {
     WORLD_TYPES,
 } from '../../constants.js';
 import { Entity } from './Entity.js';
+import { Thing } from '../Thing.js';
 import { Vector3 } from '../../math/Vector3.js';
 
 class World extends Entity {
@@ -172,8 +173,8 @@ class World extends Entity {
 
 }
 
-Entity.register('World2D', World);
-Entity.register('World3D', World);
-Entity.register('WorldUI', World);
+Thing.register('World2D', World);
+Thing.register('World3D', World);
+Thing.register('WorldUI', World);
 
 export { World };

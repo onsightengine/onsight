@@ -33,41 +33,41 @@ class Object2D extends Thing {
 
         // Visibility
         this.visible = true;
-        this.layer = 0;                             // lower layer is drawn first, higher is drawn on top
-        this.level = 0;                             // higher depth is drawn on top, layer is considered first
         this.opacity = 1;
-        this.globalOpacity = 1;
+        this.layer = 0;                             // lower layer is drawn first, higher is drawn on top
+        this.level = 0;                             // AUTO: scene tree depth, higher drawn on top
+        this.globalOpacity = 1;                     // AUTO: final opacity including parent(s)
 
         // Transform
-        this.position = new Vector2(0, 0);
-        this.scale = new Vector2(1, 1);
-        this.rotation = 0.0;
+        this.position = new Vector2(0, 0);          // position in space
+        this.scale = new Vector2(1, 1);             // scale in space
+        this.rotation = 0.0;                        // rotation in space
 
         // Matrix
-        this.matrix = new Matrix2();
-        this.globalMatrix = new Matrix2();
-        this.inverseGlobalMatrix = new Matrix2();
-        this.matrixAutoUpdate = true;
-        this.matrixNeedsUpdate = true;
+        this.matrix = new Matrix2();                // AUTO: local transform matrix (pos + scale + rot)
+        this.globalMatrix = new Matrix2();          // AUTO: final transform matrix including parent(s)
+        this.inverseGlobalMatrix = new Matrix2();   // AUTO: final inverse matrix including parent(s)
+        this.matrixAutoUpdate = true;               // FLAG: object matrix should be updated every frame?
+        this.matrixNeedsUpdate = true;              // FLAG: object matrix needs to be recalculated!
+        this.lateUpdate = false;                    // FLAG: object wants to be updated last?
 
         // Bounding Box
-        this.boundingBox = new Box2();
+        this.boundingBox = new Box2();              // used for scene interactions
 
         // Masks
         this.masks = [];
 
         // Pointer Events
         this.pointerEvents = true;                  // better performance if pointer events are not required
-        this.draggable = true;
-        this.focusable = true;
-        this.selectable = true;
+        this.draggable = true;                      // process drag events?
+        this.focusable = true;                      // double click to focus?
+        this.selectable = true;                     // can be selected?
 
-        // INTERNAL
+        // INTERNAL (DO NOT SET MANUALLY)
         this.pointerInside = false;                 // pointer is inside of the element?
         this.inViewport = true;                     // object within viewport frustum?
         this.isSelected = false;                    // object is selected?
         this.isDragging = false;                    // object is being dragged?
-        this.lateUpdate = false;                    // object wants to be updated last?
     }
 
     /******************** CHILDREN */
@@ -401,6 +401,99 @@ class Object2D extends Thing {
         }
     }
 
+
+    /******************** COPY */
+
+    copy(source, recursive = true) {
+        super.copy(source, recursive);
+
+        //
+
+        // Children
+        if (recursive && Array.isArray(source.children)) {
+            for (const child of source.children) {
+                this.add(child.clone());
+            }
+        }
+        return this;
+    }
+
+    /******************** JSON */
+
+    toJSON(recursive = true) {
+        const data = super.toJSON(recursive);
+
+        // Object2D
+        data.visible = this.visible;
+        data.opacity = this.opacity;
+        data.layer = this.layer;
+
+        // Transform
+        data.position = this.position.toArray();
+        data.scale = this.scale.toArray();
+        data.rotation = this.rotation;
+        data.matrixAutoUpdate = this.matrixAutoUpdate;
+        data.lateUpdate = this.lateUpdate;
+
+        // Pointer Events
+        data.pointerEvents = this.pointerEvents;
+        data.draggable = this.draggable;
+        data.focusable = this.focusable;
+        data.selectable = this.selectable;
+
+        // Masks
+        data.masks = [];
+        for (const mask of this.masks) {
+            data.masks.push(mask.toJSON(recursive));
+        }
+
+        // Children
+        if (recursive) {
+            for (const child of this.children) {
+                data.children.push(child.toJSON(recursive));
+            }
+        }
+        return data;
+    }
+
+    fromJSON(data) {
+        super.fromJSON(data);
+
+        // Object2D
+        if (data.visible !== undefined) this.visible = data.visible;
+        if (data.opacity !== undefined) this.opacity = data.opacity;
+        if (data.layer !== undefined) this.layer = data.layer;
+
+        // Transform
+        if (data.position !== undefined) this.position.fromArray(data.position);
+        if (data.scale !== undefined) this.scale.fromArray(data.scale);
+        if (data.rotation !== undefined) this.rotation = data.rotation;
+        if (data.matrixAutoUpdate !== undefined) this.matrixAutoUpdate = data.matrixAutoUpdate;
+        if (data.lateUpdate !== undefined) this.lateUpdate = data.lateUpdate;
+
+        // Pointer Events
+        if (data.pointerEvents !== undefined) this.pointerEvents = data.pointerEvents;
+        if (data.draggable !== undefined) this.draggable = data.draggable;
+        if (data.focusable !== undefined) this.focusable = data.focusable;
+        if (data.selectable !== undefined) this.selectable = data.selectable;
+
+        // Children
+        if (data.children) {
+            for (const childData of data.children) {
+                const Constructor = Thing.type(childData.type);
+                if (Constructor) {
+                    const child = new Constructor().fromJSON(childData);
+                    this.add(child);
+                } else {
+                    console.warn(`Object2D.fromJSON(): Unknown thing type '${childData.type}'`);
+                }
+            }
+        }
+        return this;
+    }
+
 }
+
+Thing.register('Object2D', Object2D);
 
 export { Object2D };

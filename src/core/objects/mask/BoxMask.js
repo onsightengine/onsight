@@ -1,5 +1,6 @@
 import { Box2 } from '../../../math/Box2.js';
 import { Mask } from './Mask.js';
+import { Thing } from '../../Thing.js';
 import { Vector2 } from '../../../math/Vector2.js';
 
 class BoxMask extends Mask {
@@ -33,5 +34,7 @@ class BoxMask extends Mask {
     }
 
 }
+
+Thing.register('BoxMask', BoxMask);
 
 export { BoxMask };

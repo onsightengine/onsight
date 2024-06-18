@@ -1,5 +1,6 @@
 import { Box } from './Box.js';
 import { Box2 } from '../../math/Box2.js';
+import { Thing } from '../Thing.js';
 
 class Pattern extends Box {
 
@@ -49,5 +50,7 @@ class Pattern extends Box {
     }
 
 }
+
+Thing.register('Pattern', Pattern);
 
 export { Pattern };

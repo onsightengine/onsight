@@ -1,5 +1,6 @@
 import { ColorStyle } from './style/ColorStyle.js';
 import { Object2D } from '../Object2D.js';
+import { Thing } from '../Thing.js';
 
 class Circle extends Object2D {
 
@@ -57,5 +58,7 @@ class Circle extends Object2D {
     }
 
 }
+
+Thing.register('Circle', Circle);
 
 export { Circle };

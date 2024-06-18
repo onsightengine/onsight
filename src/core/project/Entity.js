@@ -376,31 +376,20 @@ class Entity extends Thing {
         // Children
         if (data.children) {
             for (const childData of data.children) {
-                const Constructor = Entity.type(childData.type);
+                const Constructor = Thing.type(childData.type);
                 if (Constructor) {
                     const child = new Constructor().fromJSON(childData);
                     this.addEntity(child);
                 } else {
-                    console.warn(`Entity.fromJSON(): Unknown entity type '${childData.type}'`);
+                    console.warn(`Entity.fromJSON(): Unknown thing type '${childData.type}'`);
                 }
             }
         }
         return this;
     }
 
-    /******************** TYPES */
-
-    static register(type, EntityClass) {
-	    _types.set(type, EntityClass);
-    }
-
-    static type(type) {
-        return _types.get(type);
-    }
-
 }
 
-const _types = new Map();
-Entity.register('Entity', Entity);
+Thing.register('Entity', Entity);
 
 export { Entity };

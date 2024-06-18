@@ -1,6 +1,7 @@
 import { ColorStyle} from './style/ColorStyle.js';
 import { MathUtils } from '../../utils/MathUtils.js';
 import { Object2D} from '../Object2D.js';
+import { Thing } from '../Thing.js';
 import { Vector2} from '../../math/Vector2.js';
 
 const _globalPoint = new Vector2();
@@ -117,5 +118,7 @@ class Line extends Object2D {
     }
 
 }
+
+Thing.register('Line', Line);
 
 export { Line };

@@ -1,6 +1,7 @@
 import { Box2 } from '../../math/Box2.js';
 import { ColorStyle } from './style/ColorStyle.js';
 import { Object2D } from '../Object2D.js';
+import { Thing } from '../Thing.js';
 import { Vector2 } from '../../math/Vector2.js';
 
 const _mouseBox = new Box2();
@@ -81,5 +82,7 @@ class Box extends Object2D {
     }
 
 }
+
+Thing.register('Box', Box);
 
 export { Box };

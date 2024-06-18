@@ -1432,6 +1432,7 @@ class SysUtils {
     }
 }
 
+const _types$2 = new Map();
 class Thing {
     constructor(name = 'Thing') {
         this.isThing = true;
@@ -1466,7 +1467,14 @@ class Thing {
         if (data.uuid !== undefined) this.uuid = data.uuid;
         return this;
     }
+    static register(type, ThingClass) {
+	    _types$2.set(type, ThingClass);
+    }
+    static type(type) {
+        return _types$2.get(type);
+    }
 }
+Thing.register('Thing', Thing);
 
 const _position = new Vector2();
 const _corner1$1 = new Vector2();
@@ -1480,9 +1488,9 @@ class Object2D extends Thing {
         this.children = [];
         this.parent = null;
         this.visible = true;
+        this.opacity = 1;
         this.layer = 0;
         this.level = 0;
-        this.opacity = 1;
         this.globalOpacity = 1;
         this.position = new Vector2(0, 0);
         this.scale = new Vector2(1, 1);
@@ -1492,6 +1500,7 @@ class Object2D extends Thing {
         this.inverseGlobalMatrix = new Matrix2();
         this.matrixAutoUpdate = true;
         this.matrixNeedsUpdate = true;
+        this.lateUpdate = false;
         this.boundingBox = new Box2();
         this.masks = [];
         this.pointerEvents = true;
@@ -1502,7 +1511,6 @@ class Object2D extends Thing {
         this.inViewport = true;
         this.isSelected = false;
         this.isDragging = false;
-        this.lateUpdate = false;
     }
     add(...objects) {
         if (!objects) return this;
@@ -1728,58 +1736,69 @@ class Object2D extends Thing {
             }
         }
     }
-}
-
-class ArrayUtils {
-    static isIterable(array) {
-        return (array && (typeof array[Symbol.iterator] === 'function') || Array.isArray(array));
-    }
-    static swapItems(array, a, b) {
-        array[a] = array.splice(b, 1, array[a])[0];
-        return array;
-    }
-    static combineThingArrays(arrayOne, arrayTwo) {
-        const things = [ ...arrayOne ];
-        for (const thing of arrayTwo) {
-            if (ArrayUtils.includesThing(thing, arrayOne) === false) things.push(thing);
+    copy(source, recursive = true) {
+        super.copy(source, recursive);
+        if (recursive && Array.isArray(source.children)) {
+            for (const child of source.children) {
+                this.add(child.clone());
+            }
         }
-        return things;
+        return this;
     }
-    static compareThingArrays(arrayOne, arrayTwo) {
-        arrayOne = Array.isArray(arrayOne) ? arrayOne : [ arrayOne ];
-        arrayTwo = Array.isArray(arrayTwo) ? arrayTwo : [ arrayTwo ];
-        if (arrayOne.length === 0 && arrayTwo.length === 0) return true;
-        for (const thing of arrayOne) if (ArrayUtils.includesThing(thing, arrayTwo) === false) return false;
-        for (const thing of arrayTwo) if (ArrayUtils.includesThing(thing, arrayOne) === false) return false;
-        return true;
-    }
-    static filterThings(things, properties = {}) {
-        const filtered = things.filter((object) => {
-            return Object.keys(properties).every((key) => { return object[key] == properties[key]; });
-        });
-        return filtered;
-    }
-    static includesThing(findThing, ...things) {
-        if (!findThing || !findThing.uuid) return false;
-        if (things.length === 0) return false;
-        if (things.length > 0 && Array.isArray(things[0])) things = things[0];
-        for (const thing of things) if (thing.uuid && thing.uuid === findThing.uuid) return true;
-        return false;
-    }
-    static removeThingFromArray(removeThing, ...things) {
-        if (things.length > 0 && Array.isArray(things[0])) things = things[0];
-        if (!removeThing || !removeThing.uuid) return [ ...things ];
-        const newArray = [];
-        for (const thing of things) if (thing.uuid !== removeThing.uuid) newArray.push(thing);
-        return newArray;
-    }
-    static shareValues(arrayOne, arrayTwo) {
-        for (let i = 0; i < arrayOne.length; i++) {
-            if (arrayTwo.includes(arrayOne[i])) return true;
+    toJSON(recursive = true) {
+        const data = super.toJSON(recursive);
+        data.visible = this.visible;
+        data.opacity = this.opacity;
+        data.layer = this.layer;
+        data.position = this.position.toArray();
+        data.scale = this.scale.toArray();
+        data.rotation = this.rotation;
+        data.matrixAutoUpdate = this.matrixAutoUpdate;
+        data.lateUpdate = this.lateUpdate;
+        data.pointerEvents = this.pointerEvents;
+        data.draggable = this.draggable;
+        data.focusable = this.focusable;
+        data.selectable = this.selectable;
+        data.masks = [];
+        for (const mask of this.masks) {
+            data.masks.push(mask.toJSON(recursive));
         }
-        return false;
+        if (recursive) {
+            for (const child of this.children) {
+                data.children.push(child.toJSON(recursive));
+            }
+        }
+        return data;
+    }
+    fromJSON(data) {
+        super.fromJSON(data);
+        if (data.visible !== undefined) this.visible = data.visible;
+        if (data.opacity !== undefined) this.opacity = data.opacity;
+        if (data.layer !== undefined) this.layer = data.layer;
+        if (data.position !== undefined) this.position.fromArray(data.position);
+        if (data.scale !== undefined) this.scale.fromArray(data.scale);
+        if (data.rotation !== undefined) this.rotation = data.rotation;
+        if (data.matrixAutoUpdate !== undefined) this.matrixAutoUpdate = data.matrixAutoUpdate;
+        if (data.lateUpdate !== undefined) this.lateUpdate = data.lateUpdate;
+        if (data.pointerEvents !== undefined) this.pointerEvents = data.pointerEvents;
+        if (data.draggable !== undefined) this.draggable = data.draggable;
+        if (data.focusable !== undefined) this.focusable = data.focusable;
+        if (data.selectable !== undefined) this.selectable = data.selectable;
+        if (data.children) {
+            for (const childData of data.children) {
+                const Constructor = Thing.type(childData.type);
+                if (Constructor) {
+                    const child = new Constructor().fromJSON(childData);
+                    this.add(child);
+                } else {
+                    console.warn(`Object2D.fromJSON(): Unknown thing type '${childData.type}'`);
+                }
+            }
+        }
+        return this;
     }
 }
+Thing.register('Object2D', Object2D);
 
 const _assets = {};
 class AssetManager {
@@ -1829,7 +1848,7 @@ class AssetManager {
     }
     static toJSON() {
         const data = {};
-        for (const type of _types$2.keys()) {
+        for (const type of _types$1.keys()) {
             const assets = AssetManager.library(type);
             if (assets.length > 0) {
                 data[type] = [];
@@ -1842,7 +1861,7 @@ class AssetManager {
     }
     static fromJSON(json, onLoad = () => {}) {
         AssetManager.clear();
-        for (const type of _types$2.keys()) {
+        for (const type of _types$1.keys()) {
             if (!json[type]) continue;
             for (const assetData of json[type]) {
                 const Constructor = AssetManager.type(type);
@@ -1857,87 +1876,13 @@ class AssetManager {
         if (typeof onLoad === 'function') onLoad();
     }
     static register(type, AssetClass) {
-        _types$2.set(type, AssetClass);
+        _types$1.set(type, AssetClass);
     }
     static type(type) {
-        return _types$2.get(type);
+        return _types$1.get(type);
     }
 }
-const _types$2 = new Map();
-
-class Clock {
-    #running = false;
-    #startTime = 0;
-    #elapsedTime = 0;
-    #lastChecked = 0;
-    #deltaCount = 0;
-    #frameTime = 0;
-    #frameCount = 0;
-    #lastFrameCount = null;
-    constructor(autoStart = true, msRewind = 0) {
-        if (autoStart) this.start();
-        this.#startTime -= msRewind;
-        this.#lastChecked -= msRewind;
-    }
-    start(reset = false) {
-        if (reset) this.reset();
-        this.#startTime = performance.now();
-        this.#lastChecked = this.#startTime;
-        this.#running = true;
-    }
-    stop() {
-        this.getDeltaTime();
-        this.#running = false;
-    }
-    toggle() {
-        if (this.#running) this.stop();
-        else this.start();
-    }
-    reset() {
-        this.#startTime = performance.now();
-        this.#lastChecked = this.#startTime;
-        this.#elapsedTime = 0;
-        this.#deltaCount = 0;
-    }
-    getElapsedTime() {
-        return this.#elapsedTime;
-    }
-    getDeltaTime() {
-        if (!this.#running) {
-            this.#lastFrameCount = null;
-            return 0;
-        }
-        const newTime = performance.now();
-        const dt = (newTime - this.#lastChecked) / 1000;
-        this.#lastChecked = newTime;
-        this.#elapsedTime += dt;
-        this.#deltaCount++;
-        this.#frameTime += dt;
-        this.#frameCount++;
-        if (this.#frameTime > 1) {
-            this.#lastFrameCount = this.#frameCount;
-            this.#frameTime = 0;
-            this.#frameCount = 0;
-        }
-        return dt;
-    }
-    isRunning() {
-        return this.#running;
-    }
-    isStopped() {
-        return !(this.#running);
-    }
-    count() {
-        return this.#deltaCount;
-    }
-    averageDelta() {
-        const frameRate = (this.#lastFrameCount !== null) ? (1 / this.#lastFrameCount) : (this.#frameTime / this.#frameCount);
-        return Math.min(1, frameRate);
-    }
-    fps() {
-        return (this.#lastFrameCount !== null) ? this.#lastFrameCount : (this.#frameCount / this.#frameTime);
-    }
-}
+const _types$1 = new Map();
 
 class Entity extends Thing {
     constructor(name = 'Entity') {
@@ -2207,26 +2152,19 @@ class Entity extends Thing {
         }
         if (data.children) {
             for (const childData of data.children) {
-                const Constructor = Entity.type(childData.type);
+                const Constructor = Thing.type(childData.type);
                 if (Constructor) {
                     const child = new Constructor().fromJSON(childData);
                     this.addEntity(child);
                 } else {
-                    console.warn(`Entity.fromJSON(): Unknown entity type '${childData.type}'`);
+                    console.warn(`Entity.fromJSON(): Unknown thing type '${childData.type}'`);
                 }
             }
         }
         return this;
     }
-    static register(type, EntityClass) {
-	    _types$1.set(type, EntityClass);
-    }
-    static type(type) {
-        return _types$1.get(type);
-    }
 }
-const _types$1 = new Map();
-Entity.register('Entity', Entity);
+Thing.register('Entity', Entity);
 
 class World extends Entity {
     constructor(type = WORLD_TYPES.WORLD_2D, name = 'World 1') {
@@ -2335,9 +2273,9 @@ class World extends Entity {
         return this;
     }
 }
-Entity.register('World2D', World);
-Entity.register('World3D', World);
-Entity.register('WorldUI', World);
+Thing.register('World2D', World);
+Thing.register('World3D', World);
+Thing.register('WorldUI', World);
 
 class Project extends Thing {
     constructor(name = 'My Project') {
@@ -2482,6 +2420,131 @@ class Project extends Thing {
         this.activeWorldUUID = data.activeWorldUUID;
         this.startWorldUUID = data.startWorldUUID;
         return this;
+    }
+}
+
+class ArrayUtils {
+    static isIterable(array) {
+        return (array && (typeof array[Symbol.iterator] === 'function') || Array.isArray(array));
+    }
+    static swapItems(array, a, b) {
+        array[a] = array.splice(b, 1, array[a])[0];
+        return array;
+    }
+    static combineThingArrays(arrayOne, arrayTwo) {
+        const things = [ ...arrayOne ];
+        for (const thing of arrayTwo) {
+            if (ArrayUtils.includesThing(thing, arrayOne) === false) things.push(thing);
+        }
+        return things;
+    }
+    static compareThingArrays(arrayOne, arrayTwo) {
+        arrayOne = Array.isArray(arrayOne) ? arrayOne : [ arrayOne ];
+        arrayTwo = Array.isArray(arrayTwo) ? arrayTwo : [ arrayTwo ];
+        if (arrayOne.length === 0 && arrayTwo.length === 0) return true;
+        for (const thing of arrayOne) if (ArrayUtils.includesThing(thing, arrayTwo) === false) return false;
+        for (const thing of arrayTwo) if (ArrayUtils.includesThing(thing, arrayOne) === false) return false;
+        return true;
+    }
+    static filterThings(things, properties = {}) {
+        const filtered = things.filter((object) => {
+            return Object.keys(properties).every((key) => { return object[key] == properties[key]; });
+        });
+        return filtered;
+    }
+    static includesThing(findThing, ...things) {
+        if (!findThing || !findThing.uuid) return false;
+        if (things.length === 0) return false;
+        if (things.length > 0 && Array.isArray(things[0])) things = things[0];
+        for (const thing of things) if (thing.uuid && thing.uuid === findThing.uuid) return true;
+        return false;
+    }
+    static removeThingFromArray(removeThing, ...things) {
+        if (things.length > 0 && Array.isArray(things[0])) things = things[0];
+        if (!removeThing || !removeThing.uuid) return [ ...things ];
+        const newArray = [];
+        for (const thing of things) if (thing.uuid !== removeThing.uuid) newArray.push(thing);
+        return newArray;
+    }
+    static shareValues(arrayOne, arrayTwo) {
+        for (let i = 0; i < arrayOne.length; i++) {
+            if (arrayTwo.includes(arrayOne[i])) return true;
+        }
+        return false;
+    }
+}
+
+class Clock {
+    #running = false;
+    #startTime = 0;
+    #elapsedTime = 0;
+    #lastChecked = 0;
+    #deltaCount = 0;
+    #frameTime = 0;
+    #frameCount = 0;
+    #lastFrameCount = null;
+    constructor(autoStart = true, msRewind = 0) {
+        if (autoStart) this.start();
+        this.#startTime -= msRewind;
+        this.#lastChecked -= msRewind;
+    }
+    start(reset = false) {
+        if (reset) this.reset();
+        this.#startTime = performance.now();
+        this.#lastChecked = this.#startTime;
+        this.#running = true;
+    }
+    stop() {
+        this.getDeltaTime();
+        this.#running = false;
+    }
+    toggle() {
+        if (this.#running) this.stop();
+        else this.start();
+    }
+    reset() {
+        this.#startTime = performance.now();
+        this.#lastChecked = this.#startTime;
+        this.#elapsedTime = 0;
+        this.#deltaCount = 0;
+    }
+    getElapsedTime() {
+        return this.#elapsedTime;
+    }
+    getDeltaTime() {
+        if (!this.#running) {
+            this.#lastFrameCount = null;
+            return 0;
+        }
+        const newTime = performance.now();
+        const dt = (newTime - this.#lastChecked) / 1000;
+        this.#lastChecked = newTime;
+        this.#elapsedTime += dt;
+        this.#deltaCount++;
+        this.#frameTime += dt;
+        this.#frameCount++;
+        if (this.#frameTime > 1) {
+            this.#lastFrameCount = this.#frameCount;
+            this.#frameTime = 0;
+            this.#frameCount = 0;
+        }
+        return dt;
+    }
+    isRunning() {
+        return this.#running;
+    }
+    isStopped() {
+        return !(this.#running);
+    }
+    count() {
+        return this.#deltaCount;
+    }
+    averageDelta() {
+        const frameRate = (this.#lastFrameCount !== null) ? (1 / this.#lastFrameCount) : (this.#frameTime / this.#frameCount);
+        return Math.min(1, frameRate);
+    }
+    fps() {
+        return (this.#lastFrameCount !== null) ? this.#lastFrameCount : (this.#frameCount / this.#frameTime);
     }
 }
 
@@ -2674,9 +2737,9 @@ class Stage extends Entity {
         return this;
     }
 }
-Entity.register('Stage2D', Stage);
-Entity.register('Stage3D', Stage);
-Entity.register('StageUI', Stage);
+Thing.register('Stage2D', Stage);
+Thing.register('Stage3D', Stage);
+Thing.register('StageUI', Stage);
 
 let _animationID = null;
 class App {
@@ -3582,6 +3645,7 @@ class Box extends Object2D {
         }
     }
 }
+Thing.register('Box', Box);
 
 class Circle extends Object2D {
     #radius = 25;
@@ -3631,6 +3695,7 @@ class Circle extends Object2D {
         }
     }
 }
+Thing.register('Circle', Circle);
 
 const _projection = new Matrix2();
 class DomElement extends Object2D {
@@ -3687,6 +3752,7 @@ class DomElement extends Object2D {
 		this.computeBoundingBox();
 	}
 }
+Thing.register('DomElement', DomElement);
 
 const _globalPoint = new Vector2();
 const _globalFrom = new Vector2();
@@ -3780,6 +3846,7 @@ class Line extends Object2D {
         }
     }
 }
+Thing.register('Line', Line);
 
 class Pattern extends Box {
     #box = new Box2();
@@ -3813,6 +3880,7 @@ class Pattern extends Box {
         }
     }
 }
+Thing.register('Pattern', Pattern);
 
 const ALPHA_THRESHOLD = 5;
 class PolyUtils {
@@ -4105,6 +4173,7 @@ class Sprite extends Box {
         }
     }
 }
+Thing.register('Sprite', Sprite);
 function createCrossHatchPattern(color, lineWidth, spacing) {
     const patternCanvas = document.createElement('canvas');
     const patternContext = patternCanvas.getContext('2d');
@@ -4196,6 +4265,7 @@ class Text extends Object2D {
         });
     }
 }
+Thing.register('Text', Text);
 
 class Mask extends Object2D {
     constructor() {
@@ -4206,6 +4276,7 @@ class Mask extends Object2D {
     clip(renderer) {
     }
 }
+Thing.register('Mask', Mask);
 
 class BoxMask extends Mask {
     constructor() {
@@ -4233,6 +4304,7 @@ class BoxMask extends Mask {
         context.clip();
     }
 }
+Thing.register('BoxMask', BoxMask);
 
 class LinearGradientStyle extends Style {
     constructor() {

@@ -2,6 +2,7 @@ import {
     STAGE_TYPES,
 } from '../../constants.js';
 import { Entity } from './Entity.js';
+import { Thing } from '../Thing.js';
 import { Vector3 } from '../../math/Vector3.js';
 
 class Stage extends Entity {
@@ -82,8 +83,8 @@ class Stage extends Entity {
 
 }
 
-Entity.register('Stage2D', Stage);
-Entity.register('Stage3D', Stage);
-Entity.register('StageUI', Stage);
+Thing.register('Stage2D', Stage);
+Thing.register('Stage3D', Stage);
+Thing.register('StageUI', Stage);
 
 export { Stage };

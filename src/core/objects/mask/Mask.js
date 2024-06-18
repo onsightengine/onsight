@@ -1,4 +1,5 @@
 import { Object2D } from '../../Object2D.js';
+import { Thing } from '../../Thing.js';
 
 /**
  * A mask can be used to set the drawing region.
@@ -24,5 +25,7 @@ class Mask extends Object2D {
     }
 
 }
+
+Thing.register('Mask', Mask);
 
 export { Mask };

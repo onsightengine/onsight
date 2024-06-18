@@ -2,6 +2,7 @@ import { Box } from './Box.js';
 import { Box2 } from '../../math/Box2.js';
 import { ColorStyle } from './style/ColorStyle.js';
 import { PolyUtils } from '../../utils/PolyUtils.js';
+import { Thing } from '../Thing.js';
 
 const PATTERN_SPACING = 5;              // space between diamonds
 const SIMPLIFY_AMOUNT = 0.2;            // 0.1 to 10-ish
@@ -144,6 +145,8 @@ class Sprite extends Box {
     }
 
 }
+
+Thing.register('Sprite', Sprite);
 
 export { Sprite };
 

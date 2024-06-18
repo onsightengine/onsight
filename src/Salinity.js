@@ -14,6 +14,7 @@ export * from './constants.js';
 /******************** CORE ********************/
 
 export { Object2D } from './core/Object2D.js';
+export { Project } from './core/Project.js';
 export { Thing } from './core/Thing.js';
 
 // App
@@ -37,7 +38,6 @@ export { Pointer } from './core/input/Pointer.js';
 
 // Project
 export { Entity } from './core/project/Entity.js';
-export { Project } from './core/project/Project.js';
 export { Stage } from './core/project/Stage.js';
 export { World } from './core/project/World.js';
 

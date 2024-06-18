@@ -4,6 +4,8 @@ import {
 import { MathUtils } from '../utils/MathUtils.js';
 import { SysUtils } from '../utils/SysUtils.js';
 
+const _types = new Map();
+
 /**
  * Base class for a serializable object with a unique identifier
  */
@@ -58,6 +60,18 @@ class Thing {
         return this;
     }
 
+    /******************** TYPES */
+
+    static register(type, ThingClass) {
+	    _types.set(type, ThingClass);
+    }
+
+    static type(type) {
+        return _types.get(type);
+    }
+
 }
+
+Thing.register('Thing', Thing);
 
 export { Thing };

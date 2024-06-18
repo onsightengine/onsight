@@ -72,7 +72,7 @@ class Matrix2 {
      * @param {number} rot Rotation angle (in radians)
      */
     compose(px, py, sx, sy, rot) {
-        // Identity
+        // Reset to Identity
         this.identity();
 
         // Translation (Position)

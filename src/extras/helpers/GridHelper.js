@@ -178,8 +178,8 @@ class GridHelper extends Object2D {
 
         // Calculate the starting position of the grid in world coordinates
         _start.set(
-            (camera.position.x / (camera.scale * this.scale.x)),
-            (camera.position.y / (camera.scale * this.scale.y)),
+            (camera.position.x / this.scale.x) * -1,
+            (camera.position.y / this.scale.y),
         );
         _rotate.identity().rotate(this.rotation);
         _rotate.applyToVector(_start);

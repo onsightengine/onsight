@@ -321,8 +321,8 @@ class Vector2 {
         return this.lerpVectors(this, vec, t);
     }
     lerpVectors(a, b, t) {
-        this.x = a.x + ((b.x - a.x) * t);
-        this.y = a.y + ((b.y - a.y) * t);
+        this.x = (a.x * (1.0 - t)) + (b.x * t);
+        this.y = (a.y * (1.0 - t)) + (b.y * t);
         return this;
     }
     smoothstep(vec, t) {
@@ -1027,8 +1027,13 @@ class Matrix2 {
         return this;
     }
     translate(x, y) {
-        this.m[4] += this.m[0] * x + this.m[2] * y;
-        this.m[5] += this.m[1] * x + this.m[3] * y;
+        if (typeof x === 'object') {
+            this.m[4] += this.m[0] * x.x + this.m[2] * x.y;
+            this.m[5] += this.m[1] * x.x + this.m[3] * x.y;
+        } else {
+            this.m[4] += this.m[0] * x + this.m[2] * y;
+            this.m[5] += this.m[1] * x + this.m[3] * y;
+        }
         return this;
     }
     rotate(rad) {
@@ -1044,17 +1049,18 @@ class Matrix2 {
         this.m[3] = m22;
         return this;
     }
-    scale(sx, sy) {
-        if (typeof sx === 'object') {
-            this.m[0] *= sx.x;
-            this.m[1] *= sx.x;
-            this.m[2] *= sx.y;
-            this.m[3] *= sx.y;
+    scale(x, y) {
+        if (typeof x === 'object') {
+            this.m[0] *= x.x;
+            this.m[1] *= x.x;
+            this.m[2] *= x.y;
+            this.m[3] *= x.y;
         } else {
-            this.m[0] *= sx;
-            this.m[1] *= sx;
-            this.m[2] *= sy;
-            this.m[3] *= sy;
+            if (y == undefined) y = x;
+            this.m[0] *= x;
+            this.m[1] *= x;
+            this.m[2] *= y;
+            this.m[3] *= y;
         }
         return this;
     }
@@ -2872,11 +2878,9 @@ class Camera2D extends Thing {
     updateMatrix(force = false) {
         if (force !== true && this.matrixNeedsUpdate !== true) return;
         this.matrix.identity();
-        const c = Math.cos(this.rotation);
-        const s = Math.sin(this.rotation);
-        this.matrix.multiply(_rotate$2.set(c, s, -s, c, 0, 0));
-        this.matrix.multiply(_translate$3.set(1, 0, 0, 1, this.position.x, -this.position.y));
-        this.matrix.multiply(_scale$2.set(this.scale, 0, 0, this.scale, 0, 0));
+        this.matrix.rotate(this.rotation);
+        this.matrix.scale(this.scale);
+        this.matrix.translate(-this.position.x, -this.position.y);
         this.matrix.getInverse(this.inverseMatrix);
         this.matrixNeedsUpdate = false;
     }
@@ -4323,10 +4327,12 @@ class CameraControls {
             let scaleFactor = pointer.wheel * 0.0015 * camera.scale;
             if (pointer.wheel < 0) scaleFactor = Math.max(scaleFactor, camera.scale - ZOOM_MAX);
             if (pointer.wheel > 0) scaleFactor = Math.min(scaleFactor, camera.scale - ZOOM_MIN);
-            const pointerPos = renderer.screenToWorld(pointer.position);
-            camera.scale -= scaleFactor;
-            camera.scale = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, camera.scale));
-            camera.position.add(pointerPos.multiplyScalar(scaleFactor).multiply(1, -1));
+            const beforePosition = renderer.screenToWorld(pointer.position);
+            camera.scale = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, camera.scale - scaleFactor));
+            camera.updateMatrix(true);
+            const afterPosition = renderer.screenToWorld(pointer.position);
+            const delta = afterPosition.clone().sub(beforePosition);
+            camera.position.sub(delta.x, delta.y);
             camera.matrixNeedsUpdate = true;
         }
         if (this.allowRotation) {
@@ -4360,8 +4366,8 @@ class CameraControls {
                     this.dragging = true;
                 }
                 _rotate$1.identity().rotate(camera.rotation);
-                const delta = _rotate$1.transformPoint(pointer.delta);
-                camera.position.add(delta);
+                const delta = _rotate$1.transformPoint(pointer.delta.x / camera.scale, pointer.delta.y / camera.scale);
+                camera.position.sub(delta.x, delta.y * -1);
                 camera.matrixNeedsUpdate = true;
             } else {
                 pointer.unlock();
@@ -4374,21 +4380,22 @@ class CameraControls {
         if (includeChildren) {
             const bounds = new Box2();
             object.traverse((child) => {
+                let isHelper = child.isHelper;
+                child.traverseAncestors((parent) => {
+                    isHelper = isHelper || parent.isHelper;
+                });
+                if (isHelper) return;
                 const childBounds = child.getWorldBoundingBox();
                 bounds.union(childBounds);
             });
             targetScale = 0.5 * Math.min(renderer.width / bounds.getSize().x, renderer.height / bounds.getSize().y);
             targetPosition = bounds.getCenter();
-            targetPosition.multiplyScalar(-targetScale);
-            targetPosition.add(new Vector2(renderer.width / 2.0, renderer.height / 2.0));
         } else {
             const worldBox = object.getWorldBoundingBox();
             const worldSize = worldBox.getSize();
             const worldCenter = worldBox.getCenter();
             targetScale = 0.1 * Math.min(renderer.width / worldSize.x, renderer.height / worldSize.y);
             targetPosition = worldCenter;
-            targetPosition.multiplyScalar(-targetScale);
-            targetPosition.add(new Vector2(renderer.width / 2.0, renderer.height / 2.0));
         }
         targetScale = Math.abs(targetScale);
         const camera = this.camera;
@@ -4399,7 +4406,7 @@ class CameraControls {
             const elapsedTime = performance.now() - startTime;
             const t = Math.min(elapsedTime / animationDuration, 1);
             camera.position.lerpVectors(startPosition, targetPosition, t);
-            camera.scale = startScale + (targetScale - startScale) * t;
+            camera.scale = (startScale * (1.0 - t)) + (targetScale * t);
             camera.matrixNeedsUpdate = true;
             if (t < 1) requestAnimationFrame(animate);
         };
@@ -4696,10 +4703,10 @@ class ResizeHelper extends Box {
                 }
                 return resizer;
             }
-            topRight = createResizer('Top Right', -1, -1, 'box', 45, 1, 'yellow');
-            topLeft = createResizer('Top Left', 1, -1, 'box', 135, 1, 'blue');
-            bottomLeft = createResizer('Bottom Left', 1, 1, 'box', 225, 1, 'green');
-            bottomRight = createResizer('Bottom Right', -1, 1, 'box', 315, 1, 'red');
+            topRight = createResizer('Top Right', -1, -1, 'box', 45, 1);
+            topLeft = createResizer('Top Left', 1, -1, 'box', 135, 1);
+            bottomLeft = createResizer('Bottom Left', 1, 1, 'box', 225, 1);
+            bottomRight = createResizer('Bottom Right', -1, 1, 'box', 315, 1);
             rightResizer = createResizer('Right', -1, 0, 'line', 0, 1);
             topResizer = createResizer('Top', 0, -1, 'line', 90, 1);
             leftResizer = createResizer('Left', 1, 0, 'line', 180, 1);
@@ -5297,8 +5304,8 @@ class GridHelper extends Object2D {
         const gridCountX = Math.ceil(visibleWidth / this.gridX) + 2;
         const gridCountY = Math.ceil(visibleHeight / this.gridY) + 2;
         _start.set(
-            (camera.position.x / (camera.scale * this.scale.x)),
-            (camera.position.y / (camera.scale * this.scale.y)),
+            (camera.position.x / this.scale.x) * -1,
+            (camera.position.y / this.scale.y),
         );
         _rotate.identity().rotate(this.rotation);
         _rotate.applyToVector(_start);

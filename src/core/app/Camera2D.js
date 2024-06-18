@@ -46,19 +46,9 @@ class Camera2D extends Thing {
     updateMatrix(force = false) {
         if (force !== true && this.matrixNeedsUpdate !== true) return;
         this.matrix.identity();
-
-        // Rotate
-        const c = Math.cos(this.rotation);
-        const s = Math.sin(this.rotation);
-        this.matrix.multiply(_rotate.set(c, s, -s, c, 0, 0));
-
-        // Translate
-        this.matrix.multiply(_translate.set(1, 0, 0, 1, this.position.x, -this.position.y));
-
-        // Scale
-        this.matrix.multiply(_scale.set(this.scale, 0, 0, this.scale, 0, 0));
-
-        // Inverse
+        this.matrix.rotate(this.rotation);
+        this.matrix.scale(this.scale);
+        this.matrix.translate(-this.position.x, -this.position.y);
         this.matrix.getInverse(this.inverseMatrix);
         this.matrixNeedsUpdate = false;
     }

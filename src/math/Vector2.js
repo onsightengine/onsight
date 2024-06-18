@@ -268,8 +268,8 @@ class Vector2 {
     }
 
     lerpVectors(a, b, t) {
-        this.x = a.x + ((b.x - a.x) * t);
-        this.y = a.y + ((b.y - a.y) * t);
+        this.x = (a.x * (1.0 - t)) + (b.x * t);
+        this.y = (a.y * (1.0 - t)) + (b.y * t);
         return this;
     }
 

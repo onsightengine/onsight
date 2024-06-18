@@ -107,8 +107,13 @@ class Matrix2 {
 
     /** Apply translation to this matrix (adds position to transformation already in the matrix) */
     translate(x, y) {
-        this.m[4] += this.m[0] * x + this.m[2] * y;
-        this.m[5] += this.m[1] * x + this.m[3] * y;
+        if (typeof x === 'object') {
+            this.m[4] += this.m[0] * x.x + this.m[2] * x.y;
+            this.m[5] += this.m[1] * x.x + this.m[3] * x.y;
+        } else {
+            this.m[4] += this.m[0] * x + this.m[2] * y;
+            this.m[5] += this.m[1] * x + this.m[3] * y;
+        }
         return this;
     }
 
@@ -128,17 +133,18 @@ class Matrix2 {
     }
 
     /** Apply scale to this matrix */
-    scale(sx, sy) {
-        if (typeof sx === 'object') {
-            this.m[0] *= sx.x;
-            this.m[1] *= sx.x;
-            this.m[2] *= sx.y;
-            this.m[3] *= sx.y;
+    scale(x, y) {
+        if (typeof x === 'object') {
+            this.m[0] *= x.x;
+            this.m[1] *= x.x;
+            this.m[2] *= x.y;
+            this.m[3] *= x.y;
         } else {
-            this.m[0] *= sx;
-            this.m[1] *= sx;
-            this.m[2] *= sy;
-            this.m[3] *= sy;
+            if (y == undefined) y = x;
+            this.m[0] *= x;
+            this.m[1] *= x;
+            this.m[2] *= y;
+            this.m[3] *= y;
         }
         return this;
     }

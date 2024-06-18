@@ -59,10 +59,12 @@ class CameraControls {
             if (pointer.wheel < 0) scaleFactor = Math.max(scaleFactor, camera.scale - ZOOM_MAX);
             if (pointer.wheel > 0) scaleFactor = Math.min(scaleFactor, camera.scale - ZOOM_MIN);
             // Zoom on Target Position
-            const pointerPos = renderer.screenToWorld(pointer.position);
-            camera.scale -= scaleFactor;
-            camera.scale = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, camera.scale));
-            camera.position.add(pointerPos.multiplyScalar(scaleFactor).multiply(1, -1));
+            const beforePosition = renderer.screenToWorld(pointer.position);
+            camera.scale = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, camera.scale - scaleFactor));
+            camera.updateMatrix(true);
+            const afterPosition = renderer.screenToWorld(pointer.position);
+            const delta = afterPosition.clone().sub(beforePosition);
+            camera.position.sub(delta.x, delta.y);
             camera.matrixNeedsUpdate = true;
         }
 
@@ -102,8 +104,8 @@ class CameraControls {
                     this.dragging = true;
                 }
                 _rotate.identity().rotate(camera.rotation);
-                const delta = _rotate.transformPoint(pointer.delta);
-                camera.position.add(delta);
+                const delta = _rotate.transformPoint(pointer.delta.x / camera.scale, pointer.delta.y / camera.scale);
+                camera.position.sub(delta.x, delta.y * -1);
                 camera.matrixNeedsUpdate = true;
             } else {
                 pointer.unlock();
@@ -118,13 +120,16 @@ class CameraControls {
         if (includeChildren) {
             const bounds = new Box2();
             object.traverse((child) => {
+                let isHelper = child.isHelper;
+                child.traverseAncestors((parent) => {
+                    isHelper = isHelper || parent.isHelper;
+                });
+                if (isHelper) return;
                 const childBounds = child.getWorldBoundingBox();
                 bounds.union(childBounds);
             });
             targetScale = 0.5 * Math.min(renderer.width / bounds.getSize().x, renderer.height / bounds.getSize().y);
             targetPosition = bounds.getCenter();
-            targetPosition.multiplyScalar(-targetScale);
-            targetPosition.add(new Vector2(renderer.width / 2.0, renderer.height / 2.0));
         // Focus Object
         } else {
             const worldBox = object.getWorldBoundingBox();
@@ -132,8 +137,6 @@ class CameraControls {
             const worldCenter = worldBox.getCenter();
             targetScale = 0.1 * Math.min(renderer.width / worldSize.x, renderer.height / worldSize.y);
             targetPosition = worldCenter;
-            targetPosition.multiplyScalar(-targetScale);
-            targetPosition.add(new Vector2(renderer.width / 2.0, renderer.height / 2.0));
         }
         targetScale = Math.abs(targetScale);
 
@@ -145,7 +148,7 @@ class CameraControls {
             const elapsedTime = performance.now() - startTime;
             const t = Math.min(elapsedTime / animationDuration, 1);
             camera.position.lerpVectors(startPosition, targetPosition, t);
-            camera.scale = startScale + (targetScale - startScale) * t;
+            camera.scale = (startScale * (1.0 - t)) + (targetScale * t);
             camera.matrixNeedsUpdate = true;
             if (t < 1) requestAnimationFrame(animate);
         };

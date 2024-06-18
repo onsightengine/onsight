@@ -321,8 +321,8 @@ class Vector2 {
         return this.lerpVectors(this, vec, t);
     }
     lerpVectors(a, b, t) {
-        this.x = a.x + ((b.x - a.x) * t);
-        this.y = a.y + ((b.y - a.y) * t);
+        this.x = (a.x * (1.0 - t)) + (b.x * t);
+        this.y = (a.y * (1.0 - t)) + (b.y * t);
         return this;
     }
     smoothstep(vec, t) {
@@ -1027,8 +1027,13 @@ class Matrix2 {
         return this;
     }
     translate(x, y) {
-        this.m[4] += this.m[0] * x + this.m[2] * y;
-        this.m[5] += this.m[1] * x + this.m[3] * y;
+        if (typeof x === 'object') {
+            this.m[4] += this.m[0] * x.x + this.m[2] * x.y;
+            this.m[5] += this.m[1] * x.x + this.m[3] * x.y;
+        } else {
+            this.m[4] += this.m[0] * x + this.m[2] * y;
+            this.m[5] += this.m[1] * x + this.m[3] * y;
+        }
         return this;
     }
     rotate(rad) {
@@ -1044,17 +1049,18 @@ class Matrix2 {
         this.m[3] = m22;
         return this;
     }
-    scale(sx, sy) {
-        if (typeof sx === 'object') {
-            this.m[0] *= sx.x;
-            this.m[1] *= sx.x;
-            this.m[2] *= sx.y;
-            this.m[3] *= sx.y;
+    scale(x, y) {
+        if (typeof x === 'object') {
+            this.m[0] *= x.x;
+            this.m[1] *= x.x;
+            this.m[2] *= x.y;
+            this.m[3] *= x.y;
         } else {
-            this.m[0] *= sx;
-            this.m[1] *= sx;
-            this.m[2] *= sy;
-            this.m[3] *= sy;
+            if (y == undefined) y = x;
+            this.m[0] *= x;
+            this.m[1] *= x;
+            this.m[2] *= y;
+            this.m[3] *= y;
         }
         return this;
     }
@@ -2872,11 +2878,9 @@ class Camera2D extends Thing {
     updateMatrix(force = false) {
         if (force !== true && this.matrixNeedsUpdate !== true) return;
         this.matrix.identity();
-        const c = Math.cos(this.rotation);
-        const s = Math.sin(this.rotation);
-        this.matrix.multiply(_rotate.set(c, s, -s, c, 0, 0));
-        this.matrix.multiply(_translate$2.set(1, 0, 0, 1, this.position.x, -this.position.y));
-        this.matrix.multiply(_scale$1.set(this.scale, 0, 0, this.scale, 0, 0));
+        this.matrix.rotate(this.rotation);
+        this.matrix.scale(this.scale);
+        this.matrix.translate(-this.position.x, -this.position.y);
         this.matrix.getInverse(this.inverseMatrix);
         this.matrixNeedsUpdate = false;
     }

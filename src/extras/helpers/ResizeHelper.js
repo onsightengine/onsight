@@ -359,10 +359,10 @@ class ResizeHelper extends Box {
                 }
                 return resizer;
             }
-            topRight = createResizer('Top Right', -1, -1, 'box', 45, 1, 'yellow');
-            topLeft = createResizer('Top Left', 1, -1, 'box', 135, 1, 'blue');
-            bottomLeft = createResizer('Bottom Left', 1, 1, 'box', 225, 1, 'green');
-            bottomRight = createResizer('Bottom Right', -1, 1, 'box', 315, 1, 'red');
+            topRight = createResizer('Top Right', -1, -1, 'box', 45, 1);//, 'yellow');
+            topLeft = createResizer('Top Left', 1, -1, 'box', 135, 1);//, 'blue');
+            bottomLeft = createResizer('Bottom Left', 1, 1, 'box', 225, 1);//, 'green');
+            bottomRight = createResizer('Bottom Right', -1, 1, 'box', 315, 1);//, 'red');
             rightResizer = createResizer('Right', -1, 0, 'line', 0, 1);
             topResizer = createResizer('Top', 0, -1, 'line', 90, 1);
             leftResizer = createResizer('Left', 1, 0, 'line', 180, 1);

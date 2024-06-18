@@ -407,7 +407,30 @@ class Object2D extends Thing {
     copy(source, recursive = true) {
         super.copy(source, recursive);
 
-        //
+        // Properties
+        this.visible = source.visible;
+        this.opacity = source.opacity;
+        this.layer = source.layer;
+
+        // Transform
+        this.position.copy(source.position);
+        this.scale.copy(source.scale);
+        this.rotation = source.rotation;
+        this.matrixAutoUpdate = source.matrixAutoUpdate;
+        this.lateUpdate = source.lateUpdate;
+
+        // Pointer Events
+        this.pointerEvents = source.pointerEvents;
+        this.draggable = source.draggable;
+        this.focusable = source.focusable;
+        this.selectable = source.selectable;
+
+        // Masks
+        if (recursive && Array.isArray(source.masks)) {
+            for (const mask of source.masks) {
+                this.masks.push(mask.clone());
+            }
+        }
 
         // Children
         if (recursive && Array.isArray(source.children)) {
@@ -423,7 +446,7 @@ class Object2D extends Thing {
     toJSON(recursive = true) {
         const data = super.toJSON(recursive);
 
-        // Object2D
+        // Properties
         data.visible = this.visible;
         data.opacity = this.opacity;
         data.layer = this.layer;
@@ -459,7 +482,7 @@ class Object2D extends Thing {
     fromJSON(data) {
         super.fromJSON(data);
 
-        // Object2D
+        // Properties
         if (data.visible !== undefined) this.visible = data.visible;
         if (data.opacity !== undefined) this.opacity = data.opacity;
         if (data.layer !== undefined) this.layer = data.layer;
@@ -477,6 +500,19 @@ class Object2D extends Thing {
         if (data.focusable !== undefined) this.focusable = data.focusable;
         if (data.selectable !== undefined) this.selectable = data.selectable;
 
+        // Masks
+        if (data.masks) {
+            for (const maskData of data.masks) {
+                const Constructor = Thing.type(maskData.type);
+                if (Constructor) {
+                    const child = new Constructor().fromJSON(maskData);
+                    this.masks.push(child);
+                } else {
+                    console.warn(`Object2D.fromJSON(): Unknown mask type '${maskData.type}'`);
+                }
+            }
+        }
+
         // Children
         if (data.children) {
             for (const childData of data.children) {
@@ -485,7 +521,7 @@ class Object2D extends Thing {
                     const child = new Constructor().fromJSON(childData);
                     this.add(child);
                 } else {
-                    console.warn(`Object2D.fromJSON(): Unknown thing type '${childData.type}'`);
+                    console.warn(`Object2D.fromJSON(): Unknown child type '${childData.type}'`);
                 }
             }
         }

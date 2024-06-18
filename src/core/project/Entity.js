@@ -335,7 +335,7 @@ class Entity extends Thing {
     toJSON(recursive = true) {
         const data = super.toJSON(recursive);
 
-        // Entity
+        // Properties
         data.category = this.category;
         data.locked = this.locked;
         data.visible = this.visible;
@@ -381,7 +381,7 @@ class Entity extends Thing {
                     const child = new Constructor().fromJSON(childData);
                     this.addEntity(child);
                 } else {
-                    console.warn(`Entity.fromJSON(): Unknown thing type '${childData.type}'`);
+                    console.warn(`Entity.fromJSON(): Unknown child type '${childData.type}'`);
                 }
             }
         }

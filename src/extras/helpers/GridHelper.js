@@ -55,9 +55,10 @@ class GridHelper extends Object2D {
             _rotate.identity().rotate(self.rotation).transformContext(context);
             // Swap X/Y Scale due to Rotation
             function degreesToYAxisAlignment(degrees) {
-                const normalizedDegrees = ((degrees + 180) % 360 + 360) % 360 - 180;
-                const absoluteDegrees = Math.abs(normalizedDegrees);
-                return absoluteDegrees / 90;
+                let normalizedDegrees = ((degrees + 180) % 360 + 360) % 360 - 180;
+                while (normalizedDegrees > +90) normalizedDegrees -= 180;
+                while (normalizedDegrees < -90) normalizedDegrees += 180;
+                return Math.abs(normalizedDegrees) / 90;
             }
             const lerp = degreesToYAxisAlignment(MathUtils.radiansToDegrees(self.rotation))
             const scale = self.scale.clone();
@@ -172,43 +173,43 @@ class GridHelper extends Object2D {
         const visibleHeight = _bounds.getSize().y;
 
         // Calculate the number of grid cells needed to cover the visible area
-        const gridCountX = Math.ceil(visibleWidth / this.gridX) + 1;
-        const gridCountY = Math.ceil(visibleHeight / this.gridY) + 1;
+        const gridCountX = Math.ceil(visibleWidth / this.gridX) + 2;
+        const gridCountY = Math.ceil(visibleHeight / this.gridY) + 2;
 
         // Calculate the starting position of the grid in world coordinates
-        // const startX = (Math.floor(_bounds.min.x / this.gridX) * this.gridX);
-        // const startY = (Math.floor(_bounds.min.y / this.gridY) * this.gridY);
-
-        const startX = ((camera.position.x + halfWidth) / (camera.scale * this.scale.x)) * -1;
-        const startY = ((camera.position.y + halfHeight) / (camera.scale * this.scale.y)) * -1;
-
-        _start.set(startX, startY);
+        _start.set(
+            (camera.position.x / (camera.scale * this.scale.x)),
+            (camera.position.y / (camera.scale * this.scale.y)),
+        );
+        _rotate.identity().rotate(this.rotation);
+        _rotate.applyToVector(_start);
+        const startX = Math.ceil((_start.x + (visibleWidth / 2)) / this.gridX) * this.gridX * -1;
+        const startY = Math.ceil((_start.y + (visibleHeight / 2)) / this.gridY) * this.gridY * -1;
 
         // Draw Pattern
-        // if (camera.scale <= 1.5) {
+        if (camera.scale <= 1.5) {
             if (this.gridScale !== camera.scale || !this.cache) this.drawPattern(camera.scale);
             if (!this.cache) this.cache = context.createPattern(this.patternCanvas, 'repeat');
             context.fillStyle = this.cache;
-            context.fillRect(_start.x, _start.y, gridCountX * this.gridX, gridCountY * this.gridY);
-
-        // // Draw Lines
-        // } else {
-        //     context.beginPath();
-        //     for (let i = 0; i <= gridCountX; i++) {
-        //         const x = _start.x + i * this.gridX;
-        //         context.moveTo(x, _bounds.min.y);
-        //         context.lineTo(x, _bounds.max.y);
-        //     }
-        //     for (let j = 0; j <= gridCountY; j++) {
-        //         const y = _start.y + j * this.gridY;
-        //         context.moveTo(_bounds.min.x, y);
-        //         context.lineTo(_bounds.max.x, y);
-        //     }
-        //     context.setTransform(1, 0, 0, 1, 0, 0);
-        //     context.strokeStyle = `rgba(128, 128, 128, 1)`;
-        //     context.lineWidth = 1;
-        //     context.stroke();
-        // }
+            context.fillRect(startX, startY, gridCountX * this.gridX, gridCountY * this.gridY);
+        // Draw Lines
+        } else {
+            context.strokeStyle = `rgba(128, 128, 128, 1)`;
+            context.lineWidth = 1;
+            context.beginPath();
+            for (let i = 0; i <= gridCountX; i++) {
+                const x = startX + (i * this.gridX);
+                context.moveTo(x, startY);
+                context.lineTo(x, startY + gridCountY * this.gridY);
+            }
+            for (let j = 0; j <= gridCountY; j++) {
+                const y = startY + (j * this.gridY);
+                context.moveTo(startX, y);
+                context.lineTo(startX + gridCountX * this.gridX, y);
+            }
+            context.setTransform(1, 0, 0, 1, 0, 0);
+            context.stroke();
+        }
         context.restore();
     }
 

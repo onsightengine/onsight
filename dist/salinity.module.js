@@ -5201,9 +5201,10 @@ class GridHelper extends Object2D {
             _scale.identity().scale(self.scale.x, self.scale.y).transformContext(context);
             _rotate.identity().rotate(self.rotation).transformContext(context);
             function degreesToYAxisAlignment(degrees) {
-                const normalizedDegrees = ((degrees + 180) % 360 + 360) % 360 - 180;
-                const absoluteDegrees = Math.abs(normalizedDegrees);
-                return absoluteDegrees / 90;
+                let normalizedDegrees = ((degrees + 180) % 360 + 360) % 360 - 180;
+                while (normalizedDegrees > +90) normalizedDegrees -= 180;
+                while (normalizedDegrees < -90) normalizedDegrees += 180;
+                return Math.abs(normalizedDegrees) / 90;
             }
             const lerp = degreesToYAxisAlignment(MathUtils.radiansToDegrees(self.rotation));
             const scale = self.scale.clone();
@@ -5293,15 +5294,38 @@ class GridHelper extends Object2D {
         _bounds.setFromPoints(_corner1, _corner2, _corner3, _corner4);
         const visibleWidth = _bounds.getSize().x;
         const visibleHeight = _bounds.getSize().y;
-        const gridCountX = Math.ceil(visibleWidth / this.gridX) + 1;
-        const gridCountY = Math.ceil(visibleHeight / this.gridY) + 1;
-        const startX = ((camera.position.x + halfWidth) / (camera.scale * this.scale.x)) * -1;
-        const startY = ((camera.position.y + halfHeight) / (camera.scale * this.scale.y)) * -1;
-        _start.set(startX, startY);
+        const gridCountX = Math.ceil(visibleWidth / this.gridX) + 2;
+        const gridCountY = Math.ceil(visibleHeight / this.gridY) + 2;
+        _start.set(
+            (camera.position.x / (camera.scale * this.scale.x)),
+            (camera.position.y / (camera.scale * this.scale.y)),
+        );
+        _rotate.identity().rotate(this.rotation);
+        _rotate.applyToVector(_start);
+        const startX = Math.ceil((_start.x + (visibleWidth / 2)) / this.gridX) * this.gridX * -1;
+        const startY = Math.ceil((_start.y + (visibleHeight / 2)) / this.gridY) * this.gridY * -1;
+        if (camera.scale <= 1.5) {
             if (this.gridScale !== camera.scale || !this.cache) this.drawPattern(camera.scale);
             if (!this.cache) this.cache = context.createPattern(this.patternCanvas, 'repeat');
             context.fillStyle = this.cache;
-            context.fillRect(_start.x, _start.y, gridCountX * this.gridX, gridCountY * this.gridY);
+            context.fillRect(startX, startY, gridCountX * this.gridX, gridCountY * this.gridY);
+        } else {
+            context.strokeStyle = `rgba(128, 128, 128, 1)`;
+            context.lineWidth = 1;
+            context.beginPath();
+            for (let i = 0; i <= gridCountX; i++) {
+                const x = startX + (i * this.gridX);
+                context.moveTo(x, startY);
+                context.lineTo(x, startY + gridCountY * this.gridY);
+            }
+            for (let j = 0; j <= gridCountY; j++) {
+                const y = startY + (j * this.gridY);
+                context.moveTo(startX, y);
+                context.lineTo(startX + gridCountX * this.gridX, y);
+            }
+            context.setTransform(1, 0, 0, 1, 0, 0);
+            context.stroke();
+        }
         context.restore();
     }
     drawPattern(scale = 1) {

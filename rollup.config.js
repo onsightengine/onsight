@@ -1,6 +1,5 @@
 import cleanup from 'rollup-plugin-cleanup';                    // Remove comments, supports sourcemap
 import json from '@rollup/plugin-json';                         // Import JSON
-import multi from '@rollup/plugin-multi-entry';                 // Multiple input files
 import terser from '@rollup/plugin-terser';                     // Remove comments, minify
 import { visualizer } from 'rollup-plugin-visualizer';          // Visualize
 
@@ -25,11 +24,10 @@ ${code}`;
 const builds = [
 
     { // Standard Build
-        input: [ './src/Salinity.js', './src/Extras.js' ],
+        input: [ './src/Salinity.js' ],
         treeshake: false,
 
         plugins: [
-            multi(),
             json(),
             cleanup({
                 comments: "none",
@@ -49,11 +47,10 @@ const builds = [
     },
 
     { // Minified
-        input: [ './src/Salinity.js', './src/Extras.js' ],
+        input: [ './src/Salinity.js' ],
         treeshake: false,
 
         plugins: [
-            multi(),
             json(),
             visualizer(),
         ],
@@ -70,7 +67,7 @@ const builds = [
     },
 
     { // Light (No Extras) Build
-        input: './src/Salinity.js',
+        input: './src/Core.js',
         treeshake: false,
 
         plugins: [

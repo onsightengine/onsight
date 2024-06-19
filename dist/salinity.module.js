@@ -47,7 +47,6 @@ var publishConfig = {
 };
 var devDependencies = {
 	"@rollup/plugin-json": "^6.1.0",
-	"@rollup/plugin-multi-entry": "^6.0.1",
 	"@rollup/plugin-terser": "^0.4.4",
 	"rollup-plugin-cleanup": "^3.2.1",
 	"rollup-plugin-visualizer": "^5.12.0"

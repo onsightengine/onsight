@@ -3209,8 +3209,11 @@ class Renderer {
                 if (typeof object.update === 'function') object.update(renderer);
             }
             renderer.render(scene, camera);
-            const backBuffer = renderer.offscreen.transferToImageBitmap();
-            renderer.screenContext.transferFromImageBitmap(backBuffer);
+            try {
+                const backBuffer = renderer.offscreen.transferToImageBitmap();
+                renderer.screenContext.transferFromImageBitmap(backBuffer);
+            } catch {
+            }
             if (typeof onAfterRender === 'function') onAfterRender();
             if (renderer.running) renderer.frame = requestAnimationFrame(loop);
         }

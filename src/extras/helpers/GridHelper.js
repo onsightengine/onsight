@@ -1,4 +1,5 @@
 import { Box2 } from '../../math/Box2.js';
+import { ColorStyle } from '../../core/objects/style/ColorStyle.js';
 import { MathUtils } from '../../utils/MathUtils.js';
 import { Matrix2 } from '../../math/Matrix2.js';
 import { Object2D } from '../../core/Object2D.js';
@@ -30,6 +31,8 @@ class GridHelper extends Object2D {
         const self = this;
         this.isHelper = true;
         this.type = 'GridHelper';
+
+        this.gridColor = new ColorStyle();
 
         this.pointerEvents = false;
         this.draggable = false;
@@ -186,15 +189,22 @@ class GridHelper extends Object2D {
         const startX = Math.ceil((_start.x + (visibleWidth / 2)) / this.gridX) * this.gridX * -1;
         const startY = Math.ceil((_start.y + (visibleHeight / 2)) / this.gridY) * this.gridY * -1;
 
+        // Update Pattern / Color
+        if (this.gridScale !== camera.scale || !this.cache) {
+            this.drawPattern(camera.scale);
+            this.gridColor.color = '--button-dark';
+            this.gridColor.needsUpdate = true;
+        }
+
         // Draw Pattern
         if (camera.scale <= 1.5) {
-            if (this.gridScale !== camera.scale || !this.cache) this.drawPattern(camera.scale);
             if (!this.cache) this.cache = context.createPattern(this.patternCanvas, 'repeat');
             context.fillStyle = this.cache;
             context.fillRect(startX, startY, gridCountX * this.gridX, gridCountY * this.gridY);
         // Draw Lines
         } else {
-            context.strokeStyle = `rgba(128, 128, 128, 1)`;
+            context.strokeStyle = this.gridColor.get(context);
+            context.globalAlpha = 1;
             context.lineWidth = 1;
             context.beginPath();
             for (let i = 0; i <= gridCountX; i++) {
@@ -222,7 +232,8 @@ class GridHelper extends Object2D {
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.clearRect(0, 0, this.patternCanvas.width, this.patternCanvas.height);
         context.translate(this.gridX / 2, this.gridY / 2);
-        context.strokeStyle = `rgba(128, 128, 128, ${Math.min(1, scale)})`;
+        context.strokeStyle = this.gridColor.get(context);
+        context.globalAlpha = Math.min(1, scale);
         context.lineWidth = 1;
         context.beginPath();
         context.moveTo(this.gridX / 2, -this.gridY);
@@ -236,6 +247,7 @@ class GridHelper extends Object2D {
         this.layer = (this.onTop) ? +Infinity : -Infinity;
         this.level = -1;
         const object = renderer.dragObject;
+        this.cross.visible = false;
         if (object && object.isDragging) {
             // Align Rotation
             if (object.type === 'Rotater') {
@@ -256,8 +268,6 @@ class GridHelper extends Object2D {
                     }
                 }
             }
-        } else {
-            this.cross.visible = false;
         }
     }
 

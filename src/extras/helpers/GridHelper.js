@@ -32,7 +32,7 @@ class GridHelper extends Object2D {
         this.isHelper = true;
         this.type = 'GridHelper';
 
-        this.gridColor = new ColorStyle();
+        this.gridColor = new ColorStyle('rgb(128, 128, 128)', 'rgb(128, 128, 128)');
 
         this.pointerEvents = false;
         this.draggable = false;

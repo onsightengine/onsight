@@ -3045,6 +3045,53 @@ class EventManager {
     }
 }
 
+class Style {
+    static extractColor(color) {
+        function extractCSSVariableName(str) {
+            const regex = /--[a-zA-Z0-9-_]+/;
+            const match = str.match(regex);
+            return match ? match[0] : null;
+        }
+        if (typeof color === 'string') {
+            const cssVariable = extractCSSVariableName(color);
+            if (cssVariable) {
+                const computedStyle = getComputedStyle(document.body);
+                const computedColor = computedStyle.getPropertyValue(cssVariable);
+                if (computedColor && typeof computedColor === 'string' && computedColor !== '') {
+                    if (color.includes('rgb(') || color.includes('rgba(')) {
+                        return color.replace(cssVariable, computedColor);
+                    } else {
+                        return `rgb(${computedColor})`;
+                    }
+                } else {
+                    return null;
+                }
+            }
+        }
+        return color;
+    }
+    constructor() {
+        this.cache = null;
+        this.needsUpdate = true;
+    }
+    get(context) {}
+}
+
+class ColorStyle extends Style {
+    constructor(color = '#000000', fallback = '#ffffff') {
+        super();
+        this.color = color;
+        this.fallback = fallback;
+    }
+    get(context) {
+        if (this.needsUpdate || this.cache == null) {
+            this.cache = Style.extractColor(this.color) ?? this.fallback;
+            this.needsUpdate = false;
+        }
+        return this.cache;
+    }
+}
+
 class Keyboard {
     constructor(element) {
         if (!element || !element.dom) {
@@ -3156,6 +3203,7 @@ class Renderer {
         this.clock = new Clock(false);
         this.deltaTime = 0;
         this.totalTime = 0;
+        this.selectColor = new ColorStyle('--icon-light');
         this.running = false;
         this.frame = -1;
         this.scene = null;
@@ -3190,6 +3238,16 @@ class Renderer {
     ratio() {
         const rect = this.dom.getBoundingClientRect();
         return ((this.width / this.height) / (rect.width / rect.height));
+    }
+    refreshColors() {
+        this.selectColor.needsUpdate = true;
+        if (this.scene) {
+            this.scene.traverse((object) => {
+                for (const prop in object) {
+                    if (object[prop] instanceof Style) object[prop].needsUpdate = true;
+                }
+            });
+        }
     }
     addUpdate(object) {
         if (this.updatable.includes(object) === false) {
@@ -3292,7 +3350,7 @@ class Renderer {
         context.arc(_center$1.x, -_center$1.y, centerRadius, 0, 2 * Math.PI);
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.stroke();
-        context.strokeStyle = '#65e5ff';
+        context.strokeStyle = this.selectColor.get(context);
         this.resetTransform();
         const box = object.boundingBox;
         object.globalMatrix.applyToVector(_topLeft$2.copy(box.min.x, box.max.y));
@@ -3307,7 +3365,7 @@ class Renderer {
         context.closePath();
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.shadowBlur = 1;
-        context.shadowColor = '#65e5ff';
+        context.shadowColor = 'rgba(0, 0, 0, 0.25)';
         context.stroke();
         context.shadowBlur = 0;
         context.shadowColor = 'transparent';
@@ -3557,53 +3615,6 @@ let variables = {
     vector4: { type: 'vector', size: 4, tint: true, info: 'Vector 4' },
 };
 `);
-    }
-}
-
-class Style {
-    static extractColor(color) {
-        function extractCSSVariableName(str) {
-            const regex = /--[a-zA-Z0-9-_]+/;
-            const match = str.match(regex);
-            return match ? match[0] : null;
-        }
-        if (typeof color === 'string') {
-            const cssVariable = extractCSSVariableName(color);
-            if (cssVariable) {
-                const computedStyle = getComputedStyle(document.body);
-                const computedColor = computedStyle.getPropertyValue(cssVariable);
-                if (computedColor && typeof computedColor === 'string' && computedColor !== '') {
-                    if (color.includes('rgb(') || color.includes('rgba(')) {
-                        return color.replace(cssVariable, computedColor);
-                    } else {
-                        return `rgb(${computedColor})`;
-                    }
-                } else {
-                    return null;
-                }
-            }
-        }
-        return color;
-    }
-    constructor() {
-        this.cache = null;
-        this.needsUpdate = true;
-    }
-    get(context) {}
-}
-
-class ColorStyle extends Style {
-    constructor(color = '#000000', fallback = '#ffffff') {
-        super();
-        this.color = color;
-        this.fallback = fallback;
-    }
-    get(context) {
-        if (this.needsUpdate || this.cache == null) {
-            this.cache = Style.extractColor(this.color) ?? this.fallback;
-            this.needsUpdate = false;
-        }
-        return this.cache;
     }
 }
 
@@ -5292,7 +5303,7 @@ class GridHelper extends Object2D {
         const self = this;
         this.isHelper = true;
         this.type = 'GridHelper';
-        this.gridColor = new ColorStyle();
+        this.gridColor = new ColorStyle('rgb(128, 128, 128)', 'rgb(128, 128, 128)');
         this.pointerEvents = false;
         this.draggable = false;
         this.focusable = false;
@@ -5501,13 +5512,33 @@ function roundToNearestWithTwoRotations(angle, nearest, startRotation1, startRot
     return diff1 < diff2 ? roundedAngle1 : roundedAngle2;
 }
 
+class OriginHelper extends Circle {
+    constructor(size = 5) {
+        super(size);
+        this.isHelper = true;
+        this.type = 'OriginHelper';
+        this.pointerEvents = false;
+        this.draggable = false;
+        this.focusable = false;
+        this.selectable = false;
+        this.fillStyle.color = '--icon';
+        this.strokeStyle.color = '#000000';
+        this.lineWidth = 1;
+        this.constantWidth = true;
+    }
+    draw(renderer) {
+        this.layer = +Infinity;
+        super.draw(renderer);
+    }
+}
+
 const DURATION = 1500;
 const FADEOUT = 500;
 const TIME_OFFSET = 100000;
 const _minimum = new Box2(new Vector2(-30, -12), new Vector2(30, 12));
 const _position = new Vector2();
 class TooltipHelper extends Box {
-    constructor() {
+    constructor(sceneTips = false) {
         super();
         this.isHelper = true;
         this.type = 'TooltipHelper';
@@ -5517,6 +5548,7 @@ class TooltipHelper extends Box {
         this.selectable = false;
         this.layer = +Infinity;
         this.visible = false;
+        this.sceneTips = sceneTips;
         this.box.min.set(-40, -14);
         this.box.max.set(+40, +14);
         this.radius = 7;
@@ -5553,6 +5585,48 @@ class TooltipHelper extends Box {
     onUpdate(renderer) {
         const camera = renderer.camera;
         const pointer = renderer.pointer;
+        if (this.sceneTips) {
+            if (renderer.pointer.wheel !== 0) {
+                let scale = renderer.camera.scale * 100;
+                scale = scale.toFixed((scale < 50) ? ((scale < 5) ? 2 : 1) : 0);
+                this.popup(` ${scale}% `, 'center');
+            } else if (renderer.dragObject && renderer.dragObject.isDragging) {
+                let tooltipText = '';
+                const object = renderer.dragObject;
+                if (object.type === 'Resizer') {
+                    const resizeHelper = object.resizeHelper;
+                    if (resizeHelper) {
+                        const toolSize = resizeHelper.boundingBox.getSize();
+                        let w = (toolSize.x * resizeHelper.scale.x).toFixed(3);
+                        let h = (toolSize.y * resizeHelper.scale.y).toFixed(3);
+                        w = parseFloat(w).toString();
+                        h = parseFloat(h).toString();
+                        tooltipText = `W: ${w}\nH: ${h}`;
+                    }
+                } else if (object.type === 'Rotater') {
+                    const resizeHelper = object.resizeHelper;
+                    if (resizeHelper) {
+                        let angle = SALT.MathUtils.radiansToDegrees(resizeHelper.rotation);
+                        angle = angle.toFixed(3);
+                        angle = parseFloat(angle).toString();
+                        tooltipText = `${angle}°`;
+                    }
+                } else  {
+                    if (object.type === 'ResizeHelper' && object.objects.length === 1) {
+                        let x = parseFloat((object.objects[0].position.x).toFixed(3)).toString();
+                        let y = parseFloat((object.objects[0].position.y).toFixed(3)).toString();
+                        tooltipText = `X: ${x}\nY: ${y}`;
+                    } else {
+                        let x = parseFloat((object.position.x).toFixed(3)).toString();
+                        let y = parseFloat((object.position.y).toFixed(3)).toString();
+                        tooltipText = `X: ${x}\nY: ${y}`;
+                    }
+                }
+                if (tooltipText !== '') {
+                    this.popup(tooltipText, 'left' , 10 , 0 );
+                }
+            }
+        }
         const timePassed = (performance.now() + TIME_OFFSET) - this.startTime;
         const expired = timePassed > this.duration;
         if (expired) {
@@ -5950,4 +6024,4 @@ function getVariable(variable) {
     return ((value === '') ? undefined : value);
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, DomElement, Entity, EventManager, GridHelper, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_DOUBLE_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, OUTLINE_THICKNESS, Object2D, Palette, Pattern, Pointer, PolyUtils, Project, RadialGradientStyle, Renderer, ResizeHelper, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Sprite, Stage, Style, SysUtils, Text, Thing, TooltipHelper, VERSION, Vector2, Vector3, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, DomElement, Entity, EventManager, GridHelper, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_DOUBLE_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, OUTLINE_THICKNESS, Object2D, OriginHelper, Palette, Pattern, Pointer, PolyUtils, Project, RadialGradientStyle, Renderer, ResizeHelper, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Sprite, Stage, Style, SysUtils, Text, Thing, TooltipHelper, VERSION, Vector2, Vector3, WORLD_TYPES, World };

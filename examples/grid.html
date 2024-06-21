@@ -117,54 +117,8 @@
         scene.add(grid);
 
         // Tooltip Helper
-        const tooltip = new SALT.TooltipHelper();
+        const tooltip = new SALT.TooltipHelper(true /* sceneTips? */);
         scene.add(tooltip);
-        const tooltipWatcher = {
-            update: function(renderer) {
-                // Zoom Level
-                if (renderer.pointer.wheel !== 0) {
-                    let scale = renderer.camera.scale * 100;
-                    scale = scale.toFixed((scale < 50) ? ((scale < 5) ? 2 : 1) : 0);
-                    tooltip.popup(` ${scale}% `, 'center');
-                } else if (renderer.dragObject && renderer.dragObject.isDragging) {
-                    let tooltipText = '';
-                    const object = renderer.dragObject;
-                    if (object.type === 'Resizer') {
-                        const resizeHelper = object.resizeHelper;
-                        if (resizeHelper) {
-                            const toolSize = resizeHelper.boundingBox.getSize();
-                            let w = (toolSize.x * resizeHelper.scale.x).toFixed(3);
-                            let h = (toolSize.y * resizeHelper.scale.y).toFixed(3);
-                            w = parseFloat(w).toString(); // remove trailing zeros
-                            h = parseFloat(h).toString(); // remove trailing zeros
-                            tooltipText = `W: ${w}\nH: ${h}`;
-                        }
-                    } else if (object.type === 'Rotater') {
-                        const resizeHelper = object.resizeHelper;
-                        if (resizeHelper) {
-                            let angle = SALT.MathUtils.radiansToDegrees(resizeHelper.rotation);
-                            angle = angle.toFixed(3);
-                            angle = parseFloat(angle).toString();
-                            tooltipText = `${angle}°`;
-                        }
-                    } else /* show object 'Position' */ {
-                        if (object.type === 'ResizeHelper' && object.objects.length === 1) {
-                            let x = parseFloat((object.objects[0].position.x).toFixed(3)).toString();
-                            let y = parseFloat((object.objects[0].position.y).toFixed(3)).toString();
-                            tooltipText = `X: ${x}\nY: ${y}`;
-                        } else {
-                            let x = parseFloat((object.position.x).toFixed(3)).toString();
-                            let y = parseFloat((object.position.y).toFixed(3)).toString();
-                            tooltipText = `X: ${x}\nY: ${y}`;
-                        }
-                    }
-                    if (tooltipText !== '') {
-                        tooltip.popup(tooltipText, 'left' /* align */, 10 /* duration */, 0 /* fadeOut */);
-                    }
-                }
-            }
-        }
-        renderer.addUpdate(tooltipWatcher);
 
         // Start
         const debug = new SALT.Debug();

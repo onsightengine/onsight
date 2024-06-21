@@ -3045,6 +3045,53 @@ class EventManager {
     }
 }
 
+class Style {
+    static extractColor(color) {
+        function extractCSSVariableName(str) {
+            const regex = /--[a-zA-Z0-9-_]+/;
+            const match = str.match(regex);
+            return match ? match[0] : null;
+        }
+        if (typeof color === 'string') {
+            const cssVariable = extractCSSVariableName(color);
+            if (cssVariable) {
+                const computedStyle = getComputedStyle(document.body);
+                const computedColor = computedStyle.getPropertyValue(cssVariable);
+                if (computedColor && typeof computedColor === 'string' && computedColor !== '') {
+                    if (color.includes('rgb(') || color.includes('rgba(')) {
+                        return color.replace(cssVariable, computedColor);
+                    } else {
+                        return `rgb(${computedColor})`;
+                    }
+                } else {
+                    return null;
+                }
+            }
+        }
+        return color;
+    }
+    constructor() {
+        this.cache = null;
+        this.needsUpdate = true;
+    }
+    get(context) {}
+}
+
+class ColorStyle extends Style {
+    constructor(color = '#000000', fallback = '#ffffff') {
+        super();
+        this.color = color;
+        this.fallback = fallback;
+    }
+    get(context) {
+        if (this.needsUpdate || this.cache == null) {
+            this.cache = Style.extractColor(this.color) ?? this.fallback;
+            this.needsUpdate = false;
+        }
+        return this.cache;
+    }
+}
+
 class Keyboard {
     constructor(element) {
         if (!element || !element.dom) {
@@ -3156,6 +3203,7 @@ class Renderer {
         this.clock = new Clock(false);
         this.deltaTime = 0;
         this.totalTime = 0;
+        this.selectColor = new ColorStyle('--icon-light');
         this.running = false;
         this.frame = -1;
         this.scene = null;
@@ -3190,6 +3238,16 @@ class Renderer {
     ratio() {
         const rect = this.dom.getBoundingClientRect();
         return ((this.width / this.height) / (rect.width / rect.height));
+    }
+    refreshColors() {
+        this.selectColor.needsUpdate = true;
+        if (this.scene) {
+            this.scene.traverse((object) => {
+                for (const prop in object) {
+                    if (object[prop] instanceof Style) object[prop].needsUpdate = true;
+                }
+            });
+        }
     }
     addUpdate(object) {
         if (this.updatable.includes(object) === false) {
@@ -3292,7 +3350,7 @@ class Renderer {
         context.arc(_center.x, -_center.y, centerRadius, 0, 2 * Math.PI);
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.stroke();
-        context.strokeStyle = '#65e5ff';
+        context.strokeStyle = this.selectColor.get(context);
         this.resetTransform();
         const box = object.boundingBox;
         object.globalMatrix.applyToVector(_topLeft.copy(box.min.x, box.max.y));
@@ -3307,7 +3365,7 @@ class Renderer {
         context.closePath();
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.shadowBlur = 1;
-        context.shadowColor = '#65e5ff';
+        context.shadowColor = 'rgba(0, 0, 0, 0.25)';
         context.stroke();
         context.shadowBlur = 0;
         context.shadowColor = 'transparent';
@@ -3557,53 +3615,6 @@ let variables = {
     vector4: { type: 'vector', size: 4, tint: true, info: 'Vector 4' },
 };
 `);
-    }
-}
-
-class Style {
-    static extractColor(color) {
-        function extractCSSVariableName(str) {
-            const regex = /--[a-zA-Z0-9-_]+/;
-            const match = str.match(regex);
-            return match ? match[0] : null;
-        }
-        if (typeof color === 'string') {
-            const cssVariable = extractCSSVariableName(color);
-            if (cssVariable) {
-                const computedStyle = getComputedStyle(document.body);
-                const computedColor = computedStyle.getPropertyValue(cssVariable);
-                if (computedColor && typeof computedColor === 'string' && computedColor !== '') {
-                    if (color.includes('rgb(') || color.includes('rgba(')) {
-                        return color.replace(cssVariable, computedColor);
-                    } else {
-                        return `rgb(${computedColor})`;
-                    }
-                } else {
-                    return null;
-                }
-            }
-        }
-        return color;
-    }
-    constructor() {
-        this.cache = null;
-        this.needsUpdate = true;
-    }
-    get(context) {}
-}
-
-class ColorStyle extends Style {
-    constructor(color = '#000000', fallback = '#ffffff') {
-        super();
-        this.color = color;
-        this.fallback = fallback;
-    }
-    get(context) {
-        if (this.needsUpdate || this.cache == null) {
-            this.cache = Style.extractColor(this.color) ?? this.fallback;
-            this.needsUpdate = false;
-        }
-        return this.cache;
     }
 }
 

@@ -2,10 +2,12 @@ import {
     OUTLINE_THICKNESS,
 } from '../../constants.js';
 import { Clock } from './Clock.js';
+import { ColorStyle } from '../objects/style/ColorStyle.js';
 import { EventManager } from './EventManager.js';
 import { Keyboard } from '../input/Keyboard.js';
 import { Matrix2 } from '../../math/Matrix2.js';
 import { Pointer } from '../input/Pointer.js';
+import { Style } from '../objects/style/Style.js';
 import { Vector2 } from '../../math/Vector2.js';
 
 const _center = new Vector2();
@@ -86,6 +88,9 @@ class Renderer {
         this.deltaTime = 0;                 // time between frames
         this.totalTime = 0;                 // total time since started
 
+        // Style
+        this.selectColor = new ColorStyle('--icon-light');
+
         // INTERNAL
         this.running = false;               // is animating?
         this.frame = -1;                    // frame count
@@ -128,6 +133,17 @@ class Renderer {
     ratio() {
         const rect = this.dom.getBoundingClientRect();
         return ((this.width / this.height) / (rect.width / rect.height));
+    }
+
+    refreshColors() {
+        this.selectColor.needsUpdate = true;
+        if (this.scene) {
+            this.scene.traverse((object) => {
+                for (const prop in object) {
+                    if (object[prop] instanceof Style) object[prop].needsUpdate = true;
+                }
+            });
+        }
     }
 
     /******************** LOOP */
@@ -277,7 +293,7 @@ class Renderer {
         context.stroke();
 
         // Bounding Box
-        context.strokeStyle = '#65e5ff';
+        context.strokeStyle = this.selectColor.get(context);
         this.resetTransform();
         const box = object.boundingBox;
         object.globalMatrix.applyToVector(_topLeft.copy(box.min.x, box.max.y));
@@ -292,7 +308,7 @@ class Renderer {
         context.closePath();
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.shadowBlur = 1;
-        context.shadowColor = '#65e5ff';
+        context.shadowColor = 'rgba(0, 0, 0, 0.25)';
         context.stroke();
         context.shadowBlur = 0;
         context.shadowColor = 'transparent';

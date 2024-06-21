@@ -12,7 +12,7 @@ const _position = new Vector2();
 
 class TooltipHelper extends Box {
 
-    constructor() {
+    constructor(sceneTips = false) {
         super();
         this.isHelper = true;
         this.type = 'TooltipHelper';
@@ -24,6 +24,8 @@ class TooltipHelper extends Box {
 
         this.layer = +Infinity;
         this.visible = false;
+
+        this.sceneTips = sceneTips;
 
         // Style
         this.box.min.set(-40, -14);
@@ -71,9 +73,55 @@ class TooltipHelper extends Box {
     onUpdate(renderer) {
         const camera = renderer.camera;
         const pointer = renderer.pointer;
+
+        // Scene Tips
+        if (this.sceneTips) {
+            // Zoom Level
+            if (renderer.pointer.wheel !== 0) {
+                let scale = renderer.camera.scale * 100;
+                scale = scale.toFixed((scale < 50) ? ((scale < 5) ? 2 : 1) : 0);
+                this.popup(` ${scale}% `, 'center');
+            } else if (renderer.dragObject && renderer.dragObject.isDragging) {
+                let tooltipText = '';
+                const object = renderer.dragObject;
+                if (object.type === 'Resizer') {
+                    const resizeHelper = object.resizeHelper;
+                    if (resizeHelper) {
+                        const toolSize = resizeHelper.boundingBox.getSize();
+                        let w = (toolSize.x * resizeHelper.scale.x).toFixed(3);
+                        let h = (toolSize.y * resizeHelper.scale.y).toFixed(3);
+                        w = parseFloat(w).toString(); // remove trailing zeros
+                        h = parseFloat(h).toString(); // remove trailing zeros
+                        tooltipText = `W: ${w}\nH: ${h}`;
+                    }
+                } else if (object.type === 'Rotater') {
+                    const resizeHelper = object.resizeHelper;
+                    if (resizeHelper) {
+                        let angle = SALT.MathUtils.radiansToDegrees(resizeHelper.rotation);
+                        angle = angle.toFixed(3);
+                        angle = parseFloat(angle).toString();
+                        tooltipText = `${angle}°`;
+                    }
+                } else /* show object 'Position' */ {
+                    if (object.type === 'ResizeHelper' && object.objects.length === 1) {
+                        let x = parseFloat((object.objects[0].position.x).toFixed(3)).toString();
+                        let y = parseFloat((object.objects[0].position.y).toFixed(3)).toString();
+                        tooltipText = `X: ${x}\nY: ${y}`;
+                    } else {
+                        let x = parseFloat((object.position.x).toFixed(3)).toString();
+                        let y = parseFloat((object.position.y).toFixed(3)).toString();
+                        tooltipText = `X: ${x}\nY: ${y}`;
+                    }
+                }
+                if (tooltipText !== '') {
+                    this.popup(tooltipText, 'left' /* align */, 10 /* duration */, 0 /* fadeOut */);
+                }
+            }
+        }
+
+        // Show / Hide
         const timePassed = (performance.now() + TIME_OFFSET) - this.startTime;
         const expired = timePassed > this.duration;
-
         if (expired) {
             this.visible = false;
         } else {

@@ -19,6 +19,10 @@ class OriginHelper extends Circle {
         this.constantWidth = true;
     }
 
+    computeBoundingBox() {
+        this.boundingBox.clear();
+    }
+
     draw(renderer) {
         this.layer = +Infinity;
         super.draw(renderer);

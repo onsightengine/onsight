@@ -24,6 +24,7 @@ class CameraControls {
         this.rotateButton = Pointer.MIDDLE;         // button used to rotate
 
         // INTERNAL
+        this.animateID = -1;
         this.dragID = -1;
         this.dragging = false;
         this.rotationPoint = new Vector2(0, 0);     // pointer position when the rotation starts
@@ -44,10 +45,10 @@ class CameraControls {
                 const worldPoint = renderer.screenToWorld(pointer.position);
                 const objects = renderer.scene.getWorldPointIntersections(worldPoint);
                 if (objects.length === 0) {
-                    this.focusCamera(renderer, renderer.scene, true /* includeChildren? */);
+                    this.focusCamera(renderer, renderer.scene);
                 } else {
                     const object = objects[0];
-                    if (object.focusable) this.focusCamera(renderer, object, false /* includeChildren? */);
+                    if (object.focusable) this.focusCamera(renderer, object);
                 }
             }
         }
@@ -114,32 +115,31 @@ class CameraControls {
         }
     }
 
-    focusCamera(renderer, object, includeChildren = false, animationDuration = 200 /* milliseconds */) {
-        // Focus Scene
-        let targetScale, targetPosition;
-        if (includeChildren) {
+    focusCamera(renderer, object, animationDuration = 200 /* milliseconds */) {
+        if (!animationDuration) animationDuration = 1;
+        // Cancel
+        if (this.animateID) cancelAnimationFrame(this.animateID);
+        // Focus
+        let targetScale = 1;
+        let targetPosition = new Vector2(0, 0);
+        if (object) {
             const bounds = new Box2();
             object.traverse((child) => {
-                let isHelper = child.isHelper;
-                child.traverseAncestors((parent) => {
-                    isHelper = isHelper || parent.isHelper;
-                });
-                if (isHelper) return;
                 const childBounds = child.getWorldBoundingBox();
-                bounds.union(childBounds);
+                let finite = true;
+                finite = finite && Number.isFinite(childBounds.min.x);
+                finite = finite && Number.isFinite(childBounds.min.y);
+                finite = finite && Number.isFinite(childBounds.max.x);
+                finite = finite && Number.isFinite(childBounds.max.y);
+                if (finite && child.focusable) bounds.union(childBounds);
             });
-            targetScale = 0.5 * Math.min(renderer.width / bounds.getSize().x, renderer.height / bounds.getSize().y);
-            targetPosition = bounds.getCenter();
-        // Focus Object
-        } else {
-            const worldBox = object.getWorldBoundingBox();
-            const worldSize = worldBox.getSize();
-            const worldCenter = worldBox.getCenter();
-            targetScale = 0.1 * Math.min(renderer.width / worldSize.x, renderer.height / worldSize.y);
-            targetPosition = worldCenter;
+            if (Number.isFinite(bounds.getSize().x) && Number.isFinite(bounds.getSize().y)) {
+                targetScale = 0.2 * Math.min(renderer.width / bounds.getSize().x, renderer.height / bounds.getSize().y);
+                targetPosition = bounds.getCenter();
+            }
         }
         targetScale = Math.abs(targetScale);
-
+        // Animate
         const camera = this.camera;
         const startTime = performance.now();
         const startPosition = camera.position.clone();
@@ -150,7 +150,7 @@ class CameraControls {
             camera.position.lerpVectors(startPosition, targetPosition, t);
             camera.scale = (startScale * (1.0 - t)) + (targetScale * t);
             camera.matrixNeedsUpdate = true;
-            if (t < 1) requestAnimationFrame(animate);
+            if (t < 1) this.animateID = requestAnimationFrame(animate);
         };
         animate();
     }

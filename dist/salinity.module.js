@@ -4413,6 +4413,7 @@ class CameraControls {
         this.dragButton = Pointer.RIGHT;
         this.dragButton2 = Pointer.LEFT;
         this.rotateButton = Pointer.MIDDLE;
+        this.animateID = -1;
         this.dragID = -1;
         this.dragging = false;
         this.rotationPoint = new Vector2(0, 0);
@@ -4429,10 +4430,10 @@ class CameraControls {
                 const worldPoint = renderer.screenToWorld(pointer.position);
                 const objects = renderer.scene.getWorldPointIntersections(worldPoint);
                 if (objects.length === 0) {
-                    this.focusCamera(renderer, renderer.scene, true );
+                    this.focusCamera(renderer, renderer.scene);
                 } else {
                     const object = objects[0];
-                    if (object.focusable) this.focusCamera(renderer, object, false );
+                    if (object.focusable) this.focusCamera(renderer, object);
                 }
             }
         }
@@ -4488,27 +4489,26 @@ class CameraControls {
             }
         }
     }
-    focusCamera(renderer, object, includeChildren = false, animationDuration = 200 ) {
-        let targetScale, targetPosition;
-        if (includeChildren) {
+    focusCamera(renderer, object, animationDuration = 200 ) {
+        if (!animationDuration) animationDuration = 1;
+        if (this.animateID) cancelAnimationFrame(this.animateID);
+        let targetScale = 1;
+        let targetPosition = new Vector2(0, 0);
+        if (object) {
             const bounds = new Box2();
             object.traverse((child) => {
-                let isHelper = child.isHelper;
-                child.traverseAncestors((parent) => {
-                    isHelper = isHelper || parent.isHelper;
-                });
-                if (isHelper) return;
                 const childBounds = child.getWorldBoundingBox();
-                bounds.union(childBounds);
+                let finite = true;
+                finite = finite && Number.isFinite(childBounds.min.x);
+                finite = finite && Number.isFinite(childBounds.min.y);
+                finite = finite && Number.isFinite(childBounds.max.x);
+                finite = finite && Number.isFinite(childBounds.max.y);
+                if (finite && child.focusable) bounds.union(childBounds);
             });
-            targetScale = 0.5 * Math.min(renderer.width / bounds.getSize().x, renderer.height / bounds.getSize().y);
-            targetPosition = bounds.getCenter();
-        } else {
-            const worldBox = object.getWorldBoundingBox();
-            const worldSize = worldBox.getSize();
-            const worldCenter = worldBox.getCenter();
-            targetScale = 0.1 * Math.min(renderer.width / worldSize.x, renderer.height / worldSize.y);
-            targetPosition = worldCenter;
+            if (Number.isFinite(bounds.getSize().x) && Number.isFinite(bounds.getSize().y)) {
+                targetScale = 0.2 * Math.min(renderer.width / bounds.getSize().x, renderer.height / bounds.getSize().y);
+                targetPosition = bounds.getCenter();
+            }
         }
         targetScale = Math.abs(targetScale);
         const camera = this.camera;
@@ -4521,7 +4521,7 @@ class CameraControls {
             camera.position.lerpVectors(startPosition, targetPosition, t);
             camera.scale = (startScale * (1.0 - t)) + (targetScale * t);
             camera.matrixNeedsUpdate = true;
-            if (t < 1) requestAnimationFrame(animate);
+            if (t < 1) this.animateID = requestAnimationFrame(animate);
         };
         animate();
     }
@@ -5525,6 +5525,9 @@ class OriginHelper extends Circle {
         this.strokeStyle.color = '#000000';
         this.lineWidth = 1;
         this.constantWidth = true;
+    }
+    computeBoundingBox() {
+        this.boundingBox.clear();
     }
     draw(renderer) {
         this.layer = +Infinity;

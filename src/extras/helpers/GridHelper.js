@@ -106,14 +106,14 @@ class GridHelper extends Object2D {
 
     alignToGrid(object) {
         if (!object.parent) return;
-
+        const parent = object.ghostParent ?? object.parent;
         const worldPosition = object.getWorldPosition();
 
         // Offset to Origin Point
         const originOffset = new Vector2();
         if (object.origin) {
             const worldOrigin = object.globalMatrix.transformPoint(object.origin);
-            const parentOrigin = object.parent.inverseGlobalMatrix.transformPoint(worldOrigin);
+            const parentOrigin = parent.inverseGlobalMatrix.transformPoint(worldOrigin);
             originOffset.copy(parentOrigin).sub(object.position);
             worldPosition.copy(worldOrigin);
         }
@@ -137,7 +137,7 @@ class GridHelper extends Object2D {
         const closestWorldPosition = transformMatrix.transformPoint(new Vector2(closestX, closestY));
 
         // Set the object's position to the closest grid intersection in it's local parent space
-        const parentPosition = object.parent.inverseGlobalMatrix.transformPoint(closestWorldPosition);
+        const parentPosition = parent.inverseGlobalMatrix.transformPoint(closestWorldPosition);
         parentPosition.sub(originOffset);
         object.setPosition(parentPosition.x, parentPosition.y);
     }
@@ -256,7 +256,7 @@ class GridHelper extends Object2D {
                 }
             // Align Position
             } else {
-                if (this.snap) {
+                if (this.snap && !renderer.keyboard.metaPressed()) {
                     this.alignToGrid(object);
                     if (object.origin) {
                         const originPosition = object.globalMatrix.transformPoint(object.origin);

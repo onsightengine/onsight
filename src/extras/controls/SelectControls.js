@@ -43,7 +43,7 @@ class SelectControls {
         // Button Press
         if (pointer.buttonJustPressed(Pointer.LEFT)) {
             this._mouseStart.copy(_cameraPoint);
-            const underMouse = scene.getWorldPointIntersections(_cameraPoint);
+            const underMouse = renderer.getWorldPointIntersections(_cameraPoint);
 
             // Holding Ctrl/Meta/Shift (Toggle Selection)
             if (keyboard.ctrlPressed() || keyboard.metaPressed() || keyboard.shiftPressed()) {
@@ -99,7 +99,7 @@ class SelectControls {
                     if (mouseTravel >= MOUSE_SLOP) {
                         const rubberBandBox = new RubberBandBox();
                         scene.traverse((child) => { rubberBandBox.layer = Math.max(rubberBandBox.layer, child.layer + 1); });
-                        scene.add(rubberBandBox);
+                        renderer.addHelper(rubberBandBox);
                         this.rubberBandBox = rubberBandBox;
                         renderer.setDragObject(this.rubberBandBox);
                     }
@@ -145,7 +145,7 @@ class SelectControls {
                 this.rubberBandBox = null;
             // Select Object
             } else if (shortClick && mouseTravel <= MOUSE_SLOP) {
-                const underMouse = scene.getWorldPointIntersections(_cameraPoint);
+                const underMouse = renderer.getWorldPointIntersections(_cameraPoint);
                 const withoutResizeHelper = ArrayUtils.filterThings(underMouse, { isHelper: undefined });
                 // Clear Previous Selection
                 if (withoutResizeHelper.length === 0) {
@@ -186,9 +186,7 @@ class SelectControls {
             // Create New Tool?
             if (newSelection.length > 0) {
                 this.resizeHelper = new ResizeHelper(newSelection);
-                // Add to Common Parent
-                const commonAncestor = findCommonMostAncestor(newSelection);
-                commonAncestor.add(this.resizeHelper);
+                renderer.addHelper(this.resizeHelper);
                 // Update, Start Drag
                 if (typeof this.resizeHelper.onUpdate === 'function') this.resizeHelper.onUpdate(renderer);
                 if (this.rubberBandBox == null) renderer.setDragObject(this.resizeHelper);
@@ -201,32 +199,3 @@ class SelectControls {
 }
 
 export { SelectControls };
-
-/******************** INTERNAL ********************/
-
-function findCommonMostAncestor(objects) {
-    if (objects.length === 0) return null;
-    if (objects.length === 1) return objects[0].parent;
-
-    function getAncestors(object) {
-        const ancestors = [];
-        let currentObject = object;
-        while (currentObject.parent) {
-            ancestors.unshift(currentObject.parent);
-            currentObject = currentObject.parent;
-        }
-        return ancestors;
-    }
-
-    const ancestors = objects.map(getAncestors);
-    const minLength = Math.min(...ancestors.map(arr => arr.length));
-    for (let i = 0; i < minLength; i++) {
-        const ancestor = ancestors[0][i];
-        for (let j = 1; j < ancestors.length; j++) {
-            if (ancestors[j][i] !== ancestor) {
-                return ancestor.parent;
-            }
-        }
-    }
-    return ancestors[0][minLength - 1];
-}

@@ -76,6 +76,10 @@ class ResizeHelper extends Box {
         const self = this;
         this.objects = objects;
 
+        // Common Parent
+        const commonAncestor = findCommonMostAncestor(objects);
+        this.ghostParent = commonAncestor;
+
         // Initial Object Transforms
         const initialTransforms = {};
         for (const object of objects) {
@@ -102,7 +106,7 @@ class ResizeHelper extends Box {
         if (sameRotation || objects.length === 1) {
             this.rotation = objects[0].rotation;
             worldBox.clear();
-            const rotationMatrix = new Matrix2().rotate(this.rotation);
+            const rotationMatrix = new Matrix2().rotate(+this.rotation);
             const unRotateMatrix = new Matrix2().rotate(-this.rotation);
             // Unrotated World Boxes
             for (const object of objects) {
@@ -147,7 +151,7 @@ class ResizeHelper extends Box {
         // Origin
         this.origin = new Vector2();
         if (objects.length === 1) {
-            objects[0].matrix.applyToVector(this.origin);
+            objects[0].globalMatrix.applyToVector(this.origin);
             this.inverseGlobalMatrix.applyToVector(this.origin);
         }
 
@@ -244,11 +248,11 @@ class ResizeHelper extends Box {
                     startDragRotation = self.rotation;
                     startDragScale = self.scale.clone();
                     // Setup Dragger
-                    self.parent.add(dragger);
+                    self.ghostParent.add(dragger);
                     dragger.type = 'Resizer';
                     dragger.resizeHelper = self;
                     dragger['onPointerDragEnd'] = function(renderer) {
-                        if (self.parent) self.parent.remove(dragger);
+                        dragger.destroy();
                     };
                     dragger['onPointerDrag'] = function(renderer) {
                         Object2D.prototype.onPointerDrag.call(this, renderer);
@@ -259,9 +263,9 @@ class ResizeHelper extends Box {
                         updateResizer();
                         return dragger;
                     }
-                    // Convert resizer world position to parent local position
+                    // Convert resizer world position to local position
                     const worldPosition = resizer.getWorldPosition();
-                    const parentPosition = self.parent.inverseGlobalMatrix.transformPoint(worldPosition);
+                    const parentPosition = self.ghostParent.inverseGlobalMatrix.transformPoint(worldPosition);
                     dragger.position.copy(parentPosition);
                     // Prepare Drag
                     dragger.cursor = resizer.cursor;
@@ -437,7 +441,7 @@ class ResizeHelper extends Box {
                     worldPosition.sub(rotationOrigin);
                     rotateMatrix.applyToVector(worldPosition);
                     worldPosition.add(rotationOrigin);
-                    const parentPosition = self.parent.inverseGlobalMatrix.transformPoint(worldPosition);
+                    const parentPosition = self.ghostParent.inverseGlobalMatrix.transformPoint(worldPosition);
                     self.position.copy(parentPosition);
                 }
                 // Update Objects
@@ -598,3 +602,32 @@ class ResizeHelper extends Box {
 }
 
 export { ResizeHelper };
+
+/******************** INTERNAL ********************/
+
+function findCommonMostAncestor(objects) {
+    if (objects.length === 0) return null;
+    if (objects.length === 1) return objects[0].parent;
+
+    function getAncestors(object) {
+        const ancestors = [];
+        let currentObject = object;
+        while (currentObject.parent) {
+            ancestors.unshift(currentObject.parent);
+            currentObject = currentObject.parent;
+        }
+        return ancestors;
+    }
+
+    const ancestors = objects.map(getAncestors);
+    const minLength = Math.min(...ancestors.map(arr => arr.length));
+    for (let i = 0; i < minLength; i++) {
+        const ancestor = ancestors[0][i];
+        for (let j = 1; j < ancestors.length; j++) {
+            if (ancestors[j][i] !== ancestor) {
+                return ancestor.parent;
+            }
+        }
+    }
+    return ancestors[0][minLength - 1];
+}

@@ -1702,7 +1702,8 @@ class Object2D extends Thing {
             this.scale.y = MathUtils.noZero(MathUtils.sanity(this.scale.y));
             this.matrix.compose(this.position.x, this.position.y, this.scale.x, this.scale.y, this.rotation);
             this.globalMatrix.copy(this.matrix);
-            if (this.parent) this.globalMatrix.premultiply(this.parent.globalMatrix);
+            const parent = this.ghostParent ?? this.parent;
+            if (parent) this.globalMatrix.premultiply(parent.globalMatrix);
             this.globalMatrix.getInverse(this.inverseGlobalMatrix);
             this.matrixNeedsUpdate = false;
         }
@@ -1723,7 +1724,7 @@ class Object2D extends Thing {
             const manhattanDistance = pointerStart.manhattanDistanceTo(pointerEnd);
             if (manhattanDistance >= MOUSE_SLOP || this.isDragging) {
                 this.isDragging = true;
-                const parent = this.parent ?? this;
+                const parent = this.ghostParent ?? this.parent ?? this;
                 const worldPositionStart = renderer.screenToWorld(pointerStart);
                 const localPositionStart = parent.inverseGlobalMatrix.transformPoint(worldPositionStart);
                 const worldPositionEnd = renderer.screenToWorld(pointerEnd);
@@ -3286,6 +3287,12 @@ class Renderer {
         this.running = false;
         cancelAnimationFrame(this.frame);
     }
+    getWorldPointIntersections(worldPoint) {
+        const objects = [];
+        if (this.helpers) objects.push(...this.helpers.getWorldPointIntersections(worldPoint));
+        if (this.scene) objects.push(...this.scene.getWorldPointIntersections(worldPoint));
+        return objects;
+    }
     setDragObject(object) {
         if (this.dragObject) this.dragObject.isDragging = false;
         this.dragObject = object;
@@ -4586,6 +4593,8 @@ class ResizeHelper extends Box {
         this.background = background;
         const self = this;
         this.objects = objects;
+        const commonAncestor = findCommonMostAncestor(objects);
+        this.ghostParent = commonAncestor;
         const initialTransforms = {};
         for (const object of objects) {
             initialTransforms[object.uuid] = {
@@ -4605,7 +4614,7 @@ class ResizeHelper extends Box {
         if (sameRotation || objects.length === 1) {
             this.rotation = objects[0].rotation;
             worldBox.clear();
-            const rotationMatrix = new Matrix2().rotate(this.rotation);
+            const rotationMatrix = new Matrix2().rotate(+this.rotation);
             const unRotateMatrix = new Matrix2().rotate(-this.rotation);
             for (const object of objects) {
                 const unRotatedPosition = unRotateMatrix.transformPoint(object.position);
@@ -4641,7 +4650,7 @@ class ResizeHelper extends Box {
         const startScale = this.scale.clone();
         this.origin = new Vector2();
         if (objects.length === 1) {
-            objects[0].matrix.applyToVector(this.origin);
+            objects[0].globalMatrix.applyToVector(this.origin);
             this.inverseGlobalMatrix.applyToVector(this.origin);
         }
         let topLeft, topRight, bottomLeft, bottomRight;
@@ -4732,11 +4741,11 @@ class ResizeHelper extends Box {
                     startDragPosition = self.position.clone();
                     startDragRotation = self.rotation;
                     startDragScale = self.scale.clone();
-                    self.parent.add(dragger);
+                    self.ghostParent.add(dragger);
                     dragger.type = 'Resizer';
                     dragger.resizeHelper = self;
                     dragger['onPointerDragEnd'] = function(renderer) {
-                        if (self.parent) self.parent.remove(dragger);
+                        dragger.destroy();
                     };
                     dragger['onPointerDrag'] = function(renderer) {
                         Object2D.prototype.onPointerDrag.call(this, renderer);
@@ -4748,7 +4757,7 @@ class ResizeHelper extends Box {
                         return dragger;
                     };
                     const worldPosition = resizer.getWorldPosition();
-                    const parentPosition = self.parent.inverseGlobalMatrix.transformPoint(worldPosition);
+                    const parentPosition = self.ghostParent.inverseGlobalMatrix.transformPoint(worldPosition);
                     dragger.position.copy(parentPosition);
                     dragger.cursor = resizer.cursor;
                     dragger.fillStyle = null;
@@ -4899,7 +4908,7 @@ class ResizeHelper extends Box {
                     worldPosition.sub(rotationOrigin);
                     rotateMatrix.applyToVector(worldPosition);
                     worldPosition.add(rotationOrigin);
-                    const parentPosition = self.parent.inverseGlobalMatrix.transformPoint(worldPosition);
+                    const parentPosition = self.ghostParent.inverseGlobalMatrix.transformPoint(worldPosition);
                     self.position.copy(parentPosition);
                 }
                 updateObjects(null, false );
@@ -5027,6 +5036,30 @@ class ResizeHelper extends Box {
         };
     }
 }
+function findCommonMostAncestor(objects) {
+    if (objects.length === 0) return null;
+    if (objects.length === 1) return objects[0].parent;
+    function getAncestors(object) {
+        const ancestors = [];
+        let currentObject = object;
+        while (currentObject.parent) {
+            ancestors.unshift(currentObject.parent);
+            currentObject = currentObject.parent;
+        }
+        return ancestors;
+    }
+    const ancestors = objects.map(getAncestors);
+    const minLength = Math.min(...ancestors.map(arr => arr.length));
+    for (let i = 0; i < minLength; i++) {
+        const ancestor = ancestors[0][i];
+        for (let j = 1; j < ancestors.length; j++) {
+            if (ancestors[j][i] !== ancestor) {
+                return ancestor.parent;
+            }
+        }
+    }
+    return ancestors[0][minLength - 1];
+}
 
 const _topLeft = new Vector2();
 const _topRight = new Vector2();
@@ -5144,7 +5177,7 @@ class SelectControls {
         _cameraPoint.copy(renderer.screenToWorld(pointer.position));
         if (pointer.buttonJustPressed(Pointer.LEFT)) {
             this._mouseStart.copy(_cameraPoint);
-            const underMouse = scene.getWorldPointIntersections(_cameraPoint);
+            const underMouse = renderer.getWorldPointIntersections(_cameraPoint);
             if (keyboard.ctrlPressed() || keyboard.metaPressed() || keyboard.shiftPressed()) {
                 let resizerClicked = false;
                 if (underMouse.length > 0) {
@@ -5189,7 +5222,7 @@ class SelectControls {
                     if (mouseTravel >= MOUSE_SLOP) {
                         const rubberBandBox = new RubberBandBox();
                         scene.traverse((child) => { rubberBandBox.layer = Math.max(rubberBandBox.layer, child.layer + 1); });
-                        scene.add(rubberBandBox);
+                        renderer.addHelper(rubberBandBox);
                         this.rubberBandBox = rubberBandBox;
                         renderer.setDragObject(this.rubberBandBox);
                     }
@@ -5226,7 +5259,7 @@ class SelectControls {
                 this.rubberBandBox.destroy();
                 this.rubberBandBox = null;
             } else if (shortClick && mouseTravel <= MOUSE_SLOP) {
-                const underMouse = scene.getWorldPointIntersections(_cameraPoint);
+                const underMouse = renderer.getWorldPointIntersections(_cameraPoint);
                 const withoutResizeHelper = ArrayUtils.filterThings(underMouse, { isHelper: undefined });
                 if (withoutResizeHelper.length === 0) {
                     newSelection = [];
@@ -5258,38 +5291,13 @@ class SelectControls {
             }
             if (newSelection.length > 0) {
                 this.resizeHelper = new ResizeHelper(newSelection);
-                const commonAncestor = findCommonMostAncestor(newSelection);
-                commonAncestor.add(this.resizeHelper);
+                renderer.addHelper(this.resizeHelper);
                 if (typeof this.resizeHelper.onUpdate === 'function') this.resizeHelper.onUpdate(renderer);
                 if (this.rubberBandBox == null) renderer.setDragObject(this.resizeHelper);
             }
             this.selection = [ ...newSelection ];
         }
     }
-}
-function findCommonMostAncestor(objects) {
-    if (objects.length === 0) return null;
-    if (objects.length === 1) return objects[0].parent;
-    function getAncestors(object) {
-        const ancestors = [];
-        let currentObject = object;
-        while (currentObject.parent) {
-            ancestors.unshift(currentObject.parent);
-            currentObject = currentObject.parent;
-        }
-        return ancestors;
-    }
-    const ancestors = objects.map(getAncestors);
-    const minLength = Math.min(...ancestors.map(arr => arr.length));
-    for (let i = 0; i < minLength; i++) {
-        const ancestor = ancestors[0][i];
-        for (let j = 1; j < ancestors.length; j++) {
-            if (ancestors[j][i] !== ancestor) {
-                return ancestor.parent;
-            }
-        }
-    }
-    return ancestors[0][minLength - 1];
 }
 
 const NEAREST_ANGLE = 5;
@@ -5375,11 +5383,12 @@ class GridHelper extends Object2D {
     }
     alignToGrid(object) {
         if (!object.parent) return;
+        const parent = object.ghostParent ?? object.parent;
         const worldPosition = object.getWorldPosition();
         const originOffset = new Vector2();
         if (object.origin) {
             const worldOrigin = object.globalMatrix.transformPoint(object.origin);
-            const parentOrigin = object.parent.inverseGlobalMatrix.transformPoint(worldOrigin);
+            const parentOrigin = parent.inverseGlobalMatrix.transformPoint(worldOrigin);
             originOffset.copy(parentOrigin).sub(object.position);
             worldPosition.copy(worldOrigin);
         }
@@ -5395,7 +5404,7 @@ class GridHelper extends Object2D {
             .rotate(this.rotation)
             .translate(this.position.x, this.position.y);
         const closestWorldPosition = transformMatrix.transformPoint(new Vector2(closestX, closestY));
-        const parentPosition = object.parent.inverseGlobalMatrix.transformPoint(closestWorldPosition);
+        const parentPosition = parent.inverseGlobalMatrix.transformPoint(closestWorldPosition);
         parentPosition.sub(originOffset);
         object.setPosition(parentPosition.x, parentPosition.y);
     }
@@ -5495,7 +5504,7 @@ class GridHelper extends Object2D {
                     this.alignToRotation(object);
                 }
             } else {
-                if (this.snap) {
+                if (this.snap && !renderer.keyboard.metaPressed()) {
                     this.alignToGrid(object);
                     if (object.origin) {
                         const originPosition = object.globalMatrix.transformPoint(object.origin);
@@ -5619,7 +5628,7 @@ class TooltipHelper extends Box {
                 } else if (object.type === 'Rotater') {
                     const resizeHelper = object.resizeHelper;
                     if (resizeHelper) {
-                        let angle = SALT.MathUtils.radiansToDegrees(resizeHelper.rotation);
+                        let angle = MathUtils.radiansToDegrees(resizeHelper.rotation);
                         angle = angle.toFixed(3);
                         angle = parseFloat(angle).toString();
                         tooltipText = `${angle}°`;

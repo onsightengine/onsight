@@ -1,5 +1,6 @@
 import { Box } from '../../core/objects/Box.js';
 import { Box2 } from '../../math/Box2.js';
+import { MathUtils } from '../../utils/MathUtils.js';
 import { Text } from '../../core/objects/Text.js';
 import { Vector2 } from '../../math/Vector2.js';
 
@@ -97,7 +98,7 @@ class TooltipHelper extends Box {
                 } else if (object.type === 'Rotater') {
                     const resizeHelper = object.resizeHelper;
                     if (resizeHelper) {
-                        let angle = SALT.MathUtils.radiansToDegrees(resizeHelper.rotation);
+                        let angle = MathUtils.radiansToDegrees(resizeHelper.rotation);
                         angle = angle.toFixed(3);
                         angle = parseFloat(angle).toString();
                         tooltipText = `${angle}°`;

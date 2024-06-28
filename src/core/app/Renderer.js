@@ -204,6 +204,13 @@ class Renderer {
 
     /******************** EVENTS */
 
+    getWorldPointIntersections(worldPoint) {
+        const objects = [];
+        if (this.helpers) objects.push(...this.helpers.getWorldPointIntersections(worldPoint));
+        if (this.scene) objects.push(...this.scene.getWorldPointIntersections(worldPoint));
+        return objects;
+    }
+
     setDragObject(object) {
         if (this.dragObject) this.dragObject.isDragging = false;
         this.dragObject = object;

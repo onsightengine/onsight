@@ -313,7 +313,8 @@ class Object2D extends Thing {
             this.scale.y = MathUtils.noZero(MathUtils.sanity(this.scale.y));
             this.matrix.compose(this.position.x, this.position.y, this.scale.x, this.scale.y, this.rotation);
             this.globalMatrix.copy(this.matrix);
-            if (this.parent) this.globalMatrix.premultiply(this.parent.globalMatrix);
+            const parent = this.ghostParent ?? this.parent;
+            if (parent) this.globalMatrix.premultiply(parent.globalMatrix);
             this.globalMatrix.getInverse(this.inverseGlobalMatrix);
             this.matrixNeedsUpdate = false;
         }
@@ -386,7 +387,7 @@ class Object2D extends Thing {
                 this.isDragging = true;
 
                 // Local (Parent Space) Start / End
-                const parent = this.parent ?? this;
+                const parent = this.ghostParent ?? this.parent ?? this;
                 const worldPositionStart = renderer.screenToWorld(pointerStart);
                 const localPositionStart = parent.inverseGlobalMatrix.transformPoint(worldPositionStart);
                 const worldPositionEnd = renderer.screenToWorld(pointerEnd);

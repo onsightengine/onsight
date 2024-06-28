@@ -1,6 +1,7 @@
+import { Object2D } from '../Object2D.js';
 import { Thing } from '../Thing.js';
 
-class Entity extends Thing {
+class Entity extends Object2D {
 
     constructor(name = 'Entity') {
         super(name);

@@ -114,11 +114,11 @@
 
         // Grid Helper
         const grid = new SALT.GridHelper();
-        scene.add(grid);
+        renderer.addHelper(grid);
 
         // Tooltip Helper
         const tooltip = new SALT.TooltipHelper(true /* sceneTips? */);
-        scene.add(tooltip);
+        renderer.addHelper(tooltip);
 
         // Start
         const debug = new SALT.Debug();

@@ -1481,8 +1481,8 @@ const _corner2$2 = new Vector2();
 const _corner3$2 = new Vector2();
 const _corner4$2 = new Vector2();
 class Object2D extends Thing {
-    constructor() {
-        super();
+    constructor(name = 'Object') {
+        super(name);
         this.type = 'Object2D';
         this.children = [];
         this.parent = null;
@@ -1911,7 +1911,7 @@ class AssetManager {
 }
 const _types$1 = new Map();
 
-class Entity extends Thing {
+class Entity extends Object2D {
     constructor(name = 'Entity') {
         super(name);
         this.isEntity = true;
@@ -2202,9 +2202,8 @@ class World extends Entity {
         }
         this.isWorld = true;
         this.type = type;
-        this.position = new Vector3();
         this.activeStageUUID = null;
-        this.loadPosition = new Vector3();
+        this.loadPosition = new Vector2();
         this.loadDistance = 0;
     }
     componentFamily() {
@@ -3209,6 +3208,7 @@ class Renderer {
         this.scene = null;
         this.camera = null;
         this.dragObject = null;
+        this.helpers = new Object2D();
     }
     destroy() {
         dom.dispatchEvent(new Event('destroy'));
@@ -3249,6 +3249,9 @@ class Renderer {
             });
         }
     }
+    addHelper(helper) {
+        this.helpers.add(helper);
+    }
     addUpdate(object) {
         if (this.updatable.includes(object) === false) {
             this.updatable.push(object);
@@ -3256,6 +3259,8 @@ class Renderer {
     }
     start(scene, camera, onBeforeRender, onAfterRender) {
         if (this.running) return;
+        if (scene) this.scene = scene;
+        if (camera) this.camera = camera;
         this.running = true;
         this.clock.start(true );
         const renderer = this;
@@ -3266,7 +3271,7 @@ class Renderer {
             for (const object of renderer.updatable) {
                 if (typeof object.update === 'function') object.update(renderer);
             }
-            renderer.render(scene, camera);
+            renderer.render();
             try {
                 const backBuffer = renderer.offscreen.transferToImageBitmap();
                 renderer.screenContext.transferFromImageBitmap(backBuffer);
@@ -3294,6 +3299,7 @@ class Renderer {
         const context = this.context;
         const objects = [];
         scene.traverseVisible((child) => { if (child.visible) objects.push(child); });
+        renderer.helpers.traverseVisible((child) => { if (child.visible) objects.push(child); });
         objects.sort((a, b) => {
             if (b.layer === a.layer) return b.level - a.level;
             return b.layer - a.layer;
@@ -3306,15 +3312,19 @@ class Renderer {
         if (this.pointerEvents) {
             EventManager.pointerEvents(renderer, objects);
         }
+        const lateUpdate = [];
+        function updateTraversal(object) {
+            object.traverse((child) => {
+                if (child.lateUpdate) lateUpdate.push(child);
+                else updateObject(child);
+            });
+        }
         function updateObject(object) {
             object.updateMatrix();
             if (typeof object.onUpdate === 'function') object.onUpdate(renderer);
         }
-        const lateUpdate = [];
-        scene.traverse((child) => {
-            if (child.lateUpdate) lateUpdate.push(child);
-            else updateObject(child);
-        });
+        updateTraversal(scene);
+        updateTraversal(renderer.helpers);
         for (const object of lateUpdate) { updateObject(object); }
         if (this.autoClear) {
             context.setTransform(1, 0, 0, 1, 0, 0);

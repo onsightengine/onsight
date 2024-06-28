@@ -23,8 +23,8 @@ const _corner4 = new Vector2();
 
 class Object2D extends Thing {
 
-    constructor() {
-        super();
+    constructor(name = 'Object') {
+        super(name);
         this.type = 'Object2D';
 
         // Hierarchy

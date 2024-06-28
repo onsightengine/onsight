@@ -6,6 +6,7 @@ import { ColorStyle } from '../objects/style/ColorStyle.js';
 import { EventManager } from './EventManager.js';
 import { Keyboard } from '../input/Keyboard.js';
 import { Matrix2 } from '../../math/Matrix2.js';
+import { Object2D } from '../Object2D.js';
 import { Pointer } from '../input/Pointer.js';
 import { Style } from '../objects/style/Style.js';
 import { Vector2 } from '../../math/Vector2.js';
@@ -97,6 +98,7 @@ class Renderer {
         this.scene = null;                  // last rendered scene
         this.camera = null;                 // last rendered camera
         this.dragObject = null;             // object being dragged
+        this.helpers = new Object2D();      // helper scene
     }
 
     /******************** ELEMENT */
@@ -148,6 +150,11 @@ class Renderer {
 
     /******************** LOOP */
 
+    /** Adds helper object to renderer "helpers" scene */
+    addHelper(helper) {
+        this.helpers.add(helper);
+    }
+
     /** Adds updatable object (i.e. has 'update()' function) to list of objects to be updated */
     addUpdate(object) {
         if (this.updatable.includes(object) === false) {
@@ -157,6 +164,8 @@ class Renderer {
 
     start(scene, camera, onBeforeRender, onAfterRender) {
         if (this.running) return;
+        if (scene) this.scene = scene;
+        if (camera) this.camera = camera;
         this.running = true;
         this.clock.start(true /* reset? */);
 
@@ -174,7 +183,7 @@ class Renderer {
             }
 
             // Render
-            renderer.render(scene, camera);
+            renderer.render();
             try {
                 const backBuffer = renderer.offscreen.transferToImageBitmap();
                 renderer.screenContext.transferFromImageBitmap(backBuffer);
@@ -214,6 +223,7 @@ class Renderer {
         // Gather / Sort Visible Objects
         const objects = [];
         scene.traverseVisible((child) => { if (child.visible) objects.push(child); });
+        renderer.helpers.traverseVisible((child) => { if (child.visible) objects.push(child); });
         objects.sort((a, b) => {
             if (b.layer === a.layer) return b.level - a.level;
             return b.layer - a.layer;
@@ -232,15 +242,19 @@ class Renderer {
         }
 
         // Update Object / Matrix
+        const lateUpdate = [];
+        function updateTraversal(object) {
+            object.traverse((child) => {
+                if (child.lateUpdate) lateUpdate.push(child);
+                else updateObject(child);
+            });
+        }
         function updateObject(object) {
             object.updateMatrix();
             if (typeof object.onUpdate === 'function') object.onUpdate(renderer);
         }
-        const lateUpdate = [];
-        scene.traverse((child) => {
-            if (child.lateUpdate) lateUpdate.push(child);
-            else updateObject(child);
-        });
+        updateTraversal(scene);
+        updateTraversal(renderer.helpers);
         for (const object of lateUpdate) { updateObject(object); }
 
         // Clear Canvas

@@ -1,4 +1,4 @@
-import { AssetManager } from '../app/AssetManager.js';
+import { AssetManager } from '../AssetManager.js';
 import { Asset } from './Asset.js';
 
 class Palette extends Asset {

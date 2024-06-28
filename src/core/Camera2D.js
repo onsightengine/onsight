@@ -1,7 +1,7 @@
-import { Box2 } from '../../math/Box2.js';
-import { Matrix2 } from '../../math/Matrix2.js';
-import { Thing } from '../Thing.js';
-import { Vector2 } from '../../math/Vector2.js';
+import { Box2 } from '../math/Box2.js';
+import { Matrix2 } from '../math/Matrix2.js';
+import { Thing } from './Thing.js';
+import { Vector2 } from '../math/Vector2.js';
 
 const _cameraView = new Box2();
 const _corner1 = new Vector2();

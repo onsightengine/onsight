@@ -5,18 +5,17 @@ export * from './constants.js';
 
 /******************** CORE ********************/
 
+export { App } from './core/App.js';
+export { AssetManager } from './core/AssetManager.js';
+export { Camera2D } from './core/Camera2D.js';
+export { Clock } from './core/Clock.js';
+export { ComponentManager } from './core/ComponentManager.js';
 export { Object2D } from './core/Object2D.js';
+export { EventManager } from './core/EventManager.js';
 export { Project } from './core/Project.js';
+export { Renderer } from './core/Renderer.js';
+export { SceneManager } from './core/SceneManager.js'
 export { Thing } from './core/Thing.js';
-
-// App
-export { App } from './core/app/App.js';
-export { AssetManager } from './core/app/AssetManager.js';
-export { Camera2D } from './core/app/Camera2D.js';
-export { Clock } from './core/app/Clock.js';
-export { EventManager } from './core/app/EventManager.js';
-export { Renderer } from './core/app/Renderer.js';
-export { SceneManager } from './core/app/SceneManager.js'
 
 // Assets
 export { Asset } from './core/assets/Asset.js';

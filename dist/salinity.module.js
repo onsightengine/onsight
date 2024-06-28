@@ -106,379 +106,212 @@ const SCRIPT_FORMAT = {
     PYTHON:         'python',
 };
 
-class Vector2 {
-    constructor(x = 0, y = 0) {
-        if (typeof x === 'object') {
-            this.x = x.x;
-            this.y = x.y;
-        } else {
-            this.x = x;
-            this.y = y;
+class ArrayUtils {
+    static isIterable(array) {
+        return (array && (typeof array[Symbol.iterator] === 'function') || Array.isArray(array));
+    }
+    static swapItems(array, a, b) {
+        array[a] = array.splice(b, 1, array[a])[0];
+        return array;
+    }
+    static combineThingArrays(arrayOne, arrayTwo) {
+        const things = [ ...arrayOne ];
+        for (const thing of arrayTwo) {
+            if (ArrayUtils.includesThing(thing, arrayOne) === false) things.push(thing);
         }
+        return things;
     }
-    set(x, y) {
-        if (typeof x === 'object') return this.copy(x);
-        this.x = x;
-        this.y = y;
-        return this;
-    }
-    setScalar(scalar) {
-        this.x = scalar;
-        this.y = scalar;
-        return this;
-    }
-    clone() {
-        return new Vector2(this.x, this.y);
-    }
-    copy(x, y) {
-        if (typeof x === 'object') {
-            this.x = x.x;
-            this.y = x.y;
-        } else {
-            this.x = x;
-            this.y = y;
-        }
-        return this;
-    }
-    add(x, y) {
-        if (typeof x === 'object') {
-            this.x += x.x;
-            this.y += x.y;
-        } else {
-            this.x += x;
-            this.y += y;
-        }
-        return this;
-    }
-    addScalar(scalar) {
-        this.x += scalar;
-        this.y += scalar;
-        return this;
-    }
-    addVectors(a, b) {
-        this.x = a.x + b.x;
-        this.y = a.y + b.y;
-        return this;
-    }
-    addScaledVector(vec, scale) {
-        this.x += vec.x * scale;
-        this.y += vec.y * scale;
-        return this;
-    }
-    sub(x, y) {
-        if (typeof x === 'object') {
-            this.x -= x.x;
-            this.y -= x.y;
-        } else {
-            this.x -= x;
-            this.y -= y;
-        }
-        return this;
-    }
-    subScalar(scalar) {
-        this.x -= scalar;
-        this.y -= scalar;
-        return this;
-    }
-    subVectors(a, b) {
-        this.x = a.x - b.x;
-        this.y = a.y - b.y;
-        return this;
-    }
-    multiply(x, y) {
-        if (typeof x === 'object') {
-            this.x *= x.x;
-            this.y *= x.y;
-        } else {
-            this.x *= x;
-            this.y *= y;
-        }
-        return this;
-    }
-    multiplyScalar(scalar) {
-        this.x *= scalar;
-        this.y *= scalar;
-        return this;
-    }
-    divide(x, y) {
-        if (typeof x === 'object') {
-            this.x /= x.x;
-            this.y /= x.y;
-        } else {
-            this.x /= x;
-            this.y /= y;
-        }
-        return this;
-    }
-    divideScalar(scalar) {
-        return this.multiplyScalar(1 / scalar);
-    }
-    min(vec) {
-        this.x = Math.min(this.x, vec.x);
-        this.y = Math.min(this.y, vec.y);
-        return this;
-    }
-    max(vec) {
-        this.x = Math.max(this.x, vec.x);
-        this.y = Math.max(this.y, vec.y);
-        return this;
-    }
-    clamp(minv, maxv) {
-        if (minv.x < maxv.x) this.x = Math.max(minv.x, Math.min(maxv.x, this.x));
-        else this.x = Math.max(maxv.x, Math.min(minv.x, this.x));
-        if (minv.y < maxv.y) this.y = Math.max(minv.y, Math.min(maxv.y, this.y));
-        else this.y = Math.max(maxv.y, Math.min(minv.y, this.y));
-        return this;
-    }
-    clampScalar(minVal, maxVal) {
-        this.x = Math.max(minVal, Math.min(maxVal, this.x));
-        this.y = Math.max(minVal, Math.min(maxVal, this.y));
-        return this;
-    }
-    clampLength(min, max) {
-        const length = this.length();
-        return this.divideScalar(length || 1).multiplyScalar(Math.max(min, Math.min(max, length)));
-    }
-    floor() {
-        this.x = Math.floor(this.x);
-        this.y = Math.floor(this.y);
-        return this;
-    }
-    ceil() {
-        this.x = Math.ceil(this.x);
-        this.y = Math.ceil(this.y);
-        return this;
-    }
-    round() {
-        this.x = Math.round(this.x);
-        this.y = Math.round(this.y);
-        return this;
-    }
-    negate() {
-        this.x = -this.x;
-        this.y = -this.y;
-        return this;
-    }
-    abs() {
-        this.x = Math.abs(this.x);
-        this.y = Math.abs(this.y);
-        return this;
-    }
-    dot(vec) {
-        return this.x * vec.x + this.y * vec.y;
-    }
-    cross(vec) {
-        return this.x * vec.y - this.y * vec.x;
-    }
-    length() {
-        return Math.sqrt(this.x * this.x + this.y * this.y);
-    }
-    lengthSq() {
-        return this.x * this.x + this.y * this.y;
-    }
-    manhattanLength() {
-        return Math.abs(this.x) + Math.abs(this.y);
-    }
-    normalize() {
-        return this.divideScalar(this.length() || 1);
-    }
-    angle(forcePositive) {
-        let angle = Math.atan2(this.y, this.x);
-        if (forcePositive && angle < 0) angle += 2 * Math.PI;
-        return angle;
-    }
-    angleBetween(vec) {
-        const magnitudes = this.length() * vec.length();
-        const dot = this.dot(vec);
-        const theta = dot / magnitudes;
-        const clampedDot = Math.min(Math.max(theta, -1), 1);
-        return Math.acos(clampedDot);
-    }
-    rotateAround(center, angle) {
-        const c = Math.cos(angle);
-        const s = Math.sin(angle);
-        const x = this.x - center.x;
-        const y = this.y - center.y;
-        this.x = x * c - y * s + center.x;
-        this.y = x * s + y * c + center.y;
-    }
-    distanceTo(vec) {
-        return Math.sqrt(this.distanceToSquared(vec));
-    }
-    distanceToSquared(vec) {
-        const dx = this.x - vec.x;
-        const dy = this.y - vec.y;
-        return dx * dx + dy * dy;
-    }
-    manhattanDistanceTo(vec) {
-        return Math.abs(this.x - vec.x) + Math.abs(this.y - vec.y);
-    }
-    setLength(length) {
-        return this.normalize().multiplyScalar(length);
-    }
-    lerp(vec, t) {
-        return this.lerpVectors(this, vec, t);
-    }
-    lerpVectors(a, b, t) {
-        this.x = (a.x * (1.0 - t)) + (b.x * t);
-        this.y = (a.y * (1.0 - t)) + (b.y * t);
-        return this;
-    }
-    smoothstep(vec, t) {
-        t = 3 * t * t - 2 * t * t * t;
-        t = Math.min(1, Math.max(0, t));
-        this.x = this.x + ((vec.x - this.x) * t);
-        this.y = this.y + ((vec.y - this.y) * t);
-        return this;
-    }
-    equals(vec) {
-        return ((vec.x === this.x) && (vec.y === this.y));
-    }
-    fuzzyEquals(vec, tolerance = 0.001) {
-        if (fuzzyFloat$1(this.x, vec.x, tolerance) === false) return false;
-        if (fuzzyFloat$1(this.y, vec.y, tolerance) === false) return false;
+    static compareThingArrays(arrayOne, arrayTwo) {
+        arrayOne = Array.isArray(arrayOne) ? arrayOne : [ arrayOne ];
+        arrayTwo = Array.isArray(arrayTwo) ? arrayTwo : [ arrayTwo ];
+        if (arrayOne.length === 0 && arrayTwo.length === 0) return true;
+        for (const thing of arrayOne) if (ArrayUtils.includesThing(thing, arrayTwo) === false) return false;
+        for (const thing of arrayTwo) if (ArrayUtils.includesThing(thing, arrayOne) === false) return false;
         return true;
     }
-    random() {
-        this.x = Math.random();
-        this.y = Math.random();
+    static filterThings(things, properties = {}) {
+        const filtered = things.filter((object) => {
+            return Object.keys(properties).every((key) => { return object[key] == properties[key]; });
+        });
+        return filtered;
     }
-    log(description = '') {
-        if (description !== '') description += ' - ';
-        console.log(`${description}X: ${this.x}, Y: ${this.y}`);
-        return this;
+    static includesThing(findThing, ...things) {
+        if (!findThing || !findThing.uuid) return false;
+        if (things.length === 0) return false;
+        if (things.length > 0 && Array.isArray(things[0])) things = things[0];
+        for (const thing of things) if (thing.uuid && thing.uuid === findThing.uuid) return true;
+        return false;
     }
-    toArray() {
-        return [ this.x, this.y ];
+    static removeThingFromArray(removeThing, ...things) {
+        if (things.length > 0 && Array.isArray(things[0])) things = things[0];
+        if (!removeThing || !removeThing.uuid) return [ ...things ];
+        const newArray = [];
+        for (const thing of things) if (thing.uuid !== removeThing.uuid) newArray.push(thing);
+        return newArray;
     }
-    fromArray(array, offset = 0) {
-        this.set(array[offset + 0], array[offset + 1]);
-        return this;
+    static shareValues(arrayOne, arrayTwo) {
+        for (let i = 0; i < arrayOne.length; i++) {
+            if (arrayTwo.includes(arrayOne[i])) return true;
+        }
+        return false;
     }
-}
-function fuzzyFloat$1(a, b, tolerance = 0.001) {
-    return ((a < (b + tolerance)) && (a > (b - tolerance)));
 }
 
-const _clamp = new Vector2();
-const _half = new Vector2();
-class Box2 {
-    constructor(min, max) {
-        this.min = new Vector2(+Infinity, +Infinity);
-        this.max = new Vector2(-Infinity, -Infinity);
-        if (typeof min === 'object') this.min.copy(min);
-        if (typeof max === 'object') this.max.copy(max);
+const _assets = {};
+class AssetManager {
+    static get(uuid) {
+        if (uuid && uuid.uuid) uuid = uuid.uuid;
+        return _assets[uuid];
     }
-    set(min, max) {
-        this.min.copy(min);
-        this.max.copy(max);
-        return this;
-    }
-    setFromPoints(...points) {
-        this.clear();
-        if (points.length > 0 && Array.isArray(points[0])) points = points[0];
-        for (const point of points) this.expandByPoint(point);
-        return this;
-    }
-    setFromCenterAndSize(center, size) {
-        _half.copy(size).multiplyScalar(0.5);
-        this.min.copy(center).sub(_half);
-        this.max.copy(center).add(_half);
-        return this;
-    }
-    clone() {
-        return new Box2().copy(this);
-    }
-    copy(box) {
-        this.min.copy(box.min);
-        this.max.copy(box.max);
-        return this;
-    }
-    clear() {
-        this.min.set(+Infinity, +Infinity);
-        this.max.set(-Infinity, -Infinity);
-    }
-    isEmpty() {
-        return (this.max.x < this.min.x) || (this.max.y < this.min.y);
-    }
-    getCenter(target = new Vector2()) {
-        this.isEmpty() ? target.set(0, 0) : target.addVectors(this.min, this.max).multiplyScalar(0.5);
-        return target;
-    }
-    getSize(target = new Vector2()) {
-        this.isEmpty() ? target.set(0, 0) : target.subVectors(this.max, this.min).abs();
-        return target;
-    }
-    expandByPoint(point) {
-        this.min.min(point);
-        this.max.max(point);
-        return this;
-    }
-    expandByVector(vector, y) {
-        let ex, ey;
-        if (typeof vector === 'object') {
-            ex = vector.x / 2;
-            ey = vector.y / 2;
-        } else {
-            ex = vector / 2;
-            ey = y / 2;
+    static library(type, category) {
+        const library = [];
+        if (type && typeof type === 'string') type = type.toLowerCase();
+        if (category && typeof category === 'string') category = category.toLowerCase();
+        for (const [ uuid, asset ] of Object.entries(_assets)) {
+            if (type && typeof asset.type === 'string' && asset.type.toLowerCase() !== type) continue;
+            if (category == undefined || (typeof asset.category === 'string' && asset.category.toLowerCase() === category)) {
+                library.push(asset);
+            }
         }
-        this.min.sub(ex, ey);
-        this.max.add(ex, ey);
-        return this;
+        return library;
     }
-    expandByScalar(scalar) {
-        this.min.addScalar(scalar * -1);
-        this.max.addScalar(scalar * +1);
-        return this;
-    }
-    multiply(x, y) {
-        if (typeof x === 'object') {
-            y = x.y;
-            x = x.x;
+    static add(...assets) {
+        if (assets.length > 0 && Array.isArray(assets[0])) assets = assets[0];
+        let addedAsset = undefined;
+        for (const asset of assets) {
+            if (!asset || !asset.uuid) continue;
+            if (!asset.name || asset.name === '') asset.name = asset.constructor.name;
+            _assets[asset.uuid] = asset;
+            addedAsset = addedAsset ?? asset;
         }
-        this.min.multiply(x, y);
-        this.max.multiply(x, y);
-        return this;
+        return addedAsset;
     }
-    containsPoint(point) {
-        return !(point.x < this.min.x || point.x > this.max.x || point.y < this.min.y || point.y > this.max.y);
+    static clear() {
+        for (const uuid in _assets) {
+            const asset = _assets[uuid];
+            if (asset.isBuiltIn) continue;
+            AssetManager.remove(_assets[uuid], true);
+        }
     }
-    containsBox(box) {
-        return this.min.x <= box.min.x && box.max.x <= this.max.x && this.min.y <= box.min.y && box.max.y <= this.max.y;
+    static remove(asset, dispose = true) {
+        const assets = Array.isArray(asset) ? asset : [ asset ];
+        for (const asset of assets) {
+            if (!asset || !asset.uuid) continue;
+            if (_assets[asset.uuid]) {
+                if (dispose && typeof asset.dispose === 'function') asset.dispose();
+                delete _assets[asset.uuid];
+            }
+        }
     }
-    intersectsBox(box) {
-        return !(box.max.x < this.min.x || box.min.x > this.max.x || box.max.y < this.min.y || box.min.y > this.max.y);
+    static toJSON() {
+        const data = {};
+        for (const type of _types$2.keys()) {
+            const assets = AssetManager.library(type);
+            if (assets.length > 0) {
+                data[type] = [];
+                for (const asset of assets) {
+                    data[type].push(asset.toJSON());
+                }
+            }
+        }
+        return data;
     }
-    distanceToPoint(point) {
-        _clamp.copy(point).clamp(this.min, this.max).sub(point);
-        return _clamp.length();
+    static fromJSON(json, onLoad = () => {}) {
+        AssetManager.clear();
+        for (const type of _types$2.keys()) {
+            if (!json[type]) continue;
+            for (const assetData of json[type]) {
+                const Constructor = AssetManager.type(type);
+                if (Constructor) {
+                    const asset = new Constructor().fromJSON(assetData);
+                    AssetManager.add(asset);
+                } else {
+                    console.warn(`AssetManager.fromJSON(): Unknown asset type '${assetData.type}'`);
+                }
+            }
+        }
+        if (typeof onLoad === 'function') onLoad();
     }
-    intersect(box) {
-        this.min.max(box.min);
-        this.max.min(box.max);
-        return this;
+    static register(type, AssetClass) {
+        _types$2.set(type, AssetClass);
     }
-    union(box) {
-        this.min.min(box.min);
-        this.max.max(box.max);
-        return this;
+    static type(type) {
+        return _types$2.get(type);
     }
-    translate(x, y) {
-        this.min.add(x, y);
-        this.max.add(x, y);
-        return this;
+}
+const _types$2 = new Map();
+
+class Clock {
+    #running = false;
+    #startTime = 0;
+    #elapsedTime = 0;
+    #lastChecked = 0;
+    #deltaCount = 0;
+    #frameTime = 0;
+    #frameCount = 0;
+    #lastFrameCount = null;
+    constructor(autoStart = true, msRewind = 0) {
+        if (autoStart) this.start();
+        this.#startTime -= msRewind;
+        this.#lastChecked -= msRewind;
     }
-    equals(box) {
-        return box.min.equals(this.min) && box.max.equals(this.max);
+    start(reset = false) {
+        if (reset) this.reset();
+        this.#startTime = performance.now();
+        this.#lastChecked = this.#startTime;
+        this.#running = true;
     }
-    toArray() {
-        return [ this.min.x, this.min.y, this.max.x, this.max.y ];
+    stop() {
+        this.getDeltaTime();
+        this.#running = false;
     }
-    fromArray(array, offset = 0) {
-        this.min.set(array[offset + 0], array[offset + 1]);
-        this.max.set(array[offset + 2], array[offset + 3]);
-        return this;
+    toggle() {
+        if (this.#running) this.stop();
+        else this.start();
+    }
+    reset() {
+        this.#startTime = performance.now();
+        this.#lastChecked = this.#startTime;
+        this.#elapsedTime = 0;
+        this.#deltaCount = 0;
+    }
+    getElapsedTime() {
+        return this.#elapsedTime;
+    }
+    getDeltaTime() {
+        if (!this.#running) {
+            this.#lastFrameCount = null;
+            return 0;
+        }
+        const newTime = performance.now();
+        const dt = (newTime - this.#lastChecked) / 1000;
+        this.#lastChecked = newTime;
+        this.#elapsedTime += dt;
+        this.#deltaCount++;
+        this.#frameTime += dt;
+        this.#frameCount++;
+        if (this.#frameTime > 1) {
+            this.#lastFrameCount = this.#frameCount;
+            this.#frameTime = 0;
+            this.#frameCount = 0;
+        }
+        return dt;
+    }
+    isRunning() {
+        return this.#running;
+    }
+    isStopped() {
+        return !(this.#running);
+    }
+    count() {
+        return this.#deltaCount;
+    }
+    averageDelta() {
+        const frameRate = (this.#lastFrameCount !== null) ? (1 / this.#lastFrameCount) : (this.#frameTime / this.#frameCount);
+        return Math.min(1, frameRate);
+    }
+    fps() {
+        return (this.#lastFrameCount !== null) ? this.#lastFrameCount : (this.#frameCount / this.#frameTime);
     }
 }
 
@@ -798,9 +631,9 @@ class Vector3 {
         return ((vec.x === this.x) && (vec.y === this.y) && (vec.z === this.z));
     }
     fuzzyEquals(vec, tolerance = 0.001) {
-        if (fuzzyFloat(this.x, vec.x, tolerance) === false) return false;
-        if (fuzzyFloat(this.y, vec.y, tolerance) === false) return false;
-        if (fuzzyFloat(this.z, vec.z, tolerance) === false) return false;
+        if (fuzzyFloat$1(this.x, vec.x, tolerance) === false) return false;
+        if (fuzzyFloat$1(this.y, vec.y, tolerance) === false) return false;
+        if (fuzzyFloat$1(this.z, vec.z, tolerance) === false) return false;
         return true;
     }
     random() {
@@ -823,7 +656,7 @@ class Vector3 {
 }
 const _temp1 = new Vector3();
 const _temp2 = new Vector3();
-function fuzzyFloat(a, b, tolerance = 0.001) {
+function fuzzyFloat$1(a, b, tolerance = 0.001) {
     return ((a < (b + tolerance)) && (a > (b - tolerance)));
 }
 
@@ -954,6 +787,533 @@ class MathUtils {
             }
         }
         return uuids;
+    }
+}
+
+class SysUtils {
+    static isObject(variable) {
+        return (variable && typeof variable === 'object' && !Array.isArray(variable));
+    }
+    static save(url, filename) {
+        try {
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename || 'data.json';
+            link.click();
+            setTimeout(function() {
+                window.URL.revokeObjectURL(url);
+            }, 0);
+        } catch (error) {
+            return console.warn(error);
+        }
+    }
+    static saveBuffer(buffer, filename, optionalType = { type: 'application/octet-stream' }) {
+        const url = URL.createObjectURL(new Blob([ buffer ], { type: optionalType }));
+        SysUtils.save(url, filename);
+    }
+    static saveImage(imageUrl, filename) {
+        SysUtils.save(imageUrl, filename);
+    }
+    static saveString(text, filename) {
+        const url = URL.createObjectURL(new Blob([ text ], { type: 'text/plain' }));
+        SysUtils.save(url, filename);
+    }
+    static detectOS() {
+        const systems = {
+            Android:    [ 'android' ],
+            iOS:        [ 'iphone', 'ipad', 'ipod', 'ios' ],
+            Linux:      [ 'linux', 'x11', 'wayland' ],
+            MacOS:      [ 'mac', 'darwin', 'osx', 'os x' ],
+            Windows:    [ 'win' ],
+        };
+        const userAgent = window.navigator.userAgent;
+        const userAgentData = window.navigator.userAgentData;
+        const platform = ((userAgentData) ? userAgentData.platform : userAgent).toLowerCase();
+        for (const key in systems) {
+            for (const os of systems[key]) {
+                if (platform.indexOf(os) !== -1) return key;
+            }
+        }
+        return 'Unknown OS';
+    }
+    static fullscreen(element) {
+        const isFullscreen =
+            document.fullscreenElement ||
+            document.mozFullScreenElement ||
+            document.webkitFullscreenElement ||
+            document.msFullscreenElement;
+        if (isFullscreen) {
+            const el = document;
+            const cancelMethod = el.cancelFullScreen || el.exitFullscreen || el.webkitCancelFullScreen || el.webkitExitFullscreen || el.mozCancelFullScreen;
+            cancelMethod.call(el);
+        } else {
+            const el = element ?? document.body;
+            const requestMethod = el.requestFullScreen || el.webkitRequestFullScreen || el.mozRequestFullScreen || el.msRequestFullScreen;
+            requestMethod.call(el);
+        }
+    }
+    static metaKeyOS() {
+        const system = SysUtils.detectOS();
+        if (system === 'Mac') {
+            return '⌘';
+        } else {
+            return '⌃';
+        }
+    }
+    static sleep(ms) {
+        const beginTime = performance.now();
+        let endTime = beginTime;
+        while (endTime - beginTime < ms) {
+            endTime = performance.now();
+        }
+    }
+    static waitForObject(
+        operationName = '',
+        getter,
+        callback,
+        checkFrequencyMs = 100,
+        timeoutMs = -1,
+        alertMs = 5000,
+    ) {
+        let startTimeMs = performance.now();
+        let alertTimeMs = performance.now();
+        function loopSearch() {
+            if (timeoutMs > 0 && (performance.now() - startTimeMs > timeoutMs)) {
+                console.info(`Operation: ${operationName} timed out`);
+                return;
+            }
+            if ((alertMs > 0) && performance.now() - alertTimeMs > alertMs) {
+                console.info(`Still waiting on operation: ${operationName}`);
+                alertTimeMs = performance.now();
+            }
+            if (!getter || typeof getter !== 'function' || getter()) {
+                if (callback && typeof callback === 'function') callback();
+                return;
+            } else {
+                setTimeout(loopSearch, checkFrequencyMs);
+            }
+        }
+        loopSearch();
+    }
+}
+
+const _types$1 = new Map();
+class Thing {
+    constructor(name = 'Thing') {
+        this.isThing = true;
+        this.type = 'Thing';
+        this.name = name;
+        this.uuid = MathUtils.randomUUID();
+    }
+    clone(recursive = false) {
+        return new this.constructor().copy(this, recursive);
+    }
+    copy(source, recursive = true) {
+        this.dispose();
+        this.name = source.name;
+        return this;
+    }
+    toJSON() {
+        const data = {};
+        data.meta = {
+            type: this.type,
+            version: VERSION,
+        };
+        data.name = this.name;
+        data.uuid = this.uuid;
+        return data;
+    }
+    fromJSON(data) {
+        if (!SysUtils.isObject(data)) {
+            console.warn(`Thing.fromJSON(): No json data provided for ${this.constructor.name}`);
+            return this;
+        }
+        if (data.name !== undefined) this.name = data.name;
+        if (data.uuid !== undefined) this.uuid = data.uuid;
+        return this;
+    }
+    static register(type, ThingClass) {
+	    _types$1.set(type, ThingClass);
+    }
+    static type(type) {
+        return _types$1.get(type);
+    }
+}
+Thing.register('Thing', Thing);
+
+class Vector2 {
+    constructor(x = 0, y = 0) {
+        if (typeof x === 'object') {
+            this.x = x.x;
+            this.y = x.y;
+        } else {
+            this.x = x;
+            this.y = y;
+        }
+    }
+    set(x, y) {
+        if (typeof x === 'object') return this.copy(x);
+        this.x = x;
+        this.y = y;
+        return this;
+    }
+    setScalar(scalar) {
+        this.x = scalar;
+        this.y = scalar;
+        return this;
+    }
+    clone() {
+        return new Vector2(this.x, this.y);
+    }
+    copy(x, y) {
+        if (typeof x === 'object') {
+            this.x = x.x;
+            this.y = x.y;
+        } else {
+            this.x = x;
+            this.y = y;
+        }
+        return this;
+    }
+    add(x, y) {
+        if (typeof x === 'object') {
+            this.x += x.x;
+            this.y += x.y;
+        } else {
+            this.x += x;
+            this.y += y;
+        }
+        return this;
+    }
+    addScalar(scalar) {
+        this.x += scalar;
+        this.y += scalar;
+        return this;
+    }
+    addVectors(a, b) {
+        this.x = a.x + b.x;
+        this.y = a.y + b.y;
+        return this;
+    }
+    addScaledVector(vec, scale) {
+        this.x += vec.x * scale;
+        this.y += vec.y * scale;
+        return this;
+    }
+    sub(x, y) {
+        if (typeof x === 'object') {
+            this.x -= x.x;
+            this.y -= x.y;
+        } else {
+            this.x -= x;
+            this.y -= y;
+        }
+        return this;
+    }
+    subScalar(scalar) {
+        this.x -= scalar;
+        this.y -= scalar;
+        return this;
+    }
+    subVectors(a, b) {
+        this.x = a.x - b.x;
+        this.y = a.y - b.y;
+        return this;
+    }
+    multiply(x, y) {
+        if (typeof x === 'object') {
+            this.x *= x.x;
+            this.y *= x.y;
+        } else {
+            this.x *= x;
+            this.y *= y;
+        }
+        return this;
+    }
+    multiplyScalar(scalar) {
+        this.x *= scalar;
+        this.y *= scalar;
+        return this;
+    }
+    divide(x, y) {
+        if (typeof x === 'object') {
+            this.x /= x.x;
+            this.y /= x.y;
+        } else {
+            this.x /= x;
+            this.y /= y;
+        }
+        return this;
+    }
+    divideScalar(scalar) {
+        return this.multiplyScalar(1 / scalar);
+    }
+    min(vec) {
+        this.x = Math.min(this.x, vec.x);
+        this.y = Math.min(this.y, vec.y);
+        return this;
+    }
+    max(vec) {
+        this.x = Math.max(this.x, vec.x);
+        this.y = Math.max(this.y, vec.y);
+        return this;
+    }
+    clamp(minv, maxv) {
+        if (minv.x < maxv.x) this.x = Math.max(minv.x, Math.min(maxv.x, this.x));
+        else this.x = Math.max(maxv.x, Math.min(minv.x, this.x));
+        if (minv.y < maxv.y) this.y = Math.max(minv.y, Math.min(maxv.y, this.y));
+        else this.y = Math.max(maxv.y, Math.min(minv.y, this.y));
+        return this;
+    }
+    clampScalar(minVal, maxVal) {
+        this.x = Math.max(minVal, Math.min(maxVal, this.x));
+        this.y = Math.max(minVal, Math.min(maxVal, this.y));
+        return this;
+    }
+    clampLength(min, max) {
+        const length = this.length();
+        return this.divideScalar(length || 1).multiplyScalar(Math.max(min, Math.min(max, length)));
+    }
+    floor() {
+        this.x = Math.floor(this.x);
+        this.y = Math.floor(this.y);
+        return this;
+    }
+    ceil() {
+        this.x = Math.ceil(this.x);
+        this.y = Math.ceil(this.y);
+        return this;
+    }
+    round() {
+        this.x = Math.round(this.x);
+        this.y = Math.round(this.y);
+        return this;
+    }
+    negate() {
+        this.x = -this.x;
+        this.y = -this.y;
+        return this;
+    }
+    abs() {
+        this.x = Math.abs(this.x);
+        this.y = Math.abs(this.y);
+        return this;
+    }
+    dot(vec) {
+        return this.x * vec.x + this.y * vec.y;
+    }
+    cross(vec) {
+        return this.x * vec.y - this.y * vec.x;
+    }
+    length() {
+        return Math.sqrt(this.x * this.x + this.y * this.y);
+    }
+    lengthSq() {
+        return this.x * this.x + this.y * this.y;
+    }
+    manhattanLength() {
+        return Math.abs(this.x) + Math.abs(this.y);
+    }
+    normalize() {
+        return this.divideScalar(this.length() || 1);
+    }
+    angle(forcePositive) {
+        let angle = Math.atan2(this.y, this.x);
+        if (forcePositive && angle < 0) angle += 2 * Math.PI;
+        return angle;
+    }
+    angleBetween(vec) {
+        const magnitudes = this.length() * vec.length();
+        const dot = this.dot(vec);
+        const theta = dot / magnitudes;
+        const clampedDot = Math.min(Math.max(theta, -1), 1);
+        return Math.acos(clampedDot);
+    }
+    rotateAround(center, angle) {
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+        const x = this.x - center.x;
+        const y = this.y - center.y;
+        this.x = x * c - y * s + center.x;
+        this.y = x * s + y * c + center.y;
+    }
+    distanceTo(vec) {
+        return Math.sqrt(this.distanceToSquared(vec));
+    }
+    distanceToSquared(vec) {
+        const dx = this.x - vec.x;
+        const dy = this.y - vec.y;
+        return dx * dx + dy * dy;
+    }
+    manhattanDistanceTo(vec) {
+        return Math.abs(this.x - vec.x) + Math.abs(this.y - vec.y);
+    }
+    setLength(length) {
+        return this.normalize().multiplyScalar(length);
+    }
+    lerp(vec, t) {
+        return this.lerpVectors(this, vec, t);
+    }
+    lerpVectors(a, b, t) {
+        this.x = (a.x * (1.0 - t)) + (b.x * t);
+        this.y = (a.y * (1.0 - t)) + (b.y * t);
+        return this;
+    }
+    smoothstep(vec, t) {
+        t = 3 * t * t - 2 * t * t * t;
+        t = Math.min(1, Math.max(0, t));
+        this.x = this.x + ((vec.x - this.x) * t);
+        this.y = this.y + ((vec.y - this.y) * t);
+        return this;
+    }
+    equals(vec) {
+        return ((vec.x === this.x) && (vec.y === this.y));
+    }
+    fuzzyEquals(vec, tolerance = 0.001) {
+        if (fuzzyFloat(this.x, vec.x, tolerance) === false) return false;
+        if (fuzzyFloat(this.y, vec.y, tolerance) === false) return false;
+        return true;
+    }
+    random() {
+        this.x = Math.random();
+        this.y = Math.random();
+    }
+    log(description = '') {
+        if (description !== '') description += ' - ';
+        console.log(`${description}X: ${this.x}, Y: ${this.y}`);
+        return this;
+    }
+    toArray() {
+        return [ this.x, this.y ];
+    }
+    fromArray(array, offset = 0) {
+        this.set(array[offset + 0], array[offset + 1]);
+        return this;
+    }
+}
+function fuzzyFloat(a, b, tolerance = 0.001) {
+    return ((a < (b + tolerance)) && (a > (b - tolerance)));
+}
+
+const _clamp = new Vector2();
+const _half = new Vector2();
+class Box2 {
+    constructor(min, max) {
+        this.min = new Vector2(+Infinity, +Infinity);
+        this.max = new Vector2(-Infinity, -Infinity);
+        if (typeof min === 'object') this.min.copy(min);
+        if (typeof max === 'object') this.max.copy(max);
+    }
+    set(min, max) {
+        this.min.copy(min);
+        this.max.copy(max);
+        return this;
+    }
+    setFromPoints(...points) {
+        this.clear();
+        if (points.length > 0 && Array.isArray(points[0])) points = points[0];
+        for (const point of points) this.expandByPoint(point);
+        return this;
+    }
+    setFromCenterAndSize(center, size) {
+        _half.copy(size).multiplyScalar(0.5);
+        this.min.copy(center).sub(_half);
+        this.max.copy(center).add(_half);
+        return this;
+    }
+    clone() {
+        return new Box2().copy(this);
+    }
+    copy(box) {
+        this.min.copy(box.min);
+        this.max.copy(box.max);
+        return this;
+    }
+    clear() {
+        this.min.set(+Infinity, +Infinity);
+        this.max.set(-Infinity, -Infinity);
+    }
+    isEmpty() {
+        return (this.max.x < this.min.x) || (this.max.y < this.min.y);
+    }
+    getCenter(target = new Vector2()) {
+        this.isEmpty() ? target.set(0, 0) : target.addVectors(this.min, this.max).multiplyScalar(0.5);
+        return target;
+    }
+    getSize(target = new Vector2()) {
+        this.isEmpty() ? target.set(0, 0) : target.subVectors(this.max, this.min).abs();
+        return target;
+    }
+    expandByPoint(point) {
+        this.min.min(point);
+        this.max.max(point);
+        return this;
+    }
+    expandByVector(vector, y) {
+        let ex, ey;
+        if (typeof vector === 'object') {
+            ex = vector.x / 2;
+            ey = vector.y / 2;
+        } else {
+            ex = vector / 2;
+            ey = y / 2;
+        }
+        this.min.sub(ex, ey);
+        this.max.add(ex, ey);
+        return this;
+    }
+    expandByScalar(scalar) {
+        this.min.addScalar(scalar * -1);
+        this.max.addScalar(scalar * +1);
+        return this;
+    }
+    multiply(x, y) {
+        if (typeof x === 'object') {
+            y = x.y;
+            x = x.x;
+        }
+        this.min.multiply(x, y);
+        this.max.multiply(x, y);
+        return this;
+    }
+    containsPoint(point) {
+        return !(point.x < this.min.x || point.x > this.max.x || point.y < this.min.y || point.y > this.max.y);
+    }
+    containsBox(box) {
+        return this.min.x <= box.min.x && box.max.x <= this.max.x && this.min.y <= box.min.y && box.max.y <= this.max.y;
+    }
+    intersectsBox(box) {
+        return !(box.max.x < this.min.x || box.min.x > this.max.x || box.max.y < this.min.y || box.min.y > this.max.y);
+    }
+    distanceToPoint(point) {
+        _clamp.copy(point).clamp(this.min, this.max).sub(point);
+        return _clamp.length();
+    }
+    intersect(box) {
+        this.min.max(box.min);
+        this.max.min(box.max);
+        return this;
+    }
+    union(box) {
+        this.min.min(box.min);
+        this.max.max(box.max);
+        return this;
+    }
+    translate(x, y) {
+        this.min.add(x, y);
+        this.max.add(x, y);
+        return this;
+    }
+    equals(box) {
+        return box.min.equals(this.min) && box.max.equals(this.max);
+    }
+    toArray() {
+        return [ this.min.x, this.min.y, this.max.x, this.max.y ];
+    }
+    fromArray(array, offset = 0) {
+        this.min.set(array[offset + 0], array[offset + 1]);
+        this.max.set(array[offset + 2], array[offset + 3]);
+        return this;
     }
 }
 
@@ -1324,157 +1684,6 @@ class Pointer {
     }
 }
 
-class SysUtils {
-    static isObject(variable) {
-        return (variable && typeof variable === 'object' && !Array.isArray(variable));
-    }
-    static save(url, filename) {
-        try {
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename || 'data.json';
-            link.click();
-            setTimeout(function() {
-                window.URL.revokeObjectURL(url);
-            }, 0);
-        } catch (error) {
-            return console.warn(error);
-        }
-    }
-    static saveBuffer(buffer, filename, optionalType = { type: 'application/octet-stream' }) {
-        const url = URL.createObjectURL(new Blob([ buffer ], { type: optionalType }));
-        SysUtils.save(url, filename);
-    }
-    static saveImage(imageUrl, filename) {
-        SysUtils.save(imageUrl, filename);
-    }
-    static saveString(text, filename) {
-        const url = URL.createObjectURL(new Blob([ text ], { type: 'text/plain' }));
-        SysUtils.save(url, filename);
-    }
-    static detectOS() {
-        const systems = {
-            Android:    [ 'android' ],
-            iOS:        [ 'iphone', 'ipad', 'ipod', 'ios' ],
-            Linux:      [ 'linux', 'x11', 'wayland' ],
-            MacOS:      [ 'mac', 'darwin', 'osx', 'os x' ],
-            Windows:    [ 'win' ],
-        };
-        const userAgent = window.navigator.userAgent;
-        const userAgentData = window.navigator.userAgentData;
-        const platform = ((userAgentData) ? userAgentData.platform : userAgent).toLowerCase();
-        for (const key in systems) {
-            for (const os of systems[key]) {
-                if (platform.indexOf(os) !== -1) return key;
-            }
-        }
-        return 'Unknown OS';
-    }
-    static fullscreen(element) {
-        const isFullscreen =
-            document.fullscreenElement ||
-            document.mozFullScreenElement ||
-            document.webkitFullscreenElement ||
-            document.msFullscreenElement;
-        if (isFullscreen) {
-            const el = document;
-            const cancelMethod = el.cancelFullScreen || el.exitFullscreen || el.webkitCancelFullScreen || el.webkitExitFullscreen || el.mozCancelFullScreen;
-            cancelMethod.call(el);
-        } else {
-            const el = element ?? document.body;
-            const requestMethod = el.requestFullScreen || el.webkitRequestFullScreen || el.mozRequestFullScreen || el.msRequestFullScreen;
-            requestMethod.call(el);
-        }
-    }
-    static metaKeyOS() {
-        const system = SysUtils.detectOS();
-        if (system === 'Mac') {
-            return '⌘';
-        } else {
-            return '⌃';
-        }
-    }
-    static sleep(ms) {
-        const beginTime = performance.now();
-        let endTime = beginTime;
-        while (endTime - beginTime < ms) {
-            endTime = performance.now();
-        }
-    }
-    static waitForObject(
-        operationName = '',
-        getter,
-        callback,
-        checkFrequencyMs = 100,
-        timeoutMs = -1,
-        alertMs = 5000,
-    ) {
-        let startTimeMs = performance.now();
-        let alertTimeMs = performance.now();
-        function loopSearch() {
-            if (timeoutMs > 0 && (performance.now() - startTimeMs > timeoutMs)) {
-                console.info(`Operation: ${operationName} timed out`);
-                return;
-            }
-            if ((alertMs > 0) && performance.now() - alertTimeMs > alertMs) {
-                console.info(`Still waiting on operation: ${operationName}`);
-                alertTimeMs = performance.now();
-            }
-            if (!getter || typeof getter !== 'function' || getter()) {
-                if (callback && typeof callback === 'function') callback();
-                return;
-            } else {
-                setTimeout(loopSearch, checkFrequencyMs);
-            }
-        }
-        loopSearch();
-    }
-}
-
-const _types$2 = new Map();
-class Thing {
-    constructor(name = 'Thing') {
-        this.isThing = true;
-        this.type = 'Thing';
-        this.name = name;
-        this.uuid = MathUtils.randomUUID();
-    }
-    clone(recursive = false) {
-        return new this.constructor().copy(this, recursive);
-    }
-    copy(source, recursive = true) {
-        this.dispose();
-        this.name = source.name;
-        return this;
-    }
-    toJSON() {
-        const data = {};
-        data.meta = {
-            type: this.type,
-            version: VERSION,
-        };
-        data.name = this.name;
-        data.uuid = this.uuid;
-        return data;
-    }
-    fromJSON(data) {
-        if (!SysUtils.isObject(data)) {
-            console.warn(`Thing.fromJSON(): No json data provided for ${this.constructor.name}`);
-            return this;
-        }
-        if (data.name !== undefined) this.name = data.name;
-        if (data.uuid !== undefined) this.uuid = data.uuid;
-        return this;
-    }
-    static register(type, ThingClass) {
-	    _types$2.set(type, ThingClass);
-    }
-    static type(type) {
-        return _types$2.get(type);
-    }
-}
-Thing.register('Thing', Thing);
-
 const _position$2 = new Vector2();
 const _corner1$2 = new Vector2();
 const _corner2$2 = new Vector2();
@@ -1827,90 +2036,6 @@ class Object2D extends Thing {
     }
 }
 Thing.register('Object2D', Object2D);
-
-const _assets = {};
-class AssetManager {
-    static get(uuid) {
-        if (uuid && uuid.uuid) uuid = uuid.uuid;
-        return _assets[uuid];
-    }
-    static library(type, category) {
-        const library = [];
-        if (type && typeof type === 'string') type = type.toLowerCase();
-        if (category && typeof category === 'string') category = category.toLowerCase();
-        for (const [ uuid, asset ] of Object.entries(_assets)) {
-            if (type && typeof asset.type === 'string' && asset.type.toLowerCase() !== type) continue;
-            if (category == undefined || (typeof asset.category === 'string' && asset.category.toLowerCase() === category)) {
-                library.push(asset);
-            }
-        }
-        return library;
-    }
-    static add(...assets) {
-        if (assets.length > 0 && Array.isArray(assets[0])) assets = assets[0];
-        let addedAsset = undefined;
-        for (const asset of assets) {
-            if (!asset || !asset.uuid) continue;
-            if (!asset.name || asset.name === '') asset.name = asset.constructor.name;
-            _assets[asset.uuid] = asset;
-            addedAsset = addedAsset ?? asset;
-        }
-        return addedAsset;
-    }
-    static clear() {
-        for (const uuid in _assets) {
-            const asset = _assets[uuid];
-            if (asset.isBuiltIn) continue;
-            AssetManager.remove(_assets[uuid], true);
-        }
-    }
-    static remove(asset, dispose = true) {
-        const assets = Array.isArray(asset) ? asset : [ asset ];
-        for (const asset of assets) {
-            if (!asset || !asset.uuid) continue;
-            if (_assets[asset.uuid]) {
-                if (dispose && typeof asset.dispose === 'function') asset.dispose();
-                delete _assets[asset.uuid];
-            }
-        }
-    }
-    static toJSON() {
-        const data = {};
-        for (const type of _types$1.keys()) {
-            const assets = AssetManager.library(type);
-            if (assets.length > 0) {
-                data[type] = [];
-                for (const asset of assets) {
-                    data[type].push(asset.toJSON());
-                }
-            }
-        }
-        return data;
-    }
-    static fromJSON(json, onLoad = () => {}) {
-        AssetManager.clear();
-        for (const type of _types$1.keys()) {
-            if (!json[type]) continue;
-            for (const assetData of json[type]) {
-                const Constructor = AssetManager.type(type);
-                if (Constructor) {
-                    const asset = new Constructor().fromJSON(assetData);
-                    AssetManager.add(asset);
-                } else {
-                    console.warn(`AssetManager.fromJSON(): Unknown asset type '${assetData.type}'`);
-                }
-            }
-        }
-        if (typeof onLoad === 'function') onLoad();
-    }
-    static register(type, AssetClass) {
-        _types$1.set(type, AssetClass);
-    }
-    static type(type) {
-        return _types$1.get(type);
-    }
-}
-const _types$1 = new Map();
 
 class Entity extends Object2D {
     constructor(name = 'Entity') {
@@ -2450,131 +2575,6 @@ class Project extends Thing {
     }
 }
 
-class ArrayUtils {
-    static isIterable(array) {
-        return (array && (typeof array[Symbol.iterator] === 'function') || Array.isArray(array));
-    }
-    static swapItems(array, a, b) {
-        array[a] = array.splice(b, 1, array[a])[0];
-        return array;
-    }
-    static combineThingArrays(arrayOne, arrayTwo) {
-        const things = [ ...arrayOne ];
-        for (const thing of arrayTwo) {
-            if (ArrayUtils.includesThing(thing, arrayOne) === false) things.push(thing);
-        }
-        return things;
-    }
-    static compareThingArrays(arrayOne, arrayTwo) {
-        arrayOne = Array.isArray(arrayOne) ? arrayOne : [ arrayOne ];
-        arrayTwo = Array.isArray(arrayTwo) ? arrayTwo : [ arrayTwo ];
-        if (arrayOne.length === 0 && arrayTwo.length === 0) return true;
-        for (const thing of arrayOne) if (ArrayUtils.includesThing(thing, arrayTwo) === false) return false;
-        for (const thing of arrayTwo) if (ArrayUtils.includesThing(thing, arrayOne) === false) return false;
-        return true;
-    }
-    static filterThings(things, properties = {}) {
-        const filtered = things.filter((object) => {
-            return Object.keys(properties).every((key) => { return object[key] == properties[key]; });
-        });
-        return filtered;
-    }
-    static includesThing(findThing, ...things) {
-        if (!findThing || !findThing.uuid) return false;
-        if (things.length === 0) return false;
-        if (things.length > 0 && Array.isArray(things[0])) things = things[0];
-        for (const thing of things) if (thing.uuid && thing.uuid === findThing.uuid) return true;
-        return false;
-    }
-    static removeThingFromArray(removeThing, ...things) {
-        if (things.length > 0 && Array.isArray(things[0])) things = things[0];
-        if (!removeThing || !removeThing.uuid) return [ ...things ];
-        const newArray = [];
-        for (const thing of things) if (thing.uuid !== removeThing.uuid) newArray.push(thing);
-        return newArray;
-    }
-    static shareValues(arrayOne, arrayTwo) {
-        for (let i = 0; i < arrayOne.length; i++) {
-            if (arrayTwo.includes(arrayOne[i])) return true;
-        }
-        return false;
-    }
-}
-
-class Clock {
-    #running = false;
-    #startTime = 0;
-    #elapsedTime = 0;
-    #lastChecked = 0;
-    #deltaCount = 0;
-    #frameTime = 0;
-    #frameCount = 0;
-    #lastFrameCount = null;
-    constructor(autoStart = true, msRewind = 0) {
-        if (autoStart) this.start();
-        this.#startTime -= msRewind;
-        this.#lastChecked -= msRewind;
-    }
-    start(reset = false) {
-        if (reset) this.reset();
-        this.#startTime = performance.now();
-        this.#lastChecked = this.#startTime;
-        this.#running = true;
-    }
-    stop() {
-        this.getDeltaTime();
-        this.#running = false;
-    }
-    toggle() {
-        if (this.#running) this.stop();
-        else this.start();
-    }
-    reset() {
-        this.#startTime = performance.now();
-        this.#lastChecked = this.#startTime;
-        this.#elapsedTime = 0;
-        this.#deltaCount = 0;
-    }
-    getElapsedTime() {
-        return this.#elapsedTime;
-    }
-    getDeltaTime() {
-        if (!this.#running) {
-            this.#lastFrameCount = null;
-            return 0;
-        }
-        const newTime = performance.now();
-        const dt = (newTime - this.#lastChecked) / 1000;
-        this.#lastChecked = newTime;
-        this.#elapsedTime += dt;
-        this.#deltaCount++;
-        this.#frameTime += dt;
-        this.#frameCount++;
-        if (this.#frameTime > 1) {
-            this.#lastFrameCount = this.#frameCount;
-            this.#frameTime = 0;
-            this.#frameCount = 0;
-        }
-        return dt;
-    }
-    isRunning() {
-        return this.#running;
-    }
-    isStopped() {
-        return !(this.#running);
-    }
-    count() {
-        return this.#deltaCount;
-    }
-    averageDelta() {
-        const frameRate = (this.#lastFrameCount !== null) ? (1 / this.#lastFrameCount) : (this.#frameTime / this.#frameCount);
-        return Math.min(1, frameRate);
-    }
-    fps() {
-        return (this.#lastFrameCount !== null) ? this.#lastFrameCount : (this.#frameCount / this.#frameTime);
-    }
-}
-
 const scriptFunctions = APP_EVENTS.toString();
 const scriptReturnObject = {};
 for (const event of APP_EVENTS) scriptReturnObject[event] = event;
@@ -2984,6 +2984,200 @@ class Camera2D extends Thing {
         }
     }
 }
+
+const _registered = {};
+let ComponentManager$1 = class ComponentManager {
+    static defaultValue(type) {
+        switch (type) {
+            case 'select':      return null;
+            case 'number':      return 0;
+            case 'int':         return 0;
+            case 'angle':       return 0;
+            case 'slider':      return 0;
+            case 'variable':    return [ 0, 0 ];
+            case 'vector':      return [ 0 ];
+            case 'option':      return [ false ];
+            case 'boolean':     return false;
+            case 'color':       return 0xffffff;
+            case 'string':      return '';
+            case 'key':         return '';
+            case 'asset':       return null;
+            case 'object':      return {};
+            case 'divider':     return null;
+            default:            console.warn(`ComponentManager.defaultValue(): Unknown property type: '${type}'`);
+        }
+        return null;
+    }
+    static registered(type = '') {
+        const ComponentClass = _registered[type];
+        if (!ComponentClass) console.warn(`ComponentManager.registered(): Component '${type}' not registered'`);
+        return ComponentClass;
+    }
+    static registeredTypes() {
+        return Object.keys(_registered);
+    }
+    static register(type = '', ComponentClass) {
+        type = type.toLowerCase();
+        if (_registered[type]) return console.warn(`ComponentManager.register(): Component '${type}' already registered`);
+        if (!SysUtils.isObject(ComponentClass.config)) ComponentClass.config = {};
+        if (!SysUtils.isObject(ComponentClass.config.schema)) ComponentClass.config.schema = {};
+        const schema = ComponentClass.config.schema;
+        for (const key in schema) {
+            const properties = Array.isArray(schema[key]) ? schema[key] : [ schema[key] ];
+            for (const property of properties) {
+                if (property.type === undefined) {
+                    console.warn(`ComponentManager.register(): All schema properties require a 'type' value`);
+                } else if (property.type === 'divider') {
+                    continue;
+                }
+                if (property.default === undefined) property.default = ComponentManager.defaultValue(property.type);
+                if (property.proMode !== undefined) property.promode = property.proMode;
+            }
+        }
+        class Component extends ComponentClass {
+            constructor() {
+                super();
+                this.isComponent = true;
+                this.type = type;
+                this.attached = true;
+                this.expanded = true;
+                this.order = 0;
+                this.tag = '';
+                this.entity = null;
+                this.backend = undefined;
+                this.data = {};
+            }
+            init(data = {}) {
+                this.dispose();
+                if (typeof super.init === 'function') super.init(data);
+            }
+            dispose() {
+                if (typeof super.dispose === 'function') super.dispose();
+                if (typeof this.backend === 'object' && typeof this.backend.dispose === 'function') this.backend.dispose();
+                this.backend = undefined;
+            }
+            attach() {
+                this.attached = true;
+                if (typeof super.attach === 'function') super.attach();
+            }
+            detach() {
+                this.attached = false;
+                if (typeof super.detach === 'function') super.detach();
+            }
+            defaultData() {
+                const data = {};
+                for (let i = 0, l = arguments.length; i < l; i += 2) {
+                    data[arguments[i]] = arguments[i + 1];
+                }
+                ComponentManager.sanitizeData(this.type, data);
+                data.base = {
+                    isComponent:    true,
+                    attached:       this.attached,
+                    expanded:       this.expanded,
+                    order:          this.order,
+                    tag:            this.tag,
+                    type:           this.type,
+                };
+                return data;
+            }
+            toJSON() {
+                let data;
+                if (this.data && this.data.style) {
+                    data = this.defaultData('style', this.data.style);
+                } else {
+                    data = this.defaultData();
+                }
+                for (const key in data) {
+                    if (this.data[key] !== undefined) {
+                        if (this.data[key] && this.data[key].isTexture) {
+                            data[key] = this.data[key].uuid;
+                        } else {
+                            data[key] = structuredClone(this.data[key]);
+                        }
+                    }
+                }
+                return data;
+            }
+        }
+        _registered[type] = Component;
+    }
+    static includeData(item, data1, data2 = undefined) {
+        for (const key in item.if) {
+            const conditions = Array.isArray(item.if[key]) ? item.if[key] : [ item.if[key] ];
+            let check1 = false, check2 = false;
+            for (const condition of conditions) {
+                check1 = check1 || (data1[key] === condition);
+                check2 = check2 || (data2 === undefined) ? true : (data2[key] === condition);
+            }
+            if (!check1 || !check2) return false;
+        }
+        for (const key in item.not) {
+            const conditions = Array.isArray(item.not[key]) ? item.not[key] : [ item.not[key] ];
+            let check1 = false, check2 = false;
+            for (const condition of conditions) {
+                check1 = check1 || (data1[key] === condition);
+                check2 = check2 || (data2 === undefined) ? false : (data2[key] === condition);
+            }
+            if (check1 || check2) return false;
+        }
+        return true;
+    }
+    static sanitizeData(type, data) {
+        if (!data || typeof data !== 'object') data = {};
+        const ComponentClass = ComponentManager.registered(type);
+        if (!ComponentClass || !ComponentClass.config || !ComponentClass.config.schema) return;
+        const schema = ComponentClass.config.schema;
+        if (!SysUtils.isObject(schema)) return;
+        for (const schemaKey in schema) {
+            const itemArray = Array.isArray(schema[schemaKey]) ? schema[schemaKey] : [ schema[schemaKey] ];
+            let itemToInclude = undefined;
+            for (const item of itemArray) {
+                if (item.type === 'divider') continue;
+                if (!ComponentManager.includeData(item, data)) continue;
+                itemToInclude = item;
+                break;
+            }
+            if (itemToInclude !== undefined) {
+                if (data[schemaKey] === undefined) {
+                    if (Array.isArray(itemToInclude.default)) {
+                        data[schemaKey] = [...itemToInclude.default];
+                    } else if (typeof itemToInclude.default === 'object') {
+                        data[schemaKey] = structuredClone(itemToInclude.default);
+                    } else {
+                        data[schemaKey] = itemToInclude.default;
+                    }
+                }
+                if (MathUtils.isNumber(data[schemaKey])) {
+                    const min = itemToInclude['min'] ?? -Infinity;
+                    const max = itemToInclude['max'] ??  Infinity;
+                    if (data[schemaKey] < min) data[schemaKey] = min;
+                    if (data[schemaKey] > max) data[schemaKey] = max;
+                }
+            } else {
+                delete data[schemaKey];
+            }
+        }
+    }
+    static stripData(type, oldData, newData) {
+        const ComponentClass = ComponentManager.registered(type);
+        if (!ComponentClass || !ComponentClass.config || !ComponentClass.config.schema) return;
+        const schema = ComponentClass.config.schema;
+        if (!SysUtils.isObject(schema)) return;
+        for (const schemaKey in schema) {
+            let matchedConditions = false;
+            const itemArray = Array.isArray(schema[schemaKey]) ? schema[schemaKey] : [ schema[schemaKey] ];
+            for (const item of itemArray) {
+                if (item.type === 'divider') continue;
+                if (!ComponentManager.includeData(item, oldData, newData)) continue;
+                matchedConditions = true;
+                break;
+            }
+            if (matchedConditions !== true) {
+                delete newData[schemaKey];
+            }
+        }
+    }
+};
 
 const _cameraPoint$1 = new Vector2();
 const _localPoint = new Vector2();
@@ -6046,4 +6240,4 @@ function getVariable(variable) {
     return ((value === '') ? undefined : value);
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, Debug, DomElement, Entity, EventManager, GridHelper, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_DOUBLE_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, OUTLINE_THICKNESS, Object2D, OriginHelper, Palette, Pattern, Pointer, PolyUtils, Project, RadialGradientStyle, Renderer, ResizeHelper, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Sprite, Stage, Style, SysUtils, Text, Thing, TooltipHelper, VERSION, Vector2, Vector3, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, ComponentManager$1 as ComponentManager, Debug, DomElement, Entity, EventManager, GridHelper, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_DOUBLE_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, OUTLINE_THICKNESS, Object2D, OriginHelper, Palette, Pattern, Pointer, PolyUtils, Project, RadialGradientStyle, Renderer, ResizeHelper, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Sprite, Stage, Style, SysUtils, Text, Thing, TooltipHelper, VERSION, Vector2, Vector3, WORLD_TYPES, World };

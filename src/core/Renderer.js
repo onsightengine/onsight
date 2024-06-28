@@ -1,15 +1,15 @@
 import {
     OUTLINE_THICKNESS,
-} from '../../constants.js';
+} from '../constants.js';
 import { Clock } from './Clock.js';
-import { ColorStyle } from '../objects/style/ColorStyle.js';
+import { ColorStyle } from './objects/style/ColorStyle.js';
 import { EventManager } from './EventManager.js';
-import { Keyboard } from '../input/Keyboard.js';
-import { Matrix2 } from '../../math/Matrix2.js';
-import { Object2D } from '../Object2D.js';
-import { Pointer } from '../input/Pointer.js';
-import { Style } from '../objects/style/Style.js';
-import { Vector2 } from '../../math/Vector2.js';
+import { Keyboard } from './input/Keyboard.js';
+import { Matrix2 } from '../math/Matrix2.js';
+import { Object2D } from './Object2D.js';
+import { Pointer } from './input/Pointer.js';
+import { Style } from './objects/style/Style.js';
+import { Vector2 } from '../math/Vector2.js';
 
 const _center = new Vector2();
 const _topLeft = new Vector2();

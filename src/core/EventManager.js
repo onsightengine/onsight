@@ -1,6 +1,6 @@
-import { Matrix2 } from '../../math/Matrix2.js';
-import { Pointer } from '../input/Pointer.js';
-import { Vector2 } from '../../math/Vector2.js';
+import { Matrix2 } from '../math/Matrix2.js';
+import { Pointer } from './input/Pointer.js';
+import { Vector2 } from '../math/Vector2.js';
 
 const _cameraPoint = new Vector2();
 const _localPoint = new Vector2();

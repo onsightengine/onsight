@@ -8,8 +8,8 @@ import { AssetManager } from './AssetManager.js';
 import { Clock } from './Clock.js';
 import { Project } from './Project.js';
 import { SceneManager } from './SceneManager.js';
-import { Stage } from './project/Stage.js';
-import { World } from './project/World.js';
+import { Stage } from './components/Stage.js';
+import { World } from './components/World.js';
 
 let _animationID = null;
 

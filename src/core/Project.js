@@ -7,7 +7,7 @@ import { AssetManager } from './AssetManager.js';
 import { MathUtils } from '../utils/MathUtils.js';
 import { SysUtils } from '../utils/SysUtils.js';
 import { Thing } from './Thing.js';
-import { World } from './project/World.js';
+import { World } from './components/World.js';
 
 class Project extends Thing {
 

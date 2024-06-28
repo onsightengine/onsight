@@ -4326,7 +4326,7 @@ class PolyUtils {
 const PATTERN_SPACING = 5;
 const SIMPLIFY_AMOUNT = 0.2;
 let _pattern;
-class Sprite extends Box {
+let Sprite$1 = class Sprite extends Box {
     #box = new Box2();
     constructor(src) {
         super();
@@ -4424,8 +4424,8 @@ class Sprite extends Box {
             context.drawImage(this.image, sx, sy, sw, sh, dx, dy, dw, dh);
         }
     }
-}
-Thing.register('Sprite', Sprite);
+};
+Thing.register('Sprite', Sprite$1);
 function createCrossHatchPattern(color, lineWidth, spacing) {
     const patternCanvas = document.createElement('canvas');
     const patternContext = patternCanvas.getContext('2d');
@@ -4607,9 +4607,53 @@ class RadialGradientStyle extends Style {
     }
 }
 
+class Sprite {
+    #material = undefined;
+    init(data = {}) {
+        let map = null, color = 0xffffff;
+        if (data) {
+            if (color in data) color = data['color'];
+            if (map in data) map = data['map'];
+            if (map && map.isTexture) {
+                AssetManager.addAsset(map);
+            } else {
+                const textureCheck = AssetManager.getAsset(map);
+                map = (textureCheck && textureCheck.isTexture) ? textureCheck : null;
+            }
+        }
+        const sprite = new THREE.Object3D();
+        sprite.lookAtCamera = true;
+        this.#material = new THREE.SpriteMaterial({ map, color });
+        sprite.add(new THREE.Sprite(this.#material));
+        this.backend = sprite;
+        this.data = data;
+    }
+    dispose() {
+        if (this.#material && typeof this.#material.dispose === 'function') this.#material.dispose();
+        this.#material = undefined;
+    }
+    attach() {
+        if (this.entity && this.backend) this.entity.add(this.backend);
+    }
+    detach() {
+        if (this.entity && this.backend) this.entity.remove(this.backend);
+    }
+}
+Sprite.config = {
+    schema: {
+        color: { type: 'color' },
+        map: { type: 'asset', class: 'texture' },
+    },
+    icon: ``,
+    color: '#222222',
+    multiple: true,
+    group: [ 'Entity3D' ],
+};
+ComponentManager$1.register('sprite', Sprite);
+
 if (typeof window !== 'undefined') {
     if (window.__SALINITY__) console.warn(`Salinity v${window.__SALINITY__} already imported, now importing v${VERSION}!`);
     else window.__SALINITY__ = VERSION;
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, Circle, Clock, ColorStyle, ComponentManager$1 as ComponentManager, DomElement, Entity, EventManager, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_DOUBLE_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, OUTLINE_THICKNESS, Object2D, Palette, Pattern, Pointer, PolyUtils, Project, RadialGradientStyle, Renderer, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, Sprite, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, Circle, Clock, ColorStyle, ComponentManager$1 as ComponentManager, DomElement, Entity, EventManager, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_DOUBLE_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, OUTLINE_THICKNESS, Object2D, Palette, Pattern, Pointer, PolyUtils, Project, RadialGradientStyle, Renderer, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, Sprite$1 as Sprite, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, WORLD_TYPES, World };

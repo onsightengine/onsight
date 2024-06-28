@@ -1,3 +1,4 @@
+import { ComponentManager } from '../ComponentManager.js';
 import { Object2D } from '../Object2D.js';
 import { Thing } from '../Thing.js';
 
@@ -191,7 +192,14 @@ class Entity extends Object2D {
     }
 
     getEntities() {
-        return [ ...this.children ];
+        const entities = [];
+        for (const entity of this.children) {
+            if (!entity || !entity.isEntity) continue;
+            // if (entity.userData.flagIgnore) continue;
+            // if (entity.userData.flagHelper) continue;
+            entities.push(entity);
+        }
+        return entities;
     }
 
     getEntityById(id) {
@@ -234,6 +242,14 @@ class Entity extends Object2D {
         if (typeof callback === 'function' && callback(this)) return true;
         for (const child of this.children) {
             if (child.traverse(callback, recursive)) return true;
+        }
+    }
+
+    /** Return 'true' in callback to stop further recursion */
+    traverseEntities(callback, recursive = true) {
+        if (typeof callback === 'function' && callback(this)) return true;
+        for (const child of this.getEntities()) {
+            if (child.traverseEntities(callback, recursive)) return true;
         }
     }
 

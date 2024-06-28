@@ -22,15 +22,15 @@ export { Asset } from './core/assets/Asset.js';
 export { Palette } from './core/assets/Palette.js';
 export { Script } from './core/assets/Script.js';
 
+// Components
+export { Entity } from './core/components/Entity.js';
+export { Stage } from './core/components/Stage.js';
+export { World } from './core/components/World.js';
+
 // Input
 export { Key } from './core/input/Key.js';
 export { Keyboard } from './core/input/Keyboard.js';
 export { Pointer } from './core/input/Pointer.js';
-
-// Project
-export { Entity } from './core/project/Entity.js';
-export { Stage } from './core/project/Stage.js';
-export { World } from './core/project/World.js';
 
 // Objects
 export { Box } from './core/objects/Box.js';
@@ -72,6 +72,13 @@ export { ArrayUtils } from './utils/ArrayUtils.js';
 export { MathUtils } from './utils/MathUtils.js';
 export { PolyUtils } from './utils/PolyUtils.js';
 export { SysUtils } from './utils/SysUtils.js';
+
+
+/******************** REGISTER COMPONENTS ********************/
+
+// Entity
+import './core/components/entity/Box.js';
+import './core/components/entity/Sprite.js';
 
 /******************** SINGLE IMPORT ********************/
 

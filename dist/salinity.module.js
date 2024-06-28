@@ -5437,9 +5437,9 @@ class GridHelper extends Object2D {
         const startX = Math.ceil((_start.x + (visibleWidth / 2)) / this.gridX) * this.gridX * -1;
         const startY = Math.ceil((_start.y + (visibleHeight / 2)) / this.gridY) * this.gridY * -1;
         if (this.gridScale !== camera.scale || !this.cache) {
-            this.drawPattern(camera.scale);
             this.gridColor.color = '--button-dark';
             this.gridColor.needsUpdate = true;
+            this.drawPattern(camera.scale);
         }
         if (camera.scale <= 1.5) {
             if (!this.cache) this.cache = context.createPattern(this.patternCanvas, 'repeat');

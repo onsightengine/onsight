@@ -191,9 +191,9 @@ class GridHelper extends Object2D {
 
         // Update Pattern / Color
         if (this.gridScale !== camera.scale || !this.cache) {
-            this.drawPattern(camera.scale);
             this.gridColor.color = '--button-dark';
             this.gridColor.needsUpdate = true;
+            this.drawPattern(camera.scale);
         }
 
         // Draw Pattern

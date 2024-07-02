@@ -23,6 +23,9 @@ class SelectControls {
         this.rubberBandBox = null;
         this.downTimer = 0;
 
+        // FLAG
+        this.transformed = false;
+
         // INTERNAL
         this._renderer = null;
         this._existingSelection = [];
@@ -40,13 +43,19 @@ class SelectControls {
         if (renderer) this._renderer = renderer;
         let newSelection = [ ...this.selection ];
 
+        // Transformed Flag
+        if (this.transformed) {
+            this.dom.dispatchEvent(new Event('selection-transformed'));
+            this.transformed = false;
+        }
+
         // Pointer in World (camera) Coordinates
         _cameraPoint.copy(renderer.screenToWorld(pointer.position));
 
         // Button Press
         if (pointer.buttonJustPressed(Pointer.LEFT)) {
             this._mouseStart.copy(_cameraPoint);
-            const underMouse = renderer.getWorldPointIntersections(_cameraPoint);
+            const underMouse = ArrayUtils.filterThings(renderer.getWorldPointIntersections(_cameraPoint), { pointerEvents: true });
             // Holding Ctrl/Meta/Shift (Toggle Selection)
             if (keyboard.ctrlPressed() || keyboard.metaPressed() || keyboard.shiftPressed()) {
                 let resizerClicked = false;
@@ -203,7 +212,7 @@ class SelectControls {
         }
         // Create New Tool?
         if (things.length > 0) {
-            const resizeHelper = new ResizeHelper(things);
+            const resizeHelper = new ResizeHelper(things, this);
             renderer.addHelper(resizeHelper);
             resizeHelper.onUpdate(renderer);
             this.resizeHelper = resizeHelper;

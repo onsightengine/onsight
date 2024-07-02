@@ -31,7 +31,7 @@ class ResizeHelper extends Box {
     static RESIZE = 1;
     static ROTATE = 2;
 
-    constructor(objects, radius = 5, tools = ResizeHelper.ALL) {
+    constructor(objects, selectControls = null, radius = 5, tools = ResizeHelper.ALL) {
         if (!objects) return console.error(`ResizeHelper(): Missing 'objects' argument`);
         objects = Array.isArray(objects) ? objects : [ objects ];
         if (objects.length === 0) return console.error(`ResizeHelper(): Objects array is empty`);
@@ -39,6 +39,8 @@ class ResizeHelper extends Box {
         super();
         this.isHelper = true;
         this.type = 'ResizeHelper';
+
+        this.selectControls = selectControls;
 
         this.pointerEvents = true;
         this.draggable = true;
@@ -532,6 +534,8 @@ class ResizeHelper extends Box {
                 object.traverse((child) => { child.updateMatrix(true); });
             }
             self.onUpdate(renderer);
+            // Emit Event
+            if (self.selectControls) self.selectControls.transformed = true;
         }
 
         // Update

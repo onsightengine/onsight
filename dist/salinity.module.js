@@ -4867,13 +4867,14 @@ class ResizeHelper extends Box {
     static ALL = 0;
     static RESIZE = 1;
     static ROTATE = 2;
-    constructor(objects, radius = 5, tools = ResizeHelper.ALL) {
+    constructor(objects, selectControls = null, radius = 5, tools = ResizeHelper.ALL) {
         if (!objects) return console.error(`ResizeHelper(): Missing 'objects' argument`);
         objects = Array.isArray(objects) ? objects : [ objects ];
         if (objects.length === 0) return console.error(`ResizeHelper(): Objects array is empty`);
         super();
         this.isHelper = true;
         this.type = 'ResizeHelper';
+        this.selectControls = selectControls;
         this.pointerEvents = true;
         this.draggable = true;
         this.focusable = true;
@@ -5287,6 +5288,7 @@ class ResizeHelper extends Box {
                 object.traverse((child) => { child.updateMatrix(true); });
             }
             self.onUpdate(renderer);
+            if (self.selectControls) self.selectControls.transformed = true;
         }
         this.onUpdate = function(renderer) {
             if (!renderer) return;
@@ -5481,6 +5483,7 @@ class SelectControls {
         this.resizeHelper = null;
         this.rubberBandBox = null;
         this.downTimer = 0;
+        this.transformed = false;
         this._renderer = null;
         this._existingSelection = [];
         this._mouseStart = new Vector2();
@@ -5495,10 +5498,14 @@ class SelectControls {
         if (!camera || !scene || !pointer || !keyboard) return;
         if (renderer) this._renderer = renderer;
         let newSelection = [ ...this.selection ];
+        if (this.transformed) {
+            this.dom.dispatchEvent(new Event('selection-transformed'));
+            this.transformed = false;
+        }
         _cameraPoint.copy(renderer.screenToWorld(pointer.position));
         if (pointer.buttonJustPressed(Pointer.LEFT)) {
             this._mouseStart.copy(_cameraPoint);
-            const underMouse = renderer.getWorldPointIntersections(_cameraPoint);
+            const underMouse = ArrayUtils.filterThings(renderer.getWorldPointIntersections(_cameraPoint), { pointerEvents: true });
             if (keyboard.ctrlPressed() || keyboard.metaPressed() || keyboard.shiftPressed()) {
                 let resizerClicked = false;
                 if (underMouse.length > 0) {
@@ -5626,7 +5633,7 @@ class SelectControls {
             this.resizeHelper = null;
         }
         if (things.length > 0) {
-            const resizeHelper = new ResizeHelper(things);
+            const resizeHelper = new ResizeHelper(things, this);
             renderer.addHelper(resizeHelper);
             resizeHelper.onUpdate(renderer);
             this.resizeHelper = resizeHelper;

@@ -1556,8 +1556,8 @@ class Matrix2 {
         this.identity();
         this.multiply(_translate$3.set(1, 0, 0, 1, px, py));
         if (rot !== 0) {
-            const c = Math.cos(-rot);
-            const s = Math.sin(-rot);
+            const c = Math.cos(rot);
+            const s = Math.sin(rot);
             this.multiply(_rotate$1.set(c, s, -s, c, 0, 0));
         }
         if (sx !== 1 || sy !== 1) this.scale(sx, sy);

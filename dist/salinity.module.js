@@ -1556,8 +1556,8 @@ class Matrix2 {
         this.identity();
         this.multiply(_translate$4.set(1, 0, 0, 1, px, py));
         if (rot !== 0) {
-            const c = Math.cos(-rot);
-            const s = Math.sin(-rot);
+            const c = Math.cos(rot);
+            const s = Math.sin(rot);
             this.multiply(_rotate$3.set(c, s, -s, c, 0, 0));
         }
         if (sx !== 1 || sy !== 1) this.scale(sx, sy);
@@ -5200,7 +5200,7 @@ class ResizeHelper extends Box {
                     const angle = localPositionEnd.angleBetween(localPositionStart);
                     const cross = localPositionEnd.cross(localPositionStart);
                     const sign = Math.sign(cross);
-                    rotaterAngle -= (angle * sign);
+                    rotaterAngle += (angle * sign);
                     while (rotaterAngle < Math.PI * -2) { rotaterAngle += Math.PI * 2; }
                     while (rotaterAngle > Math.PI * +2) { rotaterAngle -= Math.PI * 2; }
                     rotater.setRotation(rotaterAngle);

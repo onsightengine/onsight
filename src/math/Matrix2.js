@@ -80,8 +80,8 @@ class Matrix2 {
 
         // Rotation (Clockwise)
         if (rot !== 0) {
-            const c = Math.cos(-rot);
-            const s = Math.sin(-rot);
+            const c = Math.cos(rot);
+            const s = Math.sin(rot);
             this.multiply(_rotate.set(c, s, -s, c, 0, 0));
         }
 

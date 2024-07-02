@@ -184,6 +184,7 @@ class ResizeHelper extends Box {
                 }
                 resizer.name = name;
                 resizer.type = 'Resizer';
+                resizer.isHelper = true;
                 resizer.draggable = true;
                 resizer.focusable = false;
                 resizer.selectable = false;
@@ -384,6 +385,7 @@ class ResizeHelper extends Box {
             // Circle
             rotater = Object.assign(new Circle(), { draggable: true, focusable: false, selectable: false });
             rotater.type = 'Rotater';
+            rotater.isHelper = true;
             rotater.resizeHelper = self;
             rotater.radius = radius + 1;
             rotater.mouseBuffer = 5;

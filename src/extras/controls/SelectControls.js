@@ -78,7 +78,7 @@ class SelectControls {
                     this._existingSelection = [];
                     this._wantsRubberBand = true;
                 // New Selected Object
-                } else if (underMouse.length > 0) {
+                } else if (underMouse.length > 0 && underMouse[0].isHelper !== true) {
                     const selectableOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
                     const object = selectableOnly[0];
                     if (object && object.selectable && ArrayUtils.compareThingArrays(object, this.selection) === false) {

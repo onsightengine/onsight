@@ -3507,6 +3507,10 @@ class Renderer {
         const objects = [];
         if (this.helpers) objects.push(...this.helpers.getWorldPointIntersections(worldPoint));
         if (this.scene) objects.push(...this.scene.getWorldPointIntersections(worldPoint));
+        objects.sort((a, b) => {
+            if (b.layer === a.layer) return b.level - a.level;
+            return b.layer - a.layer;
+        });
         return objects;
     }
     setDragObject(object) {

@@ -12,7 +12,7 @@ class OriginHelper extends Circle {
         this.focusable = false;
         this.selectable = false;
 
-        this.fillStyle.color = '--icon';
+        this.fillStyle.color = '--complement';
         this.strokeStyle.color = '#000000';
 
         this.lineWidth = 1;

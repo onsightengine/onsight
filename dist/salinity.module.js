@@ -3507,6 +3507,10 @@ class Renderer {
         const objects = [];
         if (this.helpers) objects.push(...this.helpers.getWorldPointIntersections(worldPoint));
         if (this.scene) objects.push(...this.scene.getWorldPointIntersections(worldPoint));
+        objects.sort((a, b) => {
+            if (b.layer === a.layer) return b.level - a.level;
+            return b.layer - a.layer;
+        });
         return objects;
     }
     setDragObject(object) {
@@ -4984,6 +4988,7 @@ class ResizeHelper extends Box {
                 }
                 resizer.name = name;
                 resizer.type = 'Resizer';
+                resizer.isHelper = true;
                 resizer.draggable = true;
                 resizer.focusable = false;
                 resizer.selectable = false;
@@ -5159,6 +5164,7 @@ class ResizeHelper extends Box {
         if (tools === ResizeHelper.ALL || tools === ResizeHelper.ROTATE) {
             rotater = Object.assign(new Circle(), { draggable: true, focusable: false, selectable: false });
             rotater.type = 'Rotater';
+            rotater.isHelper = true;
             rotater.resizeHelper = self;
             rotater.radius = radius + 1;
             rotater.mouseBuffer = 5;
@@ -5475,7 +5481,7 @@ class SelectControls {
         this.resizeHelper = null;
         this.rubberBandBox = null;
         this.downTimer = 0;
-        this.renderer = null;
+        this._renderer = null;
         this._existingSelection = [];
         this._mouseStart = new Vector2();
         this._mouseNow = new Vector2();
@@ -5487,7 +5493,7 @@ class SelectControls {
         const pointer = renderer.pointer;
         const keyboard = renderer.keyboard;
         if (!camera || !scene || !pointer || !keyboard) return;
-        if (renderer) this.renderer = renderer;
+        if (renderer) this._renderer = renderer;
         let newSelection = [ ...this.selection ];
         _cameraPoint.copy(renderer.screenToWorld(pointer.position));
         if (pointer.buttonJustPressed(Pointer.LEFT)) {
@@ -5520,7 +5526,7 @@ class SelectControls {
                     newSelection = [];
                     this._existingSelection = [];
                     this._wantsRubberBand = true;
-                } else if (underMouse.length > 0) {
+                } else if (underMouse.length > 0 && underMouse[0].isHelper !== true) {
                     const selectableOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
                     const object = selectableOnly[0];
                     if (object && object.selectable && ArrayUtils.compareThingArrays(object, this.selection) === false) {
@@ -5599,16 +5605,18 @@ class SelectControls {
         }
         if (ArrayUtils.compareThingArrays(this.selection, newSelection) === false) {
             this.setSelection(newSelection);
-            this.dom.dispatchEvent(new Event('selection-changed'));
-            if (newSelection.length > 0 && this.rubberBandBox == null && this.resizeHelper) {
-                renderer.setDragObject(this.resizeHelper);
+            if (newSelection.length > 0) {
+                if (this.rubberBandBox == null && this.resizeHelper) {
+                    renderer.setDragObject(this.resizeHelper);
+                }
             }
+            this.dom.dispatchEvent(new Event('selection-changed'));
         }
     }
     setSelection(...things) {
-        if (!this.renderer || !this.renderer.scene) return;
+        if (!this._renderer || !this._renderer.scene) return;
         if (things.length > 0 && Array.isArray(things[0])) things = things[0];
-        const renderer = this.renderer;
+        const renderer = this._renderer;
         const scene = renderer.scene;
         scene.traverse((child) => { child.isSelected = false; });
         things.forEach((object) => { object.isSelected = true; });
@@ -5867,7 +5875,7 @@ class OriginHelper extends Circle {
         this.draggable = false;
         this.focusable = false;
         this.selectable = false;
-        this.fillStyle.color = '--icon';
+        this.fillStyle.color = '--complement';
         this.strokeStyle.color = '#000000';
         this.lineWidth = 1;
         this.constantWidth = true;

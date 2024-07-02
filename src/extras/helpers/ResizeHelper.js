@@ -124,9 +124,6 @@ class ResizeHelper extends Box {
                     }
                 });
             }
-
-            console.log(worldBox);
-
             // True Center
             const rotatedCenter = worldBox.getCenter();
             center = rotationMatrix.transformPoint(rotatedCenter);
@@ -430,7 +427,7 @@ class ResizeHelper extends Box {
                     const angle = localPositionEnd.angleBetween(localPositionStart);
                     const cross = localPositionEnd.cross(localPositionStart);
                     const sign = Math.sign(cross);
-                    rotaterAngle += (angle * sign);
+                    rotaterAngle -= (angle * sign);
                     while (rotaterAngle < Math.PI * -2) { rotaterAngle += Math.PI * 2; }
                     while (rotaterAngle > Math.PI * +2) { rotaterAngle -= Math.PI * 2; }
                     rotater.setRotation(rotaterAngle);

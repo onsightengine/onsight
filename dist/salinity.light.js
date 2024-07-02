@@ -565,7 +565,9 @@ class Vector3 {
         this.z = this.x * mat3[2] + this.y * mat3[5] + this.z * mat3[8];
         return this;
     }
-    applyMatrix4(mat4) {
+    applyMatrix4(mat3) {
+        const m = mat3.m;
+        if (!m) return this;
         let x = this.x;
         let y = this.y;
         let z = this.z;
@@ -576,6 +578,8 @@ class Vector3 {
         return this;
     }
     scaleRotateMatrix4(mat4) {
+        const m = mat4.m;
+        if (!m) return this;
         let x = this.x;
         let y = this.y;
         let z = this.z;
@@ -1323,14 +1327,6 @@ class Vector2 {
         const clampedDot = Math.min(Math.max(theta, -1), 1);
         return Math.acos(clampedDot);
     }
-    rotateAround(center, angle) {
-        const c = Math.cos(angle);
-        const s = Math.sin(angle);
-        const x = this.x - center.x;
-        const y = this.y - center.y;
-        this.x = x * c - y * s + center.x;
-        this.y = x * s + y * c + center.y;
-    }
     distanceTo(vec) {
         return Math.sqrt(this.distanceToSquared(vec));
     }
@@ -1560,8 +1556,8 @@ class Matrix2 {
         this.identity();
         this.multiply(_translate$3.set(1, 0, 0, 1, px, py));
         if (rot !== 0) {
-            const c = Math.cos(rot);
-            const s = Math.sin(rot);
+            const c = Math.cos(-rot);
+            const s = Math.sin(-rot);
             this.multiply(_rotate$1.set(c, s, -s, c, 0, 0));
         }
         if (sx !== 1 || sy !== 1) this.scale(sx, sy);

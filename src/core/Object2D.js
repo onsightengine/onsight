@@ -372,6 +372,8 @@ class Object2D extends Thing {
             this.pointerStartPosition = pointer.position.clone();
             this.dragStartPosition = this.position.clone();
         }
+        if (!this.pointerStartPosition) return;
+        if (!this.dragStartPosition) return;
 
         // Pointer Start / End
         const pointerStart = this.pointerStartPosition.clone();

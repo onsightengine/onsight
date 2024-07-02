@@ -2122,6 +2122,8 @@ class Object2D extends Thing {
             this.pointerStartPosition = pointer.position.clone();
             this.dragStartPosition = this.position.clone();
         }
+        if (!this.pointerStartPosition) return;
+        if (!this.dragStartPosition) return;
         const pointerStart = this.pointerStartPosition.clone();
         const pointerEnd = pointer.position.clone();
         if (pointer.buttonPressed(Pointer.LEFT)) {
@@ -4748,7 +4750,7 @@ class CameraControls {
         if (pointer.buttonDoubleClicked(Pointer.LEFT) && camera && renderer.scene) {
             if (!keyboard.modifierPressed()) {
                 const worldPoint = renderer.screenToWorld(pointer.position);
-                const objects = renderer.scene.getWorldPointIntersections(worldPoint);
+                const objects = renderer.getWorldPointIntersections(worldPoint);
                 if (objects.length === 0) {
                     this.focusCamera(renderer, renderer.scene);
                 } else {
@@ -5473,6 +5475,7 @@ class SelectControls {
         this.resizeHelper = null;
         this.rubberBandBox = null;
         this.downTimer = 0;
+        this.renderer = null;
         this._existingSelection = [];
         this._mouseStart = new Vector2();
         this._mouseNow = new Vector2();
@@ -5484,6 +5487,7 @@ class SelectControls {
         const pointer = renderer.pointer;
         const keyboard = renderer.keyboard;
         if (!camera || !scene || !pointer || !keyboard) return;
+        if (renderer) this.renderer = renderer;
         let newSelection = [ ...this.selection ];
         _cameraPoint.copy(renderer.screenToWorld(pointer.position));
         if (pointer.buttonJustPressed(Pointer.LEFT)) {
@@ -5594,22 +5598,32 @@ class SelectControls {
             newSelection = [ ...siblings ];
         }
         if (ArrayUtils.compareThingArrays(this.selection, newSelection) === false) {
-            scene.traverse((child) => { child.isSelected = false; });
-            newSelection.forEach((object) => { object.isSelected = true; });
-            if (this.resizeHelper) {
-                this.resizeHelper.objects = [];
-                this.resizeHelper.destroy();
-                this.resizeHelper = null;
-            }
-            if (newSelection.length > 0) {
-                this.resizeHelper = new ResizeHelper(newSelection);
-                renderer.addHelper(this.resizeHelper);
-                if (typeof this.resizeHelper.onUpdate === 'function') this.resizeHelper.onUpdate(renderer);
-                if (this.rubberBandBox == null) renderer.setDragObject(this.resizeHelper);
-            }
-            this.selection = [ ...newSelection ];
+            this.setSelection(newSelection);
             this.dom.dispatchEvent(new Event('selection-changed'));
+            if (newSelection.length > 0 && this.rubberBandBox == null && this.resizeHelper) {
+                renderer.setDragObject(this.resizeHelper);
+            }
         }
+    }
+    setSelection(...things) {
+        if (!this.renderer || !this.renderer.scene) return;
+        if (things.length > 0 && Array.isArray(things[0])) things = things[0];
+        const renderer = this.renderer;
+        const scene = renderer.scene;
+        scene.traverse((child) => { child.isSelected = false; });
+        things.forEach((object) => { object.isSelected = true; });
+        if (this.resizeHelper) {
+            this.resizeHelper.objects = [];
+            this.resizeHelper.destroy();
+            this.resizeHelper = null;
+        }
+        if (things.length > 0) {
+            const resizeHelper = new ResizeHelper(things);
+            renderer.addHelper(resizeHelper);
+            resizeHelper.onUpdate(renderer);
+            this.resizeHelper = resizeHelper;
+        }
+        this.selection = [ ...things ];
     }
 }
 

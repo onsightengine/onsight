@@ -43,7 +43,7 @@ class CameraControls {
         if (pointer.buttonDoubleClicked(Pointer.LEFT) && camera && renderer.scene) {
             if (!keyboard.modifierPressed()) {
                 const worldPoint = renderer.screenToWorld(pointer.position);
-                const objects = renderer.scene.getWorldPointIntersections(worldPoint);
+                const objects = renderer.getWorldPointIntersections(worldPoint);
                 if (objects.length === 0) {
                     this.focusCamera(renderer, renderer.scene);
                 } else {

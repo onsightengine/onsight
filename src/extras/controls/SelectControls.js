@@ -17,14 +17,14 @@ const _size = new Vector2();
 class SelectControls {
 
     constructor() {
-        this.dom = document.createElement('div');
-
+        this.dom = document.createElement('div'); // event dispatcher element
         this.selection = [];
         this.resizeHelper = null;
         this.rubberBandBox = null;
         this.downTimer = 0;
 
         // INTERNAL
+        this._renderer = null;
         this._existingSelection = [];
         this._mouseStart = new Vector2();
         this._mouseNow = new Vector2();
@@ -37,6 +37,7 @@ class SelectControls {
         const pointer = renderer.pointer;
         const keyboard = renderer.keyboard;
         if (!camera || !scene || !pointer || !keyboard) return;
+        if (renderer) this._renderer = renderer;
         let newSelection = [ ...this.selection ];
 
         // Pointer in World (camera) Coordinates
@@ -175,28 +176,40 @@ class SelectControls {
 
         // Selection Still Changed? Update Resize Tool
         if (ArrayUtils.compareThingArrays(this.selection, newSelection) === false) {
-            // Mark New Selection
-            scene.traverse((child) => { child.isSelected = false; });
-            newSelection.forEach((object) => { object.isSelected = true; });
-            // Clear Old Tool
-            if (this.resizeHelper) {
-                this.resizeHelper.objects = [];
-                this.resizeHelper.destroy();
-                this.resizeHelper = null;
-            }
-            // Create New Tool?
+            this.setSelection(newSelection);
             if (newSelection.length > 0) {
-                this.resizeHelper = new ResizeHelper(newSelection);
-                renderer.addHelper(this.resizeHelper);
-                // Update, Start Drag
-                if (typeof this.resizeHelper.onUpdate === 'function') this.resizeHelper.onUpdate(renderer);
-                if (this.rubberBandBox == null) renderer.setDragObject(this.resizeHelper);
+                if (this.rubberBandBox == null && this.resizeHelper) {
+                    renderer.setDragObject(this.resizeHelper);
+                }
             }
-            // Save Selection
-            this.selection = [ ...newSelection ];
-            // Event
             this.dom.dispatchEvent(new Event('selection-changed'));
         }
+    }
+
+    setSelection(...things) {
+        if (!this._renderer || !this._renderer.scene) return;
+        if (things.length > 0 && Array.isArray(things[0])) things = things[0];
+        // Locals
+        const renderer = this._renderer;
+        const scene = renderer.scene;
+        // Mark New Selection
+        scene.traverse((child) => { child.isSelected = false; });
+        things.forEach((object) => { object.isSelected = true; });
+        // Clear Old Tool
+        if (this.resizeHelper) {
+            this.resizeHelper.objects = [];
+            this.resizeHelper.destroy();
+            this.resizeHelper = null;
+        }
+        // Create New Tool?
+        if (things.length > 0) {
+            const resizeHelper = new ResizeHelper(things);
+            renderer.addHelper(resizeHelper);
+            resizeHelper.onUpdate(renderer);
+            this.resizeHelper = resizeHelper;
+        }
+        // Save Selection
+        this.selection = [ ...things ];
     }
 
 }

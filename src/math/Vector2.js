@@ -232,16 +232,6 @@ class Vector2 {
         return Math.acos(clampedDot);
     }
 
-    /** Rotate the vector around a central point, in radians */
-    rotateAround(center, angle) {
-        const c = Math.cos(angle);
-        const s = Math.sin(angle);
-        const x = this.x - center.x;
-        const y = this.y - center.y;
-        this.x = x * c - y * s + center.x;
-        this.y = x * s + y * c + center.y;
-    }
-
     /** Distance between two vector positions */
     distanceTo(vec) {
         return Math.sqrt(this.distanceToSquared(vec));

@@ -304,7 +304,9 @@ class Vector3 {
     }
 
     /** Transforms with a 3x3 matrix, 4th vector component is implicitly '1' */
-    applyMatrix4(mat4) {
+    applyMatrix4(mat3) {
+        const m = mat3.m;
+        if (!m) return this;
         let x = this.x;
         let y = this.y;
         let z = this.z;
@@ -317,6 +319,8 @@ class Vector3 {
 
     /** Same as above but doesn't apply translation (useful for rays) */
     scaleRotateMatrix4(mat4) {
+        const m = mat4.m;
+        if (!m) return this;
         let x = this.x;
         let y = this.y;
         let z = this.z;

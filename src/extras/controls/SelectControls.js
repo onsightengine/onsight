@@ -17,6 +17,8 @@ const _size = new Vector2();
 class SelectControls {
 
     constructor() {
+        this.dom = document.createElement('div');
+
         this.selection = [];
         this.resizeHelper = null;
         this.rubberBandBox = null;
@@ -192,6 +194,8 @@ class SelectControls {
             }
             // Save Selection
             this.selection = [ ...newSelection ];
+            // Event
+            this.dom.dispatchEvent(new Event('selection-changed'));
         }
     }
 

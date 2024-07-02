@@ -5468,6 +5468,7 @@ const _center = new Vector2();
 const _size = new Vector2();
 class SelectControls {
     constructor() {
+        this.dom = document.createElement('div');
         this.selection = [];
         this.resizeHelper = null;
         this.rubberBandBox = null;
@@ -5607,6 +5608,7 @@ class SelectControls {
                 if (this.rubberBandBox == null) renderer.setDragObject(this.resizeHelper);
             }
             this.selection = [ ...newSelection ];
+            this.dom.dispatchEvent(new Event('selection-changed'));
         }
     }
 }

@@ -26,6 +26,12 @@ class World extends Entity {
         // Properties, Gameplay
         this.loadPosition = new Vector2();
         this.loadDistance = 0;
+
+        // Properties, Object2D
+        this.pointerEvents = false;
+        this.draggable = false;
+        this.focusable = false;
+        this.selectable = false;
     }
 
     componentFamily() {

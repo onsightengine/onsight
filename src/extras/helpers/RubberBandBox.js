@@ -54,18 +54,20 @@ class RubberBandBox extends Box {
 
     getLines(object) {
         const lines = [];
-        const box = object.boundingBox;
-        if (Number.isFinite(box.min.x) === false || Number.isFinite(box.min.y) === false) return [];
-        if (Number.isFinite(box.max.x) === false || Number.isFinite(box.max.y) === false) return [];
-        object.globalMatrix.applyToVector(_topLeft.copy(box.min));
-        object.globalMatrix.applyToVector(_topRight.copy(box.max.x, box.min.y));
-        object.globalMatrix.applyToVector(_botLeft.copy(box.min.x, box.max.y));
-        object.globalMatrix.applyToVector(_botRight.copy(box.max));
-        lines.push({ from: new Vector2(_topLeft.x, _topLeft.y), to: new Vector2(_topRight.x, _topRight.y) });
-        lines.push({ from: new Vector2(_topRight.x, _topRight.y), to: new Vector2(_botRight.x, _botRight.y) });
-        lines.push({ from: new Vector2(_botRight.x, _botRight.y), to: new Vector2(_botLeft.x, _botLeft.y) });
-        lines.push({ from: new Vector2(_botLeft.x, _botLeft.y), to: new Vector2(_topLeft.x, _topLeft.y) });
-        return lines;
+        const box = object.getWorldBoundingBox();
+        if (isFinite(box.min.x) && isFinite(box.min.y) && isFinite(box.max.x) && isFinite(box.max.y)) {
+            _topLeft.copy(box.min);
+            _topRight.copy(box.max.x, box.min.y);
+            _botLeft.copy(box.min.x, box.max.y);
+            _botRight.copy(box.max);
+            lines.push({ from: new Vector2(_topLeft.x, _topLeft.y), to: new Vector2(_topRight.x, _topRight.y) });
+            lines.push({ from: new Vector2(_topRight.x, _topRight.y), to: new Vector2(_botRight.x, _botRight.y) });
+            lines.push({ from: new Vector2(_botRight.x, _botRight.y), to: new Vector2(_botLeft.x, _botLeft.y) });
+            lines.push({ from: new Vector2(_botLeft.x, _botLeft.y), to: new Vector2(_topLeft.x, _topLeft.y) });
+            return lines;
+        } else {
+            return [];
+        }
     }
 
     intersectsPolygon(rubberBandLines, objectLines) {
@@ -92,6 +94,7 @@ class RubberBandBox extends Box {
     containsPolygon(rubberBandLines, objectLines) {
         const rubberBandPolygon = this.linesToPolygon(rubberBandLines);
         const objectPolygon = this.linesToPolygon(objectLines);
+        if (objectPolygon.length === 0) return false;
         for (const point of objectPolygon) {
             if (!PolyUtils.isPointInPolygon(point, rubberBandPolygon)) return false;
         }

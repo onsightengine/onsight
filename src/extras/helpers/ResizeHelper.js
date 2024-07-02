@@ -112,14 +112,21 @@ class ResizeHelper extends Box {
             for (const object of objects) {
                 const unRotatedPosition = unRotateMatrix.transformPoint(object.position);
                 _objectMatrix.compose(unRotatedPosition.x, unRotatedPosition.y, object.scale.x, object.scale.y, 0, 0, 0);
-                const box = object.boundingBox;
-                _objectMatrix.applyToVector(_topLeft.copy(box.min));
-                _objectMatrix.applyToVector(_topRight.copy(box.max.x, box.min.y));
-                _objectMatrix.applyToVector(_botLeft.copy(box.min.x, box.max.y));
-                _objectMatrix.applyToVector(_botRight.copy(box.max));
-                const unrotatedBox = new Box2().setFromPoints(_topLeft, _topRight, _botLeft, _botRight);
-                worldBox.union(unrotatedBox);
+                object.traverseVisible((child) => {
+                    const box = child.boundingBox;
+                    if (isFinite(box.min.x) && isFinite(box.min.y) && isFinite(box.max.x) && isFinite(box.max.y)) {
+                        _objectMatrix.applyToVector(_topLeft.copy(box.min));
+                        _objectMatrix.applyToVector(_topRight.copy(box.max.x, box.min.y));
+                        _objectMatrix.applyToVector(_botLeft.copy(box.min.x, box.max.y));
+                        _objectMatrix.applyToVector(_botRight.copy(box.max));
+                        const unrotatedBox = new Box2().setFromPoints(_topLeft, _topRight, _botLeft, _botRight);
+                        worldBox.union(unrotatedBox);
+                    }
+                });
             }
+
+            console.log(worldBox);
+
             // True Center
             const rotatedCenter = worldBox.getCenter();
             center = rotationMatrix.transformPoint(rotatedCenter);

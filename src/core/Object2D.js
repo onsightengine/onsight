@@ -181,22 +181,10 @@ class Object2D extends Thing {
     }
 
     /** Check if a point (in local object coordinates) is inside of the object */
-    isInside(point) {
-        //
-        // OVERLOAD
-        //
-        return false;
-    }
-
-    /** Check if a point (in world coordinates) intersects this object or some of its children */
-    isWorldPointInside(worldPoint, recursive = false) {
-        // Pointer Position in local object coordinates
-        const localPoint = this.worldToLocal(worldPoint);
-        if (this.isInside(localPoint)) return true;
-        // Recurse
+    isInside(point, recursive = true) {
         if (recursive) {
             for (const child of this.children) {
-                if (child.isWorldPointInside(worldPoint, true)) return true;
+                if (child.isInside(point, true)) return true;
             }
         }
         return false;
@@ -216,15 +204,25 @@ class Object2D extends Thing {
         return objects;
     }
 
-    getWorldBoundingBox() {
-        const box = this.boundingBox;
-        if (Number.isFinite(box.min.x) === false || Number.isFinite(box.min.y) === false) return box;
-        if (Number.isFinite(box.max.x) === false || Number.isFinite(box.max.y) === false) return box;
-        this.globalMatrix.applyToVector(_corner1.copy(box.min.x, box.min.y));
-        this.globalMatrix.applyToVector(_corner2.copy(box.min.x, box.max.y));
-        this.globalMatrix.applyToVector(_corner3.copy(box.max.x, box.min.y));
-        this.globalMatrix.applyToVector(_corner4.copy(box.max.x, box.max.y));
-        return new Box2().setFromPoints(_corner1, _corner2, _corner3, _corner4);
+    getWorldBoundingBox(recursive = true) {
+        const worldBox = new Box2();
+        function objectWorldBox(object) {
+            const box = object.boundingBox;
+            if (Number.isFinite(box.min.x) === false || Number.isFinite(box.min.y) === false) return box;
+            if (Number.isFinite(box.max.x) === false || Number.isFinite(box.max.y) === false) return box;
+            object.globalMatrix.applyToVector(_corner1.copy(box.min.x, box.min.y));
+            object.globalMatrix.applyToVector(_corner2.copy(box.min.x, box.max.y));
+            object.globalMatrix.applyToVector(_corner3.copy(box.max.x, box.min.y));
+            object.globalMatrix.applyToVector(_corner4.copy(box.max.x, box.max.y));
+            return new Box2().setFromPoints(_corner1, _corner2, _corner3, _corner4);
+        }
+        worldBox.union(objectWorldBox(this));
+        if (recursive) {
+            for (const child of this.children) {
+                worldBox.union(child.getWorldBoundingBox(true));
+            }
+        }
+        return worldBox;
     }
 
     localToWorld(vector) {

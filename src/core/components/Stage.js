@@ -26,6 +26,12 @@ class Stage extends Entity {
         this.finish = -1;
         this.beginPosition = new Vector3();
         this.endPosition = new Vector3();
+
+        // Properties, Object2D
+        this.pointerEvents = false;
+        this.draggable = false;
+        this.focusable = false;
+        this.selectable = false;
     }
 
     componentFamily() {

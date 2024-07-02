@@ -44,7 +44,6 @@ class SelectControls {
         if (pointer.buttonJustPressed(Pointer.LEFT)) {
             this._mouseStart.copy(_cameraPoint);
             const underMouse = renderer.getWorldPointIntersections(_cameraPoint);
-
             // Holding Ctrl/Meta/Shift (Toggle Selection)
             if (keyboard.ctrlPressed() || keyboard.metaPressed() || keyboard.shiftPressed()) {
                 let resizerClicked = false;
@@ -67,7 +66,6 @@ class SelectControls {
                         this._wantsRubberBand = true;
                     }
                 }
-
             // Single Click / Click Timer
             } else {
                 this.downTimer = performance.now();
@@ -78,8 +76,9 @@ class SelectControls {
                     this._wantsRubberBand = true;
                 // New Selected Object
                 } else if (underMouse.length > 0) {
-                    const object = underMouse[0];
-                    if (object.selectable && ArrayUtils.compareThingArrays(object, this.selection) === false) {
+                    const selectableOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
+                    const object = selectableOnly[0];
+                    if (object && object.selectable && ArrayUtils.compareThingArrays(object, this.selection) === false) {
                         newSelection = [ object ];
                         this.downTimer = 0;
                     }

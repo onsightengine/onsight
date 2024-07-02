@@ -92,13 +92,15 @@ class Renderer {
         // Style
         this.selectColor = new ColorStyle('--icon-light');
 
+        // Helper Scene
+        this.helpers = Object.assign(new Object2D(), { pointerEvents: false, draggable: false, focusable: false, selectable: false });
+
         // INTERNAL
         this.running = false;               // is animating?
         this.frame = -1;                    // frame count
         this.scene = null;                  // last rendered scene
         this.camera = null;                 // last rendered camera
         this.dragObject = null;             // object being dragged
-        this.helpers = new Object2D();      // helper scene
     }
 
     /******************** ELEMENT */

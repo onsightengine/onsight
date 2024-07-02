@@ -20,16 +20,15 @@ class BoxComponent {
             }
         }
 
-        // // Generate Backend
-        // const sprite = new THREE.Object3D();
-        // sprite.lookAtCamera = true;
-        // this.#material = new THREE.SpriteMaterial({ map, color });
-        // sprite.add(new THREE.Sprite(this.#material));
-
-        const sprite = new Box();
+        // Generate Backend
+        const box = new Box();
+        box.pointerEvents = false;
+        box.draggable = false;
+        box.focusable = false;
+        box.selectable = false;
 
         // Save Backend / Data
-        this.backend = sprite;
+        this.backend = box;
         this.data = data;
     }
 

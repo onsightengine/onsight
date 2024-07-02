@@ -941,6 +941,200 @@ class Thing {
 }
 Thing.register('Thing', Thing);
 
+const _registered = {};
+class ComponentManager {
+    static defaultValue(type) {
+        switch (type) {
+            case 'select':      return null;
+            case 'number':      return 0;
+            case 'int':         return 0;
+            case 'angle':       return 0;
+            case 'slider':      return 0;
+            case 'variable':    return [ 0, 0 ];
+            case 'vector':      return [ 0 ];
+            case 'option':      return [ false ];
+            case 'boolean':     return false;
+            case 'color':       return 0xffffff;
+            case 'string':      return '';
+            case 'key':         return '';
+            case 'asset':       return null;
+            case 'object':      return {};
+            case 'divider':     return null;
+            default:            console.warn(`ComponentManager.defaultValue(): Unknown property type: '${type}'`);
+        }
+        return null;
+    }
+    static registered(type = '') {
+        const ComponentClass = _registered[type];
+        if (!ComponentClass) console.warn(`ComponentManager.registered(): Component '${type}' not registered'`);
+        return ComponentClass;
+    }
+    static registeredTypes() {
+        return Object.keys(_registered);
+    }
+    static register(type = '', ComponentClass) {
+        type = type.toLowerCase();
+        if (_registered[type]) return console.warn(`ComponentManager.register(): Component '${type}' already registered`);
+        if (!SysUtils.isObject(ComponentClass.config)) ComponentClass.config = {};
+        if (!SysUtils.isObject(ComponentClass.config.schema)) ComponentClass.config.schema = {};
+        const schema = ComponentClass.config.schema;
+        for (const key in schema) {
+            const properties = Array.isArray(schema[key]) ? schema[key] : [ schema[key] ];
+            for (const property of properties) {
+                if (property.type === undefined) {
+                    console.warn(`ComponentManager.register(): All schema properties require a 'type' value`);
+                } else if (property.type === 'divider') {
+                    continue;
+                }
+                if (property.default === undefined) property.default = ComponentManager.defaultValue(property.type);
+                if (property.proMode !== undefined) property.promode = property.proMode;
+            }
+        }
+        class Component extends ComponentClass {
+            constructor() {
+                super();
+                this.isComponent = true;
+                this.type = type;
+                this.attached = true;
+                this.expanded = true;
+                this.order = 0;
+                this.tag = '';
+                this.entity = null;
+                this.backend = undefined;
+                this.data = {};
+            }
+            init(data = {}) {
+                this.dispose();
+                if (typeof super.init === 'function') super.init(data);
+            }
+            dispose() {
+                if (typeof super.dispose === 'function') super.dispose();
+                if (typeof this.backend === 'object' && typeof this.backend.dispose === 'function') this.backend.dispose();
+                this.backend = undefined;
+            }
+            attach() {
+                this.attached = true;
+                if (typeof super.attach === 'function') super.attach();
+            }
+            detach() {
+                this.attached = false;
+                if (typeof super.detach === 'function') super.detach();
+            }
+            defaultData() {
+                const data = {};
+                for (let i = 0, l = arguments.length; i < l; i += 2) {
+                    data[arguments[i]] = arguments[i + 1];
+                }
+                ComponentManager.sanitizeData(this.type, data);
+                data.base = {
+                    isComponent:    true,
+                    attached:       this.attached,
+                    expanded:       this.expanded,
+                    order:          this.order,
+                    tag:            this.tag,
+                    type:           this.type,
+                };
+                return data;
+            }
+            toJSON() {
+                let data;
+                if (this.data && this.data.style) {
+                    data = this.defaultData('style', this.data.style);
+                } else {
+                    data = this.defaultData();
+                }
+                for (const key in data) {
+                    if (this.data[key] !== undefined) {
+                        if (this.data[key] && this.data[key].isTexture) {
+                            data[key] = this.data[key].uuid;
+                        } else {
+                            data[key] = structuredClone(this.data[key]);
+                        }
+                    }
+                }
+                return data;
+            }
+        }
+        _registered[type] = Component;
+    }
+    static includeData(item, data1, data2 = undefined) {
+        for (const key in item.if) {
+            const conditions = Array.isArray(item.if[key]) ? item.if[key] : [ item.if[key] ];
+            let check1 = false, check2 = false;
+            for (const condition of conditions) {
+                check1 = check1 || (data1[key] === condition);
+                check2 = check2 || (data2 === undefined) ? true : (data2[key] === condition);
+            }
+            if (!check1 || !check2) return false;
+        }
+        for (const key in item.not) {
+            const conditions = Array.isArray(item.not[key]) ? item.not[key] : [ item.not[key] ];
+            let check1 = false, check2 = false;
+            for (const condition of conditions) {
+                check1 = check1 || (data1[key] === condition);
+                check2 = check2 || (data2 === undefined) ? false : (data2[key] === condition);
+            }
+            if (check1 || check2) return false;
+        }
+        return true;
+    }
+    static sanitizeData(type, data) {
+        if (!data || typeof data !== 'object') data = {};
+        const ComponentClass = ComponentManager.registered(type);
+        if (!ComponentClass || !ComponentClass.config || !ComponentClass.config.schema) return;
+        const schema = ComponentClass.config.schema;
+        if (!SysUtils.isObject(schema)) return;
+        for (const schemaKey in schema) {
+            const itemArray = Array.isArray(schema[schemaKey]) ? schema[schemaKey] : [ schema[schemaKey] ];
+            let itemToInclude = undefined;
+            for (const item of itemArray) {
+                if (item.type === 'divider') continue;
+                if (!ComponentManager.includeData(item, data)) continue;
+                itemToInclude = item;
+                break;
+            }
+            if (itemToInclude !== undefined) {
+                if (data[schemaKey] === undefined) {
+                    if (Array.isArray(itemToInclude.default)) {
+                        data[schemaKey] = [...itemToInclude.default];
+                    } else if (typeof itemToInclude.default === 'object') {
+                        data[schemaKey] = structuredClone(itemToInclude.default);
+                    } else {
+                        data[schemaKey] = itemToInclude.default;
+                    }
+                }
+                if (MathUtils.isNumber(data[schemaKey])) {
+                    const min = itemToInclude['min'] ?? -Infinity;
+                    const max = itemToInclude['max'] ??  Infinity;
+                    if (data[schemaKey] < min) data[schemaKey] = min;
+                    if (data[schemaKey] > max) data[schemaKey] = max;
+                }
+            } else {
+                delete data[schemaKey];
+            }
+        }
+    }
+    static stripData(type, oldData, newData) {
+        const ComponentClass = ComponentManager.registered(type);
+        if (!ComponentClass || !ComponentClass.config || !ComponentClass.config.schema) return;
+        const schema = ComponentClass.config.schema;
+        if (!SysUtils.isObject(schema)) return;
+        for (const schemaKey in schema) {
+            let matchedConditions = false;
+            const itemArray = Array.isArray(schema[schemaKey]) ? schema[schemaKey] : [ schema[schemaKey] ];
+            for (const item of itemArray) {
+                if (item.type === 'divider') continue;
+                if (!ComponentManager.includeData(item, oldData, newData)) continue;
+                matchedConditions = true;
+                break;
+            }
+            if (matchedConditions !== true) {
+                delete newData[schemaKey];
+            }
+        }
+    }
+}
+
 class Vector2 {
     constructor(x = 0, y = 0) {
         if (typeof x === 'object') {
@@ -1806,15 +2000,10 @@ class Object2D extends Thing {
     computeBoundingBox(renderer) {
         return this.boundingBox;
     }
-    isInside(point) {
-        return false;
-    }
-    isWorldPointInside(worldPoint, recursive = false) {
-        const localPoint = this.worldToLocal(worldPoint);
-        if (this.isInside(localPoint)) return true;
+    isInside(point, recursive = true) {
         if (recursive) {
             for (const child of this.children) {
-                if (child.isWorldPointInside(worldPoint, true)) return true;
+                if (child.isInside(point, true)) return true;
             }
         }
         return false;
@@ -1831,15 +2020,25 @@ class Object2D extends Thing {
         });
         return objects;
     }
-    getWorldBoundingBox() {
-        const box = this.boundingBox;
-        if (Number.isFinite(box.min.x) === false || Number.isFinite(box.min.y) === false) return box;
-        if (Number.isFinite(box.max.x) === false || Number.isFinite(box.max.y) === false) return box;
-        this.globalMatrix.applyToVector(_corner1$2.copy(box.min.x, box.min.y));
-        this.globalMatrix.applyToVector(_corner2$2.copy(box.min.x, box.max.y));
-        this.globalMatrix.applyToVector(_corner3$2.copy(box.max.x, box.min.y));
-        this.globalMatrix.applyToVector(_corner4$2.copy(box.max.x, box.max.y));
-        return new Box2().setFromPoints(_corner1$2, _corner2$2, _corner3$2, _corner4$2);
+    getWorldBoundingBox(recursive = true) {
+        const worldBox = new Box2();
+        function objectWorldBox(object) {
+            const box = object.boundingBox;
+            if (Number.isFinite(box.min.x) === false || Number.isFinite(box.min.y) === false) return box;
+            if (Number.isFinite(box.max.x) === false || Number.isFinite(box.max.y) === false) return box;
+            object.globalMatrix.applyToVector(_corner1$2.copy(box.min.x, box.min.y));
+            object.globalMatrix.applyToVector(_corner2$2.copy(box.min.x, box.max.y));
+            object.globalMatrix.applyToVector(_corner3$2.copy(box.max.x, box.min.y));
+            object.globalMatrix.applyToVector(_corner4$2.copy(box.max.x, box.max.y));
+            return new Box2().setFromPoints(_corner1$2, _corner2$2, _corner3$2, _corner4$2);
+        }
+        worldBox.union(objectWorldBox(this));
+        if (recursive) {
+            for (const child of this.children) {
+                worldBox.union(child.getWorldBoundingBox(true));
+            }
+        }
+        return worldBox;
     }
     localToWorld(vector) {
         return this.globalMatrix.transformPoint(vector);
@@ -2176,7 +2375,12 @@ class Entity extends Object2D {
         return this;
     }
     getEntities() {
-        return [ ...this.children ];
+        const entities = [];
+        for (const entity of this.children) {
+            if (!entity || !entity.isEntity) continue;
+            entities.push(entity);
+        }
+        return entities;
     }
     getEntityById(id) {
         return this.getEntityByProperty('id', parseInt(id));
@@ -2209,6 +2413,12 @@ class Entity extends Object2D {
         if (typeof callback === 'function' && callback(this)) return true;
         for (const child of this.children) {
             if (child.traverse(callback, recursive)) return true;
+        }
+    }
+    traverseEntities(callback, recursive = true) {
+        if (typeof callback === 'function' && callback(this)) return true;
+        for (const child of this.getEntities()) {
+            if (child.traverseEntities(callback, recursive)) return true;
         }
     }
     changeParent(newParent = undefined, newIndex = -1) {
@@ -2331,6 +2541,10 @@ class World extends Entity {
         this.activeStageUUID = null;
         this.loadPosition = new Vector2();
         this.loadDistance = 0;
+        this.pointerEvents = false;
+        this.draggable = false;
+        this.focusable = false;
+        this.selectable = false;
     }
     componentFamily() {
         return [ 'World', this.type ];
@@ -2726,6 +2940,10 @@ class Stage extends Entity {
         this.finish = -1;
         this.beginPosition = new Vector3();
         this.endPosition = new Vector3();
+        this.pointerEvents = false;
+        this.draggable = false;
+        this.focusable = false;
+        this.selectable = false;
     }
     componentFamily() {
         return [ 'Stage', this.type ];
@@ -2985,200 +3203,6 @@ class Camera2D extends Thing {
     }
 }
 
-const _registered = {};
-let ComponentManager$1 = class ComponentManager {
-    static defaultValue(type) {
-        switch (type) {
-            case 'select':      return null;
-            case 'number':      return 0;
-            case 'int':         return 0;
-            case 'angle':       return 0;
-            case 'slider':      return 0;
-            case 'variable':    return [ 0, 0 ];
-            case 'vector':      return [ 0 ];
-            case 'option':      return [ false ];
-            case 'boolean':     return false;
-            case 'color':       return 0xffffff;
-            case 'string':      return '';
-            case 'key':         return '';
-            case 'asset':       return null;
-            case 'object':      return {};
-            case 'divider':     return null;
-            default:            console.warn(`ComponentManager.defaultValue(): Unknown property type: '${type}'`);
-        }
-        return null;
-    }
-    static registered(type = '') {
-        const ComponentClass = _registered[type];
-        if (!ComponentClass) console.warn(`ComponentManager.registered(): Component '${type}' not registered'`);
-        return ComponentClass;
-    }
-    static registeredTypes() {
-        return Object.keys(_registered);
-    }
-    static register(type = '', ComponentClass) {
-        type = type.toLowerCase();
-        if (_registered[type]) return console.warn(`ComponentManager.register(): Component '${type}' already registered`);
-        if (!SysUtils.isObject(ComponentClass.config)) ComponentClass.config = {};
-        if (!SysUtils.isObject(ComponentClass.config.schema)) ComponentClass.config.schema = {};
-        const schema = ComponentClass.config.schema;
-        for (const key in schema) {
-            const properties = Array.isArray(schema[key]) ? schema[key] : [ schema[key] ];
-            for (const property of properties) {
-                if (property.type === undefined) {
-                    console.warn(`ComponentManager.register(): All schema properties require a 'type' value`);
-                } else if (property.type === 'divider') {
-                    continue;
-                }
-                if (property.default === undefined) property.default = ComponentManager.defaultValue(property.type);
-                if (property.proMode !== undefined) property.promode = property.proMode;
-            }
-        }
-        class Component extends ComponentClass {
-            constructor() {
-                super();
-                this.isComponent = true;
-                this.type = type;
-                this.attached = true;
-                this.expanded = true;
-                this.order = 0;
-                this.tag = '';
-                this.entity = null;
-                this.backend = undefined;
-                this.data = {};
-            }
-            init(data = {}) {
-                this.dispose();
-                if (typeof super.init === 'function') super.init(data);
-            }
-            dispose() {
-                if (typeof super.dispose === 'function') super.dispose();
-                if (typeof this.backend === 'object' && typeof this.backend.dispose === 'function') this.backend.dispose();
-                this.backend = undefined;
-            }
-            attach() {
-                this.attached = true;
-                if (typeof super.attach === 'function') super.attach();
-            }
-            detach() {
-                this.attached = false;
-                if (typeof super.detach === 'function') super.detach();
-            }
-            defaultData() {
-                const data = {};
-                for (let i = 0, l = arguments.length; i < l; i += 2) {
-                    data[arguments[i]] = arguments[i + 1];
-                }
-                ComponentManager.sanitizeData(this.type, data);
-                data.base = {
-                    isComponent:    true,
-                    attached:       this.attached,
-                    expanded:       this.expanded,
-                    order:          this.order,
-                    tag:            this.tag,
-                    type:           this.type,
-                };
-                return data;
-            }
-            toJSON() {
-                let data;
-                if (this.data && this.data.style) {
-                    data = this.defaultData('style', this.data.style);
-                } else {
-                    data = this.defaultData();
-                }
-                for (const key in data) {
-                    if (this.data[key] !== undefined) {
-                        if (this.data[key] && this.data[key].isTexture) {
-                            data[key] = this.data[key].uuid;
-                        } else {
-                            data[key] = structuredClone(this.data[key]);
-                        }
-                    }
-                }
-                return data;
-            }
-        }
-        _registered[type] = Component;
-    }
-    static includeData(item, data1, data2 = undefined) {
-        for (const key in item.if) {
-            const conditions = Array.isArray(item.if[key]) ? item.if[key] : [ item.if[key] ];
-            let check1 = false, check2 = false;
-            for (const condition of conditions) {
-                check1 = check1 || (data1[key] === condition);
-                check2 = check2 || (data2 === undefined) ? true : (data2[key] === condition);
-            }
-            if (!check1 || !check2) return false;
-        }
-        for (const key in item.not) {
-            const conditions = Array.isArray(item.not[key]) ? item.not[key] : [ item.not[key] ];
-            let check1 = false, check2 = false;
-            for (const condition of conditions) {
-                check1 = check1 || (data1[key] === condition);
-                check2 = check2 || (data2 === undefined) ? false : (data2[key] === condition);
-            }
-            if (check1 || check2) return false;
-        }
-        return true;
-    }
-    static sanitizeData(type, data) {
-        if (!data || typeof data !== 'object') data = {};
-        const ComponentClass = ComponentManager.registered(type);
-        if (!ComponentClass || !ComponentClass.config || !ComponentClass.config.schema) return;
-        const schema = ComponentClass.config.schema;
-        if (!SysUtils.isObject(schema)) return;
-        for (const schemaKey in schema) {
-            const itemArray = Array.isArray(schema[schemaKey]) ? schema[schemaKey] : [ schema[schemaKey] ];
-            let itemToInclude = undefined;
-            for (const item of itemArray) {
-                if (item.type === 'divider') continue;
-                if (!ComponentManager.includeData(item, data)) continue;
-                itemToInclude = item;
-                break;
-            }
-            if (itemToInclude !== undefined) {
-                if (data[schemaKey] === undefined) {
-                    if (Array.isArray(itemToInclude.default)) {
-                        data[schemaKey] = [...itemToInclude.default];
-                    } else if (typeof itemToInclude.default === 'object') {
-                        data[schemaKey] = structuredClone(itemToInclude.default);
-                    } else {
-                        data[schemaKey] = itemToInclude.default;
-                    }
-                }
-                if (MathUtils.isNumber(data[schemaKey])) {
-                    const min = itemToInclude['min'] ?? -Infinity;
-                    const max = itemToInclude['max'] ??  Infinity;
-                    if (data[schemaKey] < min) data[schemaKey] = min;
-                    if (data[schemaKey] > max) data[schemaKey] = max;
-                }
-            } else {
-                delete data[schemaKey];
-            }
-        }
-    }
-    static stripData(type, oldData, newData) {
-        const ComponentClass = ComponentManager.registered(type);
-        if (!ComponentClass || !ComponentClass.config || !ComponentClass.config.schema) return;
-        const schema = ComponentClass.config.schema;
-        if (!SysUtils.isObject(schema)) return;
-        for (const schemaKey in schema) {
-            let matchedConditions = false;
-            const itemArray = Array.isArray(schema[schemaKey]) ? schema[schemaKey] : [ schema[schemaKey] ];
-            for (const item of itemArray) {
-                if (item.type === 'divider') continue;
-                if (!ComponentManager.includeData(item, oldData, newData)) continue;
-                matchedConditions = true;
-                break;
-            }
-            if (matchedConditions !== true) {
-                delete newData[schemaKey];
-            }
-        }
-    }
-};
-
 const _cameraPoint$1 = new Vector2();
 const _localPoint = new Vector2();
 const _translate$2 = new Matrix2();
@@ -3398,12 +3422,12 @@ class Renderer {
         this.deltaTime = 0;
         this.totalTime = 0;
         this.selectColor = new ColorStyle('--icon-light');
+        this.helpers = Object.assign(new Object2D(), { pointerEvents: false, draggable: false, focusable: false, selectable: false });
         this.running = false;
         this.frame = -1;
         this.scene = null;
         this.camera = null;
         this.dragObject = null;
-        this.helpers = new Object2D();
     }
     destroy() {
         dom.dispatchEvent(new Event('destroy'));
@@ -4607,6 +4631,51 @@ class RadialGradientStyle extends Style {
     }
 }
 
+class BoxComponent {
+    #material = undefined;
+    init(data = {}) {
+        let map = null, color = 0xffffff;
+        if (data) {
+            if (color in data) color = data['color'];
+            if (map in data) map = data['map'];
+            if (map && map.isTexture) {
+                AssetManager.add(map);
+            } else {
+                const textureCheck = AssetManager.get(map);
+                map = (textureCheck && textureCheck.isTexture) ? textureCheck : null;
+            }
+        }
+        const box = new Box();
+        box.pointerEvents = false;
+        box.draggable = false;
+        box.focusable = false;
+        box.selectable = false;
+        this.backend = box;
+        this.data = data;
+    }
+    dispose() {
+        if (this.#material && typeof this.#material.dispose === 'function') this.#material.dispose();
+        this.#material = undefined;
+    }
+    attach() {
+        if (this.entity && this.backend) this.entity.add(this.backend);
+    }
+    detach() {
+        if (this.entity && this.backend) this.entity.remove(this.backend);
+    }
+}
+BoxComponent.config = {
+    schema: {
+        color: { type: 'color' },
+        map: { type: 'asset', class: 'texture' },
+    },
+    icon: ``,
+    color: '#222222',
+    multiple: true,
+    group: [ 'Entity' ],
+};
+ComponentManager.register('box', BoxComponent);
+
 class Sprite {
     #material = undefined;
     init(data = {}) {
@@ -4647,9 +4716,9 @@ Sprite.config = {
     icon: ``,
     color: '#222222',
     multiple: true,
-    group: [ 'Entity3D' ],
+    group: [ 'Entity' ],
 };
-ComponentManager$1.register('sprite', Sprite);
+ComponentManager.register('sprite', Sprite);
 
 if (typeof window !== 'undefined') {
     if (window.__SALINITY__) console.warn(`Salinity v${window.__SALINITY__} already imported, now importing v${VERSION}!`);
@@ -4857,14 +4926,19 @@ class ResizeHelper extends Box {
             for (const object of objects) {
                 const unRotatedPosition = unRotateMatrix.transformPoint(object.position);
                 _objectMatrix.compose(unRotatedPosition.x, unRotatedPosition.y, object.scale.x, object.scale.y, 0, 0, 0);
-                const box = object.boundingBox;
-                _objectMatrix.applyToVector(_topLeft$1.copy(box.min));
-                _objectMatrix.applyToVector(_topRight$1.copy(box.max.x, box.min.y));
-                _objectMatrix.applyToVector(_botLeft$1.copy(box.min.x, box.max.y));
-                _objectMatrix.applyToVector(_botRight$1.copy(box.max));
-                const unrotatedBox = new Box2().setFromPoints(_topLeft$1, _topRight$1, _botLeft$1, _botRight$1);
-                worldBox.union(unrotatedBox);
+                object.traverseVisible((child) => {
+                    const box = child.boundingBox;
+                    if (isFinite(box.min.x) && isFinite(box.min.y) && isFinite(box.max.x) && isFinite(box.max.y)) {
+                        _objectMatrix.applyToVector(_topLeft$1.copy(box.min));
+                        _objectMatrix.applyToVector(_topRight$1.copy(box.max.x, box.min.y));
+                        _objectMatrix.applyToVector(_botLeft$1.copy(box.min.x, box.max.y));
+                        _objectMatrix.applyToVector(_botRight$1.copy(box.max));
+                        const unrotatedBox = new Box2().setFromPoints(_topLeft$1, _topRight$1, _botLeft$1, _botRight$1);
+                        worldBox.union(unrotatedBox);
+                    }
+                });
             }
+            console.log(worldBox);
             const rotatedCenter = worldBox.getCenter();
             center = rotationMatrix.transformPoint(rotatedCenter);
             for (const object of objects) {
@@ -5342,18 +5416,20 @@ class RubberBandBox extends Box {
     }
     getLines(object) {
         const lines = [];
-        const box = object.boundingBox;
-        if (Number.isFinite(box.min.x) === false || Number.isFinite(box.min.y) === false) return [];
-        if (Number.isFinite(box.max.x) === false || Number.isFinite(box.max.y) === false) return [];
-        object.globalMatrix.applyToVector(_topLeft.copy(box.min));
-        object.globalMatrix.applyToVector(_topRight.copy(box.max.x, box.min.y));
-        object.globalMatrix.applyToVector(_botLeft.copy(box.min.x, box.max.y));
-        object.globalMatrix.applyToVector(_botRight.copy(box.max));
-        lines.push({ from: new Vector2(_topLeft.x, _topLeft.y), to: new Vector2(_topRight.x, _topRight.y) });
-        lines.push({ from: new Vector2(_topRight.x, _topRight.y), to: new Vector2(_botRight.x, _botRight.y) });
-        lines.push({ from: new Vector2(_botRight.x, _botRight.y), to: new Vector2(_botLeft.x, _botLeft.y) });
-        lines.push({ from: new Vector2(_botLeft.x, _botLeft.y), to: new Vector2(_topLeft.x, _topLeft.y) });
-        return lines;
+        const box = object.getWorldBoundingBox();
+        if (isFinite(box.min.x) && isFinite(box.min.y) && isFinite(box.max.x) && isFinite(box.max.y)) {
+            _topLeft.copy(box.min);
+            _topRight.copy(box.max.x, box.min.y);
+            _botLeft.copy(box.min.x, box.max.y);
+            _botRight.copy(box.max);
+            lines.push({ from: new Vector2(_topLeft.x, _topLeft.y), to: new Vector2(_topRight.x, _topRight.y) });
+            lines.push({ from: new Vector2(_topRight.x, _topRight.y), to: new Vector2(_botRight.x, _botRight.y) });
+            lines.push({ from: new Vector2(_botRight.x, _botRight.y), to: new Vector2(_botLeft.x, _botLeft.y) });
+            lines.push({ from: new Vector2(_botLeft.x, _botLeft.y), to: new Vector2(_topLeft.x, _topLeft.y) });
+            return lines;
+        } else {
+            return [];
+        }
     }
     intersectsPolygon(rubberBandLines, objectLines) {
         for (const rubberBandLine of rubberBandLines) {
@@ -5377,6 +5453,7 @@ class RubberBandBox extends Box {
     containsPolygon(rubberBandLines, objectLines) {
         const rubberBandPolygon = this.linesToPolygon(rubberBandLines);
         const objectPolygon = this.linesToPolygon(objectLines);
+        if (objectPolygon.length === 0) return false;
         for (const point of objectPolygon) {
             if (!PolyUtils.isPointInPolygon(point, rubberBandPolygon)) return false;
         }
@@ -5444,8 +5521,9 @@ class SelectControls {
                     this._existingSelection = [];
                     this._wantsRubberBand = true;
                 } else if (underMouse.length > 0) {
-                    const object = underMouse[0];
-                    if (object.selectable && ArrayUtils.compareThingArrays(object, this.selection) === false) {
+                    const selectableOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
+                    const object = selectableOnly[0];
+                    if (object && object.selectable && ArrayUtils.compareThingArrays(object, this.selection) === false) {
                         newSelection = [ object ];
                         this.downTimer = 0;
                     }
@@ -6284,4 +6362,4 @@ function getVariable(variable) {
     return ((value === '') ? undefined : value);
 }
 
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, ComponentManager$1 as ComponentManager, Debug, DomElement, Entity, EventManager, GridHelper, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_DOUBLE_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, OUTLINE_THICKNESS, Object2D, OriginHelper, Palette, Pattern, Pointer, PolyUtils, Project, RadialGradientStyle, Renderer, ResizeHelper, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Sprite$1 as Sprite, Stage, Style, SysUtils, Text, Thing, TooltipHelper, VERSION, Vector2, Vector3, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, ComponentManager, Debug, DomElement, Entity, EventManager, GridHelper, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_DOUBLE_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, OUTLINE_THICKNESS, Object2D, OriginHelper, Palette, Pattern, Pointer, PolyUtils, Project, RadialGradientStyle, Renderer, ResizeHelper, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Sprite$1 as Sprite, Stage, Style, SysUtils, Text, Thing, TooltipHelper, VERSION, Vector2, Vector3, WORLD_TYPES, World };

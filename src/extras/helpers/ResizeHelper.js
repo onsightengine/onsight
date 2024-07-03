@@ -481,10 +481,10 @@ class ResizeHelper extends Box {
         // Overrides to update positions on Drag
         this.onPointerDrag = function(renderer) {
             Object2D.prototype.onPointerDrag.call(this, renderer);
-            updateObjects(renderer, true /* lerp */);
+            if (self.isDragging) updateObjects(renderer, true /* lerp */);
         };
         this.onPointerDragEnd = function(renderer) {
-            updateObjects(renderer, false /* lerp */);
+            if (self.isDragging) updateObjects(renderer, false /* lerp */);
         };
 
         // Override set position to update objects during snap to grid

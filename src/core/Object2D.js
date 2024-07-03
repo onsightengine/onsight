@@ -225,6 +225,24 @@ class Object2D extends Thing {
         return worldBox;
     }
 
+    totalBoundingBox(recursive = true) {
+        const totalBox = this.boundingBox.clone();
+        if (recursive) {
+            for (const child of this.children) {
+                const box = child.boundingBox.clone();
+                if (Number.isFinite(box.min.x) &&
+                    Number.isFinite(box.min.y) &&
+                    Number.isFinite(box.max.x) &&
+                    Number.isFinite(box.max.y)
+                ) {
+                    box.translate(child.position.x, child.position.y);
+                    totalBox.union(box);
+                }
+            }
+        }
+        return totalBox;
+    }
+
     localToWorld(vector) {
         return this.globalMatrix.transformPoint(vector);
     }

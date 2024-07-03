@@ -2036,6 +2036,23 @@ class Object2D extends Thing {
         }
         return worldBox;
     }
+    totalBoundingBox(recursive = true) {
+        const totalBox = this.boundingBox.clone();
+        if (recursive) {
+            for (const child of this.children) {
+                const box = child.boundingBox.clone();
+                if (Number.isFinite(box.min.x) &&
+                    Number.isFinite(box.min.y) &&
+                    Number.isFinite(box.max.x) &&
+                    Number.isFinite(box.max.y)
+                ) {
+                    box.translate(child.position.x, child.position.y);
+                    totalBox.union(box);
+                }
+            }
+        }
+        return totalBox;
+    }
     localToWorld(vector) {
         return this.globalMatrix.transformPoint(vector);
     }
@@ -3238,10 +3255,10 @@ class EventManager {
             }
             if (renderer.dragObject === object) {
                 if (pointer.buttonJustReleased(Pointer.LEFT)) {
-                    renderer.setDragObject(null);
                     if (object.pointerEvents && typeof object.onPointerDragEnd === 'function') {
                         object.onPointerDragEnd(renderer);
                     }
+                    renderer.setDragObject(null);
                 } else {
                     if (object.pointerEvents && typeof object.onPointerDrag === 'function') {
                         object.onPointerDrag(renderer);
@@ -5249,10 +5266,10 @@ class ResizeHelper extends Box {
         }
         this.onPointerDrag = function(renderer) {
             Object2D.prototype.onPointerDrag.call(this, renderer);
-            updateObjects(renderer, true );
+            if (self.isDragging) updateObjects(renderer, true );
         };
         this.onPointerDragEnd = function(renderer) {
-            updateObjects(renderer, false );
+            if (self.isDragging) updateObjects(renderer, false );
         };
         this.setPosition = function(x, y) {
             Object2D.prototype.setPosition.call(this, x, y);

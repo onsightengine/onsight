@@ -54,10 +54,10 @@ class EventManager {
             if (renderer.dragObject === object) {
                 // Stop Dragging
                 if (pointer.buttonJustReleased(Pointer.LEFT)) {
-                    renderer.setDragObject(null);
                     if (object.pointerEvents && typeof object.onPointerDragEnd === 'function') {
                         object.onPointerDragEnd(renderer);
                     }
+                    renderer.setDragObject(null); // also sets 'object.isDragging = false;'
                 // Still Dragging, Update
                 } else {
                     if (object.pointerEvents && typeof object.onPointerDrag === 'function') {

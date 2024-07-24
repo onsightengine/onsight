@@ -607,6 +607,20 @@ class ResizeHelper extends Box {
             updateResizer(topResizer, 0, +halfSize.y, 'h');
             updateResizer(bottomResizer, 0, -halfSize.y, 'h');
         };
+
+        /***** HELPER FUNCTIONS *****/
+
+        this.flipVertical = function(renderer) {
+            self.scale.y *= -1;
+
+            //
+            // TODO: Update individual object scales (see resizer)
+            //
+
+            updateObjects(renderer, false /* lerp */);
+            return self;
+        };
+
     }
 
 }

@@ -149,7 +149,8 @@ class GridHelper extends Object2D {
         const horizontalAngle = MathUtils.radiansToDegrees(Math.atan((scaleY * Math.tan(angle)) / scaleX));
         const verticalAngle = MathUtils.radiansToDegrees((Math.PI / 2) - Math.atan((scaleY / scaleX) * (1 / Math.tan(angle))));
         const alignedAngle = roundToNearestWithTwoRotations(MathUtils.radiansToDegrees(object.rotation), NEAREST_ANGLE, horizontalAngle, verticalAngle);
-        object.setRotation(MathUtils.degreesToRadians(alignedAngle));
+        const alignedRadians = MathUtils.degreesToRadians(alignedAngle);
+        object.setRotation(alignedRadians);
     }
 
     draw(renderer) {

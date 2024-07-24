@@ -386,12 +386,10 @@ class Object2D extends Thing {
         const camera = renderer.camera;
 
         // Button Just Pressed?
-        if (pointer.buttonJustPressed(Pointer.LEFT)) {
+        if (pointer.buttonJustPressed(Pointer.LEFT) || !this.pointerStartPosition || !this.dragStartPosition) {
             this.pointerStartPosition = pointer.position.clone();
             this.dragStartPosition = this.position.clone();
         }
-        if (!this.pointerStartPosition) return;
-        if (!this.dragStartPosition) return;
 
         // Pointer Start / End
         const pointerStart = this.pointerStartPosition.clone();

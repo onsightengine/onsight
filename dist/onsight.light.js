@@ -1,16 +1,16 @@
 /**
- * @description Salinity Engine
+ * @description Onsight Engine
  * @about       Interactive, easy to use JavaScript game framework.
  * @author      Stephens Nunnally <@stevinz>
- * @version     v0.0.7
+ * @version     v0.0.8
  * @license     MIT - Copyright (c) 2024 Stephens Nunnally
- * @source      https://github.com/salinityengine/engine
+ * @source      https://github.com/onsightengine/onsight
  */
-var name = "@salinity/engine";
-var version = "0.0.7";
+var name = "onsight";
+var version = "0.0.8";
 var description = "Interactive, easy to use JavaScript game framework.";
-var module = "src/Salinity.js";
-var main = "dist/salinity.module.js";
+var module = "src/Onsight.js";
+var main = "dist/onsight.module.js";
 var type = "module";
 var scripts = {
 	build: "rollup -c",
@@ -22,7 +22,7 @@ var files = [
 	"src/*"
 ];
 var keywords = [
-	"salinity",
+	"onsight",
 	"game",
 	"engine",
 	"webgl",
@@ -33,14 +33,14 @@ var keywords = [
 ];
 var repository = {
 	type: "git",
-	url: "git+https://github.com/salinityengine/engine.git"
+	url: "git+https://github.com/onsightengine/onsight.git"
 };
 var author = "Stephens Nunnally <stephens@scidian.com>";
 var license = "MIT";
 var bugs = {
-	url: "https://github.com/salinityengine/engine/issues"
+	url: "https://github.com/onsightengine/onsight/issues"
 };
-var homepage = "https://github.com/salinityengine";
+var homepage = "https://github.com/onsightengine";
 var publishConfig = {
 	access: "public",
 	registry: "https://registry.npmjs.org/"
@@ -1554,11 +1554,11 @@ class Matrix2 {
     }
     compose(px, py, sx, sy, rot) {
         this.identity();
-        this.multiply(_translate$4.set(1, 0, 0, 1, px, py));
+        this.multiply(_translate$3.set(1, 0, 0, 1, px, py));
         if (rot !== 0) {
             const c = Math.cos(rot);
             const s = Math.sin(rot);
-            this.multiply(_rotate$3.set(c, s, -s, c, 0, 0));
+            this.multiply(_rotate$1.set(c, s, -s, c, 0, 0));
         }
         if (sx !== 1 || sy !== 1) this.scale(sx, sy);
         return this;
@@ -1695,8 +1695,8 @@ class Matrix2 {
         return this;
     }
 }
-const _translate$4 = new Matrix2();
-const _rotate$3 = new Matrix2();
+const _translate$3 = new Matrix2();
+const _rotate$1 = new Matrix2();
 const _skew = new Matrix2();
 
 class Key {
@@ -1874,11 +1874,11 @@ class Pointer {
     }
 }
 
-const _position$2 = new Vector2();
-const _corner1$2 = new Vector2();
-const _corner2$2 = new Vector2();
-const _corner3$2 = new Vector2();
-const _corner4$2 = new Vector2();
+const _position = new Vector2();
+const _corner1$1 = new Vector2();
+const _corner2$1 = new Vector2();
+const _corner3$1 = new Vector2();
+const _corner4$1 = new Vector2();
 class Object2D extends Thing {
     constructor(name = 'Object') {
         super(name);
@@ -2022,11 +2022,11 @@ class Object2D extends Thing {
             const box = object.boundingBox;
             if (Number.isFinite(box.min.x) === false || Number.isFinite(box.min.y) === false) return box;
             if (Number.isFinite(box.max.x) === false || Number.isFinite(box.max.y) === false) return box;
-            object.globalMatrix.applyToVector(_corner1$2.copy(box.min.x, box.min.y));
-            object.globalMatrix.applyToVector(_corner2$2.copy(box.min.x, box.max.y));
-            object.globalMatrix.applyToVector(_corner3$2.copy(box.max.x, box.min.y));
-            object.globalMatrix.applyToVector(_corner4$2.copy(box.max.x, box.max.y));
-            return new Box2().setFromPoints(_corner1$2, _corner2$2, _corner3$2, _corner4$2);
+            object.globalMatrix.applyToVector(_corner1$1.copy(box.min.x, box.min.y));
+            object.globalMatrix.applyToVector(_corner2$1.copy(box.min.x, box.max.y));
+            object.globalMatrix.applyToVector(_corner3$1.copy(box.max.x, box.min.y));
+            object.globalMatrix.applyToVector(_corner4$1.copy(box.max.x, box.max.y));
+            return new Box2().setFromPoints(_corner1$1, _corner2$1, _corner3$1, _corner4$1);
         }
         worldBox.union(objectWorldBox(this));
         if (recursive) {
@@ -2135,12 +2135,10 @@ class Object2D extends Thing {
     onPointerDrag(renderer) {
         const pointer = renderer.pointer;
         const camera = renderer.camera;
-        if (pointer.buttonJustPressed(Pointer.LEFT)) {
+        if (pointer.buttonJustPressed(Pointer.LEFT) || !this.pointerStartPosition || !this.dragStartPosition) {
             this.pointerStartPosition = pointer.position.clone();
             this.dragStartPosition = this.position.clone();
         }
-        if (!this.pointerStartPosition) return;
-        if (!this.dragStartPosition) return;
         const pointerStart = this.pointerStartPosition.clone();
         const pointerEnd = pointer.position.clone();
         if (pointer.buttonPressed(Pointer.LEFT)) {
@@ -2153,8 +2151,8 @@ class Object2D extends Thing {
                 const worldPositionEnd = renderer.screenToWorld(pointerEnd);
                 const localPositionEnd = parent.inverseGlobalMatrix.transformPoint(worldPositionEnd);
                 const delta = localPositionStart.clone().sub(localPositionEnd);
-                _position$2.copy(this.dragStartPosition).sub(delta);
-                this.position.copy(_position$2);
+                _position.copy(this.dragStartPosition).sub(delta);
+                this.position.copy(_position);
                 this.matrixNeedsUpdate = true;
             }
         }
@@ -2662,7 +2660,7 @@ class Project extends Thing {
     constructor(name = 'My Project') {
         super(name);
         this.isProject = true;
-        this.type = 'Salinity';
+        this.type = 'Onsight';
         this.notes = '';
         this.settings = {
             orientation: APP_ORIENTATION.PORTRAIT,
@@ -2782,7 +2780,7 @@ class Project extends Thing {
         } else if (!SysUtils.isObject(data.meta)) {
             console.error(`Project.fromJSON(): No meta data found within JSON data`);
             return this;
-        } else if (type !== 'Salinity') {
+        } else if (type !== 'Onsight') {
             console.error(`Project.fromJSON(): Unknown project type '${type}', expected '${this.type}'`);
             return this;
         } else if (version !== VERSION) {
@@ -3169,13 +3167,13 @@ function appPointerMove(event) {
 }
 
 const _cameraView = new Box2();
-const _corner1$1 = new Vector2();
-const _corner2$1 = new Vector2();
-const _corner3$1 = new Vector2();
-const _corner4$1 = new Vector2();
-const _translate$3 = new Matrix2();
-const _rotate$2 = new Matrix2();
-const _scale$2 = new Matrix2();
+const _corner1 = new Vector2();
+const _corner2 = new Vector2();
+const _corner3 = new Vector2();
+const _corner4 = new Vector2();
+const _translate$2 = new Matrix2();
+const _rotate = new Matrix2();
+const _scale$1 = new Matrix2();
 class Camera2D extends Thing {
     constructor() {
         super('Camera2D');
@@ -3191,11 +3189,11 @@ class Camera2D extends Thing {
         this.viewport = new Box2(new Vector2(0, 0), new Vector2(0, 0));
     }
     intersectsViewport(renderer, box) {
-        _corner1$1.copy(renderer.worldToScreen(box.min.x, box.min.y));
-        _corner2$1.copy(renderer.worldToScreen(box.min.x, box.max.y));
-        _corner3$1.copy(renderer.worldToScreen(box.max.x, box.min.y));
-        _corner4$1.copy(renderer.worldToScreen(box.max.x, box.max.y));
-        _cameraView.setFromPoints(_corner1$1, _corner2$1, _corner3$1, _corner4$1);
+        _corner1.copy(renderer.worldToScreen(box.min.x, box.min.y));
+        _corner2.copy(renderer.worldToScreen(box.min.x, box.max.y));
+        _corner3.copy(renderer.worldToScreen(box.max.x, box.min.y));
+        _corner4.copy(renderer.worldToScreen(box.max.x, box.max.y));
+        _cameraView.setFromPoints(_corner1, _corner2, _corner3, _corner4);
         return this.viewport.intersectsBox(_cameraView);
     }
     updateMatrix(force = false) {
@@ -3218,18 +3216,18 @@ class Camera2D extends Thing {
     }
 }
 
-const _cameraPoint$1 = new Vector2();
+const _cameraPoint = new Vector2();
 const _localPoint = new Vector2();
-const _translate$2 = new Matrix2();
+const _translate$1 = new Matrix2();
 class EventManager {
     static pointerEvents(renderer, objects) {
         const camera = renderer.camera;
         const pointer = renderer.pointer;
-        _cameraPoint$1.copy(renderer.screenToWorld(pointer.position));
+        _cameraPoint.copy(renderer.screenToWorld(pointer.position));
         let currentCursor = null;
         for (const object of objects) {
             if (object.pointerEvents && object.inViewport) {
-                object.inverseGlobalMatrix.applyToVector(_localPoint.copy(_cameraPoint$1));
+                object.inverseGlobalMatrix.applyToVector(_localPoint.copy(_cameraPoint));
                 const isInside = object.isInside(_localPoint);
                 if (isInside) {
                     if (!currentCursor && object.cursor) setCursor(object);
@@ -3378,14 +3376,14 @@ class Keyboard {
     }
 }
 
-const _center$1 = new Vector2();
-const _topLeft$2 = new Vector2();
-const _topRight$2 = new Vector2();
-const _botLeft$2 = new Vector2();
-const _botRight$2 = new Vector2();
+const _center = new Vector2();
+const _topLeft = new Vector2();
+const _topRight = new Vector2();
+const _botLeft = new Vector2();
+const _botRight = new Vector2();
 const _reset = new Matrix2();
 const _screen = new Matrix2();
-const _translate$1 = new Matrix2();
+const _translate = new Matrix2();
 const _world = new Matrix2();
 class Renderer {
     constructor({
@@ -3598,24 +3596,24 @@ class Renderer {
         context.lineWidth = OUTLINE_THICKNESS;
         context.strokeStyle = '#ffffff';
         this.resetTransform();
-        object.globalMatrix.applyToVector(_center$1.set(0, 0));
+        object.globalMatrix.applyToVector(_center.set(0, 0));
         const centerRadius = Math.max(3 / camera.scale, 0.00001);
         context.beginPath();
-        context.arc(_center$1.x, -_center$1.y, centerRadius, 0, 2 * Math.PI);
+        context.arc(_center.x, -_center.y, centerRadius, 0, 2 * Math.PI);
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.stroke();
         context.strokeStyle = this.selectColor.get(context);
         this.resetTransform();
         const box = object.boundingBox;
-        object.globalMatrix.applyToVector(_topLeft$2.copy(box.min.x, box.max.y));
-        object.globalMatrix.applyToVector(_topRight$2.copy(box.max.x, box.max.y));
-        object.globalMatrix.applyToVector(_botRight$2.copy(box.max.x, box.min.y));
-        object.globalMatrix.applyToVector(_botLeft$2.copy(box.min.x, box.min.y));
+        object.globalMatrix.applyToVector(_topLeft.copy(box.min.x, box.max.y));
+        object.globalMatrix.applyToVector(_topRight.copy(box.max.x, box.max.y));
+        object.globalMatrix.applyToVector(_botRight.copy(box.max.x, box.min.y));
+        object.globalMatrix.applyToVector(_botLeft.copy(box.min.x, box.min.y));
         context.beginPath();
-        context.moveTo(_topLeft$2.x, -_topLeft$2.y);
-        context.lineTo(_topRight$2.x, -_topRight$2.y);
-        context.lineTo(_botRight$2.x, -_botRight$2.y);
-        context.lineTo(_botLeft$2.x, -_botLeft$2.y);
+        context.moveTo(_topLeft.x, -_topLeft.y);
+        context.lineTo(_topRight.x, -_topRight.y);
+        context.lineTo(_botRight.x, -_botRight.y);
+        context.lineTo(_botLeft.x, -_botLeft.y);
         context.closePath();
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.shadowBlur = 1;
@@ -4052,7 +4050,7 @@ Thing.register('DomElement', DomElement);
 const _globalPoint = new Vector2();
 const _globalFrom = new Vector2();
 const _globalTo = new Vector2();
-const _scale$1 = new Vector2();
+const _scale = new Vector2();
 class Line extends Object2D {
     #cameraScale = 1;
     constructor() {
@@ -4094,8 +4092,8 @@ class Line extends Object2D {
                 return { x: percentX, y: percentY };
             }
             const xyPercent = getPercentageOfDistance(this.from, this.to);
-            this.globalMatrix.getScale(_scale$1);
-            const scalePercent = (Math.abs(_scale$1.x * xyPercent.y) + Math.abs(_scale$1.y * xyPercent.x)) / (xyPercent.x + xyPercent.y);
+            this.globalMatrix.getScale(_scale);
+            const scalePercent = (Math.abs(_scale.x * xyPercent.y) + Math.abs(_scale.y * xyPercent.x)) / (xyPercent.x + xyPercent.y);
             scaledLineWidth = MathUtils.sanity(this.lineWidth * scalePercent);
         }
         const buffer = (scaledLineWidth / 2) + (this.mouseBuffer / this.#cameraScale);
@@ -4740,1669 +4738,8 @@ Sprite.config = {
 ComponentManager.register('sprite', Sprite);
 
 if (typeof window !== 'undefined') {
-    if (window.__SALINITY__) console.warn(`Salinity v${window.__SALINITY__} already imported, now importing v${VERSION}!`);
-    else window.__SALINITY__ = VERSION;
+    if (window.__ONSIGHT__) console.warn(`Onsight v${window.__ONSIGHT__} already imported, now importing v${VERSION}!`);
+    else window.__ONSIGHT__ = VERSION;
 }
 
-const ZOOM_MAX = 25;
-const ZOOM_MIN = 0.01;
-const _rotate$1 = new Matrix2();
-class CameraControls {
-    constructor(camera) {
-        this.camera = camera;
-        this.allowDrag = true;
-        this.allowScale = true;
-        this.allowRotation = true;
-        this.dragButton = Pointer.RIGHT;
-        this.dragButton2 = Pointer.LEFT;
-        this.rotateButton = Pointer.MIDDLE;
-        this.animateID = -1;
-        this.dragID = -1;
-        this.dragging = false;
-        this.rotationPoint = new Vector2(0, 0);
-        this.rotationInitial = 0;
-    }
-    update(renderer) {
-        const camera = this.camera;
-        const scene = renderer.scene;
-        const pointer = renderer.pointer;
-        const keyboard = renderer.keyboard;
-        if (!camera || !scene || !pointer || !keyboard) return;
-        if (pointer.buttonDoubleClicked(Pointer.LEFT) && camera && renderer.scene) {
-            if (!keyboard.modifierPressed()) {
-                const worldPoint = renderer.screenToWorld(pointer.position);
-                const objects = renderer.getWorldPointIntersections(worldPoint);
-                if (objects.length === 0) {
-                    this.focusCamera(renderer, renderer.scene);
-                } else {
-                    const object = objects[0];
-                    if (object.focusable) this.focusCamera(renderer, object);
-                }
-            }
-        }
-        if (this.allowScale && pointer.wheel !== 0) {
-            let scaleFactor = pointer.wheel * 0.0015 * camera.scale;
-            if (pointer.wheel < 0) scaleFactor = Math.max(scaleFactor, camera.scale - ZOOM_MAX);
-            if (pointer.wheel > 0) scaleFactor = Math.min(scaleFactor, camera.scale - ZOOM_MIN);
-            const beforePosition = renderer.screenToWorld(pointer.position);
-            camera.scale = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, camera.scale - scaleFactor));
-            camera.updateMatrix(true);
-            const afterPosition = renderer.screenToWorld(pointer.position);
-            const delta = afterPosition.clone().sub(beforePosition);
-            camera.position.sub(delta.x, delta.y);
-            camera.matrixNeedsUpdate = true;
-        }
-        if (this.allowRotation) {
-            if (pointer.buttonJustPressed(this.rotateButton)) {
-                this.rotationPoint.copy(pointer.position);
-                this.rotationInitial = camera.rotation;
-            } else if (pointer.buttonPressed(this.rotateButton)) {
-                const point = pointer.position.clone().sub(this.rotationPoint);
-                camera.rotation = this.rotationInitial + (point.x * -0.01);
-                camera.matrixNeedsUpdate = true;
-            }
-        }
-        if (this.allowDrag) {
-            let wantsToDrag = pointer.buttonPressed(this.dragButton, this.dragID);
-            renderer.dom.style.cursor = wantsToDrag ? 'grabbing' : '';
-            if (!wantsToDrag) {
-                if (keyboard.spacePressed()) {
-                    if (pointer.buttonPressed(this.dragButton2, this.dragID)) {
-                        renderer.dom.style.cursor = 'grabbing';
-                        wantsToDrag = true;
-                    } else {
-                        renderer.dom.style.cursor = 'grab';
-                    }
-                } else {
-                    renderer.dom.style.cursor = '';
-                }
-            }
-            if (wantsToDrag) {
-                if (!this.dragging) {
-                    this.dragID = pointer.lock();
-                    this.dragging = true;
-                }
-                _rotate$1.identity().rotate(camera.rotation);
-                const delta = _rotate$1.transformPoint(pointer.delta.x / camera.scale, pointer.delta.y / camera.scale);
-                camera.position.sub(delta.x, delta.y * -1);
-                camera.matrixNeedsUpdate = true;
-            } else {
-                pointer.unlock();
-                this.dragging = false;
-            }
-        }
-    }
-    focusCamera(renderer, object, animationDuration = 200 ) {
-        if (!animationDuration) animationDuration = 1;
-        if (this.animateID) cancelAnimationFrame(this.animateID);
-        let targetScale = 1;
-        let targetPosition = new Vector2(0, 0);
-        if (object) {
-            const bounds = new Box2();
-            object.traverse((child) => {
-                const childBounds = child.getWorldBoundingBox();
-                let finite = true;
-                finite = finite && Number.isFinite(childBounds.min.x);
-                finite = finite && Number.isFinite(childBounds.min.y);
-                finite = finite && Number.isFinite(childBounds.max.x);
-                finite = finite && Number.isFinite(childBounds.max.y);
-                if (finite && child.focusable) bounds.union(childBounds);
-            });
-            if (Number.isFinite(bounds.getSize().x) && Number.isFinite(bounds.getSize().y)) {
-                targetScale = 0.2 * Math.min(renderer.width / bounds.getSize().x, renderer.height / bounds.getSize().y);
-                targetPosition = bounds.getCenter();
-            }
-        }
-        targetScale = Math.abs(targetScale);
-        const camera = this.camera;
-        const startTime = performance.now();
-        const startPosition = camera.position.clone();
-        const startScale = camera.scale;
-        const animate = () => {
-            const elapsedTime = performance.now() - startTime;
-            const t = Math.min(elapsedTime / animationDuration, 1);
-            camera.position.lerpVectors(startPosition, targetPosition, t);
-            camera.scale = (startScale * (1.0 - t)) + (targetScale * t);
-            camera.matrixNeedsUpdate = true;
-            if (t < 1) this.animateID = requestAnimationFrame(animate);
-        };
-        animate();
-    }
-}
-
-const CURSOR_ROTATE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWw6c3BhY2U9InByZXNlcnZlIiBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlLWxpbmVqb2luOnJvdW5kO3N0cm9rZS1taXRlcmxpbWl0OjI7Ij48cGF0aCBkPSJNMjEuMjQ3LDUuODY3YzAuNDE3LC0wLjQ1MiAxLjAzNiwtMC42NjYgMS42NDcsLTAuNTYzYzAuNjQ0LDAuMTA5IDEuMTgsMC41NTMgMS40MDcsMS4xNjRsMS44MjQsNC45MDFjMC4yMjcsMC42MTEgMC4xMTEsMS4yOTggLTAuMzA1LDEuODAxYy0wLjQxNiwwLjUwMyAtMS4wNjksMC43NDUgLTEuNzEzLDAuNjM2bC01LjE1NCwtMC44NzRjLTAuNjQ0LC0wLjEwOSAtMS4xOCwtMC41NTMgLTEuNDA3LC0xLjE2NWMtMC4xNzksLTAuNDgxIC0wLjE0NSwtMS4wMDggMC4wOCwtMS40NTVjLTAuNTIxLC0wLjE0OCAtMS4wNjQsLTAuMjI1IC0xLjYxNSwtMC4yMjVjLTMuMjY0LDAgLTUuOTEzLDIuNjUgLTUuOTEzLDUuOTEzYy0wLDMuMjYzIDIuNjQ5LDUuOTEzIDUuOTEzLDUuOTEzYzEuNjQsMCAzLjIwNiwtMC42ODEgNC4zMjQsLTEuODhjMC42ODgsLTAuNzM4IDEuODQ0LC0wLjc3OCAyLjU4MiwtMC4wOWwxLjM0NiwxLjI1NWMwLjczNywwLjY4OCAwLjc3OCwxLjg0MyAwLjA5LDIuNTgxYy0yLjE1OCwyLjMxNCAtNS4xNzksMy42MjcgLTguMzQyLDMuNjI3Yy02LjI5NSwwIC0xMS40MDYsLTUuMTExIC0xMS40MDYsLTExLjQwNmMtMCwtNi4yOTUgNS4xMTEsLTExLjQwNiAxMS40MDYsLTExLjQwNmMxLjgzOCwtMCAzLjYzMSwwLjQ0MyA1LjIzNiwxLjI3M1oiIHN0eWxlPSJmaWxsOiNmZmY7Ii8+PHBhdGggZD0iTTE5LjgzNSw5Ljc2N2wtMC45MDUsMS4wOTNjLTAuMDk3LDAuMTE3IC0wLjEyNCwwLjI3NyAtMC4wNzEsMC40MTljMC4wNTMsMC4xNDMgMC4xNzgsMC4yNDYgMC4zMjgsMC4yNzJsNS4xNTQsMC44NzRjMC4xNTEsMC4wMjYgMC4zMDMsLTAuMDMxIDAuNCwtMC4xNDhjMC4wOTcsLTAuMTE3IDAuMTI0LC0wLjI3NyAwLjA3MSwtMC40MmwtMS44MjMsLTQuOWMtMC4wNTMsLTAuMTQzIC0wLjE3OCwtMC4yNDYgLTAuMzI4LC0wLjI3MWMtMC4xNSwtMC4wMjYgLTAuMzAyLDAuMDMxIC0wLjM5OSwwLjE0OGwtMC42OTksMC44NDRjLTEuNjMyLC0xLjA5MSAtMy41NjIsLTEuNjgzIC01LjU1MiwtMS42ODNjLTUuNTIyLC0wIC0xMC4wMDYsNC40ODMgLTEwLjAwNiwxMC4wMDVjMCw1LjUyMiA0LjQ4NCwxMC4wMDUgMTAuMDA2LDEwLjAwNWMyLjc3NSwwIDUuNDI1LC0xLjE1MiA3LjMxNywtMy4xODFjMC4xNjEsLTAuMTcyIDAuMTUxLC0wLjQ0MiAtMC4wMjEsLTAuNjAybC0xLjM0NSwtMS4yNTVjLTAuMTcyLC0wLjE2IC0wLjQ0MiwtMC4xNTEgLTAuNjAyLDAuMDIxYy0xLjM4MywxLjQ4MyAtMy4zMjEsMi4zMjYgLTUuMzQ5LDIuMzI2Yy00LjAzNywtMCAtNy4zMTQsLTMuMjc3IC03LjMxNCwtNy4zMTRjMCwtNC4wMzcgMy4yNzcsLTcuMzE0IDcuMzE0LC03LjMxNGMxLjM2LDAgMi42ODIsMC4zNzkgMy44MjQsMS4wODFaIi8+PC9zdmc+';
-let _lastRenderer = null;
-const _position$1 = new Vector2();
-const _topLeft$1 = new Vector2();
-const _topRight$1 = new Vector2();
-const _botLeft$1 = new Vector2();
-const _botRight$1 = new Vector2();
-const _objectMatrix = new Matrix2();
-const _rotateMatrix = new Matrix2();
-const dragger = Object.assign(new Circle(10), { type: 'Resizer', selectable: false, focusable: false });
-class ResizeHelper extends Box {
-    static ALL = 0;
-    static RESIZE = 1;
-    static ROTATE = 2;
-    constructor(objects, selectControls = null, radius = 5, tools = ResizeHelper.ALL) {
-        if (!objects) return console.error(`ResizeHelper(): Missing 'objects' argument`);
-        objects = Array.isArray(objects) ? objects : [ objects ];
-        if (objects.length === 0) return console.error(`ResizeHelper(): Objects array is empty`);
-        super();
-        this.isHelper = true;
-        this.type = 'ResizeHelper';
-        this.selectControls = selectControls;
-        this.pointerEvents = true;
-        this.draggable = true;
-        this.focusable = true;
-        this.selectable = false;
-        this.lateUpdate = true;
-        this.fillStyle = null;
-        this.strokeStyle = null;
-        let topLayer = 0;
-        let bottomLayer = 0;
-        for (const object of objects) {
-            topLayer = Math.max(topLayer, object.layer + 1);
-            bottomLayer = Math.max(bottomLayer, object.layer - 1);
-        }
-        this.layer = topLayer;
-        const background = Object.assign(new Box(), { pointerEvents: false, draggable: false, focusable: false, selectable: false });
-        background.isHelper = true;
-        background.layer = bottomLayer;
-        background.fillStyle.color = 'rgba(--icon-dark, 0.35)';
-        background.fillStyle.fallback = 'rgba(0, 85, 102, 0.35)';
-        background.strokeStyle.color = 'rgba(--icon-dark, 0.35)';
-        background.strokeStyle.fallback = 'rgba(0, 85, 102, 0.35)';
-        background.lineWidth = 2;
-        background.constantWidth = true;
-        background.visible = false;
-        this.add(background);
-        this.background = background;
-        const self = this;
-        this.objects = objects;
-        const commonAncestor = findCommonMostAncestor(objects);
-        this.ghostParent = commonAncestor;
-        const initialTransforms = {};
-        for (const object of objects) {
-            initialTransforms[object.uuid] = {
-                position: object.position.clone(),
-                scale: object.scale.clone(),
-                rotation: object.rotation,
-            };
-        }
-        let firstRotation = MathUtils.equalizeAngle0to360(objects[0].rotation, false );
-        let sameRotation = true;
-        for (const object of objects) {
-            let nextRotation = MathUtils.equalizeAngle0to360(object.rotation, false );
-            sameRotation = sameRotation && MathUtils.fuzzyFloat(firstRotation, nextRotation, MathUtils.degreesToRadians(1));
-        }
-        const worldBox = new Box2();
-        let center;
-        if (sameRotation || objects.length === 1) {
-            this.rotation = objects[0].rotation;
-            worldBox.clear();
-            const rotationMatrix = new Matrix2().rotate(+this.rotation);
-            const unRotateMatrix = new Matrix2().rotate(-this.rotation);
-            for (const object of objects) {
-                const unRotatedPosition = unRotateMatrix.transformPoint(object.position);
-                _objectMatrix.compose(unRotatedPosition.x, unRotatedPosition.y, object.scale.x, object.scale.y, 0, 0, 0);
-                object.traverseVisible((child) => {
-                    const box = child.boundingBox;
-                    if (isFinite(box.min.x) && isFinite(box.min.y) && isFinite(box.max.x) && isFinite(box.max.y)) {
-                        _objectMatrix.applyToVector(_topLeft$1.copy(box.min));
-                        _objectMatrix.applyToVector(_topRight$1.copy(box.max.x, box.min.y));
-                        _objectMatrix.applyToVector(_botLeft$1.copy(box.min.x, box.max.y));
-                        _objectMatrix.applyToVector(_botRight$1.copy(box.max));
-                        const unrotatedBox = new Box2().setFromPoints(_topLeft$1, _topRight$1, _botLeft$1, _botRight$1);
-                        worldBox.union(unrotatedBox);
-                    }
-                });
-            }
-            const rotatedCenter = worldBox.getCenter();
-            center = rotationMatrix.transformPoint(rotatedCenter);
-            for (const object of objects) {
-                const position = object.position.clone().sub(center);
-                const initialPosition = unRotateMatrix.transformPoint(position).add(center);
-                initialTransforms[object.uuid].position.copy(initialPosition);
-            }
-        } else {
-            for (const object of objects) {
-                worldBox.union(object.getWorldBoundingBox());
-            }
-            center = worldBox.getCenter();
-        }
-        const halfSize = worldBox.getSize().multiplyScalar(0.5);
-        this.position.copy(center);
-        this.box.set(new Vector2(-halfSize.x, -halfSize.y), new Vector2(+halfSize.x, +halfSize.y));
-        this.computeBoundingBox();
-        this.updateMatrix(true);
-        const startPosition = this.position.clone();
-        const startRotation = this.rotation;
-        const startScale = this.scale.clone();
-        this.origin = new Vector2();
-        if (objects.length === 1) {
-            objects[0].globalMatrix.applyToVector(this.origin);
-            this.inverseGlobalMatrix.applyToVector(this.origin);
-        }
-        let topLeft, topRight, bottomLeft, bottomRight;
-        let topResizer, rightResizer, bottomResizer, leftResizer;
-        let rotater, topLine, zeroLine, rotateLine;
-        if (tools === ResizeHelper.ALL || tools === ResizeHelper.RESIZE) {
-            function createResizer(name, x, y, type = 'box', addRotation, alpha, color) {
-                let resizer;
-                switch (type) {
-                    case 'circle':
-                        resizer = new Circle();
-                        resizer.radius = radius;
-                        break;
-                    case 'line':
-                        resizer = new Line();
-                        resizer.mouseBuffer = radius;
-                        break;
-                    case 'box':
-                    default:
-                        resizer = new Box();
-                        resizer.box.set(new Vector2(-radius, -radius), new Vector2(radius, radius));
-                }
-                resizer.name = name;
-                resizer.type = 'Resizer';
-                resizer.isHelper = true;
-                resizer.draggable = true;
-                resizer.focusable = false;
-                resizer.selectable = false;
-                resizer.mouseBuffer = 5;
-                resizer.layer = topLayer + 1;
-                resizer.opacity = alpha;
-                resizer.constantWidth = true;
-                switch (type) {
-                    case 'box':
-                    case 'circle':
-                        if (color) {
-                            resizer.fillStyle = new ColorStyle(color);
-                        } else {
-                            resizer.fillStyle = new LinearGradientStyle();
-                            resizer.fillStyle.start.set(-radius, -radius);
-                            resizer.fillStyle.end.set(radius, radius);
-                            resizer.fillStyle.addColorStop(0, '--icon-light');
-                            resizer.fillStyle.addColorStop(1, '--icon-dark');
-                        }
-                        resizer.strokeStyle.color = '--highlight';
-                        resizer.lineWidth = OUTLINE_THICKNESS;
-                        break;
-                    case 'line':
-                        resizer.strokeStyle.color = '--highlight';
-                        resizer.lineWidth = OUTLINE_THICKNESS;
-                        break;
-                }
-                resizer.cursor = function(camera) {
-                    const cursorStyles = [
-                        { angle:   0, cursor: 'ew-resize' },
-                        { angle:  45, cursor: 'nwse-resize' },
-                        { angle:  90, cursor: 'ns-resize' },
-                        { angle: 135, cursor: 'nesw-resize' },
-                        { angle: 180, cursor: 'ew-resize' },
-                        { angle: 225, cursor: 'nwse-resize' },
-                        { angle: 270, cursor: 'ns-resize' },
-                        { angle: 315, cursor: 'nesw-resize' },
-                        { angle: 360, cursor: 'ew-resize' },
-                    ];
-                    let rotation = self.rotation;
-                    if (self.scale.x < 0 && self.scale.y > 0 || self.scale.x > 0 && self.scale.y < 0) {
-                        rotation -= (addRotation * (Math.PI / 180));
-                    } else {
-                        rotation += (addRotation * (Math.PI / 180));
-                    }
-                    rotation = (rotation + camera.rotation) * 180 / Math.PI;
-                    rotation = 360 - rotation;
-                    const normalizedRotation = MathUtils.equalizeAngle0to360(rotation, true );
-                    let closestCursor = 'default';
-                    let minAngleDiff = Infinity;
-                    for (const { angle, cursor } of cursorStyles) {
-                        const angleDiff = Math.abs(normalizedRotation - angle);
-                        if (angleDiff < minAngleDiff) {
-                            minAngleDiff = angleDiff;
-                            closestCursor = cursor;
-                        }
-                    }
-                    return closestCursor;
-                };
-                let startDragPosition, startDragRotation, startDragScale;
-                let startBox, worldPositionStart;
-                resizer['onPointerDragStart'] = function(renderer) {
-                    startBox = self.boundingBox.clone();
-                    startDragPosition = self.position.clone();
-                    startDragRotation = self.rotation;
-                    startDragScale = self.scale.clone();
-                    self.ghostParent.add(dragger);
-                    dragger.type = 'Resizer';
-                    dragger.resizeHelper = self;
-                    dragger['onPointerDragEnd'] = function(renderer) {
-                        dragger.destroy();
-                    };
-                    dragger['onPointerDrag'] = function(renderer) {
-                        Object2D.prototype.onPointerDrag.call(this, renderer);
-                        updateResizer(renderer);
-                    };
-                    dragger.setPosition = function(x, y) {
-                        Object2D.prototype.setPosition.call(this, x, y);
-                        updateResizer();
-                        return dragger;
-                    };
-                    const worldPosition = resizer.getWorldPosition();
-                    const parentPosition = self.ghostParent.inverseGlobalMatrix.transformPoint(worldPosition);
-                    dragger.position.copy(parentPosition);
-                    dragger.cursor = resizer.cursor;
-                    dragger.fillStyle = null;
-                    dragger.strokeStyle = null;
-                    dragger.pointerStartPosition = renderer.pointer.position.clone();
-                    dragger.dragStartPosition = dragger.position.clone();
-                    worldPositionStart = worldPosition.clone();
-                    renderer.setDragObject(dragger);
-                };
-                function updateResizer(renderer = _lastRenderer) {
-                    if (renderer) _lastRenderer = renderer;
-                    const localPositionStart = self.inverseGlobalMatrix.transformPoint(worldPositionStart);
-                    const worldPositionEnd = dragger.getWorldPosition();
-                    const localPositionEnd = self.inverseGlobalMatrix.transformPoint(worldPositionEnd);
-                    const delta = localPositionStart.clone().sub(localPositionEnd).multiply(self.scale);
-                    if (x === 0) delta.x = 0;
-                    if (y === 0) delta.y = 0;
-                    delta.multiplyScalar(0.5);
-                    const size = startBox.getSize();
-                    const scaleX = MathUtils.sanity((x === 0) ? 0 : 2 / size.x);
-                    const scaleY = MathUtils.sanity((y === 0) ? 0 : 2 / size.y);
-                    if (renderer?.keyboard?.shiftPressed() && x !== 0 && y !== 0) {
-                        const aspectRatio = (size.x * startDragScale.x) / (size.y * startDragScale.y);
-                        if (Math.abs(aspectRatio) < Math.abs(delta.x / delta.y)) {
-                            delta.y = delta.x / aspectRatio;
-                            if (x !== y) delta.y *= -1;
-                        } else {
-                            delta.x = delta.y * aspectRatio;
-                            if (x !== y) delta.x *= -1;
-                        }
-                    }
-                    const scale = new Vector2(scaleX, scaleY);
-                    const positionOffset = new Vector2();
-                    if (renderer?.keyboard?.ctrlPressed()) {
-                        positionOffset.x = ((self.origin.x - startBox.min.x) / size.x) * -2;
-                        positionOffset.y = ((self.origin.y - startBox.min.y) / size.y) * -2;
-                        if (x > 0) positionOffset.x = -2 - positionOffset.x;
-                        if (y > 0) positionOffset.y = -2 - positionOffset.y;
-                        positionOffset.multiply(delta);
-                    } else {
-                        positionOffset.copy(startBox.getCenter());
-                        positionOffset.multiply(delta).multiply(scale).multiply(x, y);
-                    }
-                    const rotationMatrix = new Matrix2().rotate(startDragRotation);
-                    const rotatedDelta = rotationMatrix.transformPoint(delta);
-                    const rotatedPositionOffset = rotationMatrix.transformPoint(positionOffset);
-                    self.position.copy(startDragPosition).sub(rotatedDelta).sub(rotatedPositionOffset);
-                    delta.multiply(x, y).multiply(scale);
-                    self.scale.copy(startDragScale).add(delta);
-                    self.scale.x = MathUtils.noZero(MathUtils.sanity(self.scale.x));
-                    self.scale.y = MathUtils.noZero(MathUtils.sanity(self.scale.y));
-                    self.updateMatrix(true);
-                    for (const object of objects) {
-                        const initialTransform = initialTransforms[object.uuid];
-                        const rotatedScale = self.scale.clone();
-                        let initialRotation = initialTransform.rotation - startRotation;
-                        initialRotation = MathUtils.equalizeAngle0to360(initialRotation, false);
-                        const fortyFive = Math.PI / 4;
-                        let flip = false;
-                        if      (initialRotation < fortyFive * 1) flip = false;
-                        else if (initialRotation < fortyFive * 3) flip = true;
-                        else if (initialRotation < fortyFive * 5) flip = false;
-                        else if (initialRotation < fortyFive * 7) flip = true;
-                        else flip = false;
-                        if (flip) {
-                            const sx = Math.sign(rotatedScale.x);
-                            const sy = Math.sign(rotatedScale.y);
-                            rotatedScale.x = Math.abs(self.scale.y) * sx;
-                            rotatedScale.y = Math.abs(self.scale.x) * sy;
-                        }
-                        object.scale.copy(initialTransform.scale).multiply(rotatedScale);
-                        object.scale.x = MathUtils.noZero(MathUtils.sanity(object.scale.x));
-                        object.scale.y = MathUtils.noZero(MathUtils.sanity(object.scale.y));
-                    }
-                    updateObjects(renderer, false );
-                }
-                return resizer;
-            }
-            topRight = createResizer('Top Right', -1, -1, 'box', 45, 1);
-            topLeft = createResizer('Top Left', 1, -1, 'box', 135, 1);
-            bottomLeft = createResizer('Bottom Left', 1, 1, 'box', 225, 1);
-            bottomRight = createResizer('Bottom Right', -1, 1, 'box', 315, 1);
-            rightResizer = createResizer('Right', -1, 0, 'line', 0, 1);
-            topResizer = createResizer('Top', 0, -1, 'line', 90, 1);
-            leftResizer = createResizer('Left', 1, 0, 'line', 180, 1);
-            bottomResizer = createResizer('Bottom', 0, 1, 'line', 270, 1);
-            this.add(bottomRight, bottomLeft, topLeft, topRight);
-            this.add(rightResizer, bottomResizer, leftResizer, topResizer);
-        }
-        if (tools === ResizeHelper.ALL || tools === ResizeHelper.ROTATE) {
-            rotater = Object.assign(new Circle(), { draggable: true, focusable: false, selectable: false });
-            rotater.type = 'Rotater';
-            rotater.isHelper = true;
-            rotater.resizeHelper = self;
-            rotater.radius = radius + 1;
-            rotater.mouseBuffer = 5;
-            rotater.layer = topLayer + 2;
-            rotater.lineWidth = OUTLINE_THICKNESS;
-            rotater.constantWidth = true;
-            rotater.fillStyle = new LinearGradientStyle();
-            rotater.fillStyle.start.set(-radius, -radius);
-            rotater.fillStyle.end.set(radius, radius);
-            rotater.fillStyle.addColorStop(0, '--icon-light');
-            rotater.fillStyle.addColorStop(1, '--icon-dark');
-            rotater.strokeStyle.color = '--highlight';
-            rotater.cursor = `url('${CURSOR_ROTATE}') 16 16, auto`;
-            let rotating = false, rotaterAngle = 0, rotaterStart = 0;
-            let rotationStart = new Vector2();
-            let rotationOrigin = new Vector2();
-            rotater['onPointerDragStart'] = function(renderer) {
-                rotaterAngle = self.rotation;
-                rotaterStart = self.rotation;
-                rotationStart = self.globalMatrix.transformPoint(new Vector2(0, 0));
-                rotationOrigin = self.globalMatrix.transformPoint(self.origin);
-                rotating = true;
-            };
-            rotater['onPointerDragEnd'] = function(renderer) {
-                rotating = false;
-            };
-            rotater.onPointerDrag = function(renderer) {
-                Object2D.prototype.onPointerDrag.call(this, renderer);
-                if (renderer) _lastRenderer = renderer;
-                if (rotater.isDragging) {
-                    const pointer = renderer.pointer;
-                    const camera = renderer.camera;
-                    const pointerStart = pointer.position.clone();
-                    const pointerEnd = pointer.position.clone().sub(pointer.delta.x, pointer.delta.y * -1);
-                    const worldPositionStart = renderer.screenToWorld(pointerStart);
-                    const localPositionStart = self.inverseGlobalMatrix.transformPoint(worldPositionStart);
-                    const worldPositionEnd = renderer.screenToWorld(pointerEnd);
-                    const localPositionEnd = self.inverseGlobalMatrix.transformPoint(worldPositionEnd);
-                    localPositionStart.sub(self.origin).multiply(self.scale);
-                    localPositionEnd.sub(self.origin).multiply(self.scale);
-                    const angle = localPositionEnd.angleBetween(localPositionStart);
-                    const cross = localPositionEnd.cross(localPositionStart);
-                    const sign = Math.sign(cross);
-                    rotaterAngle += (angle * sign);
-                    while (rotaterAngle < Math.PI * -2) { rotaterAngle += Math.PI * 2; }
-                    while (rotaterAngle > Math.PI * +2) { rotaterAngle -= Math.PI * 2; }
-                    rotater.setRotation(rotaterAngle);
-                }
-            };
-            rotater.setRotation = function(rad) {
-                Object2D.prototype.setRotation.call(this, rad);
-                self.rotation = rad;
-                if (rotating) {
-                    const rotateMatrix = new Matrix2().rotate(rad - rotaterStart);
-                    const worldPosition = rotationStart.clone();
-                    worldPosition.sub(rotationOrigin);
-                    rotateMatrix.applyToVector(worldPosition);
-                    worldPosition.add(rotationOrigin);
-                    const parentPosition = self.ghostParent.inverseGlobalMatrix.transformPoint(worldPosition);
-                    self.position.copy(parentPosition);
-                }
-                updateObjects(null, false );
-                return self;
-            };
-            topLine = Object.assign(new Line(), { draggable: false, focusable: false, selectable: false });
-            topLine.layer = topLayer + 1;
-            topLine.lineWidth = OUTLINE_THICKNESS;
-            topLine.constantWidth = true;
-            topLine.strokeStyle.color = '--highlight';
-            zeroLine = Object.assign(new Line(), { draggable: false, focusable: false, selectable: false });
-            zeroLine.layer = topLayer + 1;
-            zeroLine.lineWidth = OUTLINE_THICKNESS;
-            zeroLine.constantWidth = true;
-            zeroLine.strokeStyle.color = '--highlight';
-            rotateLine = Object.assign(new Line(), { draggable: false, focusable: false, selectable: false });
-            rotateLine.layer = topLayer + 1;
-            rotateLine.lineWidth = OUTLINE_THICKNESS;
-            rotateLine.constantWidth = true;
-            rotateLine.strokeStyle.color = '--highlight';
-            this.add(rotater, topLine, zeroLine, rotateLine);
-        }
-        this.onPointerDrag = function(renderer) {
-            Object2D.prototype.onPointerDrag.call(this, renderer);
-            if (self.isDragging) updateObjects(renderer, true );
-        };
-        this.onPointerDragEnd = function(renderer) {
-            if (self.isDragging) updateObjects(renderer, false );
-        };
-        this.setPosition = function(x, y) {
-            Object2D.prototype.setPosition.call(this, x, y);
-            updateObjects(null, false );
-            return self;
-        };
-        function updateObjects(renderer = _lastRenderer, lerp = true) {
-            if (!renderer && !_lastRenderer) return;
-            if (renderer) _lastRenderer = renderer;
-            for (const object of objects) {
-                const initialPosition = initialTransforms[object.uuid].position;
-                const initialRotation = initialTransforms[object.uuid].rotation;
-                const initialScale = initialTransforms[object.uuid].scale;
-                object.rotation = initialRotation + (self.rotation - startRotation);
-                const relativePosition = initialPosition.clone().sub(startPosition);
-                const scaledPosition = relativePosition.clone().multiply(self.scale);
-                const rotateAngle = (object.rotation - initialRotation) + startRotation;
-                const rotationMatrix = new Matrix2().rotate(rotateAngle);
-                const rotatedPosition = rotationMatrix.transformPoint(scaledPosition);
-                _position$1.copy(rotatedPosition).add(self.position);
-                if (lerp && self.isDragging) {
-                    object.position.smoothstep(_position$1, renderer.deltaTime * 30);
-                } else {
-                    object.position.copy(_position$1);
-                }
-                const wasSame = Math.sign(object.scale.x) === Math.sign(object.scale.y);
-                const isSame =  Math.sign(initialScale.x) === Math.sign(initialScale.y);
-                if (wasSame !== isSame) {
-                    object.rotation -= self.rotation;
-                    object.rotation *= -1;
-                    object.rotation += self.rotation;
-                }
-                object.traverse((child) => { child.updateMatrix(true); });
-            }
-            self.onUpdate(renderer);
-            if (self.selectControls) self.selectControls.transformed = true;
-        }
-        this.onUpdate = function(renderer) {
-            if (!renderer) return;
-            const camera = renderer.camera;
-            const showResizers = !self.isDragging;
-            const worldPosition = self.globalMatrix.getPosition();
-            const worldRotation = self.globalMatrix.getRotation();
-            const worldScale = self.globalMatrix.getScale();
-            if (self.background) {
-                self.background.box.set(new Vector2(-halfSize.x, -halfSize.y), new Vector2(+halfSize.x, +halfSize.y));
-                self.background.updateMatrix(true);
-                self.background.visible = true;
-            }
-            const handleOffset = ((radius * 4) / Math.abs(worldScale.y)) / camera.scale;
-            const topCenterWorld = new Vector2(0, halfSize.y);
-            const topCenterWorldOffset = new Vector2(0, halfSize.y + handleOffset);
-            if (rotater) {
-                rotater.position.copy(topCenterWorldOffset);
-                rotater.rotation = 0;
-                rotater.scale.set(1 / worldScale.x, 1 / worldScale.y).divideScalar(camera.scale);
-                rotater.updateMatrix(true);
-                rotater.visible = showResizers;
-            }
-            if (topLine) {
-                topLine.from.copy(topCenterWorldOffset);
-                topLine.to.copy(topCenterWorld);
-                topLine.updateMatrix(true);
-                topLine.visible = showResizers;
-            }
-            if (zeroLine) {
-                zeroLine.from.set(self.origin.x, self.origin.y);
-                zeroLine.to.set(self.origin.x, self.origin.y + (handleOffset * 1.5));
-                zeroLine.updateMatrix(true);
-                zeroLine.visible = rotater.isDragging;
-            }
-            if (rotateLine) {
-                rotateLine.from.set(self.origin.x, self.origin.y);
-                rotateLine.to.set(0, radius * 4 * 1.5).add(worldPosition);
-                self.inverseGlobalMatrix.applyToVector(rotateLine.to);
-                rotateLine.to.divideScalar(camera.scale);
-                rotateLine.to.add(self.origin);
-                rotateLine.updateMatrix(true);
-                rotateLine.visible = rotater.isDragging;
-            }
-            function updateResizer(resizer, x, y, type) {
-                if (!resizer) return;
-                resizer.position.set(x, y);
-                if      (type === 'v') { resizer.from.set(0, -halfSize.y); resizer.to.set(0, +halfSize.y); }
-                else if (type === 'h') { resizer.from.set(-halfSize.x, 0); resizer.to.set(+halfSize.x, 0); }
-                else { resizer.scale.set((1 / worldScale.x) / camera.scale, (1 / worldScale.y) / camera.scale); }
-                resizer.updateMatrix(true);
-                resizer.visible = showResizers;
-            }
-            updateResizer(topLeft, -halfSize.x, +halfSize.y);
-            updateResizer(topRight, +halfSize.x, +halfSize.y);
-            updateResizer(bottomLeft, -halfSize.x, -halfSize.y);
-            updateResizer(bottomRight, +halfSize.x, -halfSize.y);
-            updateResizer(leftResizer, -halfSize.x, 0, 'v');
-            updateResizer(rightResizer, +halfSize.x, 0, 'v');
-            updateResizer(topResizer, 0, +halfSize.y, 'h');
-            updateResizer(bottomResizer, 0, -halfSize.y, 'h');
-        };
-    }
-}
-function findCommonMostAncestor(objects) {
-    if (objects.length === 0) return null;
-    if (objects.length === 1) return objects[0].parent;
-    function getAncestors(object) {
-        const ancestors = [];
-        let currentObject = object;
-        while (currentObject.parent) {
-            ancestors.unshift(currentObject.parent);
-            currentObject = currentObject.parent;
-        }
-        return ancestors;
-    }
-    const ancestors = objects.map(getAncestors);
-    const minLength = Math.min(...ancestors.map(arr => arr.length));
-    for (let i = 0; i < minLength; i++) {
-        const ancestor = ancestors[0][i];
-        for (let j = 1; j < ancestors.length; j++) {
-            if (ancestors[j][i] !== ancestor) {
-                return ancestor.parent;
-            }
-        }
-    }
-    return ancestors[0][minLength - 1];
-}
-
-const _topLeft = new Vector2();
-const _topRight = new Vector2();
-const _botLeft = new Vector2();
-const _botRight = new Vector2();
-class RubberBandBox extends Box {
-    constructor() {
-        super();
-        this.isHelper = true;
-        this.type = 'RubberBandBox';
-        this.cursor = 'pointer';
-        this.pointerEvents = false;
-        this.draggable = false;
-        this.focusable = false;
-        this.selectable = false;
-        this.fillStyle.color = 'rgba(--icon, 0.5)';
-        this.fillStyle.fallback = 'rgba(0, 170, 204, 0.5)';
-        this.strokeStyle.color = 'rgb(--icon-light)';
-        this.strokeStyle.fallback = 'rgba(101, 229, 255)';
-        this.lineWidth = OUTLINE_THICKNESS;
-        this.constantWidth = true;
-    }
-    intersected(scene, includeChildren = true) {
-        const objects = [];
-        const rubberBandBox = this;
-        const rubberBandLines = this.getLines(this);
-        function checkIntersectObject(object) {
-            if (object.visible && object.selectable) {
-                const objectLines = rubberBandBox.getLines(object);
-                if (rubberBandBox.intersectsPolygon(rubberBandLines, objectLines) ||
-                    rubberBandBox.containsPolygon(rubberBandLines, objectLines)) {
-                    objects.push(object);
-                }
-            }
-        }
-        if (includeChildren) {
-            scene.traverse((object) => { if (object !== scene) checkIntersectObject(object); });
-        } else {
-            for (const object of scene.children) { checkIntersectObject(object); }
-        }
-        return objects;
-    }
-    getLines(object) {
-        const lines = [];
-        const box = object.getWorldBoundingBox();
-        if (isFinite(box.min.x) && isFinite(box.min.y) && isFinite(box.max.x) && isFinite(box.max.y)) {
-            _topLeft.copy(box.min);
-            _topRight.copy(box.max.x, box.min.y);
-            _botLeft.copy(box.min.x, box.max.y);
-            _botRight.copy(box.max);
-            lines.push({ from: new Vector2(_topLeft.x, _topLeft.y), to: new Vector2(_topRight.x, _topRight.y) });
-            lines.push({ from: new Vector2(_topRight.x, _topRight.y), to: new Vector2(_botRight.x, _botRight.y) });
-            lines.push({ from: new Vector2(_botRight.x, _botRight.y), to: new Vector2(_botLeft.x, _botLeft.y) });
-            lines.push({ from: new Vector2(_botLeft.x, _botLeft.y), to: new Vector2(_topLeft.x, _topLeft.y) });
-            return lines;
-        } else {
-            return [];
-        }
-    }
-    intersectsPolygon(rubberBandLines, objectLines) {
-        for (const rubberBandLine of rubberBandLines) {
-            for (const objectLine of objectLines) {
-                if (this.intersectsLine(rubberBandLine, objectLine)) return true;
-            }
-        }
-        return false;
-    }
-    intersectsLine(line1, line2) {
-        const { x: x1, y: y1 } = line1.from;
-        const { x: x2, y: y2 } = line1.to;
-        const { x: x3, y: y3 } = line2.from;
-        const { x: x4, y: y4 } = line2.to;
-        const denom = ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
-        if (denom === 0) return false;
-        const ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denom;
-        const ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denom;
-        return (ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1);
-    }
-    containsPolygon(rubberBandLines, objectLines) {
-        const rubberBandPolygon = this.linesToPolygon(rubberBandLines);
-        const objectPolygon = this.linesToPolygon(objectLines);
-        if (objectPolygon.length === 0) return false;
-        for (const point of objectPolygon) {
-            if (!PolyUtils.isPointInPolygon(point, rubberBandPolygon)) return false;
-        }
-        return true;
-    }
-    linesToPolygon(lines) {
-        const polygon = [];
-        for (const line of lines) {
-            polygon.push(line.from);
-        }
-        return polygon;
-    }
-}
-
-const _cameraPoint = new Vector2();
-const _center = new Vector2();
-const _size = new Vector2();
-class SelectControls {
-    constructor() {
-        this.dom = document.createElement('div');
-        this.selection = [];
-        this.resizeHelper = null;
-        this.rubberBandBox = null;
-        this.downTimer = 0;
-        this.transformed = false;
-        this._renderer = null;
-        this._existingSelection = [];
-        this._mouseStart = new Vector2();
-        this._mouseNow = new Vector2();
-        this._wantsRubberBand = false;
-    }
-    update(renderer) {
-        const camera = renderer.camera;
-        const scene = renderer.scene;
-        const pointer = renderer.pointer;
-        const keyboard = renderer.keyboard;
-        if (!camera || !scene || !pointer || !keyboard) return;
-        if (renderer) this._renderer = renderer;
-        let newSelection = [ ...this.selection ];
-        if (this.transformed) {
-            this.dom.dispatchEvent(new Event('selection-transformed'));
-            this.transformed = false;
-        }
-        _cameraPoint.copy(renderer.screenToWorld(pointer.position));
-        if (pointer.buttonJustPressed(Pointer.LEFT)) {
-            this._mouseStart.copy(_cameraPoint);
-            const underMouse = ArrayUtils.filterThings(renderer.getWorldPointIntersections(_cameraPoint), { pointerEvents: true });
-            if (keyboard.ctrlPressed() || keyboard.metaPressed() || keyboard.shiftPressed()) {
-                let resizerClicked = false;
-                if (underMouse.length > 0) {
-                    const topObject = underMouse[0];
-                    resizerClicked = resizerClicked || (topObject.type === 'Resizer');
-                    resizerClicked = resizerClicked || (topObject.type === 'Rotater');
-                }
-                if (!resizerClicked) {
-                    const selectableOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
-                    if (selectableOnly.length > 0) {
-                        const object = selectableOnly[0];
-                        if (object.isSelected) {
-                            newSelection = ArrayUtils.removeThingFromArray(object, newSelection);
-                        } else {
-                            newSelection = ArrayUtils.combineThingArrays(newSelection, [ object ]);
-                        }
-                    } else {
-                        this._existingSelection = [ ...this.selection ];
-                        this._wantsRubberBand = true;
-                    }
-                }
-            } else {
-                this.downTimer = performance.now();
-                if (underMouse.length === 0) {
-                    newSelection = [];
-                    this._existingSelection = [];
-                    this._wantsRubberBand = true;
-                } else if (underMouse.length > 0 && underMouse[0].isHelper !== true) {
-                    const selectableOnly = ArrayUtils.filterThings(underMouse, { selectable: true });
-                    const object = selectableOnly[0];
-                    if (object && object.selectable && ArrayUtils.compareThingArrays(object, this.selection) === false) {
-                        newSelection = [ object ];
-                        this.downTimer = 0;
-                    }
-                }
-            }
-        }
-        this._mouseNow.copy(_cameraPoint);
-        if (pointer.buttonPressed(Pointer.LEFT)) {
-            const mouseTravel = this._mouseStart.manhattanDistanceTo(this._mouseNow);
-            if (this._wantsRubberBand) {
-                if (this.rubberBandBox == null) {
-                    if (mouseTravel >= MOUSE_SLOP) {
-                        const rubberBandBox = new RubberBandBox();
-                        scene.traverse((child) => { rubberBandBox.layer = Math.max(rubberBandBox.layer, child.layer + 1); });
-                        renderer.addHelper(rubberBandBox);
-                        this.rubberBandBox = rubberBandBox;
-                        renderer.setDragObject(this.rubberBandBox);
-                    }
-                }
-                if (this.rubberBandBox) {
-                    const viewportStart = renderer.worldToScreen(this._mouseStart);
-                    const viewportEnd = renderer.worldToScreen(this._mouseNow);
-                    _center.addVectors(viewportStart, viewportEnd).divideScalar(2);
-                    _center.copy(renderer.screenToWorld(_center));
-                    this.rubberBandBox.position.copy(_center);
-                    _size.subVectors(viewportStart, viewportEnd).abs().divideScalar(2);
-                    this.rubberBandBox.box.min.set(-_size.x, -_size.y);
-                    this.rubberBandBox.box.max.set(+_size.x, +_size.y);
-                    this.rubberBandBox.computeBoundingBox();
-                    this.rubberBandBox.rotation = -camera.rotation;
-                    this.rubberBandBox.scale.set(1 / camera.scale, 1 / camera.scale);
-                    this.rubberBandBox.updateMatrix(true);
-                    let intersectedObjects;
-                    if (this._existingSelection.length > 0) {
-                        intersectedObjects = this.rubberBandBox.intersected(this._existingSelection[0].parent, false );
-                    } else {
-                        intersectedObjects = this.rubberBandBox.intersected(scene, true );
-                    }
-                    newSelection = ArrayUtils.combineThingArrays(this._existingSelection, intersectedObjects);
-                }
-            }
-        }
-        if (pointer.buttonJustReleased(Pointer.LEFT)) {
-            const mouseTravel = this._mouseStart.manhattanDistanceTo(this._mouseNow);
-            const shortClick = performance.now() - this.downTimer < MOUSE_CLICK_TIME;
-            this._wantsRubberBand = false;
-            if (this.rubberBandBox) {
-                if (renderer.dragObject === this.rubberBandBox) renderer.setDragObject(null);
-                this.rubberBandBox.destroy();
-                this.rubberBandBox = null;
-            } else if (shortClick && mouseTravel <= MOUSE_SLOP) {
-                const underMouse = renderer.getWorldPointIntersections(_cameraPoint);
-                const withoutResizeHelper = ArrayUtils.filterThings(underMouse, { isHelper: undefined });
-                if (withoutResizeHelper.length === 0) {
-                    newSelection = [];
-                } else if (withoutResizeHelper.length > 0) {
-                    const object = withoutResizeHelper[0];
-                    if (object.selectable && ArrayUtils.compareThingArrays(object, this.selection) === false) {
-                        newSelection = [ object ];
-                    }
-                }
-            }
-        }
-        if (ArrayUtils.compareThingArrays(this.selection, newSelection) === false) {
-            const siblings = [];
-            if (newSelection.length > 0) {
-                const wantsParent = newSelection[0].parent;
-                for (const object of newSelection) {
-                    if (object.parent === wantsParent) siblings.push(object);
-                }
-            }
-            newSelection = [ ...siblings ];
-        }
-        if (ArrayUtils.compareThingArrays(this.selection, newSelection) === false) {
-            this.setSelection(newSelection);
-            if (newSelection.length > 0) {
-                if (this.rubberBandBox == null && this.resizeHelper) {
-                    renderer.setDragObject(this.resizeHelper);
-                }
-            }
-            this.dom.dispatchEvent(new Event('selection-changed'));
-        }
-    }
-    setSelection(...things) {
-        if (!this._renderer || !this._renderer.scene) return;
-        if (things.length > 0 && Array.isArray(things[0])) things = things[0];
-        const renderer = this._renderer;
-        const scene = renderer.scene;
-        scene.traverse((child) => { child.isSelected = false; });
-        things.forEach((object) => { object.isSelected = true; });
-        if (this.resizeHelper) {
-            this.resizeHelper.objects = [];
-            this.resizeHelper.destroy();
-            this.resizeHelper = null;
-        }
-        if (things.length > 0) {
-            const resizeHelper = new ResizeHelper(things, this);
-            renderer.addHelper(resizeHelper);
-            resizeHelper.onUpdate(renderer);
-            this.resizeHelper = resizeHelper;
-        }
-        this.selection = [ ...things ];
-    }
-}
-
-const NEAREST_ANGLE = 5;
-const SIZE_OF_CROSS = 15;
-const _bounds = new Box2();
-const _corner1 = new Vector2();
-const _corner2 = new Vector2();
-const _corner3 = new Vector2();
-const _corner4 = new Vector2();
-const _start = new Vector2();
-const _matrix = new Matrix2();
-const _inverse = new Matrix2();
-const _translate = new Matrix2();
-const _rotate = new Matrix2();
-const _scale = new Matrix2();
-class GridHelper extends Object2D {
-    #gridX = 50;
-    #gridY = 50;
-    constructor(gridSizeX = 50, gridSizeY = gridSizeX) {
-        super();
-        const self = this;
-        this.isHelper = true;
-        this.type = 'GridHelper';
-        this.gridColor = new ColorStyle('rgb(128, 128, 128)', 'rgb(128, 128, 128)');
-        this.pointerEvents = false;
-        this.draggable = false;
-        this.focusable = false;
-        this.selectable = false;
-        this.gridX = gridSizeX;
-        this.gridY = gridSizeY;
-        this.snap = true;
-        this.onTop = false;
-        const cross = Object.assign(new Object2D(), { pointerEvents: false, draggable: false, focusable: false, selectable: false });
-        cross.layer = +Infinity;
-        cross.visible = false;
-        cross.draw = function (renderer) {
-            const context = renderer.context;
-            const worldPosition = cross.getWorldPosition();
-            renderer.resetTransform();
-            _translate.identity().translate(worldPosition.x, worldPosition.y).transformContext(context);
-            _scale.identity().scale(self.scale.x, self.scale.y).transformContext(context);
-            _rotate.identity().rotate(self.rotation).transformContext(context);
-            function degreesToYAxisAlignment(degrees) {
-                let normalizedDegrees = ((degrees + 180) % 360 + 360) % 360 - 180;
-                while (normalizedDegrees > +90) normalizedDegrees -= 180;
-                while (normalizedDegrees < -90) normalizedDegrees += 180;
-                return Math.abs(normalizedDegrees) / 90;
-            }
-            const lerp = degreesToYAxisAlignment(MathUtils.radiansToDegrees(self.rotation));
-            const scale = self.scale.clone();
-            scale.x = ((1 - lerp) * self.scale.x) + (lerp * self.scale.y);
-            scale.y = ((1 - lerp) * self.scale.y) + (lerp * self.scale.x);
-            const sizeX = (SIZE_OF_CROSS / renderer.camera.scale) / scale.x;
-            const sizeY = (SIZE_OF_CROSS / renderer.camera.scale) / scale.y;
-            context.beginPath();
-            context.moveTo(-sizeX, 0); context.lineTo(+sizeX, 0);
-            context.moveTo(0, -sizeY); context.lineTo(0, +sizeY);
-            context.save();
-            context.setTransform(1, 0, 0, 1, 0, 0);
-            context.strokeStyle = '#ffffff'; context.lineWidth = 5; context.lineCap = 'round'; context.stroke();
-            context.strokeStyle = '#000000'; context.lineWidth = 2; context.lineCap = 'butt'; context.stroke();
-            context.restore();
-        };
-        this.cross = cross;
-        this.add(cross);
-        this.cache = null;
-        this.gridScale = 1;
-        this.patternCanvas = document.createElement('canvas');
-        this.patternContext = this.patternCanvas.getContext('2d');
-        this.drawPattern();
-    }
-    get gridX() { return this.#gridX; }
-    set gridX(size) {
-        if (!isFinite(size) || size < 1) size = 1;
-        this.#gridX = size;
-        this.cache = null;
-    }
-    get gridY() { return this.#gridY; }
-    set gridY(size) {
-        if (!isFinite(size) || size < 1) size = 1;
-        this.#gridY = size;
-        this.cache = null;
-    }
-    alignToGrid(object) {
-        if (!object.parent) return;
-        const parent = object.ghostParent ?? object.parent;
-        const worldPosition = object.getWorldPosition();
-        const originOffset = new Vector2();
-        if (object.origin) {
-            const worldOrigin = object.globalMatrix.transformPoint(object.origin);
-            const parentOrigin = parent.inverseGlobalMatrix.transformPoint(worldOrigin);
-            originOffset.copy(parentOrigin).sub(object.position);
-            worldPosition.copy(worldOrigin);
-        }
-        const inverseMatrix = new Matrix2()
-            .translate(-this.position.x, -this.position.y)
-            .rotate(-this.rotation)
-            .scale(1 / this.scale.x, 1 / this.scale.y);
-        const gridPosition = inverseMatrix.transformPoint(worldPosition);
-        const closestX = Math.round(gridPosition.x / this.gridX) * this.gridX;
-        const closestY = Math.round(gridPosition.y / this.gridY) * this.gridY;
-        const transformMatrix = new Matrix2()
-            .scale(this.scale.x, this.scale.y)
-            .rotate(this.rotation)
-            .translate(this.position.x, this.position.y);
-        const closestWorldPosition = transformMatrix.transformPoint(new Vector2(closestX, closestY));
-        const parentPosition = parent.inverseGlobalMatrix.transformPoint(closestWorldPosition);
-        parentPosition.sub(originOffset);
-        object.setPosition(parentPosition.x, parentPosition.y);
-    }
-    alignToRotation(object) {
-        const angle = this.rotation;
-        const scaleX = this.scale.x;
-        const scaleY = this.scale.y;
-        const horizontalAngle = MathUtils.radiansToDegrees(Math.atan((scaleY * Math.tan(angle)) / scaleX));
-        const verticalAngle = MathUtils.radiansToDegrees((Math.PI / 2) - Math.atan((scaleY / scaleX) * (1 / Math.tan(angle))));
-        const alignedAngle = roundToNearestWithTwoRotations(MathUtils.radiansToDegrees(object.rotation), NEAREST_ANGLE, horizontalAngle, verticalAngle);
-        object.setRotation(MathUtils.degreesToRadians(alignedAngle));
-    }
-    draw(renderer) {
-        const context = renderer.context;
-        const camera = renderer.camera;
-        context.save();
-        _matrix.copy(renderer.resetTransform(false));
-        _matrix.multiply(_scale.identity().scale(this.scale.x, this.scale.y));
-        _matrix.multiply(_rotate.identity().rotate(this.rotation));
-        _matrix.setContextTransform(context);
-        _matrix.getInverse(_inverse);
-        const halfWidth = renderer.width / 2;
-        const halfHeight = renderer.height / 2;
-        _inverse.applyToVector(_corner1.set(-halfWidth, +halfHeight));
-        _inverse.applyToVector(_corner2.set(+halfWidth, +halfHeight));
-        _inverse.applyToVector(_corner3.set(-halfWidth, -halfHeight));
-        _inverse.applyToVector(_corner4.set(+halfWidth, -halfHeight));
-        _bounds.setFromPoints(_corner1, _corner2, _corner3, _corner4);
-        const visibleWidth = _bounds.getSize().x;
-        const visibleHeight = _bounds.getSize().y;
-        const gridCountX = Math.ceil(visibleWidth / this.gridX) + 2;
-        const gridCountY = Math.ceil(visibleHeight / this.gridY) + 2;
-        _start.set(
-            (camera.position.x / this.scale.x) * -1,
-            (camera.position.y / this.scale.y),
-        );
-        _rotate.identity().rotate(this.rotation);
-        _rotate.applyToVector(_start);
-        const startX = Math.ceil((_start.x + (visibleWidth / 2)) / this.gridX) * this.gridX * -1;
-        const startY = Math.ceil((_start.y + (visibleHeight / 2)) / this.gridY) * this.gridY * -1;
-        if (this.gridScale !== camera.scale || !this.cache) {
-            this.gridColor.color = '--button-dark';
-            this.gridColor.needsUpdate = true;
-            this.drawPattern(camera.scale);
-        }
-        if (camera.scale <= 1.5) {
-            if (!this.cache) this.cache = context.createPattern(this.patternCanvas, 'repeat');
-            context.fillStyle = this.cache;
-            context.fillRect(startX, startY, gridCountX * this.gridX, gridCountY * this.gridY);
-        } else {
-            context.strokeStyle = this.gridColor.get(context);
-            context.globalAlpha = 1;
-            context.lineWidth = 1;
-            context.beginPath();
-            for (let i = 0; i <= gridCountX; i++) {
-                const x = startX + (i * this.gridX);
-                context.moveTo(x, startY);
-                context.lineTo(x, startY + gridCountY * this.gridY);
-            }
-            for (let j = 0; j <= gridCountY; j++) {
-                const y = startY + (j * this.gridY);
-                context.moveTo(startX, y);
-                context.lineTo(startX + gridCountX * this.gridX, y);
-            }
-            context.setTransform(1, 0, 0, 1, 0, 0);
-            context.stroke();
-        }
-        context.restore();
-    }
-    drawPattern(scale = 1) {
-        this.cache = null;
-        this.gridScale = scale;
-        const context = this.patternContext;
-        this.patternCanvas.width = this.gridX;
-        this.patternCanvas.height = this.gridY;
-        context.setTransform(1, 0, 0, 1, 0, 0);
-        context.clearRect(0, 0, this.patternCanvas.width, this.patternCanvas.height);
-        context.translate(this.gridX / 2, this.gridY / 2);
-        context.strokeStyle = this.gridColor.get(context);
-        context.globalAlpha = Math.min(1, scale);
-        context.lineWidth = 1;
-        context.beginPath();
-        context.moveTo(this.gridX / 2, -this.gridY);
-        context.lineTo(this.gridX / 2, +this.gridY);
-        context.moveTo(-this.gridX, this.gridY / 2);
-        context.lineTo(+this.gridX, this.gridY / 2);
-        context.stroke();
-    }
-    onUpdate(renderer) {
-        this.layer = (this.onTop) ? +Infinity : -Infinity;
-        this.level = -1;
-        const object = renderer.dragObject;
-        this.cross.visible = false;
-        if (object && object.isDragging) {
-            if (object.type === 'Rotater') {
-                if (renderer.keyboard.modifierPressed() !== this.snap) {
-                    this.alignToRotation(object);
-                }
-            } else {
-                if (this.snap && !renderer.keyboard.metaPressed()) {
-                    this.alignToGrid(object);
-                    if (object.origin) {
-                        const originPosition = object.globalMatrix.transformPoint(object.origin);
-                        this.cross.position.copy(originPosition);
-                        this.inverseGlobalMatrix.applyToVector(this.cross.position);
-                        this.cross.updateMatrix(true);
-                        this.cross.level = -1;
-                        this.cross.visible = true;
-                    }
-                }
-            }
-        }
-    }
-}
-function roundToNearestWithTwoRotations(angle, nearest, startRotation1, startRotation2) {
-    const relativeAngle1 = angle - startRotation1;
-    const roundedRelativeAngle1 = Math.round(relativeAngle1 / nearest) * nearest;
-    const roundedAngle1 = startRotation1 + roundedRelativeAngle1;
-    const relativeAngle2 = angle - startRotation2;
-    const roundedRelativeAngle2 = Math.round(relativeAngle2 / nearest) * nearest;
-    const roundedAngle2 = startRotation2 + roundedRelativeAngle2;
-    const diff1 = Math.abs(angle - roundedAngle1);
-    const diff2 = Math.abs(angle - roundedAngle2);
-    return diff1 < diff2 ? roundedAngle1 : roundedAngle2;
-}
-
-class OriginHelper extends Circle {
-    constructor(size = 5) {
-        super(size);
-        this.isHelper = true;
-        this.type = 'OriginHelper';
-        this.pointerEvents = false;
-        this.draggable = false;
-        this.focusable = false;
-        this.selectable = false;
-        this.fillStyle.color = '--complement';
-        this.strokeStyle.color = '#000000';
-        this.lineWidth = 1;
-        this.constantWidth = true;
-    }
-    computeBoundingBox() {
-        this.boundingBox.clear();
-    }
-    draw(renderer) {
-        this.layer = +Infinity;
-        super.draw(renderer);
-    }
-}
-
-const DURATION = 1500;
-const FADEOUT = 500;
-const TIME_OFFSET = 100000;
-const _minimum = new Box2(new Vector2(-30, -12), new Vector2(30, 12));
-const _position = new Vector2();
-class TooltipHelper extends Box {
-    constructor(sceneTips = false) {
-        super();
-        this.isHelper = true;
-        this.type = 'TooltipHelper';
-        this.pointerEvents = false;
-        this.draggable = false;
-        this.focusable = false;
-        this.selectable = false;
-        this.layer = +Infinity;
-        this.visible = false;
-        this.sceneTips = sceneTips;
-        this.box.min.set(-40, -14);
-        this.box.max.set(+40, +14);
-        this.radius = 7;
-        this.fillStyle.color = '--background-dark';
-        this.strokeStyle.color = '--icon';
-        this.lineWidth = 2;
-        const displayText = Object.assign(new Text(), { pointerEvents: false, draggable: false, focusable: false, selectable: false });
-        displayText.layer = +Infinity;
-        displayText.fillStyle.color = '--highlight';
-        this.add(displayText);
-        this.displayText = displayText;
-        const outline = Object.assign(new Box(), { pointerEvents: false, draggable: false, focusable: false, selectable: false });
-        outline.layer = +Infinity;
-        outline.fillStyle.color = `--shadow`;
-        outline.opacity = 0.65;
-        outline.strokeStyle = null;
-        outline.radius = 10;
-        this.add(outline);
-        this.outline = outline;
-        this.duration = DURATION;
-        this.initialPosition = new Vector2();
-        this.offset = new Vector2();
-        this.startTime = 0;
-        this.wasChanged = false;
-    }
-    popup(text = '', align = 'center', duration, fadeOut) {
-        this.duration = duration ?? DURATION;
-        this.fadeOut = (fadeOut != null) ? fadeOut : FADEOUT;
-        this.displayText.text = String(text);
-        this.displayText.textAlign = align;
-        this.startTime = performance.now() + TIME_OFFSET;
-        this.wasChanged = true;
-    }
-    onUpdate(renderer) {
-        const camera = renderer.camera;
-        const pointer = renderer.pointer;
-        if (this.sceneTips) {
-            if (renderer.pointer.wheel !== 0) {
-                let scale = renderer.camera.scale * 100;
-                scale = scale.toFixed((scale < 50) ? ((scale < 5) ? 2 : 1) : 0);
-                this.popup(` ${scale}% `, 'center');
-            } else if (renderer.dragObject && renderer.dragObject.isDragging) {
-                let tooltipText = '';
-                const object = renderer.dragObject;
-                if (object.type === 'Resizer') {
-                    const resizeHelper = object.resizeHelper;
-                    if (resizeHelper) {
-                        const toolSize = resizeHelper.boundingBox.getSize();
-                        let w = (toolSize.x * resizeHelper.scale.x).toFixed(3);
-                        let h = (toolSize.y * resizeHelper.scale.y).toFixed(3);
-                        w = parseFloat(w).toString();
-                        h = parseFloat(h).toString();
-                        tooltipText = `W: ${w}\nH: ${h}`;
-                    }
-                } else if (object.type === 'Rotater') {
-                    const resizeHelper = object.resizeHelper;
-                    if (resizeHelper) {
-                        let angle = MathUtils.radiansToDegrees(resizeHelper.rotation);
-                        angle = angle.toFixed(3);
-                        angle = parseFloat(angle).toString();
-                        tooltipText = `${angle}°`;
-                    }
-                } else  {
-                    if (object.type === 'ResizeHelper' && object.objects.length === 1) {
-                        let x = parseFloat((object.objects[0].position.x).toFixed(3)).toString();
-                        let y = parseFloat((object.objects[0].position.y).toFixed(3)).toString();
-                        tooltipText = `X: ${x}\nY: ${y}`;
-                    } else {
-                        let x = parseFloat((object.position.x).toFixed(3)).toString();
-                        let y = parseFloat((object.position.y).toFixed(3)).toString();
-                        tooltipText = `X: ${x}\nY: ${y}`;
-                    }
-                }
-                if (tooltipText !== '') {
-                    this.popup(tooltipText, 'left' , 10 , 0 );
-                }
-            }
-        }
-        const timePassed = (performance.now() + TIME_OFFSET) - this.startTime;
-        const expired = timePassed > this.duration;
-        if (expired) {
-            this.visible = false;
-        } else {
-            this.visible = true;
-            if (this.wasChanged) {
-                this.wasChanged = false;
-                this.displayText.computeBoundingBox(renderer);
-                this.box.copy(this.displayText.boundingBox);
-                this.box.min.x -= 10;
-                this.box.max.x += 10;
-                this.box.min.y -= 8;
-                this.box.max.y += 4;
-                this.box.union(_minimum);
-                this.offset.x = ((this.box.max.x - this.box.min.x) / 2) + 25;
-                this.offset.y = ((this.box.max.y - this.box.min.y) / 2) + 25;
-                _position.set(pointer.position.x + this.offset.x, pointer.position.y + this.offset.y);
-                _position.copy(renderer.screenToWorld(_position));
-                this.position.copy(_position);
-                this.opacity = 1;
-                this.visible = true;
-                this.displayText.level = this.level + 1;
-                this.outline.level = this.level - 1;
-                this.outline.box.copy(this.box);
-                this.outline.box.expandByScalar(3);
-            } else {
-                _position.set(pointer.position.x + this.offset.x, pointer.position.y + this.offset.y);
-                _position.copy(renderer.screenToWorld(_position));
-                this.position.smoothstep(_position, renderer.deltaTime * 60);
-                this.opacity = (timePassed >= this.duration - this.fadeOut) ? Math.max(0, 1 - (timePassed - (this.duration - this.fadeOut)) / this.fadeOut) : 1;
-            }
-            this.rotation = -camera.rotation;
-            this.scale.set(1 / camera.scale, 1 / camera.scale);
-            this.updateMatrix(true);
-        }
-    }
-}
-
-let _singleton = null;
-class Debug {
-    #startInternal;
-    #stopInternal;
-    constructor(openFrame = false, openScene = false, openBuffers = false, openSystem = false) {
-        if (_singleton) return _singleton;
-        function checkState(key) {
-            const value = localStorage.getItem(key);
-            if (typeof value === 'string') {
-                if (value === 'undefined' || value === 'null' || value === 'false') return false;
-                return true;
-            }
-            return !!value;
-        }
-        openFrame = openFrame || checkState('DebugFrame');
-        openScene = openScene || checkState('DebugScene');
-        openBuffers = openBuffers || checkState('DebugBuffers');
-        openSystem = openSystem || checkState('DebugSystem');
-        const buttonColor = getVariable('button-light') ?? '60, 60, 60';
-        const backgroundColor = getVariable('background-light') ?? '32, 32, 32';
-        const backgroundAlpha = getVariable('panel-transparency') ?? '1.0';
-        const textColor = getVariable('text') ?? '170, 170, 170';
-        const textLight = getVariable('text-light') ?? '225, 225, 225';
-        const styleSheet = document.createElement('style');
-        styleSheet.textContent = `
-            #EyeDebug {
-                position: absolute;
-                display: flex;
-                flex-direction: column;
-                justify-content: left;
-                text-align: left;
-                left: 0;
-                bottom: 0;
-                margin: 0.25em;
-                padding: 0;
-                z-index: 1000; /* Debug Info */
-                background: transparent;
-            }
-
-            .EyeDiv {
-                user-select: none;
-                pointer-events: none;
-                margin: 0.35em;
-                margin-bottom: 0;
-                padding: 0.25em;
-                border-radius: 0.71429em;
-                background-color: rgba(${backgroundColor}, ${backgroundAlpha});
-            }
-
-            .EyeButtonRow {
-                display: flex;
-                background: transparent;
-                margin: 0.35em;
-            }
-
-            .EyeDebugButton {
-                filter: grayscale(100%);
-                flex: 1 1 auto;
-                border-radius: 1000px;
-                background-color: rgba(${backgroundColor}, ${backgroundAlpha});
-                height: 2.5em;
-                width: 2.5em;
-                margin-left: 0.2em;
-                margin-right: 0.2em;
-                padding-bottom: 0.05em;
-            }
-
-            .EyeDebugButton:hover {
-                filter: brightness(125%) grayscale(100%);
-                box-shadow:
-                    inset -1px 1px 1px -1px rgba(255, 255, 255, 0.2),
-                    inset 2px -2px 2px -1px rgba(0, 0, 0, 0.75);
-            }
-
-            .EyeDebugButton.suey-selected {
-                filter: brightness(100%);
-                box-shadow: none;
-            }
-
-            #ButtonFrame { border: solid 2px rgba(${buttonColor}, 0.7); }
-            #ButtonScene { border: solid 2px rgba(${buttonColor}, 0.7); }
-            #ButtonBuffers { border: solid 2px rgba(${buttonColor}, 0.7); }
-            #ButtonSystem { border: solid 2px rgba(${buttonColor}, 0.7); }
-
-            #FrameFrame, #ButtonFrame.suey-selected { border: solid 2px rgba(0, 180, 175, 0.75); }
-            #SceneFrame, #ButtonScene.suey-selected { border: solid 2px rgba(255, 113, 0, 0.75); }
-            #BuffersFrame, #ButtonBuffers.suey-selected { border: solid 2px rgba(255, 93, 0, 0.75); }
-            #SystemFrame, #ButtonSystem.suey-selected { border: solid 2px rgba(145, 223, 0, 0.75); }
-
-            .EyeDebugButton.suey-selected:hover {
-                filter: brightness(125%);
-            }
-
-            .EyeDebugButton:active {
-                filter: brightness(100%);
-                box-shadow:
-                    inset -1px 1px 3px 1px rgba(0, 0, 0, 0.75),
-                    inset  1px 1px 3px 1px rgba(0, 0, 0, 0.75),
-                    inset -1px -1px 3px 1px rgba(0, 0, 0, 0.75),
-                    inset  1px -1px 3px 1px rgba(0, 0, 0, 0.75);
-            }
-
-            .EyeDetails { /* closed */
-                filter: brightness(0.75);
-                padding: 0;
-                margin: 0;
-                left: 0;
-                right: 0;
-                width: 100%;
-            }
-
-            .EyeDetails[open] {
-                filter: none;
-                padding-top: 0.1em;
-                min-width: 9em;
-            }
-
-            .EyeHeader {
-                padding: 0.1em 0.3em;
-                padding-top: 0;
-                left: 0;
-                width: 100%;
-                margin: 0;
-                font-size: 0.9em;
-            }
-
-            #FrameHeader { color: #00b4af; }
-            #SceneHeader { color: #ff7100; }
-            #BuffersHeader { color: #d8007f; }
-            #SystemHeader { color: #75b300; }
-
-            .EyeRow {
-                display: flex;
-                justify-content: space-between;
-                padding: 0.1em;
-                padding-left: 0.3em;
-                padding-right: 0.3em;
-                width: 100%;
-                font-size: 0.8em;
-                color: rgba(${textColor}, 0.8);
-            }
-
-            .EyeInfo, .EyeInfo > * {
-                font-size: inherit;
-                color: rgb(${textLight});
-            }
-
-            .Light {
-                font-size: 12px;
-                color: #a5f300;
-            }
-
-            .EyeImageHolder {
-                position: absolute;
-                left: 0;
-                right: 0;
-                top: 0;
-                bottom: 0;
-                margin: 0.4em;
-                /* max-width: 1.35em; */
-                /* max-height: 1.35em; */
-            }
-
-            .ColorIcon {
-                filter: brightness(50%) sepia(1000%) saturate(350%) hue-rotate(calc(var(--rotate-hue) + 160deg));
-            }
-
-            .ColorComplement {
-                filter: brightness(50%) sepia(1000%) saturate(350%) hue-rotate(calc(var(--rotate-hue) + 0deg));
-            }
-
-            .suey-rotate-colorize1 {
-                filter: brightness(50%) sepia(1000%) saturate(350%) hue-rotate(calc(var(--rotate-hue) + 270deg));
-            }
-
-            .suey-rotate-colorize2 {
-                filter: brightness(65%) sepia(1000%) saturate(350%) hue-rotate(calc(var(--rotate-hue) + 35deg));
-            }
-        `;
-        document.head.appendChild(styleSheet);
-        const dom = document.createElement('div');
-        dom.id = 'EyeDebug';
-        dom.innerHTML = `
-            <div class="EyeDiv" id="FrameFrame">
-                <div class="EyeHeader" id="FrameHeader">Frame</div>
-                <div class="EyeRow">FPS<span class="EyeInfo" id="EyeFps">?</span></div>
-                <div class="EyeRow">Render<span class="EyeInfo" id="EyeRender">?</span></div>
-                <div class="EyeRow">Max<span class="EyeInfo" id="EyeMax">?</span></div>
-                <div class="EyeRow">Draws <span class="EyeInfo" id="EyeDraws">?</span></div>
-                </div>
-            </div>
-
-            <div class="EyeDiv" id="SceneFrame">
-                <div class="EyeHeader" id="SceneHeader">Scene</div>
-                <div class="EyeRow">Objects <span class="EyeInfo" id="EyeObjects">?</span></div>
-                <div class="EyeRow">Lights <span class="EyeInfo" id="EyeLights">?</span></div>
-                <div class="EyeRow">Vertices <span class="EyeInfo" id="EyeVertices">?</span></div>
-                <div class="EyeRow">Triangles <span class="EyeInfo" id="EyeTriangles">?</span></div>
-                </details>
-            </div>
-
-            <div class="EyeDiv" id="BuffersFrame">
-                <div class="EyeHeader" id="BuffersHeader">Buffers</div>
-                <div class="EyeRow">Programs <span class="EyeInfo" id="EyePrograms">?</span></div>
-                <div class="EyeRow">Geometries <span class="EyeInfo" id="EyeGeometries">?</span></div>
-                <div class="EyeRow">Textures <span class="EyeInfo" id="EyeTextures">?</span></div>
-                </details>
-            </div>
-
-            <div class="EyeDiv" id="SystemFrame">
-                <div class="EyeHeader" id="SystemHeader">System</div>
-                <div class="EyeRow">Memory <span class="EyeInfo" id="EyeMemory">?</span></div>
-                </details>
-            </div>
-
-            <div class="EyeButtonRow">
-                <button class="EyeDebugButton" id="ButtonFrame">
-                    <div class="EyeImageHolder ColorIcon">
-                    <svg width="100%" height="100%" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"><path d="M253.007,34c123.372,0.146 224.847,101.621 224.993,224.993l0,0.007c0,123.431 -101.569,225 -225,225c-123.431,0 -225,-101.569 -225,-225c0,-123.431 101.569,-225 225,-225l0.007,0Zm-0.011,398.23c94.989,-0.118 173.116,-78.245 173.234,-173.234c-0.002,-95.029 -78.2,-173.226 -173.23,-173.226c-95.031,-0 -173.23,78.199 -173.23,173.23c-0,95.03 78.197,173.228 173.226,173.23Z" style="fill:#c0c0c0;"/><path d="M279.881,249.916l51.859,51.858c0.028,0.029 0.057,0.058 0.085,0.087c4.838,5.009 7.546,11.709 7.546,18.674c-0,14.746 -12.135,26.881 -26.881,26.881c-6.966,-0 -13.665,-2.707 -18.675,-7.546c-0.029,-0.028 -0.058,-0.056 -0.086,-0.085l-59.733,-59.733c-5.039,-5.037 -7.874,-11.879 -7.877,-19.004l0,-119.471c0,-14.746 12.135,-26.881 26.881,-26.881c14.746,-0 26.881,12.135 26.881,26.881l-0,108.339Z" style="fill:#c0c0c0;"/></svg>
-                    </div>
-                </button>
-                <button class="EyeDebugButton" id="ButtonScene">
-                    <div class="EyeImageHolder ColorComplement">
-                    <svg width="100%" height="100%" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"><path d="M336.33,61.901c0.054,0.046 87.151,87.14 87.223,87.223c0.015,0.017 0.028,0.032 0.039,0.044c1.231,1.375 2.251,2.87 3.086,4.423c1.775,3.293 2.772,7.051 2.772,11.035l0,258.458c0,8.282 -3.289,16.224 -9.145,22.08l-1.192,1.191c-6.176,6.175 -14.551,9.645 -23.286,9.645l-260.361,0c-8.282,0 -16.225,-3.29 -22.08,-9.146l-1.191,-1.191c-6.176,-6.176 -9.645,-14.551 -9.645,-23.286l0,-333.461c0,-8.282 3.289,-16.224 9.145,-22.08l1.192,-1.191c6.176,-6.175 14.551,-9.645 23.286,-9.645l184.652,0c3.983,0 7.741,0.997 11.034,2.773c1.572,0.843 3.084,1.878 4.471,3.128Zm-51.29,107.446l-0,-69.22l-138.363,0l-0,311.746l238.646,0l-0,-211.463l-69.925,0c-7.603,0 -14.894,-3.02 -20.271,-8.396l-1.19,-1.191c-5.697,-5.696 -8.897,-13.422 -8.897,-21.476Zm42.579,-9.526l44,-0l-44,-44l-0,44Z" style="fill:#c0c0c0;"/></svg>
-                    </div>
-                </button>
-                <button class="EyeDebugButton" id="ButtonBuffers">
-                    <div class="EyeImageHolder suey-rotate-colorize1">
-                    <svg width="100%" height="100%" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"><path d="M449.119,359.79c9.175,15.892 9.175,34.87 -0,50.764c-9.175,15.891 -25.611,25.382 -43.964,25.382l-298.311,0c-18.35,0 -34.783,-9.486 -43.961,-25.38c-9.177,-15.896 -9.177,-34.874 0,-50.766l149.154,-258.344c9.175,-15.893 25.611,-25.382 43.964,-25.382c18.353,-0 34.786,9.486 43.964,25.38l149.154,258.346Zm-338.984,23.483l291.732,-0l-145.866,-252.645l-145.866,252.645Z" style="fill:#c0c0c0;"/></svg>
-                    </div>
-                </button>
-                <button class="EyeDebugButton" id="ButtonSystem">
-                    <div class="EyeImageHolder suey-rotate-colorize2">
-                    <svg width="100%" height="100%" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"><path d="M410.964,152.852c24.705,0 45.036,20.331 45.036,45.037l0,116.222c0,24.706 -20.331,45.037 -45.036,45.037l-13.075,-0l-0,32.445c-0,14.081 -11.586,25.666 -25.666,25.666c-14.081,0 -25.666,-11.585 -25.666,-25.666l-0,-32.445l-64.891,-0l-0,32.445c-0,14.081 -11.586,25.666 -25.666,25.666c-14.08,0 -25.666,-11.585 -25.666,-25.666l0,-32.445l-64.891,-0l0,32.445c0,14.081 -11.585,25.666 -25.666,25.666c-14.08,0 -25.666,-11.585 -25.666,-25.666l0,-32.445l-13.075,-0c-24.705,-0 -45.036,-20.331 -45.036,-45.037l0,-116.222c0,-24.706 20.331,-45.037 45.036,-45.037l13.075,0l0,-32.445c0,-14.081 11.586,-25.666 25.666,-25.666c14.081,-0 25.666,11.585 25.666,25.666l0,32.445l64.891,0l0,-32.445c0,-14.081 11.586,-25.666 25.666,-25.666c14.08,-0 25.666,11.585 25.666,25.666l-0,32.445l64.891,0l-0,-32.445c-0,-14.081 11.585,-25.666 25.666,-25.666c14.08,-0 25.666,11.585 25.666,25.666l-0,32.445l13.075,0Zm-303.632,154.964l297.336,-0l0,-103.632l-297.336,0l-0,103.632Z" style="fill:#c0c0c0;"/></svg>
-                    </div>
-                </button>
-            </div>
-        `;
-        document.body.appendChild(dom);
-        const frameFrame = document.getElementById('FrameFrame');
-        const sceneFrame = document.getElementById('SceneFrame');
-        const buffersFrame = document.getElementById('BuffersFrame');
-        const systemFrame = document.getElementById('SystemFrame');
-        const buttonFrame = document.getElementById('ButtonFrame');
-        const buttonScene = document.getElementById('ButtonScene');
-        const buttonBuffers = document.getElementById('ButtonBuffers');
-        const buttonSystem = document.getElementById('ButtonSystem');
-        buttonFrame.setAttribute('tooltip', 'Frame');
-        buttonScene.setAttribute('tooltip', 'Scene');
-        buttonBuffers.setAttribute('tooltip', 'Buffers');
-        buttonSystem.setAttribute('tooltip', 'System');
-        function toggleFrame(frame, button, open, storageKey) {
-            if (open) {
-                frame.style.display = '';
-                button.classList.add('suey-selected');
-            } else {
-                frame.style.display = 'none';
-                button.classList.remove('suey-selected');
-            }
-            localStorage.setItem(storageKey, open);
-        }
-        buttonFrame.addEventListener('click', () => {
-            openFrame = !openFrame;
-            toggleFrame(frameFrame, buttonFrame, openFrame, 'DebugFrame');
-        });
-        buttonScene.addEventListener('click', () => {
-            openScene = !openScene;
-            toggleFrame(sceneFrame, buttonScene, openScene, 'DebugScene');
-        });
-        buttonBuffers.addEventListener('click', () => {
-            openBuffers = !openBuffers;
-            toggleFrame(buffersFrame, buttonBuffers, openBuffers, 'DebugBuffers');
-        });
-        buttonSystem.addEventListener('click', () => {
-            openSystem = !openSystem;
-            toggleFrame(systemFrame, buttonSystem, openSystem, 'DebugSystem');
-        });
-        toggleFrame(frameFrame, buttonFrame, openFrame, 'DebugFrame');
-        toggleFrame(sceneFrame, buttonScene, openScene, 'DebugScene');
-        toggleFrame(buffersFrame, buttonBuffers, openBuffers, 'DebugBuffers');
-        toggleFrame(systemFrame, buttonSystem, openSystem, 'DebugSystem');
-        const domFps = document.getElementById('EyeFps');
-        const domRender = document.getElementById('EyeRender');
-        const domMax = document.getElementById('EyeMax');
-        const domDraws = document.getElementById('EyeDraws');
-        const domObjects = document.getElementById('EyeObjects');
-        const domLights = document.getElementById('EyeLights');
-        const domVertices = document.getElementById('EyeVertices');
-        const domTriangles = document.getElementById('EyeTriangles');
-        const domPrograms = document.getElementById('EyePrograms');
-        const domGeometries = document.getElementById('EyeGeometries');
-        const domTextures = document.getElementById('EyeTextures');
-        const domMem = document.getElementById('EyeMemory');
-        const frameClock = new Clock();
-        const elapsedClock = new Clock();
-        this.#startInternal = function(renderer) {
-            frameClock.start();
-            renderer.drawCallCount = 0;
-        };
-        this.#stopInternal = function(renderer) {
-            frameClock.stop();
-            elapsedClock.getDeltaTime();
-            const elapsed = elapsedClock.getElapsedTime();
-            if (elapsed > 1) {
-                const fps = elapsedClock.count() / elapsed;
-                if (domFps) domFps.firstChild.textContent = `${fps.toFixed(1)} fps`;
-                elapsedClock.reset();
-                const frameAvg = frameClock.averageDelta();
-                if (domRender) domRender.firstChild.textContent = `${frameAvg.toFixed(3) * 1000} ms`;
-                if (domMax) domMax.firstChild.textContent = `~ ${Math.floor(1 / frameAvg)} fps`;
-                frameClock.reset();
-                if (domDraws) domDraws.firstChild.textContent = `${renderer.drawCallCount}`;
-                if (domMem && performance.memory) {
-                    const memory = performance.memory.usedJSHeapSize / 1048576;
-                    domMem.firstChild.textContent = `${memory.toFixed(2)} mb`;
-                }
-                let objects = 0, vertices = 0, triangles = 0, lights = 0;
-                const scene = renderer.scene;
-                if (scene) {
-                    objects = -1;
-                    scene.traverse((object) => {
-                        if (object.visible) objects++;
-                        if (object.isLight) lights++;
-                        if (object.isMesh && object.geometry) {
-                            const geometry = object.geometry;
-                            vertices += geometry.attributes.position.count;
-                            const instance = (geometry.isInstanced) ? geometry.instancedCount : 1;
-                            if (geometry.attributes.index) triangles += (geometry.attributes.index.count / 3) * instance;
-                            else triangles += (geometry.attributes.position.count / 3) * instance;
-                        }
-                    });
-                }
-                domObjects.firstChild.textContent = `${objects}`;
-                domLights.firstChild.textContent = `${lights}`;
-                domVertices.firstChild.textContent = `${vertices}`;
-                domTriangles.firstChild.textContent = `${triangles.toFixed(0)}`;
-                domPrograms.firstChild.textContent = `${renderer.info?.programs ?? 0}`;
-                domGeometries.firstChild.textContent = `${renderer.info?.geometries ?? 0}`;
-                domTextures.firstChild.textContent = `${renderer.info?.textures ?? 0}`;
-            }
-        };
-        _singleton = this;
-    }
-    startFrame(renderer) {
-        this.#startInternal(renderer);
-    }
-    endFrame(renderer) {
-        this.#stopInternal(renderer);
-    }
-}
-function getVariable(variable) {
-    variable = String(variable);
-    if (!variable.startsWith('--')) variable = '--' + variable;
-    const rootElement = document.querySelector(':root');
-    const value = getComputedStyle(rootElement).getPropertyValue(variable);
-    return ((value === '') ? undefined : value);
-}
-
-export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, CameraControls, Circle, Clock, ColorStyle, ComponentManager, Debug, DomElement, Entity, EventManager, GridHelper, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_DOUBLE_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, OUTLINE_THICKNESS, Object2D, OriginHelper, Palette, Pattern, Pointer, PolyUtils, Project, RadialGradientStyle, Renderer, ResizeHelper, RubberBandBox, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, SelectControls, Sprite$1 as Sprite, Stage, Style, SysUtils, Text, Thing, TooltipHelper, VERSION, Vector2, Vector3, WORLD_TYPES, World };
+export { APP_EVENTS, APP_ORIENTATION, APP_SIZE, App, ArrayUtils, Asset, AssetManager, Box, Box2, BoxMask, Camera2D, Circle, Clock, ColorStyle, ComponentManager, DomElement, Entity, EventManager, Key, Keyboard, Line, LinearGradientStyle, MOUSE_CLICK_TIME, MOUSE_DOUBLE_TIME, MOUSE_SLOP, Mask, MathUtils, Matrix2, OUTLINE_THICKNESS, Object2D, Palette, Pattern, Pointer, PolyUtils, Project, RadialGradientStyle, Renderer, SCRIPT_FORMAT, STAGE_TYPES, SceneManager, Script, Sprite$1 as Sprite, Stage, Style, SysUtils, Text, Thing, VERSION, Vector2, Vector3, WORLD_TYPES, World };

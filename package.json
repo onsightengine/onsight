@@ -1,9 +1,9 @@
 {
-  "name": "@salinity/engine",
-  "version": "0.0.7",
+  "name": "onsight",
+  "version": "0.0.8",
   "description": "Interactive, easy to use JavaScript game framework.",
-  "module": "src/Salinity.js",
-  "main": "dist/salinity.module.js",
+  "module": "src/Onsight.js",
+  "main": "dist/onsight.module.js",
   "type": "module",
   "scripts": {
     "build": "rollup -c",
@@ -15,7 +15,7 @@
     "src/*"
   ],
   "keywords": [
-    "salinity",
+    "onsight",
     "game",
     "engine",
     "webgl",
@@ -26,14 +26,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/salinityengine/engine.git"
+    "url": "git+https://github.com/onsightengine/onsight.git"
   },
   "author": "Stephens Nunnally <stephens@scidian.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/salinityengine/engine/issues"
+    "url": "https://github.com/onsightengine/onsight/issues"
   },
-  "homepage": "https://github.com/salinityengine",
+  "homepage": "https://github.com/onsightengine",
   "private": false,
   "publishConfig": {
     "access": "public",

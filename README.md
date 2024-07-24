@@ -1,8 +1,8 @@
 <div align="center">
-<img src="./files/logo/salinity256.png" alt="Salinity Engine"/>
+<img src="./files/logo/onsight256.png" alt="Onsight Engine"/>
 </div>
 
-# Salinity
+# Onsight
 
 Open-source framework written in JavaScript to run games and other interactive content in the browser.
 

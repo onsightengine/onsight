@@ -83,6 +83,6 @@ import './core/components/entity/Sprite.js';
 /******************** SINGLE IMPORT ********************/
 
 if (typeof window !== 'undefined') {
-    if (window.__SALINITY__) console.warn(`Salinity v${window.__SALINITY__} already imported, now importing v${VERSION}!`);
-    else window.__SALINITY__ = VERSION;
+    if (window.__ONSIGHT__) console.warn(`Onsight v${window.__ONSIGHT__} already imported, now importing v${VERSION}!`);
+    else window.__ONSIGHT__ = VERSION;
 }

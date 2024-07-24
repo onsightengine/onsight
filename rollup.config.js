@@ -9,12 +9,12 @@ function header() {
     return {
         renderChunk(code) {
             return `/**
- * @description Salinity Engine
+ * @description Onsight Engine
  * @about       Interactive, easy to use JavaScript game framework.
  * @author      Stephens Nunnally <@stevinz>
  * @version     v${pkg.version}
  * @license     MIT - Copyright (c) 2024 Stephens Nunnally
- * @source      https://github.com/salinityengine/engine
+ * @source      https://github.com/onsightengine/onsight
  */
 ${code}`;
         }
@@ -24,7 +24,7 @@ ${code}`;
 const builds = [
 
     { // Standard Build
-        input: [ './src/Salinity.js' ],
+        input: [ './src/Onsight.js' ],
         treeshake: false,
 
         plugins: [
@@ -38,7 +38,7 @@ const builds = [
 
         output: [{
             format: 'esm',
-            file: './dist/salinity.module.js',
+            file: './dist/onsight.module.js',
             sourcemap: false,
             plugins: [
                 header(),
@@ -47,7 +47,7 @@ const builds = [
     },
 
     { // Minified
-        input: [ './src/Salinity.js' ],
+        input: [ './src/Onsight.js' ],
         treeshake: false,
 
         plugins: [
@@ -57,7 +57,7 @@ const builds = [
 
         output: [{
             format: 'esm',
-            file: './dist/salinity.min.js',
+            file: './dist/onsight.min.js',
             sourcemap: false,
             plugins: [
                 terser({ format: { comments: false } }),
@@ -81,7 +81,7 @@ const builds = [
 
         output: [{
             format: 'esm',
-            file: './dist/salinity.light.js',
+            file: './dist/onsight.light.js',
             sourcemap: false,
             plugins: [
                 header(),

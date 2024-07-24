@@ -16,7 +16,7 @@ class Project extends Thing {
 
         // Prototype
         this.isProject = true;
-        this.type = 'Salinity';
+        this.type = 'Onsight';
 
         // Notes
         this.notes = '';
@@ -184,7 +184,7 @@ class Project extends Thing {
         } else if (!SysUtils.isObject(data.meta)) {
             console.error(`Project.fromJSON(): No meta data found within JSON data`);
             return this;
-        } else if (type !== 'Salinity') {
+        } else if (type !== 'Onsight') {
             console.error(`Project.fromJSON(): Unknown project type '${type}', expected '${this.type}'`);
             return this;
         } else if (version !== VERSION) {

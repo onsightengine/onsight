@@ -11,7 +11,7 @@
 .history/
 
 # Build Files
-dist/salinity.min.js
+dist/onsight.min.js
 node_modules/
 out/
 stats.html

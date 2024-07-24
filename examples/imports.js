@@ -1,18 +1,18 @@
 /***** Local *****/
 
-// "salt": "../dist/salinity.module.js"
+// "salt": "../dist/onsight.module.js"
 // "suey": "../libs/suey.min.js"
 
 /***** CDN *****/
 
-// "salt": "https://unpkg.com/@salinity/engine@x.x.x/dist/salinity.module.js"
-// "suey": "https://unpkg.com/@salinity/suey@x.x.x/dist/suey.min.js"
+// "salt": "https://unpkg.com/onsight@x.x.x/dist/onsight.module.js"
+// "suey": "https://unpkg.com/suey@x.x.x/dist/suey.min.js"
 
 document.write(`
     <script type='importmap'>
     {
         "imports": {
-            "salt": "../dist/salinity.module.js",
+            "salt": "../dist/onsight.module.js",
             "suey": "../libs/suey.min.js"
         }
     }

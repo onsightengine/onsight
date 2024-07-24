@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <title>Salinity • Playground</title>
+    <meta charset='UTF-8' />
+    <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1' />
+    <meta name='viewport' content='width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0'>
+    <link rel='icon' type='image/png' href='../files/logo/salinity256.png' />
+    <link rel='stylesheet' href='./main.css' />
+</head>
+<body>
+
+    <div id='container' style='position:absolute; width:100%; height:100%; top:0px; left:0px; overflow: hidden;'></div>
+
+    <script src='./imports.js'></script>
+
+    <script type='module'>
+
+        import * as SALT from 'salt';
+        import * as SUEY from 'suey';
+
+        const scene = new SALT.Object2D();
+
+        // Objects
+        const center = new SALT.Circle(10);
+        center.setPosition(0, 0);
+        center.fillStyle.color = '#ff00ff';
+        center.draggable = false;
+        center.selectable = false;
+        scene.add(center);
+
+        const box = new SALT.Box();
+        box.setPosition(-100, 0);
+        box.fillStyle.color = '#ff0000';
+        scene.add(box);
+
+        const rainbowBox = new SALT.Box();
+        rainbowBox.setPosition(-100, 200);
+        rainbowBox.radius = 25;
+        rainbowBox.fillStyle = new SALT.LinearGradientStyle();
+        rainbowBox.fillStyle.start.set(-50, -50);
+        rainbowBox.fillStyle.end.set(50, 50);
+        rainbowBox.fillStyle.addColorStop(0, '#ff0000');
+        rainbowBox.fillStyle.addColorStop(0.5, '#00ff00');
+        rainbowBox.fillStyle.addColorStop(1, '#0000ff');
+        scene.add(rainbowBox);
+
+        const circle = new SALT.Circle();
+        circle.setPosition(100, 0);
+        circle.radius = 50;
+        rainbowBox.add(circle);
+
+        const rainbowCircle = new SALT.Circle();
+        rainbowCircle.setPosition(100, 200);
+        rainbowCircle.radius = 50;
+        rainbowCircle.fillStyle = new SALT.RadialGradientStyle();
+        rainbowCircle.fillStyle.addColorStop(0, '#000000');
+        rainbowCircle.fillStyle.addColorStop(1, '#ffffff');
+        scene.add(rainbowCircle);
+
+        rainbowCircle.onUpdate = function() {
+            rainbowCircle.position.x += 1;
+        };
+
+        const text = new SALT.Text();
+        text.setPosition(0, -100);
+        text.fillStyle.color = 'var(--icon)';
+        text.text = 'Hello World!\nTesting\nAnd Again';
+        scene.add(text);
+
+        const line = new SALT.Line();
+        line.strokeStyle.color = '#ff0000';
+        line.lineWidth = 10;
+        line.mouseBuffer = 0;
+        line.from.set(-200, -200);
+        line.to.set(0, 0);
+        scene.add(line);
+
+        const line2 = new SALT.Line();
+        line2.strokeStyle.color = '#00ff00';
+        line2.lineWidth = 10;
+        line2.mouseBuffer = 0;
+        line2.from.set(-200, -200);
+        line2.to.set(0, 0);
+        scene.add(line2);
+
+        const line3 = new SALT.Line();
+        line3.strokeStyle.color = '#0000ff';
+        line3.lineWidth = 10;
+        line3.mouseBuffer = 0;
+        line3.from.set(-100, -100);
+        line3.to.set(100, 100);
+        scene.add(line3);
+
+        const sprite1 = new SALT.Sprite('../files/textures/shapes.png');
+        sprite1.setPosition(-350, 0);
+        sprite1.opacity = 0;
+        scene.add(sprite1);
+
+        const sprite2 = new SALT.Sprite('../files/textures/demon.png');
+        sprite2.setPosition(-350, 300);
+        sprite2.opacity = 0;
+        scene.add(sprite2);
+
+        // for (let i = 0; i < 50; i++) {
+        //     const box = new SALT.Box().setPosition((Math.random() * 1000) - 500, (Math.random() * 1000) - 500);
+        //     box.fillStyle.color = `rgb(0, ${Math.floor(Math.random()*256)},${Math.floor(Math.random()*256)})`;
+        //     // box.draggable = false;
+        //     // box.focusable = false;
+        //     // box.selectable = false;
+        //     scene.add(box);
+        // }
+
+        const dom1 = new SALT.DomElement();
+        const video = document.createElement('video');
+        video.src = '../files/video/scidian.mp4';
+        video.loop = true;
+        video.muted = true;
+        video.setAttribute('playsinline', 'playsinline');
+        video.play();
+        video.addEventListener('loadeddata', () => {
+            dom1.setSize(parseFloat(video.videoWidth), parseFloat(video.videoHeight));
+        }, false);
+        dom1.dom.appendChild(video);
+        dom1.scale.set(0.1, 0.1);
+        scene.add(dom1);
+
+        // const grid = new SALT.GridHelper();
+        // renderer.addHelper(grid);
+
+        // Renderer
+        const renderer = new SALT.Renderer({ width: window.innerWidth, height: window.innerHeight });
+        const container = document.getElementById('container');
+        container.appendChild(renderer.dom);
+
+        // Camera
+        const camera = new SALT.Camera2D();
+
+        // Camera Controls
+        const cameraControls = new SALT.CameraControls(camera);
+        renderer.addUpdate(cameraControls);
+
+        // Select Controls
+        const selectControls = new SALT.SelectControls();
+        renderer.addUpdate(selectControls);
+
+        // Start
+        const debug = new SALT.Debug();
+        const onBeforeRender = () => { debug.startFrame(renderer); };
+        const onAfterRender = () => { debug.endFrame(renderer); };
+        renderer.start(scene, camera, onBeforeRender, onAfterRender);
+
+        /////
+
+        const params = {
+            selectPosition: [ 0, 0 ],
+            selectRotation: 0,
+            selectScale: [ 0, 0 ],
+            objectPosition: [ 0, 0 ],
+            objectRotation: 0,
+            objectScale: [ 0, 0 ],
+        };
+
+        const gui = new SUEY.Gooey();
+
+        const folder1 = gui.addFolder('Selection');
+        const selectPosition = folder1.add(params, 'selectPosition');
+        const selectRotation = folder1.add(params, 'selectRotation');
+        const selectScale = folder1.add(params, 'selectScale');
+
+        const folder2 = gui.addFolder('Object');
+        const objectPosition = folder2.add(params, 'objectPosition');
+        const objectRotation = folder2.add(params, 'objectRotation');
+        const objectScale = folder2.add(params, 'objectScale');
+
+        const gooeyUpdater = {
+            update: function() {
+                if (selectControls.selection && selectControls.selection.length > 0) {
+                    const resizeHelper = selectControls.resizeHelper;
+                    params.selectPosition = [ resizeHelper.position.x, resizeHelper.position.y ];
+                    params.selectRotation = resizeHelper.rotation * (180 / Math.PI);
+                    params.selectScale = [ resizeHelper.scale.x, resizeHelper.scale.y ];
+                    selectPosition.updateDisplay();
+                    selectRotation.updateDisplay();
+                    selectScale.updateDisplay();
+
+                    const first = selectControls.selection[0];
+                    params.objectPosition = [ first.position.x, first.position.y ];
+                    params.objectRotation = first.rotation * (180 / Math.PI);
+                    params.objectScale = [ first.scale.x, first.scale.y ];
+                    objectPosition.updateDisplay();
+                    objectRotation.updateDisplay();
+                    objectScale.updateDisplay();
+                }
+            },
+        }
+
+        renderer.addUpdate(gooeyUpdater);
+
+    </script>
+
+</body>
+</html>

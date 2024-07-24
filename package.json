@@ -1,0 +1,48 @@
+{
+  "name": "@salinity/engine",
+  "version": "0.0.7",
+  "description": "Interactive, easy to use JavaScript game framework.",
+  "module": "src/Salinity.js",
+  "main": "dist/salinity.module.js",
+  "type": "module",
+  "scripts": {
+    "build": "rollup -c",
+    "prepublishOnly": "npm run build"
+  },
+  "files": [
+    "dist/*",
+    "files/*",
+    "src/*"
+  ],
+  "keywords": [
+    "salinity",
+    "game",
+    "engine",
+    "webgl",
+    "javascript",
+    "graphics",
+    "framework",
+    "canvas"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/salinityengine/engine.git"
+  },
+  "author": "Stephens Nunnally <stephens@scidian.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/salinityengine/engine/issues"
+  },
+  "homepage": "https://github.com/salinityengine",
+  "private": false,
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "devDependencies": {
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-terser": "^0.4.4",
+    "rollup-plugin-cleanup": "^3.2.1",
+    "rollup-plugin-visualizer": "^5.12.0"
+  }
+}

@@ -1,0 +1,17 @@
+# Settings
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# Hidden Files
+.DS_Store
+.history/
+
+# Build Files
+dist/salinity.min.js
+node_modules/
+out/
+stats.html

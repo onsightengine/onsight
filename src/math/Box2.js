@@ -1,0 +1,168 @@
+import { Vector2 } from './Vector2.js';
+
+const _clamp = new Vector2();
+const _half = new Vector2();
+
+class Box2 {
+
+    constructor(min, max) {
+        this.min = new Vector2(+Infinity, +Infinity);
+        this.max = new Vector2(-Infinity, -Infinity);
+        if (typeof min === 'object') this.min.copy(min);
+        if (typeof max === 'object') this.max.copy(max);
+    }
+
+    /** Set the box values */
+    set(min, max) {
+        this.min.copy(min);
+        this.max.copy(max);
+        return this;
+    }
+
+    /** Set the box from a list of Vector2 points */
+    setFromPoints(...points) {
+        this.clear();
+        if (points.length > 0 && Array.isArray(points[0])) points = points[0];
+        for (const point of points) this.expandByPoint(point);
+        return this;
+    }
+
+    /** Set the box minimum and maximum from center point and size */
+    setFromCenterAndSize(center, size) {
+        _half.copy(size).multiplyScalar(0.5);
+        this.min.copy(center).sub(_half);
+        this.max.copy(center).add(_half);
+        return this;
+    }
+
+    clone() {
+        return new Box2().copy(this);
+    }
+
+    copy(box) {
+        this.min.copy(box.min);
+        this.max.copy(box.max);
+        return this;
+    }
+
+    clear() {
+        this.min.set(+Infinity, +Infinity);
+        this.max.set(-Infinity, -Infinity);
+    }
+
+    /** Check if the box is empty (size equals zero or is negative) */
+    isEmpty() {
+        return (this.max.x < this.min.x) || (this.max.y < this.min.y);
+    }
+
+    /** Calculate the center point of the box */
+    getCenter(target = new Vector2()) {
+        this.isEmpty() ? target.set(0, 0) : target.addVectors(this.min, this.max).multiplyScalar(0.5);
+        return target;
+    }
+
+    /** Get the size of the box from its min and max points */
+    getSize(target = new Vector2()) {
+        this.isEmpty() ? target.set(0, 0) : target.subVectors(this.max, this.min).abs();
+        return target;
+    }
+
+    /** Expand the box to contain a new point */
+    expandByPoint(point) {
+        this.min.min(point);
+        this.max.max(point);
+        return this;
+    }
+
+    /** Expand the box by adding a vector */
+    expandByVector(vector, y) {
+        let ex, ey;
+        if (typeof vector === 'object') {
+            ex = vector.x / 2;
+            ey = vector.y / 2;
+        } else {
+            ex = vector / 2;
+            ey = y / 2;
+        }
+        this.min.sub(ex, ey);
+        this.max.add(ex, ey);
+        return this;
+    }
+
+    /** Expand the box by adding a border with the scalar value */
+    expandByScalar(scalar) {
+        this.min.addScalar(scalar * -1);
+        this.max.addScalar(scalar * +1);
+        return this;
+    }
+
+    multiply(x, y) {
+        if (typeof x === 'object') {
+            y = x.y;
+            x = x.x;
+        }
+        this.min.multiply(x, y);
+        this.max.multiply(x, y);
+        return this;
+    }
+
+    /** Check if the box contains a point inside */
+    containsPoint(point) {
+        return !(point.x < this.min.x || point.x > this.max.x || point.y < this.min.y || point.y > this.max.y);
+    }
+
+    /** Check if the box FULLY contains another box inside (different from intersects box) */
+    containsBox(box) {
+        return this.min.x <= box.min.x && box.max.x <= this.max.x && this.min.y <= box.min.y && box.max.y <= this.max.y;
+    }
+
+    /** Check if two boxes intersect each other, using 4 splitting planes to rule out intersections */
+    intersectsBox(box) {
+        return !(box.max.x < this.min.x || box.min.x > this.max.x || box.max.y < this.min.y || box.min.y > this.max.y);
+    }
+
+    /** Calculate the distance to a point */
+    distanceToPoint(point) {
+        _clamp.copy(point).clamp(this.min, this.max).sub(point);
+        return _clamp.length();
+    }
+
+    /** Make an intersection between this box and another box, store the result in this object */
+    intersect(box) {
+        this.min.max(box.min);
+        this.max.min(box.max);
+        return this;
+    }
+
+    /** Make a union between this box and another box, store the result in this object */
+    union(box) {
+        this.min.min(box.min);
+        this.max.max(box.max);
+        return this;
+    }
+
+    /** Translate the box by a offset value */
+    translate(x, y) {
+        this.min.add(x, y);
+        this.max.add(x, y);
+        return this;
+    }
+
+    /** Checks if two boxes are equal */
+    equals(box) {
+        return box.min.equals(this.min) && box.max.equals(this.max);
+    }
+
+    toArray() {
+        return [ this.min.x, this.min.y, this.max.x, this.max.y ];
+    }
+
+    fromArray(array, offset = 0) {
+        this.min.set(array[offset + 0], array[offset + 1]);
+        this.max.set(array[offset + 2], array[offset + 3]);
+        return this;
+    }
+
+}
+
+export { Box2 };

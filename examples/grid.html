@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <title>Salinity • Playground</title>
+    <meta charset='UTF-8' />
+    <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1' />
+    <meta name='viewport' content='width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0'>
+    <link rel='icon' type='image/png' href='../files/logo/salinity256.png' />
+    <link rel='stylesheet' href='./main.css' />
+</head>
+<body>
+
+    <div id='container' style='position:absolute; width:100%; height:100%; top:0px; left:0px; overflow: hidden;'></div>
+
+    <script src='./imports.js'></script>
+
+    <script type='module'>
+
+        import * as SALT from 'salt';
+        import * as SUEY from 'suey';
+
+        const scene = new SALT.Object2D();
+
+        // Objects
+        const center = new SALT.Circle(10);
+        center.setPosition(0, 0);
+        center.fillStyle.color = '#ff00ff';
+        center.draggable = false;
+        center.selectable = false;
+        scene.add(center);
+
+        const box1 = new SALT.Box();
+        box1.setPosition(-150, 50);
+        box1.fillStyle.color = '#ff0000';
+        scene.add(box1);
+
+        const box2 = new SALT.Box();
+        box2.setPosition(200, 0);
+        box2.fillStyle.color = '#00aa00';
+        box2.selectable = false;
+        scene.add(box2);
+
+        const box3 = new SALT.Box();
+        box3.setPosition(0, -150);
+        box3.fillStyle.color = '#0000ff';
+        scene.add(box3);
+
+        const box4 = new SALT.Box();
+        box4.setPosition(-300, -100);
+        box4.fillStyle.color = '#ff00ff';
+        scene.add(box4);
+
+        const line2 = new SALT.Line();
+        line2.strokeStyle.color = '#00aa00';
+        line2.lineWidth = 10;
+        line2.mouseBuffer = 0;
+        line2.from.set(-150, -150);
+        line2.to.set(50, 50);
+        scene.add(line2);
+
+        const line3 = new SALT.Line();
+        line3.strokeStyle.color = '#aaaa00';
+        line3.lineWidth = 10;
+        line3.mouseBuffer = 0;
+        line3.from.set(-50, -150);
+        line3.to.set(150, 50);
+        scene.add(line3);
+
+        const rainbowBox = new SALT.Box();
+        rainbowBox.setPosition(-100, 200);
+        rainbowBox.radius = 25;
+        rainbowBox.fillStyle = new SALT.LinearGradientStyle();
+        rainbowBox.fillStyle.start.set(-50, -50);
+        rainbowBox.fillStyle.end.set(50, 50);
+        rainbowBox.fillStyle.addColorStop(0, '#ff0000');
+        rainbowBox.fillStyle.addColorStop(0.5, '#00ff00');
+        rainbowBox.fillStyle.addColorStop(1, '#0000ff');
+        scene.add(rainbowBox);
+
+        const circle = new SALT.Circle();
+        circle.setPosition(100, 0);
+        circle.radius = 50;
+        circle.fillStyle = new SALT.LinearGradientStyle();
+        circle.fillStyle.start.set(-50, -50);
+        circle.fillStyle.end.set(50, 50);
+        circle.fillStyle.addColorStop(0, '#222222');
+        circle.fillStyle.addColorStop(1, '#cccccc');
+        rainbowBox.add(circle);
+
+        // Pattern
+        const pattern1 = new SALT.Pattern('../files/textures/shapes.png');
+        pattern1.setPosition(-450, 100);
+        setTimeout(() => {
+            pattern1.box.min.set(-100, -100);
+            pattern1.box.max.set(+100, +150);
+        }, 1000);
+        scene.add(pattern1);
+
+        // Renderer
+        const renderer = new SALT.Renderer({ width: window.innerWidth, height: window.innerHeight });
+        const container = document.getElementById('container');
+        container.appendChild(renderer.dom);
+
+        // Camera
+        const camera = new SALT.Camera2D();
+
+        // Camera Controls
+        const cameraControls = new SALT.CameraControls(camera);
+        renderer.addUpdate(cameraControls);
+
+        // Select Controls
+        const selectControls = new SALT.SelectControls();
+        renderer.addUpdate(selectControls);
+
+        // Grid Helper
+        const grid = new SALT.GridHelper();
+        renderer.addHelper(grid);
+
+        // Tooltip Helper
+        const tooltip = new SALT.TooltipHelper(true /* sceneTips? */);
+        renderer.addHelper(tooltip);
+
+        // Start
+        const debug = new SALT.Debug();
+        const onBeforeRender = () => { debug.startFrame(renderer); };
+        const onAfterRender = () => { debug.endFrame(renderer); };
+        renderer.start(scene, camera, onBeforeRender, onAfterRender);
+
+        /////
+
+        const params = {
+            snapToGrid: true,
+            showOnTop: false,
+            sizeX: 50,
+            sizeY: 50,
+            scaleX: 1,
+            scaleY: 1,
+            rotation: 0,
+        };
+
+        const gui = new SUEY.Gooey();
+
+        const folder1 = gui.addFolder();
+        folder1.add(params, 'snapToGrid').onChange(() => { grid.snap = params.snapToGrid; });
+        folder1.add(params, 'showOnTop').onChange(() => { grid.onTop = params.showOnTop; });
+        folder1.add(params, 'sizeX').step(5).onChange(() => { grid.gridX = Math.max(params.sizeX, 1); });
+        folder1.add(params, 'sizeY').step(5).onChange(() => { grid.gridY = Math.max(params.sizeY, 1); });
+        folder1.add(params, 'scaleX', 0, 10, 0.2, 1).onChange(() => { grid.scale.x = Math.max(params.scaleX, 0.1); });
+        folder1.add(params, 'scaleY', 0, 10, 0.2, 1).onChange(() => { grid.scale.y = Math.max(params.scaleY, 0.1); });
+        folder1.add(params, 'rotation', 0, 360, 5, 1, '°').onChange(() => { grid.rotation = params.rotation * (Math.PI / 180); });
+
+    </script>
+
+</body>
+</html>

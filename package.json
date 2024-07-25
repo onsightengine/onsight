@@ -1,6 +1,6 @@
 {
   "name": "onsight",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Interactive, easy to use JavaScript game framework.",
   "module": "src/Onsight.js",
   "main": "dist/onsight.module.js",

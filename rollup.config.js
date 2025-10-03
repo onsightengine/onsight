@@ -1,20 +1,27 @@
-import cleanup from 'rollup-plugin-cleanup';                    // Remove comments, supports sourcemap
-import json from '@rollup/plugin-json';                         // Import JSON
-import terser from '@rollup/plugin-terser';                     // Remove comments, minify
-import { visualizer } from 'rollup-plugin-visualizer';          // Visualize
+/**
+ * @description Onsight Engine
+ * @about       Easy to use 2D / 3D JavaScript game engine.
+ * @author      Stephens Nunnally <@stevinz>
+ * @license     MIT - Copyright (c) 2021 Stephens Nunnally
+ * @source      https://github.com/scidian/onsight
+ */
 
-import pkg from './package.json' with { type: "json" };
+import { VERSION } from './src/constants.js';               // Pull in version
+import { terser } from 'rollup-plugin-terser';              // Remove comments, minify
+import { visualizer } from 'rollup-plugin-visualizer';      // Visualize
+import cleanup from 'rollup-plugin-cleanup';                // Remove comments, supports sourcemap
+// import obfuscator from 'rollup-plugin-obfuscator';       // Obfuscate
 
 function header() {
     return {
         renderChunk(code) {
             return `/**
  * @description Onsight Engine
- * @about       Interactive, easy to use JavaScript game framework.
+ * @about       Easy to use 2D / 3D JavaScript game engine.
  * @author      Stephens Nunnally <@stevinz>
- * @version     v${pkg.version}
- * @license     MIT - Copyright (c) 2024 Stephens Nunnally
- * @source      https://github.com/onsightengine/onsight
+ * @version     v${VERSION}
+ * @license     MIT - Copyright (c) 2021 Stephens Nunnally
+ * @source      https://github.com/scidian/onsight
  */
 ${code}`;
         }
@@ -24,70 +31,67 @@ ${code}`;
 const builds = [
 
     { // Standard Build
-        input: [ './src/Onsight.js' ],
+        input: './src/Onsight.js',
         treeshake: false,
+        external: p => /^three/.test(p) || /^rapier/.test(p),
 
         plugins: [
-            json(),
             cleanup({
                 comments: "none",
                 extensions: [ "js", "ts" ],
                 sourcemap: false,
             }),
+            header(),
         ],
 
         output: [{
             format: 'esm',
-            file: './dist/onsight.module.js',
+            file: './build/onsight.module.js',
             sourcemap: false,
-            plugins: [
-                header(),
-            ],
         }],
     },
 
     { // Minified
-        input: [ './src/Onsight.js' ],
+        input: './src/Onsight.js',
         treeshake: false,
+        external: p => /^three/.test(p) || /^rapier/.test(p),
 
         plugins: [
-            json(),
+            header(),
             visualizer(),
         ],
 
         output: [{
             format: 'esm',
-            file: './dist/onsight.min.js',
+            file: './build/onsight.min.js',
             sourcemap: false,
             plugins: [
                 terser({ format: { comments: false } }),
-                header(),
             ],
         }],
     },
 
-    { // Light (No Extras) Build
-        input: './src/Core.js',
+    /**
+    { // Obfuscated
+        input: './src/Onsight.js',
         treeshake: false,
+        external: p => /^three/.test(p) || /^rapier/.test(p),
 
         plugins: [
-            json(),
-            cleanup({
-                comments: "none",
-                extensions: [ "js", "ts" ],
-                sourcemap: false,
-            }),
+            obfuscator({ fileOptions: {}, globalOptions: {} }),
+            header(),
         ],
 
         output: [{
             format: 'esm',
-            file: './dist/onsight.light.js',
+            file: './build/onsight.compile.js',
             sourcemap: false,
             plugins: [
-                header(),
+                terser({ format: { comments: false } }),
             ],
         }],
     },
+    **/
 
 ];
 

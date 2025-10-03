@@ -1,24 +1,15 @@
 <div align="center">
-<img src="./files/logo/onsight256.png" alt="Onsight Engine"/>
+<img src="./files/logo/eye256.png" alt="Onsight Engine"/>
 </div>
 
-# Onsight
+# Onsight Engine
 
-Open-source framework written in JavaScript to run games and other interactive content in the browser.
+Onsight is a 2D / 3D, open-source game engine written in JavaScript. It is built on [three.js](https://threejs.org/)) to run games and other interactive content in any web browser.
 
 <br />
 
 ## Status
 
-Under development, expect frequent breaking changes...
-
-<br />
-
-## Credits
-
-Thanks to inspiration and code from these wonderful projects:
-- [escher.js](https://github.com/tentone/escher.js) - Interactive 2D canvas framework.
-- [ogl](https://github.com/oframe/ogl) - Minimal WebGL library.
-- [three.js](https://github.com/mrdoob/three.js/) - JavaScript 3D library.
+Development has been suspended. Future work is now focused on the [Salinity Engine](https://github.com/salinityengine).
 
 <br />

@@ -1,18 +1,17 @@
 {
   "name": "onsight",
-  "version": "0.0.9",
-  "description": "Interactive, easy to use JavaScript game framework.",
+  "version": "0.0.6",
+  "description": "Easy to use 2D / 3D JavaScript game engine.",
   "module": "src/Onsight.js",
-  "main": "dist/onsight.module.js",
+  "main": "build/onsight.module.js",
   "type": "module",
   "scripts": {
     "build": "rollup -c",
     "prepublishOnly": "npm run build"
   },
   "files": [
-    "dist/*",
-    "files/*",
-    "src/*"
+    "src/*",
+    "build/*"
   ],
   "keywords": [
     "onsight",
@@ -20,29 +19,30 @@
     "engine",
     "webgl",
     "javascript",
-    "graphics",
-    "framework",
-    "canvas"
+    "graphics"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/onsightengine/onsight.git"
+    "url": "git+https://github.com/scidian/onsight.git"
   },
   "author": "Stephens Nunnally <stephens@scidian.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/onsightengine/onsight/issues"
+    "url": "https://github.com/scidian/onsight/issues"
   },
-  "homepage": "https://github.com/onsightengine",
-  "private": false,
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  },
+  "homepage": "https://github.com/scidian",
   "devDependencies": {
-    "@rollup/plugin-json": "^6.1.0",
-    "@rollup/plugin-terser": "^0.4.4",
+    "javascript-obfuscator": "^4.0.0",
+    "jsdoc": "~4.0.0",
+    "rollup": "^2.58.0",
     "rollup-plugin-cleanup": "^3.2.1",
-    "rollup-plugin-visualizer": "^5.12.0"
+    "rollup-plugin-obfuscator": "^0.2.2",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-visualizer": "^5.8.3"
+  },
+  "private": false,
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "0.16.0",
+    "three": ">=0.148.0"
   }
 }
